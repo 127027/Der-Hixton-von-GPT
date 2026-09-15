@@ -13,6 +13,7 @@ on:
     # finalized native 1h candles only; this cadence only controls catch-up lag.
     - cron: "3,13,23,33,43,53 * * * *"
 
+# Paper-only runtime: public Binance data, simulated fills, no exchange secrets.
 permissions:
   contents: write
   actions: read
