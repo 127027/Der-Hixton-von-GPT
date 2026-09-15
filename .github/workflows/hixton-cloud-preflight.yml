@@ -7,10 +7,13 @@ on:
       - gpt/usdc-audit
     paths:
       - scripts/swarm_core.py
+      - scripts/cloud_paper_cycle.py
       - tests/test_swarm_core.py
+      - tests/test_cloud_paper_cycle.py
       - agent_memory/**
       - .github/workflows/hixton-cloud-preflight.yml
       - .github/workflows/hixton-cloud-swarm-reusable.yml
+      - .github/workflows/hixton-paper-cloud-reusable.yml
 
 permissions:
   contents: read
@@ -31,7 +34,7 @@ jobs:
         with:
           python-version: "3.12"
 
-      - name: Validate cloud-swarm contract
+      - name: Validate cloud-swarm and cloud-Paper contracts
         shell: bash
         run: |
           set -euo pipefail
@@ -39,7 +42,7 @@ jobs:
           .venv/bin/python -m pip install --upgrade pip
           .venv/bin/pip install -e '.[dev]'
           .venv/bin/python -m compileall -q scripts
-          .venv/bin/pytest -q tests/test_swarm_core.py
+          .venv/bin/pytest -q tests/test_swarm_core.py tests/test_cloud_paper_cycle.py
           .venv/bin/python - <<'PY'
           from pathlib import Path
           from scripts.swarm_core import validate_cloud_ready
