@@ -119,34 +119,46 @@ Older DMS portions mention USDT, earlier strategy IDs, 240 cash, 3-only slot lim
 
 No attempt should globally rewrite historical evidence to current USDC wording; that would destroy provenance. A01 should flag stale current-facing text only when it is actually presented as current, not historical.
 
-## 10. Engineering-agent infrastructure defect
+## 10. Engineering-agent infrastructure
 
-Verified real issue to repair after bootstrap:
-- `scripts/local_agent.ps1` and `scripts/agent_chat.ps1` are single-agent bootstrap tools;
-- both hard-code obsolete branch `agent/codex-supervisor-v1`;
-- they do not implement the new 11-role task graph, heartbeat, retry/reopen, independent QA/governance gates or role isolation.
+The former laptop-bound engineering path has been removed:
+- `StartAgent.bat` removed;
+- `AgentChat.bat` removed;
+- `scripts/local_agent.ps1` removed;
+- `scripts/agent_chat.ps1` removed;
+- the local executable swarm runner removed;
+- the old `codex-supervisor.yml` local-memory-only workflow removed.
 
-This is SWARM-001 implementation work, not a trading-engine defect. Reuse/upgrade existing engineering-agent entry rather than adding a second bot starter.
+The authoritative replacement is cloud-hosted GitHub Actions:
+- default-branch `.github/workflows/hixton-cloud-swarm.yml` provides manual and scheduled dispatch;
+- `gpt/usdc-audit/.github/workflows/hixton-cloud-swarm-reusable.yml` contains the 11-agent execution graph;
+- A01-A08 run independently and read-only on GitHub-hosted runners;
+- A10 works on an isolated `swarm/run-<run id>` branch;
+- A09 executes deterministic QA plus independent release review;
+- A11 performs final governance and triggers one automatic A10 repair loop if needed;
+- successful work creates a pull request and is never auto-merged.
+
+A GitHub-hosted runner cannot reuse the user's interactive laptop ChatGPT/Codex login. The official Codex Action therefore requires a repository secret named `OPENAI_API_KEY`. This is an external configuration requirement, not repository code.
 
 ## 11. Repository structure/orphans
 
 All tracked application/source/test/config/workflow/documentation files are assigned in `inventory.md`. Generated UI static assets and lockfiles are grouped with clear ownership. Backtest version directories are historical/research evidence, not duplicate application entrypoints.
 
-`StartAgent.bat`/`AgentChat.bat` are engineering tooling introduced alongside AGENTS.md and are not in the normal trading launch path. `Startbot.bat -> src/main.py` remains the only trading application start path.
+`Startbot.bat -> src/main.py` remains the only trading application start path. The cloud engineering swarm is CI tooling and does not create a second bot runtime entrypoint.
 
 ## 12. Test/evidence consistency
 
-Repo-reported counts vary between historical DMS revisions (e.g. 292/19 vs later 335/22) because those sections describe different commits. Latest current README/DMS18 is the relevant historical evidence, but no new test run has yet been executed on post-bootstrap swarm code. A09 must report future actual run results rather than copying a historical number.
+Repo-reported counts vary between historical DMS revisions (e.g. 292/19 vs later 335/22) because those sections describe different commits. Latest current README/DMS18 is the relevant historical evidence. Cloud missions must report actual fresh runner results rather than copy historical counts.
+
+The default-branch dispatcher and reusable workflow were accepted by GitHub as a valid workflow graph: GitHub resolved the called workflow on `gpt/usdc-audit` and instantiated preflight/specialist/A10/A09/A11/repair jobs. The first validation run stopped before runner steps because the required cloud OpenAI secret was not available, leaving all downstream jobs correctly skipped rather than pretending to run agents.
 
 ## Cross-check verdict
 
-No unresolved **repository-understanding** question remains that additional code inspection can answer before beginning SWARM-001 engineering. The remaining uncertainties are intentionally external/runtime/release facts:
+No unresolved **repository-understanding** question remains. The remaining uncertainties are external/runtime facts:
+- GitHub repository `OPENAI_API_KEY` must be configured before Codex cloud jobs can execute;
 - current real Binance account permissions/filter/fee/live-order behavior;
 - external Testnet/operational acceptance;
 - actual operator-machine backup/restore status;
-- future runtime health when the bot is not presently observable by the agent;
 - future strategy profitability/market behavior.
 
-These are not bootstrap knowledge gaps and must remain external/runtime unknowns rather than being guessed.
-
-Bootstrap knowledge is sufficient to safely modify the engineering-agent tooling next, while preserving all trading/live safety boundaries.
+The repository is structurally ready for laptop-independent swarm execution while preserving all trading/live safety boundaries. SWARM-002 is the first active engineering mission once the GitHub OpenAI secret is configured.
