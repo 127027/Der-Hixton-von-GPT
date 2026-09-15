@@ -1,0 +1,899 @@
+name: Hixton Cloud Swarm Core
+
+on:
+  workflow_call:
+    inputs:
+      mission:
+        description: Optional mission override. Empty means active taskboard mission.
+        required: false
+        type: string
+        default: ""
+    secrets:
+      OPENAI_API_KEY:
+        required: true
+
+permissions:
+  contents: write
+  pull-requests: write
+  issues: write
+  actions: read
+
+concurrency:
+  group: hixton-cloud-swarm
+  cancel-in-progress: false
+
+env:
+  BASE_BRANCH: gpt/usdc-audit
+  PYTHON_VERSION: "3.12"
+  NODE_VERSION: "20"
+
+jobs:
+  preflight:
+    runs-on: ubuntu-latest
+    timeout-minutes: 35
+    outputs:
+      run_swarm: ${{ steps.gate.outputs.run_swarm }}
+      data_ready: ${{ steps.market.outputs.data_ready }}
+    steps:
+      - name: Checkout engineering branch
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ env.BASE_BRANCH }}
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Verify cloud credential is configured
+        shell: bash
+        env:
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+        run: |
+          set -euo pipefail
+          if [ -z "$OPENAI_API_KEY" ]; then
+            echo "::error::Repository secret OPENAI_API_KEY is missing."
+            exit 1
+          fi
+          echo "OPENAI_API_KEY is configured."
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: npm
+          cache-dependency-path: ui/package-lock.json
+
+      - name: Build isolated virtual bot environment
+        shell: bash
+        run: |
+          set -euo pipefail
+          python -m venv .venv
+          .venv/bin/python -m pip install --upgrade pip
+          .venv/bin/pip install -e '.[dev]'
+          npm --prefix ui ci
+          echo "$PWD/.venv/bin" >> "$GITHUB_PATH"
+          .venv/bin/python src/main.py status
+          source .venv/bin/activate
+          pytest -q tests/test_runtime_parity.py tests/test_ui_api.py
+
+      - name: Validate swarm contract and decide whether to run
+        id: gate
+        shell: bash
+        env:
+          MISSION_OVERRIDE: ${{ inputs.mission }}
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          .venv/bin/python - <<'PY'
+          from pathlib import Path
+          from scripts.swarm_core import validate_registry, load_mission, required_agents
+          root = Path('.')
+          registry = validate_registry(root)
+          mission = load_mission(root)
+          assert registry['agent_count'] == 11
+          assert len(required_agents(mission)) == 11
+          print(f"Active mission: {mission['id']} - {mission['title']}")
+          print(f"State: {mission['state']}")
+          PY
+
+          if [ -n "$MISSION_OVERRIDE" ]; then
+            echo "run_swarm=true" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          state="$(.venv/bin/python - <<'PY'
+          import json
+          with open('agent_memory/swarm/taskboard.json', encoding='utf-8') as handle:
+              print(json.load(handle)['active_mission']['state'])
+          PY
+          )"
+          if [ "$state" = "DONE" ] || [ "$state" = "BLOCKED" ]; then
+            echo "Taskboard state is $state; no autonomous work starts."
+            echo "run_swarm=false" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          open_count="$(gh pr list --repo "$GITHUB_REPOSITORY" --base "$BASE_BRANCH" --state open --json headRefName --jq '[.[] | select(.headRefName | startswith("swarm/run-"))] | length')"
+          if [ "$open_count" != "0" ]; then
+            echo "An open swarm PR already exists; duplicate work is suppressed."
+            echo "run_swarm=false" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          echo "run_swarm=true" >> "$GITHUB_OUTPUT"
+
+      - name: Restore public market-data cache
+        if: steps.gate.outputs.run_swarm == 'true'
+        uses: actions/cache@v4
+        with:
+          path: data/hixton-usdc.sqlite3
+          key: hixton-public-usdc-${{ runner.os }}-${{ hashFiles('src/hixton/data/**', 'config/examples/config.example.json') }}
+          restore-keys: |
+            hixton-public-usdc-${{ runner.os }}-
+
+      - name: Best-effort public USDC market sync
+        if: steps.gate.outputs.run_swarm == 'true'
+        id: market
+        shell: bash
+        run: |
+          set +e
+          mkdir -p data
+          timeout 20m .venv/bin/python src/main.py data sync --symbol ALL
+          rc=$?
+          set -e
+          if [ "$rc" -eq 0 ] && [ -s data/hixton-usdc.sqlite3 ]; then
+            echo "data_ready=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "::warning::Public Binance sync unavailable in this runner (rc=$rc). Agents will use committed reports, fixtures and tests."
+            echo "data_ready=false" >> "$GITHUB_OUTPUT"
+            rm -f data/hixton-usdc.sqlite3 data/hixton-usdc.sqlite3-wal data/hixton-usdc.sqlite3-shm
+          fi
+
+      - name: Upload ephemeral public market database
+        if: steps.market.outputs.data_ready == 'true'
+        uses: actions/upload-artifact@v4
+        with:
+          name: hixton-public-market-data
+          path: data/hixton-usdc.sqlite3*
+          retention-days: 1
+          if-no-files-found: error
+
+  specialists:
+    needs: preflight
+    if: needs.preflight.outputs.run_swarm == 'true'
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - id: A01
+            role: agent_memory/swarm/agents/A01_documentation_requirements.md
+          - id: A02
+            role: agent_memory/swarm/agents/A02_backtest_research.md
+          - id: A03
+            role: agent_memory/swarm/agents/A03_paper_runtime.md
+          - id: A04
+            role: agent_memory/swarm/agents/A04_ui_freshness.md
+          - id: A05
+            role: agent_memory/swarm/agents/A05_runtime_watchdog.md
+          - id: A06
+            role: agent_memory/swarm/agents/A06_integration_regression_repair.md
+          - id: A07
+            role: agent_memory/swarm/agents/A07_market_data_binance.md
+          - id: A08
+            role: agent_memory/swarm/agents/A08_strategy_risk.md
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - name: Checkout engineering branch
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ env.BASE_BRANCH }}
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: npm
+          cache-dependency-path: ui/package-lock.json
+
+      - name: Build specialist virtual environment
+        shell: bash
+        run: |
+          set -euo pipefail
+          python -m venv .venv
+          .venv/bin/python -m pip install --upgrade pip
+          .venv/bin/pip install -e '.[dev]'
+          npm --prefix ui ci
+          echo "$PWD/.venv/bin" >> "$GITHUB_PATH"
+
+      - name: Download ephemeral public market database
+        if: needs.preflight.outputs.data_ready == 'true'
+        uses: actions/download-artifact@v4
+        with:
+          name: hixton-public-market-data
+          path: data
+
+      - name: Run specialist ${{ matrix.id }}
+        id: codex
+        uses: openai/codex-action@v1
+        with:
+          openai-api-key: ${{ secrets.OPENAI_API_KEY }}
+          permission-profile: ":read-only"
+          safety-strategy: drop-sudo
+          effort: high
+          output-file: .swarm/${{ matrix.id }}.md
+          prompt: |
+            Read AGENTS.md, agent_memory/state.json, agent_memory/swarm/README.md,
+            agent_memory/swarm/protocol.md, agent_memory/swarm/taskboard.json and
+            ${{ matrix.role }} before doing anything else.
+
+            You are ${{ matrix.id }} in the persistent Hixton Engineering Swarm.
+            Work only in your assigned role. This is an independent READ-ONLY review:
+            do not modify repository files.
+
+            Mission override from the owner (empty means use active taskboard mission):
+            ${{ inputs.mission }}
+
+            Inspect actual implementation, tests, committed reports and, if present,
+            data/hixton-usdc.sqlite3. Run deterministic commands/tests when useful.
+
+            For the USDT-to-USDC incident, keep same-window comparison, fresh-start versus
+            carried account state, quote-specific candles/listing windows, risk-halt/slot
+            blockers, Paper/portfolio parity and UI provenance as separate facts. Never
+            manufacture a code fix when evidence shows a genuine data/account-path difference.
+
+            Never use/request Binance credentials. Never place a real or testnet order.
+            Never weaken Live gates, the 5% daily pause or 20% drawdown halt merely to make
+            a historical number prettier.
+
+            Return a concise engineering report containing VERDICT (PASS, FAIL, BLOCKED or
+            NOT_APPLICABLE), findings ordered by severity, concrete evidence, proposed next
+            actions for A10 and anything another specialist must verify.
+
+      - name: Upload specialist report
+        uses: actions/upload-artifact@v4
+        with:
+          name: swarm-finding-${{ matrix.id }}
+          path: .swarm/${{ matrix.id }}.md
+          retention-days: 7
+          if-no-files-found: error
+
+  coordinator:
+    needs: [preflight, specialists]
+    if: needs.preflight.outputs.run_swarm == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - name: Checkout engineering branch
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ env.BASE_BRANCH }}
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Create isolated mission branch
+        shell: bash
+        run: git switch -c "swarm/run-${GITHUB_RUN_ID}"
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: npm
+          cache-dependency-path: ui/package-lock.json
+
+      - name: Build coordinator virtual environment
+        shell: bash
+        run: |
+          set -euo pipefail
+          python -m venv .venv
+          .venv/bin/python -m pip install --upgrade pip
+          .venv/bin/pip install -e '.[dev]'
+          npm --prefix ui ci
+          echo "$PWD/.venv/bin" >> "$GITHUB_PATH"
+
+      - name: Download all specialist findings
+        uses: actions/download-artifact@v4
+        with:
+          pattern: swarm-finding-*
+          path: .swarm/findings
+          merge-multiple: true
+
+      - name: Download ephemeral public market database
+        if: needs.preflight.outputs.data_ready == 'true'
+        uses: actions/download-artifact@v4
+        with:
+          name: hixton-public-market-data
+          path: data
+
+      - name: Run A10 coordinator and implementation owner
+        id: a10
+        uses: openai/codex-action@v1
+        with:
+          openai-api-key: ${{ secrets.OPENAI_API_KEY }}
+          permission-profile: ":workspace"
+          safety-strategy: drop-sudo
+          effort: high
+          output-file: .swarm/A10.md
+          prompt: |
+            Read AGENTS.md, agent_memory/state.json, agent_memory/swarm/README.md,
+            agent_memory/swarm/protocol.md, agent_memory/swarm/taskboard.json,
+            agent_memory/swarm/agents/A10_workflow_supervisor.md and every report under
+            .swarm/findings/.
+
+            You are A10, workflow supervisor and implementation coordinator. Work on the
+            active mission in this isolated Git branch. Mission override:
+            ${{ inputs.mission }}
+
+            You may inspect/modify the repository, add focused regression tests and run
+            commands. Keep changes minimal, evidence-driven and reversible.
+
+            Hard constraints: never place real/testnet orders; never request/read Binance
+            credentials or ignored operator data; do not change .github/**, AGENTS.md,
+            agent role contracts, swarm registry/protocol, src/hixton/live/** or
+            src/hixton/ui/live.py; do not enable Live or remove safety gates; do not activate
+            new strategy/risk parameters merely because a backtest is better. Research
+            candidates may be added and validated, but activation needs a separate explicit
+            owner decision. Do not hide losing windows or contrary evidence.
+
+            If no proven defect/robust improvement exists, diagnostics, tests and research
+            evidence are preferable to a forced behavior change. Run relevant focused tests
+            before finishing and report changed files, justification, tests and residual risk.
+
+      - name: Guard changed paths and push mission branch
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          rm -rf .swarm .agent
+          {
+            git diff --name-only "origin/${BASE_BRANCH}...HEAD"
+            git diff --name-only
+            git diff --cached --name-only
+            git ls-files --others --exclude-standard
+          } | sed '/^$/d' | sort -u > /tmp/changed.txt
+
+          python - <<'PY'
+          from pathlib import Path
+          blocked_exact = {
+              'AGENTS.md',
+              'agent_memory/swarm/registry.json',
+              'agent_memory/swarm/protocol.md',
+          }
+          blocked_prefix = (
+              '.github/',
+              'agent_memory/swarm/agents/',
+              'src/hixton/live/',
+          )
+          changed = [line.strip() for line in Path('/tmp/changed.txt').read_text().splitlines() if line.strip()]
+          bad = [
+              path for path in changed
+              if path in blocked_exact
+              or path == 'src/hixton/ui/live.py'
+              or any(path.startswith(prefix) for prefix in blocked_prefix)
+          ]
+          if bad:
+              raise SystemExit(f'A10 touched protected cloud/live governance paths: {bad}')
+          print('Changed paths accepted:', changed or ['<none>'])
+          PY
+
+          git config user.name "hixton-swarm[bot]"
+          git config user.email "hixton-swarm@users.noreply.github.com"
+          if [ -n "$(git status --porcelain)" ]; then
+            git add -A
+            git -c core.hooksPath=/dev/null commit -m "fix(swarm): cloud mission ${GITHUB_RUN_ID}"
+          fi
+          git remote set-url origin "https://x-access-token:${GH_TOKEN}@github.com/${GITHUB_REPOSITORY}.git"
+          git -c core.hooksPath=/dev/null push --force-with-lease origin "HEAD:refs/heads/swarm/run-${GITHUB_RUN_ID}"
+
+  qa:
+    needs: [preflight, coordinator]
+    if: needs.preflight.outputs.run_swarm == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    outputs:
+      verdict: ${{ steps.verdict.outputs.verdict }}
+    steps:
+      - name: Checkout A10 mission branch
+        uses: actions/checkout@v4
+        with:
+          ref: swarm/run-${{ github.run_id }}
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Fetch base branch
+        run: git fetch origin "$BASE_BRANCH"
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: npm
+          cache-dependency-path: ui/package-lock.json
+
+      - name: Build clean QA virtual environment
+        shell: bash
+        run: |
+          set -euo pipefail
+          python -m venv .venv
+          .venv/bin/python -m pip install --upgrade pip
+          .venv/bin/pip install -e '.[dev]'
+          npm --prefix ui ci
+          echo "$PWD/.venv/bin" >> "$GITHUB_PATH"
+
+      - name: Download ephemeral public market database
+        if: needs.preflight.outputs.data_ready == 'true'
+        uses: actions/download-artifact@v4
+        with:
+          name: hixton-public-market-data
+          path: data
+
+      - name: Run deterministic QA gates
+        shell: bash
+        run: |
+          set +e
+          source .venv/bin/activate
+          HIXTON_AGENT_DIR=.agent bash scripts/qa_gate.sh
+          rc=$?
+          set -e
+          mkdir -p .swarm
+          printf '%s\n' "$rc" > .swarm/qa-exit.txt
+          python src/main.py status > .swarm/status.json
+          cat .agent/qa-summary.txt
+          exit 0
+
+      - name: Run A09 independent QA gate
+        id: a09
+        uses: openai/codex-action@v1
+        with:
+          openai-api-key: ${{ secrets.OPENAI_API_KEY }}
+          permission-profile: ":read-only"
+          safety-strategy: drop-sudo
+          effort: high
+          output-file: .swarm/A09.json
+          output-schema: |
+            {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "verdict": {"type": "string", "enum": ["QA_PASS", "QA_FAIL"]},
+                "summary": {"type": "string"},
+                "evidence": {"type": "array", "items": {"type": "string"}},
+                "repair_instructions": {"type": "array", "items": {"type": "string"}}
+              },
+              "required": ["verdict", "summary", "evidence", "repair_instructions"]
+            }
+          prompt: |
+            Read agent_memory/swarm/agents/A09_qa_release_gate.md, AGENTS.md,
+            .agent/qa-summary.txt, .swarm/qa-exit.txt and .swarm/status.json. Review the
+            complete diff from origin/gpt/usdc-audit to HEAD.
+
+            You are independent from A10. Any deterministic QA failure means QA_FAIL.
+            Also fail for missing regression coverage, undocumented behavior change,
+            accidental active-strategy/risk activation, Paper/Backtest divergence, stale UI
+            provenance or weakened Live safety. Never modify files or place orders.
+            Return only the schema result.
+
+      - name: Publish A09 verdict
+        id: verdict
+        shell: bash
+        run: |
+          verdict="$(python -c 'import json; print(json.load(open(".swarm/A09.json"))["verdict"])')"
+          echo "verdict=$verdict" >> "$GITHUB_OUTPUT"
+
+      - name: Upload A09 evidence
+        uses: actions/upload-artifact@v4
+        with:
+          name: swarm-a09-round1
+          path: |
+            .swarm/A09.json
+            .swarm/qa-exit.txt
+            .swarm/status.json
+            .agent/qa-summary.txt
+            .agent/qa-logs
+          retention-days: 7
+
+  governance:
+    needs: [preflight, coordinator, qa]
+    if: needs.preflight.outputs.run_swarm == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 35
+    outputs:
+      verdict: ${{ steps.verdict.outputs.verdict }}
+    steps:
+      - name: Checkout A10 mission branch
+        uses: actions/checkout@v4
+        with:
+          ref: swarm/run-${{ github.run_id }}
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Fetch base branch
+        run: git fetch origin "$BASE_BRANCH"
+
+      - name: Download specialist findings
+        uses: actions/download-artifact@v4
+        with:
+          pattern: swarm-finding-*
+          path: .swarm/findings
+          merge-multiple: true
+
+      - name: Download A09 evidence
+        uses: actions/download-artifact@v4
+        with:
+          name: swarm-a09-round1
+          path: .swarm/a09
+
+      - name: Run A11 meta-orchestrator
+        id: a11
+        uses: openai/codex-action@v1
+        with:
+          openai-api-key: ${{ secrets.OPENAI_API_KEY }}
+          permission-profile: ":read-only"
+          safety-strategy: drop-sudo
+          effort: high
+          output-file: .swarm/A11.json
+          output-schema: |
+            {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "verdict": {"type": "string", "enum": ["GOVERNANCE_PASS", "GOVERNANCE_FAIL"]},
+                "summary": {"type": "string"},
+                "missing_checks": {"type": "array", "items": {"type": "string"}},
+                "repair_instructions": {"type": "array", "items": {"type": "string"}}
+              },
+              "required": ["verdict", "summary", "missing_checks", "repair_instructions"]
+            }
+          prompt: |
+            Read agent_memory/swarm/agents/A11_meta_orchestrator.md, the taskboard, every
+            specialist report under .swarm/findings/, the A09 evidence under .swarm/a09/
+            and the complete diff from origin/gpt/usdc-audit to HEAD.
+
+            Audit A10 and all agents. Confirm each role actually addressed its duty,
+            contrary evidence was not ignored, QA is real, and USDT/USDC facts were not
+            conflated. Confirm no protected Live/governance path changed and no hidden
+            strategy/risk activation occurred. GOVERNANCE_PASS requires A09 QA_PASS.
+            Otherwise return GOVERNANCE_FAIL with concrete repair instructions. Never
+            modify files and never place orders.
+
+      - name: Publish A11 verdict
+        id: verdict
+        shell: bash
+        run: |
+          verdict="$(python -c 'import json; print(json.load(open(".swarm/A11.json"))["verdict"])')"
+          echo "verdict=$verdict" >> "$GITHUB_OUTPUT"
+
+      - name: Upload A11 evidence
+        uses: actions/upload-artifact@v4
+        with:
+          name: swarm-a11-round1
+          path: .swarm/A11.json
+          retention-days: 7
+
+  repair:
+    needs: [preflight, qa, governance]
+    if: needs.preflight.outputs.run_swarm == 'true' && needs.governance.outputs.verdict != 'GOVERNANCE_PASS'
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - name: Checkout mission branch for repair
+        uses: actions/checkout@v4
+        with:
+          ref: swarm/run-${{ github.run_id }}
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: npm
+          cache-dependency-path: ui/package-lock.json
+
+      - name: Build repair virtual environment
+        shell: bash
+        run: |
+          set -euo pipefail
+          python -m venv .venv
+          .venv/bin/python -m pip install --upgrade pip
+          .venv/bin/pip install -e '.[dev]'
+          npm --prefix ui ci
+          echo "$PWD/.venv/bin" >> "$GITHUB_PATH"
+
+      - name: Download all first-round evidence
+        uses: actions/download-artifact@v4
+        with:
+          pattern: swarm-*
+          path: .swarm/evidence
+          merge-multiple: true
+
+      - name: Download ephemeral public market database
+        if: needs.preflight.outputs.data_ready == 'true'
+        uses: actions/download-artifact@v4
+        with:
+          name: hixton-public-market-data
+          path: data
+
+      - name: Run A10 repair round
+        uses: openai/codex-action@v1
+        with:
+          openai-api-key: ${{ secrets.OPENAI_API_KEY }}
+          permission-profile: ":workspace"
+          safety-strategy: drop-sudo
+          effort: high
+          output-file: .swarm/A10-repair.md
+          prompt: |
+            You are A10 in REPAIR_LOOP. Read the taskboard, A10 role contract and every
+            file under .swarm/evidence/. A11 rejected the previous round. Repair only the
+            concrete QA/governance defects, preserve valid work and rerun focused tests.
+
+            The original safety constraints still apply: no workflow/AGENTS/agent-contract
+            edits, no protected Live implementation edits, no real/testnet orders, no secret
+            access, no risk-gate relaxation for prettier backtests, and no active strategy
+            activation without explicit owner approval.
+
+      - name: Guard and push repaired branch
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          rm -rf .swarm .agent
+          git fetch origin "$BASE_BRANCH"
+          {
+            git diff --name-only "origin/${BASE_BRANCH}...HEAD"
+            git diff --name-only
+            git diff --cached --name-only
+            git ls-files --others --exclude-standard
+          } | sed '/^$/d' | sort -u > /tmp/changed.txt
+          python - <<'PY'
+          from pathlib import Path
+          blocked_exact = {'AGENTS.md', 'agent_memory/swarm/registry.json', 'agent_memory/swarm/protocol.md'}
+          blocked_prefix = ('.github/', 'agent_memory/swarm/agents/', 'src/hixton/live/')
+          changed = [x for x in Path('/tmp/changed.txt').read_text().splitlines() if x]
+          bad = [p for p in changed if p in blocked_exact or p == 'src/hixton/ui/live.py' or any(p.startswith(q) for q in blocked_prefix)]
+          if bad:
+              raise SystemExit(f'Repair touched protected paths: {bad}')
+          PY
+          git config user.name "hixton-swarm[bot]"
+          git config user.email "hixton-swarm@users.noreply.github.com"
+          if [ -n "$(git status --porcelain)" ]; then
+            git add -A
+            git -c core.hooksPath=/dev/null commit -m "fix(swarm): repair cloud mission ${GITHUB_RUN_ID}"
+          fi
+          git remote set-url origin "https://x-access-token:${GH_TOKEN}@github.com/${GITHUB_REPOSITORY}.git"
+          git -c core.hooksPath=/dev/null push origin "HEAD:refs/heads/swarm/run-${GITHUB_RUN_ID}"
+
+  qa_repair:
+    needs: [preflight, repair]
+    if: needs.preflight.outputs.run_swarm == 'true' && needs.repair.result == 'success'
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    outputs:
+      verdict: ${{ steps.verdict.outputs.verdict }}
+    steps:
+      - name: Checkout repaired mission branch
+        uses: actions/checkout@v4
+        with:
+          ref: swarm/run-${{ github.run_id }}
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Fetch base branch
+        run: git fetch origin "$BASE_BRANCH"
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: npm
+          cache-dependency-path: ui/package-lock.json
+
+      - name: Build clean repair-QA environment
+        shell: bash
+        run: |
+          set -euo pipefail
+          python -m venv .venv
+          .venv/bin/python -m pip install --upgrade pip
+          .venv/bin/pip install -e '.[dev]'
+          npm --prefix ui ci
+          echo "$PWD/.venv/bin" >> "$GITHUB_PATH"
+
+      - name: Deterministic QA after repair
+        shell: bash
+        run: |
+          set +e
+          source .venv/bin/activate
+          HIXTON_AGENT_DIR=.agent bash scripts/qa_gate.sh
+          rc=$?
+          set -e
+          mkdir -p .swarm
+          printf '%s\n' "$rc" > .swarm/qa-exit.txt
+          python src/main.py status > .swarm/status.json
+          exit 0
+
+      - name: Run A09 repair-round QA
+        uses: openai/codex-action@v1
+        with:
+          openai-api-key: ${{ secrets.OPENAI_API_KEY }}
+          permission-profile: ":read-only"
+          safety-strategy: drop-sudo
+          effort: high
+          output-file: .swarm/A09-repair.json
+          output-schema: |
+            {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "verdict": {"type": "string", "enum": ["QA_PASS", "QA_FAIL"]},
+                "summary": {"type": "string"},
+                "evidence": {"type": "array", "items": {"type": "string"}},
+                "repair_instructions": {"type": "array", "items": {"type": "string"}}
+              },
+              "required": ["verdict", "summary", "evidence", "repair_instructions"]
+            }
+          prompt: |
+            You are A09 after the automatic repair round. Read your role contract,
+            .agent/qa-summary.txt, .swarm/qa-exit.txt and the full base-to-HEAD diff.
+            Re-evaluate from scratch. Deterministic failures force QA_FAIL. Never edit
+            files and never place orders. Return only the schema result.
+
+      - name: Publish repair QA verdict
+        id: verdict
+        shell: bash
+        run: |
+          verdict="$(python -c 'import json; print(json.load(open(".swarm/A09-repair.json"))["verdict"])')"
+          echo "verdict=$verdict" >> "$GITHUB_OUTPUT"
+
+      - name: Upload repair QA evidence
+        uses: actions/upload-artifact@v4
+        with:
+          name: swarm-a09-round2
+          path: |
+            .swarm/A09-repair.json
+            .agent/qa-summary.txt
+            .agent/qa-logs
+          retention-days: 7
+
+  governance_repair:
+    needs: [preflight, qa_repair]
+    if: needs.preflight.outputs.run_swarm == 'true' && needs.qa_repair.result == 'success'
+    runs-on: ubuntu-latest
+    timeout-minutes: 35
+    outputs:
+      verdict: ${{ steps.verdict.outputs.verdict }}
+    steps:
+      - name: Checkout repaired mission branch
+        uses: actions/checkout@v4
+        with:
+          ref: swarm/run-${{ github.run_id }}
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Fetch base branch
+        run: git fetch origin "$BASE_BRANCH"
+
+      - name: Download all swarm evidence
+        uses: actions/download-artifact@v4
+        with:
+          pattern: swarm-*
+          path: .swarm/evidence
+          merge-multiple: true
+
+      - name: Run A11 final repair governance
+        uses: openai/codex-action@v1
+        with:
+          openai-api-key: ${{ secrets.OPENAI_API_KEY }}
+          permission-profile: ":read-only"
+          safety-strategy: drop-sudo
+          effort: high
+          output-file: .swarm/A11-repair.json
+          output-schema: |
+            {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "verdict": {"type": "string", "enum": ["GOVERNANCE_PASS", "GOVERNANCE_FAIL"]},
+                "summary": {"type": "string"},
+                "missing_checks": {"type": "array", "items": {"type": "string"}},
+                "repair_instructions": {"type": "array", "items": {"type": "string"}}
+              },
+              "required": ["verdict", "summary", "missing_checks", "repair_instructions"]
+            }
+          prompt: |
+            You are A11 after A10's automatic repair and A09's second QA pass. Read your
+            role contract, every downloaded evidence file and the full diff. Pass only if
+            A09 truly issued QA_PASS, all 11 responsibilities are covered, contrary evidence
+            is addressed, and no protected Live/governance or hidden strategy/risk activation
+            exists. Never modify files and never place orders.
+
+      - name: Publish final governance verdict
+        id: verdict
+        shell: bash
+        run: |
+          verdict="$(python -c 'import json; print(json.load(open(".swarm/A11-repair.json"))["verdict"])')"
+          echo "verdict=$verdict" >> "$GITHUB_OUTPUT"
+
+      - name: Upload final governance evidence
+        uses: actions/upload-artifact@v4
+        with:
+          name: swarm-a11-round2
+          path: .swarm/A11-repair.json
+          retention-days: 7
+
+  finalize:
+    needs: [preflight, qa, governance, repair, qa_repair, governance_repair]
+    if: always() && needs.preflight.outputs.run_swarm == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Decide final gate
+        id: final
+        shell: bash
+        env:
+          QA1: ${{ needs.qa.outputs.verdict }}
+          GOV1: ${{ needs.governance.outputs.verdict }}
+          QA2: ${{ needs.qa_repair.outputs.verdict }}
+          GOV2: ${{ needs.governance_repair.outputs.verdict }}
+        run: |
+          set -euo pipefail
+          if { [ "$QA1" = "QA_PASS" ] && [ "$GOV1" = "GOVERNANCE_PASS" ]; } || { [ "$QA2" = "QA_PASS" ] && [ "$GOV2" = "GOVERNANCE_PASS" ]; }; then
+            echo "passed=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "passed=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Open pull request for gated mission
+        if: steps.final.outputs.passed == 'true'
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          existing="$(gh pr list --repo "$GITHUB_REPOSITORY" --head "swarm/run-${GITHUB_RUN_ID}" --state open --json number --jq '.[0].number // empty')"
+          if [ -z "$existing" ]; then
+            gh pr create --repo "$GITHUB_REPOSITORY" --base "$BASE_BRANCH" --head "swarm/run-${GITHUB_RUN_ID}" --title "Hixton swarm mission ${GITHUB_RUN_ID}" --body "Cloud swarm run ${GITHUB_RUN_ID} passed deterministic QA, A09 QA gate and A11 governance. No automatic merge is performed. Review before merge."
+          fi
+
+      - name: Record failed autonomous round as issue
+        if: steps.final.outputs.passed != 'true'
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh issue create --repo "$GITHUB_REPOSITORY" --title "Hixton swarm repair required · run ${GITHUB_RUN_ID}" --body "The cloud swarm completed its automatic repair round but did not obtain both QA_PASS and GOVERNANCE_PASS. Branch: swarm/run-${GITHUB_RUN_ID}. Review the workflow artifacts and re-run after correction."
+
+      - name: Fail workflow when gates remain red
+        if: steps.final.outputs.passed != 'true'
+        run: exit 1
