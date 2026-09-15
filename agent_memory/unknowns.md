@@ -14,7 +14,7 @@ Important resolved points:
 - Low-level live order code exists, but productive arming/submit remains intentionally hard-blocked and UI/CLI cannot release it.
 - Normal startup never resets the Paper account; reset is explicit offline maintenance with archive verification.
 - UI TypeScript source and tracked built static bundle are separate artifacts; UI source changes require rebuild.
-- The previous laptop-bound `StartAgent.bat`, `AgentChat.bat`, `scripts/local_agent.ps1`, `scripts/agent_chat.ps1` and local swarm runner were removed. The authoritative engineering swarm now runs through GitHub Actions on GitHub-hosted virtual machines.
+- Legacy laptop-bound engineering launchers and local agent runners are absent. The authoritative engineering swarm runs through GitHub Actions on GitHub-hosted virtual machines.
 - Older DMS USDT/service/budget statements are historical and are superseded by newer owner decisions/current DMS headings/current implementation; historical evidence must not be globally rewritten.
 
 ## External/runtime unknowns — deliberately not solved by repository reading
