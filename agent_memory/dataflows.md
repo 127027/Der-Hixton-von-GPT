@@ -260,24 +260,22 @@ Explicit CLI maintenance command only
 
 No ordinary startup/backtest/UI action calls this reset.
 
-## 19. Engineering-agent flow — current and target
+## 19. Cloud engineering-agent flow
 
-Current:
-`StartAgent.bat` / `AgentChat.bat`
-→ single PowerShell Codex agent
-→ requires clean working tree and obsolete fixed branch
-→ disposable worktree
-→ during bootstrap only agent_memory copied back/committed.
+Default-branch GitHub dispatcher
+→ check whether cloud model credential is configured
+→ if absent: safe successful idle state
+→ if present: call reusable swarm workflow on `gpt/usdc-audit`
+→ fresh GitHub-hosted virtual environment builds application/dev dependencies
+→ validate registry/taskboard and optional public USDC market snapshot
+→ A01–A08 run as independent read-only specialist jobs
+→ reports collected as workflow artifacts
+→ A10 receives all evidence and works on isolated `swarm/run-<run_id>` branch
+→ deterministic protected-path guard prevents workflow/governance/unreleased-Live changes
+→ fresh-runner full QA + A09 independent release gate
+→ A11 independent meta-governance audit
+→ failure routes once through automatic A10 repair, then fresh A09/A11 gates
+→ success opens a pull request to `gpt/usdc-audit`
+→ no automatic merge and no automatic active strategy/risk activation.
 
-Target after bootstrap:
-existing engineering-agent entry
-→ A10 task graph/role scheduler
-→ A01 mandatory preflight
-→ assigned specialist role(s) in isolated worktrees or serialized write ownership
-→ A06 integration/regression
-→ A09 independent QA
-→ A11 independent governance audit
-→ failures route to root-cause agent and invalidate downstream evidence
-→ DONE only with `QA_PASS + GOVERNANCE_PASS`.
-
-A05 recurring health observations may be scheduled only while an actual bot/runtime is available; absence of runtime must be reported, never fabricated as healthy. Agent automation receives no real-order release authority.
+A05 distinguishes simulated/cloud runtime evidence from an actually running operator installation. The cloud swarm receives no Binance account credential and no real-order release authority.
