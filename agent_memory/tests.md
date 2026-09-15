@@ -11,9 +11,17 @@
 6. TypeScript check;
 7. production Vite build.
 
-This is necessary but not sufficient evidence for a trading change. A09 must add affected-domain parity/runtime/provenance checks and A11 must verify they actually ran.
+This is necessary but not sufficient evidence for a trading change. A09 must add affected-domain parity/runtime/provenance checks and A11 must verify they actually ran. Cloud missions execute this gate on a fresh GitHub-hosted runner after A10's patch.
 
-Current repo-reported latest audit evidence in README/DMS18 is roughly 335 Python tests + one optional skip and 22 UI tests with Ruff/mypy/TypeScript/build passing. These counts are historical committed evidence until rerun on the GPT branch; do not report them as newly executed by the swarm.
+Historical README/DMS18 test counts describe their original commits; cloud jobs must report fresh actual results rather than copying those numbers.
+
+## Cloud swarm infrastructure tests
+
+- `tests/test_swarm_core.py` — exact A01–A11 registry, active SWARM-002 mission, mandatory all-agent participation, USDT/USDC regression contract, cloud-safe summary, and rejection of autonomous changes to GitHub workflow/governance and unreleased Live-submit paths.
+- `.github/workflows/hixton-cloud-preflight.yml` — secret-free GitHub-hosted validation: fresh Python venv, compile of engineering scripts, `test_swarm_core.py`, `validate_cloud_ready()`, and explicit assertion that obsolete `StartAgent.bat`, `AgentChat.bat`, local PowerShell runners and local swarm runner are absent.
+- `.github/workflows/hixton-cloud-swarm-reusable.yml` — integration orchestration: fresh virtual environments, A01–A08 independent reports, isolated A10 branch, deterministic QA, A09, A11, one repair loop and PR-only handoff.
+
+Proof boundary: a green swarm preflight proves orchestration contracts and repository safety checks, not model quality, market profitability or Binance execution.
 
 ## Independent oracle / domain tests
 
@@ -64,7 +72,7 @@ Proof boundary: tested historical replay does not prove every real-time outage/i
 - `test_visible_session.py` — no trading before UI; same-origin/shutdown token/instance checks; multi-tab/reload grace; explicit stop; missing/broken terminal stops safely; successor metadata; unknown port owner is never killed.
 - Runtime-related portions of `test_runtime_parity.py`, `test_ui_api.py`, `test_binance_adapter.py` cover freshness/source/fallback-facing contracts.
 
-Proof boundary: repository tests use controlled fixtures/mocks. A05 needs actual runtime observation to claim an operator instance is currently healthy.
+Proof boundary: repository tests use controlled fixtures/mocks. A05 must distinguish GitHub-runner simulation from an actually running operator installation.
 
 ## UI/backend tests
 
@@ -98,7 +106,7 @@ Proof boundary — critical: all productive live-order tests use fake/synthetic 
 
 ## Regression incidents already encoded
 
-Existing tests/reports cover the classes the swarm must preserve:
+Existing tests/reports cover:
 - strategy batch/replay drift;
 - Paper/backtest drift;
 - Paper restart duplicate processing;
@@ -112,7 +120,7 @@ Existing tests/reports cover the classes the swarm must preserve:
 - unsafe hidden runtime/duplicate instance;
 - fake live state despite blocked release.
 
-The USDT→USDC incident is now an explicit swarm system regression: same-window quote comparison + start-state/path analysis must prevent diagnosing `733 -> 203` as a currency-conversion bug.
+The USDT→USDC incident is also an explicit swarm system regression: same-window quote comparison + start-state/path analysis must prevent diagnosing `733 -> 203` as a currency-conversion bug.
 
 ## Coverage gaps / evidence that tests intentionally do not prove
 
@@ -123,7 +131,7 @@ The USDT→USDC incident is now an explicit swarm system regression: same-window
 5. Historical research has been inspected repeatedly; many periods are not untouched holdouts.
 6. Strategy profitability/optimality is never guaranteed by green code tests.
 7. Separate Paper/shared/isolated execution implementations can drift in future; parity suites must be rerun after relevant patches.
-8. Current single-agent engineering scripts have no test for 11-agent orchestration yet; SWARM-001 must add such tests after bootstrap.
+8. Cloud Codex agents cannot run until the GitHub repository secret `OPENAI_API_KEY` is configured; the secret-free preflight is deliberately separate from model execution.
 
 ## Required A09 selection by change type
 
@@ -134,7 +142,7 @@ The USDT→USDC incident is now an explicit swarm system regression: same-window
 - Runtime/lifecycle: visible-session + runtime parity + UI API + startup/recovery scenario.
 - UI/API: UI API/chart + Node tests + TypeScript + production build; backend regressions based on changed contracts.
 - Live preparation: all relevant live_* tests plus explicit confirmation productive release gates remain closed unless the owner separately commissions/reviews that work.
-- Agent infrastructure: pure orchestration state-machine tests, isolated-worktree safety, branch selection, heartbeat/stall/reopen/QA/governance scenarios; never use real trading execution as the agent-runner test.
+- Agent infrastructure: `test_swarm_core.py` + secret-free cloud preflight + GitHub workflow graph + protected-path enforcement + QA/A11 evidence; never use real trading execution as the agent-runner test.
 
 ## Anti-vacuity rule
 
