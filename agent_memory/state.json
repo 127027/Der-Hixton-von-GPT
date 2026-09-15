@@ -2,8 +2,8 @@
   "mode": "ENGINEERING_READY",
   "bootstrap_complete": true,
   "progress_percent": 100,
-  "current_focus": "The eleven-agent swarm is now cloud-hosted on GitHub Actions. Obsolete laptop StartAgent/AgentChat/local Codex runners were removed. SWARM-002 is the active mission: improve the fresh USDC 3x80 early-loss path using all eleven roles, deterministic QA, A11 governance and an automatic repair round without real-money execution or automatic strategy activation.",
-  "last_indexed_commit": "ec512628c4531f4ee84135c16dea2e6774cb48b4",
+  "current_focus": "The eleven-agent swarm is cloud-hosted on GitHub Actions. Legacy laptop-bound engineering launchers and local agent runners are absent. SWARM-002 is the active mission: improve the fresh USDC 3x80 early-loss path using all eleven roles, deterministic QA, A11 governance and an automatic repair round without real-money execution or automatic strategy activation.",
+  "last_indexed_commit": "df6b3d5d26ac90adc8432f580ce7abf7a86560fe",
   "last_learning_round": 4,
   "areas": {
     "inventory": 100,
