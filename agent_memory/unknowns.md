@@ -14,21 +14,21 @@ Important resolved points:
 - Low-level live order code exists, but productive arming/submit remains intentionally hard-blocked and UI/CLI cannot release it.
 - Normal startup never resets the Paper account; reset is explicit offline maintenance with archive verification.
 - UI TypeScript source and tracked built static bundle are separate artifacts; UI source changes require rebuild.
-- Existing engineering-agent scripts are single-agent and hard-code obsolete branch `agent/codex-supervisor-v1`; this is the first post-bootstrap swarm infrastructure repair.
+- The previous laptop-bound `StartAgent.bat`, `AgentChat.bat`, `scripts/local_agent.ps1`, `scripts/agent_chat.ps1` and local swarm runner were removed. The authoritative engineering swarm now runs through GitHub Actions on GitHub-hosted virtual machines.
 - Older DMS USDT/service/budget statements are historical and are superseded by newer owner decisions/current DMS headings/current implementation; historical evidence must not be globally rewritten.
 
 ## External/runtime unknowns — deliberately not solved by repository reading
 
-These remain facts that require the actual operator environment, future market data or an explicitly authorized external acceptance test:
-1. Current real Binance account API permissions, IP restriction state, balances, current account-specific fees and real execution behavior.
-2. Current Binance filters/status at a future order instant; repository stores/uses snapshots but exchange facts can change.
-3. External Binance Spot Testnet/operational fault acceptance for the unreleased one-off live trial.
-4. Full foreign/manual-order history/account isolation proof and final tradable-remainder/dust acceptance for live release.
-5. Actual external encrypted backup target/retention/restore health on the operator machine.
-6. Current runtime health whenever no running bot instance is directly observable by A05.
+These remain facts that require an external service, future market data or an explicitly authorized runtime acceptance test:
+1. `OPENAI_API_KEY` must exist as a GitHub repository secret before the official Codex Action can execute cloud agents. A laptop ChatGPT/Codex login cannot be reused by GitHub-hosted runners.
+2. Current real Binance account API permissions, IP restriction state, balances, current account-specific fees and real execution behavior.
+3. Current Binance filters/status at a future order instant; repository stores/uses snapshots but exchange facts can change.
+4. External Binance Spot Testnet/operational fault acceptance for the unreleased one-off live trial.
+5. Full foreign/manual-order history/account isolation proof and final tradable-remainder/dust acceptance for live release.
+6. Actual external encrypted backup target/retention/restore health on the operator machine.
 7. Future profitability/robustness of any strategy or market regime.
 8. Operator-machine sleep/power/network behavior beyond tested/simulated scenarios until observed in an actual soak.
 
 ## Rule for agents
 
-Do not convert an external/runtime unknown into a guessed repository fact. A task that depends on one of these must either collect the authorized runtime evidence or report the limitation. None of these external unknowns blocks engineering work on the agent-swarm infrastructure itself.
+Do not convert an external/runtime unknown into a guessed repository fact. A task that depends on one of these must either collect the authorized runtime evidence or report the limitation. The cloud swarm may use public market data and deterministic test fixtures, but it must never infer or request private Binance account state unless a future owner-authorized acceptance process explicitly provides it.
