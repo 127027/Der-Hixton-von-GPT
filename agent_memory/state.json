@@ -2,9 +2,9 @@
   "mode": "ENGINEERING_READY",
   "bootstrap_complete": true,
   "progress_percent": 100,
-  "current_focus": "The eleven-agent swarm is cloud-hosted on GitHub Actions. Legacy laptop-bound engineering launchers and local agent runners are absent. SWARM-002 is the active mission: improve the fresh USDC 3x80 early-loss path using all eleven roles, deterministic QA, A11 governance and an automatic repair round without real-money execution or automatic strategy activation.",
-  "last_indexed_commit": "df6b3d5d26ac90adc8432f580ce7abf7a86560fe",
-  "last_learning_round": 4,
+  "current_focus": "SWARM-002 is active. The trading runtime is now verified as GitHub-hosted Paper-only operation using real public Binance USDC market data, simulated fills and a persistent Paper ledger restored across ephemeral runner cycles. A01-A11 must improve and supervise this Paper path without private Binance credentials, real/Testnet orders, silent account resets or automatic strategy activation.",
+  "last_indexed_commit": "5dc88ebf28d679984a6bc15c3a897e4ba90a5eef",
+  "last_learning_round": 5,
   "areas": {
     "inventory": 100,
     "architecture": 100,
@@ -25,13 +25,10 @@
   "cross_check_complete": true,
   "unresolved_repository_questions": [],
   "external_runtime_unknowns": [
-    "A GitHub repository secret named OPENAI_API_KEY must be configured before Codex cloud jobs can execute; GitHub-hosted runners cannot reuse a laptop ChatGPT/Codex login.",
-    "Current real Binance account permissions, IP restriction state, balances, fees and real execution behavior require operator/runtime evidence.",
-    "Current exchange filters/status at a future order instant are time-varying runtime facts.",
-    "External Binance Spot Testnet/operational acceptance for the unreleased one-off live trial is not completed.",
-    "Full foreign/manual-order history/account-isolation and tradable-remainder/dust acceptance remain live-release blockers.",
-    "External encrypted backup/retention/restore health on the operator machine is not proven from Git.",
-    "Future strategy profitability and market-regime robustness cannot be established from repository inspection."
+    "The GitHub repository secret OPENAI_API_KEY is still absent, so A01-A11 model jobs remain safely idle until the owner configures it; the Paper runtime itself does not need this secret.",
+    "GitHub scheduled jobs are a best-effort scheduler and may start later than their nominal ten-minute cadence; persisted checkpoints allow the next successful cycle to catch up finalized native 1h candles.",
+    "Future availability, throttling or geographic policy of Binance's public market-data-only endpoint is an external runtime fact and must fail closed rather than trigger synthetic operational candles.",
+    "Future strategy profitability and market-regime robustness cannot be guaranteed by repository tests or historical results."
   ],
-  "notes": "Bootstrap evidence remains in inventory.md, architecture.md, dataflows.md, ui_map.md, storage.md, tests.md, security.md, unknowns.md and cross_check.md. The cloud swarm contract lives under agent_memory/swarm and .github/workflows. Public market data may be generated ephemerally in GitHub Actions; Binance credentials and real-money order release remain explicitly outside the autonomous swarm mandate."
+  "notes": "Verified cloud Paper evidence is recorded in cloud_paper_runtime_2026-09-15.md. Successful initial cycle: GitHub run 35026894961. Successful persistent resume cycle: run 35027389418. Machine-managed state is on paper-runtime-state and protected against silent reset by tag paper-cloud-initialized. Current cloud data host is Binance's public market-data-only endpoint. Real/Testnet orders and Binance private credentials are out of scope and prohibited for the current project phase."
 }
