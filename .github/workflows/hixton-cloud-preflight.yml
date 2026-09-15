@@ -47,14 +47,17 @@ jobs:
           print(validate_cloud_ready(Path('.')))
           PY
 
-      - name: Confirm obsolete laptop-agent files are absent
+      - name: Confirm engineering is cloud-only
         shell: bash
         run: |
           set -euo pipefail
-          for path in StartAgent.bat AgentChat.bat scripts/local_agent.ps1 scripts/agent_chat.ps1 scripts/swarm_runner.py; do
-            if [ -e "$path" ]; then
-              echo "::error::Obsolete laptop agent path still exists: $path"
-              exit 1
-            fi
-          done
-          echo "Obsolete laptop-agent paths are absent."
+          mapfile -t batch_files < <(git ls-files '*.bat')
+          if [ "${#batch_files[@]}" -ne 1 ] || [ "${batch_files[0]}" != "Startbot.bat" ]; then
+            printf '::error::Unexpected tracked batch launchers: %s\n' "${batch_files[*]}"
+            exit 1
+          fi
+          if git ls-files 'scripts/*.ps1' | grep -q .; then
+            echo "::error::Local PowerShell engineering runners are not allowed."
+            exit 1
+          fi
+          echo "Cloud-only engineering boundary confirmed; Startbot.bat is the sole tracked batch launcher."
