@@ -1,164 +1,61 @@
 # Final repository cross-check — 2026-09-15
 
-This pass is the bootstrap completion audit required by AGENTS.md. It asks specifically whether repository components are orphaned, duplicated, semantically divergent, unsafe or falsely presented as complete.
+This is the completed repository-understanding and cloud-swarm safety audit.
 
-## 1. UI controls without valid backend path
+## UI/backend wiring
 
-### Normal dashboard/markets/charts/backtests/settings
-Verified wired through `ui/src/main.ts`/helpers → `ui/api.py` → RuntimeState/CandleStore/PaperStore/RuntimeSupervisor/canonical backtests. No material read surface was found to be a decorative-only control.
+Normal dashboard, markets, charts, backtests and settings are wired through TypeScript/API to RuntimeState, CandleStore, PaperStore, RuntimeSupervisor and canonical backtests. Live controls have backend routes but intentionally remain blocked; that is a safety property, not an orphan to be bypassed. Bot stop is wired through visible-session/instance control rather than a kill-all-port shortcut.
 
-### Live enable / one-off real-money test
-These controls have backend routes, but the backend intentionally returns blocked/409 status because release gates remain closed. This is **not an orphan** and must not be 'fixed' by bypassing the gate. UI correctly renders the blocker and does not invent a green Live state.
+Expected backend-only actions include data sync/audit, explicit backtests, offline Paper fresh-start maintenance, research commands and unreleased low-level live primitives. Exposing those low-level primitives directly to UI would be a regression.
 
-### Bot stop
-Frontend presence/stop path is wired to VisibleSession/instance control and runtime termination; it is not a kill-all-port shortcut.
+## Execution-model boundaries
 
-### Emergency stop
-Server/Paper state supports the safety latch. Current UI no longer exposes every historical stop control described in older DMS revisions. Absence of an old visible toggle is not release of the stored safety state; current UI decisions superseded older layouts.
+There is one authoritative strategy/profile/policy source but several execution perspectives: isolated backtest, shared portfolio backtest, Paper, and unreleased trial/live execution. This separation is intentional because account/transport models differ. Semantic drift is controlled by golden, coin-engine parity, Paper/portfolio parity and restart replay tests.
 
-Conclusion: no current UI action requiring a code repair was found solely because it lacks backend wiring. The intentionally unavailable live actions are correctly fail-closed.
+Isolated 10×250 and shared 3×80 are intentionally different account models. Comparing their returns as though they were the same account is invalid. Backtest/Paper use modeled next-bar-open costs; future Live uses actual market fills and therefore must not promise identical fill prices.
 
-## 2. Backend actions without ordinary UI caller
+## Persisted state and restart
 
-Expected/legitimate:
-- CLI data sync/audit and explicit backtests;
-- `paper-fresh-start` maintenance (intentionally CLI/offline, should not be a normal UI button);
-- research V4/V5/V6/V8/V9 commands;
-- low-level live exchange/order primitives (deliberately not directly callable from UI);
-- CLI `live` placeholder deliberately blocked.
+Economic state that must survive restart is persisted: candles/rules/revisions, Paper account/settings/positions/events/checkpoints/dust/session/soak, and trial/order/reconciliation state. WebSocket connections, runtime caches, browser sessions and unsaved UI drafts are intentionally transient and reconstructable.
 
-These are not orphan bugs. Exposing low-level order primitives directly in UI would be a security regression.
+Ordinary startup never resets Paper. Fresh start is an explicit stopped-runtime maintenance action with confirmation and archive/integrity checks. Legacy USDT Paper state is rejected before USDC mutation rather than silently relabeled.
 
-## 3. Duplicate strategy/execution implementations
+## Market-data boundary
 
-There is one authoritative strategy/profile/policy definition source, but multiple execution perspectives:
-- single/isolated backtest engine;
-- shared portfolio backtest engine;
-- PaperEngine;
-- unreleased trial/live order controller.
+Provisional bars cannot signal; gaps/duplicates/invalid OHLCV invalidate rather than interpolate; runtime has REST recovery; common backtest windows follow actual USDC availability plus warm-up. Current stored exchange filters are current snapshots, not invented historical point-in-time truth.
 
-This is intentional because account/transport models differ. It is the main semantic-drift risk. Existing controls:
-- independent strategy golden oracle;
-- single ↔ portfolio coin parity for same rules/budget;
-- Paper ↔ shared portfolio exact fill/equity parity;
-- Paper restart split replay;
-- same central entry priority, CoinProfile, TradePolicy and shared portfolio-risk function.
+## Live/security boundary
 
-A06 must treat edits to any execution path as cross-component and rerun relevant parity tests. The swarm should not try to mechanically collapse these engines into one without a separate architecture mission because doing so could mix historically simulated execution with real transport semantics.
+Low-level live adapter/order-journal code exists and many fake/offline tests are green, but productive arming/submit remains hard-blocked, UI start remains blocked, and external/Testnet/remainder/foreign-order acceptance remains open. Cloud agents must never turn those gates on simply to complete a task.
 
-## 4. Paper / Backtest / Live semantic divergence
+## Documentation precedence
 
-### Strategy
-Active coin parameters and TradePolicy source are shared; no separate hidden Paper strategy found.
+Older DMS portions contain historical USDT, budget, service and Live architecture states. DMS 00 plus the decision log define chronological/source precedence. Historical evidence must not be globally rewritten to current USDC wording.
 
-### Account model
-Isolated 10×250 intentionally differs from shared Paper/portfolio 250 with slots/risk. This difference is documented and surfaced. Comparing their total return as if same account is invalid, not an engine defect.
+## Engineering swarm architecture
 
-### Shared portfolio risk
-Paper and shared portfolio use the same pure risk transition; parity tests cover representative replay.
+The current engineering path is exclusively cloud-hosted. Legacy laptop-bound engineering launchers and local agent runners are absent from the working tree.
 
-### Fill transport
-Backtest/Paper use modeled next-bar-open + documented costs. Live would use actual market orders/fills and must not claim identical execution prices. Current Live remains blocked. This difference is intended.
-
-Conclusion: known divergences are explicit model boundaries, not hidden accidental strategy forks. Future patches can still create drift; A06/A09 enforce parity.
-
-## 5. Persisted state across restart
-
-Persisted where correctness requires it:
-- market candles/rules/revisions;
-- Paper account/settings/positions/events/checkpoints/dust/strategy session/soak;
-- trial intents/order journal/fills and reconciliation baseline;
-- explicit runtime instance metadata for safe predecessor control.
-
-Intentionally process/browser transient:
-- WebSocket connection;
-- RuntimeState cache;
-- local live-auth browser session;
-- unsaved UI form draft;
-- currently loaded Python code.
-
-The transient items are reconstructable and do not own exchange/Paper economic truth. A source hash guard prevents new backtest proof after an on-disk patch while old code remains loaded.
-
-No repository-inspection-answerable critical economic state was found to exist only in unpersisted memory.
-
-## 6. Startup/reset hazards
-
-Ordinary startup does not reset Paper. Explicit fresh start is isolated behind stopped-runtime + exact confirmation + known-schema + verified archive/integrity/hash.
-
-Legacy USDT Paper state is rejected before USDC mutation rather than silently relabeled.
-
-The USDT→USDC audit proved that a new historical account starting later is a different path; it did not reveal hidden currency conversion/reset code.
-
-Conclusion: no implicit startup reset path found.
-
-## 7. Market-data hazards
-
-- Provisional bars not eligible for signals.
-- Gaps/duplicates/invalid OHLCV invalidate rather than interpolate.
-- runtime uses REST recovery around WebSocket gaps.
-- common backtest window is constrained by actual USDC availability + warm-up.
-- current stored Binance filters are acknowledged as current, not historical point-in-time truth.
-
-No synthetic history path used by canonical current runs was found.
-
-## 8. Live/security false-positive completion
-
-Important deliberate state:
-- low-level live adapter/order journal exists;
-- many fake/offline tests are green;
-- runtime bridge exists;
-- productive arming/submit still hard-blocked;
-- UI start endpoint remains 409;
-- external/Testnet/remainder/foreign-order/pre-send acceptance remains open.
-
-This is exactly the AGENTS.md cross-check case “tests appear green while production path is intentionally disabled.” Repository docs correctly state the limitation. A09/A11 must preserve it.
-
-## 9. Documentation contradictions/staleness
-
-Older DMS portions mention USDT, earlier strategy IDs, 240 cash, 3-only slot limits, Windows service/24×7 operation and earlier Live architecture states. DMS 00 and decision log explicitly define chronological/source precedence; latest DEC-053/054/055/current headings plus current implementation supersede those historical statements.
-
-No attempt should globally rewrite historical evidence to current USDC wording; that would destroy provenance. A01 should flag stale current-facing text only when it is actually presented as current, not historical.
-
-## 10. Engineering-agent infrastructure
-
-The former laptop-bound engineering path has been removed:
-- `StartAgent.bat` removed;
-- `AgentChat.bat` removed;
-- `scripts/local_agent.ps1` removed;
-- `scripts/agent_chat.ps1` removed;
-- the local executable swarm runner removed;
-- the old `codex-supervisor.yml` local-memory-only workflow removed.
-
-The authoritative replacement is cloud-hosted GitHub Actions:
+Current control plane:
 - default-branch `.github/workflows/hixton-cloud-swarm.yml` provides manual and scheduled dispatch;
-- `gpt/usdc-audit/.github/workflows/hixton-cloud-swarm-reusable.yml` contains the 11-agent execution graph;
-- A01-A08 run independently and read-only on GitHub-hosted runners;
-- A10 works on an isolated `swarm/run-<run id>` branch;
-- A09 executes deterministic QA plus independent release review;
-- A11 performs final governance and triggers one automatic A10 repair loop if needed;
-- successful work creates a pull request and is never auto-merged.
+- `gpt/usdc-audit/.github/workflows/hixton-cloud-swarm-reusable.yml` contains the A01–A11 execution graph;
+- `.github/workflows/hixton-cloud-preflight.yml` validates the swarm contract without model credentials;
+- A01–A08 run independently/read-only;
+- A10 works on an isolated mission branch;
+- A09 runs deterministic QA plus independent release review;
+- A11 performs final governance and can force one automatic A10 repair loop;
+- successful work opens a PR and is never auto-merged.
 
-A GitHub-hosted runner cannot reuse the user's interactive laptop ChatGPT/Codex login. The official Codex Action therefore requires a repository secret named `OPENAI_API_KEY`. This is an external configuration requirement, not repository code.
+The cloud preflight has executed successfully on GitHub Ubuntu 24.04 / Python 3.12 and ran 11/11 swarm-core tests green. It reported A01–A11, SWARM-002, the USDT/USDC regression case, `real_money_orders_allowed=False`, `automatic_merge_allowed=False`, and confirmed the repository has only the trading batch launcher plus no local PowerShell engineering runner.
 
-## 11. Repository structure/orphans
+The main scheduler now checks for the cloud-agent credential first. If the credential is absent, the workflow succeeds in a safe idle state and skips model jobs rather than producing repeated false failures.
 
-All tracked application/source/test/config/workflow/documentation files are assigned in `inventory.md`. Generated UI static assets and lockfiles are grouped with clear ownership. Backtest version directories are historical/research evidence, not duplicate application entrypoints.
+GitHub-hosted model work still requires repository secret `OPENAI_API_KEY`; it cannot inherit an interactive laptop ChatGPT/Codex login.
 
-`Startbot.bat -> src/main.py` remains the only trading application start path. The cloud engineering swarm is CI tooling and does not create a second bot runtime entrypoint.
+## Repository structure
 
-## 12. Test/evidence consistency
+`Startbot.bat -> src/main.py` remains the only trading application start path. Cloud swarm tooling is CI engineering infrastructure, not a second trading runtime. Research/backtest directories are evidence and experiments, not alternate application entrypoints.
 
-Repo-reported counts vary between historical DMS revisions (e.g. 292/19 vs later 335/22) because those sections describe different commits. Latest current README/DMS18 is the relevant historical evidence. Cloud missions must report actual fresh runner results rather than copy historical counts.
+## Final verdict
 
-The default-branch dispatcher and reusable workflow were accepted by GitHub as a valid workflow graph: GitHub resolved the called workflow on `gpt/usdc-audit` and instantiated preflight/specialist/A10/A09/A11/repair jobs. The first validation run stopped before runner steps because the required cloud OpenAI secret was not available, leaving all downstream jobs correctly skipped rather than pretending to run agents.
-
-## Cross-check verdict
-
-No unresolved **repository-understanding** question remains. The remaining uncertainties are external/runtime facts:
-- GitHub repository `OPENAI_API_KEY` must be configured before Codex cloud jobs can execute;
-- current real Binance account permissions/filter/fee/live-order behavior;
-- external Testnet/operational acceptance;
-- actual operator-machine backup/restore status;
-- future strategy profitability/market behavior.
-
-The repository is structurally ready for laptop-independent swarm execution while preserving all trading/live safety boundaries. SWARM-002 is the first active engineering mission once the GitHub OpenAI secret is configured.
+No repository-understanding blocker remains. The repository is structurally ready for laptop-independent swarm execution while preserving trading/live safety. The remaining prerequisites/unknowns are external: cloud OpenAI credential, real Binance account/runtime facts, external execution acceptance, operator backup/restore state and future market behavior.
