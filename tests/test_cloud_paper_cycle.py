@@ -12,7 +12,10 @@ from scripts import cloud_paper_cycle
 def test_cloud_cycle_reuses_startup_recovery_without_live_credentials(monkeypatch, tmp_path: Path):
     calls: list[bool] = []
     database = tmp_path / "paper.sqlite3"
-    config = SimpleNamespace(database_path=database)
+    config = SimpleNamespace(
+        database_path=database,
+        binance_base_url=cloud_paper_cycle.BINANCE_MARKET_DATA_ONLY_URL,
+    )
 
     class FakeState:
         def snapshot(self):
@@ -72,6 +75,7 @@ def test_cloud_cycle_reuses_startup_recovery_without_live_credentials(monkeypatc
             return SimpleNamespace(status="RUNNING")
 
     monkeypatch.setattr(cloud_paper_cycle, "load_project_config", lambda *args, **kwargs: config)
+    monkeypatch.setattr(cloud_paper_cycle, "cloud_market_data_config", lambda value: value)
     monkeypatch.setattr(cloud_paper_cycle, "RuntimeSupervisor", FakeSupervisor)
     monkeypatch.setattr(cloud_paper_cycle, "PaperStore", FakeStore)
 
@@ -80,6 +84,7 @@ def test_cloud_cycle_reuses_startup_recovery_without_live_credentials(monkeypatc
     assert calls == [True]
     assert result["mode"] == "PAPER_ONLY"
     assert result["market_data"] == "BINANCE_PUBLIC_USDC"
+    assert result["market_data_base_url"] == cloud_paper_cycle.BINANCE_MARKET_DATA_ONLY_URL
     assert result["real_money_orders_allowed"] is False
     assert result["testnet_orders_allowed"] is False
     assert result["open_positions"] == ["ETHUSDC"]
