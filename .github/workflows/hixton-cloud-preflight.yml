@@ -8,8 +8,7 @@ on:
     paths:
       - scripts/swarm_core.py
       - tests/test_swarm_core.py
-      - agent_memory/swarm/**
-      - agent_memory/state.json
+      - agent_memory/**
       - .github/workflows/hixton-cloud-preflight.yml
       - .github/workflows/hixton-cloud-swarm-reusable.yml
 
