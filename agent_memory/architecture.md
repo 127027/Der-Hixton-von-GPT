@@ -4,9 +4,9 @@
 
 Der Hixton has one trading application entry (`src/main.py`) and one normal Windows application starter (`Startbot.bat`). Backtest, Paper, local UI and deliberately blocked live preparation are modes/surfaces of the same application package. Research modules are invoked from the same CLI and are not independent trading programs.
 
-The engineering-agent tooling (`StartAgent.bat`, `AgentChat.bat`, `scripts/*.ps1`, `agent_memory/`) is outside the trading execution path. It must never be allowed to become a second bot/runtime or a hidden live dispatcher.
+The engineering swarm is CI/tooling outside the trading execution path. It runs on GitHub-hosted virtual machines and must never become a second bot/runtime or a hidden live dispatcher.
 
-## Top-level call graph
+## Top-level trading call graph
 
 `Startbot.bat`
 → validate/create `.venv`
@@ -173,8 +173,30 @@ There are separate execution loops for isolated backtest, shared portfolio backt
 
 Research engines/screens may contain simplified screening logic before exact finalists. Their outputs are research-only and exact candidate confirmation uses canonical Decimal engines. They are not alternate production execution paths.
 
-## Agent tooling architecture (current, pre-swarm-runner)
+## Engineering swarm architecture — GitHub cloud
 
-`StartAgent.bat`/`AgentChat.bat` call PowerShell tooling. Existing `local_agent.ps1` and `agent_chat.ps1` are single-agent mechanisms and hard-code an obsolete `agent/codex-supervisor-v1` branch. They use disposable worktrees and normal Codex/ChatGPT login, then persist allowed memory changes.
+The old laptop-bound engineering launchers and local Codex runners were removed. They are not part of the current repository architecture.
 
-The new 11-role definitions under `agent_memory/swarm/` are governance contracts, not yet 11 running processes. After bootstrap, the existing engineering-agent entry should be upgraded rather than adding a competing bot starter. A10 will schedule role executions; A11 will audit A10 and the specialists. Patching agents must use isolated worktrees/branches or serialized ownership to avoid conflicting writes.
+Cloud control plane:
+
+`main/.github/workflows/hixton-cloud-swarm.yml`
+→ manual `workflow_dispatch` or scheduled trigger
+→ reusable workflow `gpt/usdc-audit/.github/workflows/hixton-cloud-swarm-reusable.yml`
+→ checkout `gpt/usdc-audit` into fresh GitHub-hosted Ubuntu runners
+→ build Python `.venv`, install dev dependencies and UI dependencies
+→ run runtime/UI parity smoke tests and best-effort public USDC data sync
+→ run A01-A08 as independent read-only Codex jobs
+→ collect their artifacts
+→ run A10 with workspace-write on isolated branch `swarm/run-<run id>`
+→ deterministic protected-path guard
+→ push only the isolated mission branch
+→ fresh-runner deterministic QA + A09 read-only release gate
+→ A11 read-only governance gate
+→ on failure: one automatic A10 repair round followed by fresh A09/A11 gates
+→ on success: open pull request to `gpt/usdc-audit`; never auto-merge.
+
+`scripts/swarm_core.py` is a pure standard-library contract checker used by CI. It validates the exact A01–A11 registry, active mission, required regression cases and protected paths. It has no trading-runtime imports and no network/exchange behavior.
+
+`agent_memory/swarm/` is persistent governance/memory, not executable trading logic. A10/A11 do not own Binance credentials. The cloud workflow receives only the OpenAI API key needed by the official Codex Action. Public Binance candles may be generated in ephemeral runner storage; real account credentials are neither required nor allowed.
+
+Protected autonomous-edit boundaries include GitHub workflow/governance contracts and unreleased Live-submit code. Strategy/risk research may be implemented and validated, but activation remains a separate explicit owner decision.
