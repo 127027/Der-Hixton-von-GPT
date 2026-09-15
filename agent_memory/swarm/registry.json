@@ -1,0 +1,24 @@
+{
+  "schema_version": 1,
+  "swarm_name": "Hixton Engineering Swarm",
+  "agent_count": 11,
+  "agents": [
+    {"id":"A01","name":"Documentation & Requirements Auditor","role_file":"agents/A01_documentation_requirements.md","primary_domains":["README","DMS","AGENTS","requirements","decision-log","runbooks"],"mandatory_for_all_changes":true},
+    {"id":"A02","name":"Backtest & Research Agent","role_file":"agents/A02_backtest_research.md","primary_domains":["backtest","research","validation","metrics","historical-comparison"]},
+    {"id":"A03","name":"Paper Runtime Agent","role_file":"agents/A03_paper_runtime.md","primary_domains":["paper","ledger","slots","fills","restart","parity"]},
+    {"id":"A04","name":"UI/UX Freshness Agent","role_file":"agents/A04_ui_freshness.md","primary_domains":["ui","api-contract","labels","stale-state","built-assets"]},
+    {"id":"A05","name":"Runtime Watchdog Agent","role_file":"agents/A05_runtime_watchdog.md","primary_domains":["runtime","health","websocket","rest-fallback","startup","shutdown","liveness"]},
+    {"id":"A06","name":"Integration, Regression & Repair Agent","role_file":"agents/A06_integration_regression_repair.md","primary_domains":["integration","regression","cross-component","repair-routing","golden-baseline"],"mandatory_after_code_change":true},
+    {"id":"A07","name":"Market Data & Binance Agent","role_file":"agents/A07_market_data_binance.md","primary_domains":["candles","symbols","quote","exchange-filters","data-quality","binance"]},
+    {"id":"A08","name":"Strategy & Risk Agent","role_file":"agents/A08_strategy_risk.md","primary_domains":["signals","strategy","trade-policy","portfolio-risk","loss-analysis","regime-analysis"]},
+    {"id":"A09","name":"QA & Release Gate Agent","role_file":"agents/A09_qa_release_gate.md","primary_domains":["acceptance","tests","quality-gate","release-decision"],"may_mark_technical_pass":true},
+    {"id":"A10","name":"Workflow Supervisor & Dispatcher","role_file":"agents/A10_workflow_supervisor.md","primary_domains":["task-routing","dependency-order","retry","heartbeat","handoff"]},
+    {"id":"A11","name":"Meta-Orchestrator & Agent Auditor","role_file":"agents/A11_meta_orchestrator.md","primary_domains":["agent-governance","scope-audit","stalled-agent-detection","evidence-audit","supervisor-audit"],"may_mark_governance_pass":true}
+  ],
+  "completion_contract": {
+    "required_states": ["QA_PASS", "GOVERNANCE_PASS"],
+    "prohibit_self_approval": true,
+    "repair_reopens_downstream_checks": true,
+    "real_money_orders_allowed": false
+  }
+}
