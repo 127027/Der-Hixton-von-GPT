@@ -2,225 +2,119 @@
 
 ## Scope and baseline
 
-Inventory source is the recursively enumerated tracked Git tree imported from `127027/Der-Hixton@codex/backtest-audit-20260915`, followed by the GPT-repository swarm/cloud changes on `gpt/usdc-audit`. Before swarm additions, target tree SHA matched source exactly: `b09ba60f7a41b984f57a8b95ab2ac3722788e1f2`. Runtime/ignored files such as `.venv`, `data/`, backups, logs and raw local run directories are deliberately not part of the tracked inventory.
+The tracked application baseline was imported from `127027/Der-Hixton@codex/backtest-audit-20260915` into this GPT repository. Before swarm additions, the destination tree matched the source tree SHA `b09ba60f7a41b984f57a8b95ab2ac3722788e1f2`. Runtime/ignored files such as `.venv`, `data/`, backups, logs and raw local run directories are deliberately not tracked.
 
-Status notation: **READ** = implementation/content inspected; **GROUPED** = generated/static/template content whose role is verified as a group; **HISTORICAL EVIDENCE** = immutable research/results, not active behavior.
+## Current top-level engineering tooling
 
-## Root / engineering tooling
+- `.gitattributes` — line-ending stability for hashed sources.
+- `.gitignore` — excludes runtime databases, data, runs, secrets and caches.
+- `AGENTS.md` — persistent-agent safety/engineering contract.
+- `README.md` — human project entry and current operational summary.
+- `Startbot.bat` — sole tracked batch launcher for the actual trading application; delegates to `src/main.py start`.
+- `pyproject.toml` — Python package/runtime/dev dependencies and pytest/ruff/mypy configuration.
+- `scripts/__init__.py` — cloud engineering-helper package marker.
+- `scripts/swarm_core.py` — pure cloud-swarm registry/mission/regression/protected-path contract; no trading/network side effects.
+- `scripts/qa_gate.sh` — compile, Ruff, mypy, pytest, UI tests, TypeScript check and Vite build.
+- `.github/workflows/hixton-cloud-swarm-reusable.yml` — A01–A11 cloud execution graph on the engineering branch.
+- `.github/workflows/hixton-cloud-preflight.yml` — secret-free GitHub-hosted swarm validation.
 
-- `.gitattributes` — line-ending stability for hashed sources. GROUPED.
-- `.gitignore` — excludes runtime databases, data, runs, secrets/caches. READ role.
-- `AGENTS.md` — authoritative persistent-agent bootstrap and safety contract. READ.
-- `README.md` — current human entry, operational/current-result summary; newest headings override historical sections. READ.
-- `Startbot.bat` — sole trading application Windows starter; environment/dependency/UI checks then `src/main.py start`. READ.
-- `pyproject.toml` — package metadata, pinned runtime dependencies, pytest/ruff/mypy configuration. READ.
-- `scripts/__init__.py` — engineering-helper package marker; cloud-swarm tooling is outside trading runtime. READ role.
-- `scripts/swarm_core.py` — standard-library-only GitHub cloud swarm contract: exact A01–A11 registry, active mission, regression cases and protected-path validation; no trading/runtime/network side effects. READ.
-- `scripts/qa_gate.sh` — compile, Ruff, mypy, pytest, UI tests, TypeScript and production-build gate. READ.
-- `.github/workflows/hixton-cloud-swarm-reusable.yml` — authoritative GitHub-hosted A01–A11 execution graph on `gpt/usdc-audit`; builds virtual environments, runs specialists, A10, A09, A11 and one automatic repair round. READ.
+Legacy laptop-bound engineering launchers/runners are absent. The secret-free preflight enforces that `Startbot.bat` is the only tracked `.bat` file and that no local PowerShell engineering runner exists under `scripts/`.
 
-Removed obsolete laptop-agent tooling is intentionally **not** part of the current tree: `StartAgent.bat`, `AgentChat.bat`, `scripts/local_agent.ps1`, `scripts/agent_chat.ps1`, the local executable swarm runner and the old memory-only `codex-supervisor.yml` workflow.
+The default-branch dispatcher lives on `main` as `.github/workflows/hixton-cloud-swarm.yml`. It handles manual/scheduled cloud dispatch and stays safely idle if the cloud-agent credential is not configured.
 
-Default-branch cloud entry (tracked on `main`, not this engineering branch inventory tree): `.github/workflows/hixton-cloud-swarm.yml` — manual/scheduled dispatcher calling the reusable workflow at `gpt/usdc-audit`. The one-time import workflow was removed after successful repository import.
+## DMS and decision sources
 
-## DMS — normative/current plus historical context
+The complete `DMS/` tree remains tracked and historically versioned. Current interpretation uses DMS 00 source precedence and the latest owner decisions rather than rewriting old evidence. Key responsibilities:
+- 00 document precedence/current state;
+- 01 product scope;
+- 02 stable requirements;
+- 03 strategy/Pine/V6 profiles;
+- 04 capital/slots/risk;
+- 05 market data/update rules;
+- 06 backtest/validation model;
+- 07 intent/order/fill/reconciliation target;
+- 08 UI/UX contract;
+- 09 architecture/data model;
+- 10 operations/monitoring/recovery;
+- 11 security/compliance;
+- 12 test/evidence boundaries;
+- 13 configuration/schema;
+- 14 build plan/Definition of Done;
+- 15 traceability;
+- 16 owner decisions/open points;
+- 17 glossary;
+- 18 current backtest/runtime evidence;
+- 19 risk register;
+- 20 operating runbook/live blockers;
+- 21 Git collaboration;
+- 22 sources/Binance checks;
+- 23 folder/entrypoint rules;
+- changelog/templates remain supporting historical/operational artifacts.
 
-Individually accounted and reviewed for current-vs-historical precedence:
-- `DMS/00_DOKUMENTENLENKUNG_UND_START.md` — document precedence/current version history. READ.
-- `DMS/01_PRODUKTVISION_SCOPE.md` — product scope; contains older USDT/service statements superseded by newer decisions. READ.
-- `DMS/02_VERBINDLICHE_ANFORDERUNGEN.md` — stable requirement IDs, current USDC preamble plus historical text. READ.
-- `DMS/03_STRATEGIE_HIXTON.md` — strategy/Pine semantics and V6 coin profiles; historical quote wording retained. READ.
-- `DMS/04_MARKT_KAPITAL_RISIKO.md` — capital, slots, risk and portfolio semantics; latest preamble identifies current USDC state. READ.
-- `DMS/05_MARKTDATEN_UND_AKTUALISIERUNG.md` — history, startup sync, stream/fallback, freshness/audit rules. READ.
-- `DMS/06_BACKTEST_UND_VALIDIERUNG.md` — current single-rulebase doctrine and isolated-vs-portfolio model distinction. READ.
-- `DMS/07_AUSFUEHRUNG_ORDERS.md` — intent/order/fill/reconciliation target and implemented Paper behavior; live limitations. READ.
-- `DMS/08_UI_UX_SPEZIFIKATION.md` — current UI behavior plus historical states. READ.
-- `DMS/09_SYSTEMARCHITEKTUR_DATENMODELL.md` — component/data model principles. READ.
-- `DMS/10_BETRIEB_MONITORING_RECOVERY.md` — health/recovery/soak/backup target model; some service-era text superseded by DEC-054 visible operation. READ.
-- `DMS/11_SICHERHEIT_COMPLIANCE.md` — credential/session/network and live-gate requirements. READ.
-- `DMS/12_TESTS_ABNAHMEKRITERIEN.md` — chronological test evidence and strict distinction between offline tests and external execution proof. READ.
-- `DMS/13_KONFIGURATION_UND_SCHEMATA.md` — current JSON contract and historical schema examples. READ.
-- `DMS/14_BUILD_PLAN_UND_DEFINITION_OF_DONE.md` — implementation phases/release boundaries. READ.
-- `DMS/15_TRACEABILITY_MATRIX.md` — requirement-to-component/test map; historical portions may lag latest code. READ.
-- `DMS/16_ENTSCHEIDUNGSLOG_UND_OFFENE_PUNKTE.md` — owner decisions DEC-055 etc.; highest DMS authority after owner instruction. READ.
-- `DMS/17_GLOSSAR.md` — terms; some USDT amounts historical. READ.
-- `DMS/18_BACKTEST_STATUS_UND_ERGEBNISFORMAT.md` — current operational/backtest evidence incl. quote migration, V9, slot audit and Paper parity. READ relevant current sections and prior audit evidence.
-- `DMS/19_RISIKOREGISTER.md` — engineering/trading/runtime risks and controls. READ.
-- `DMS/20_BETRIEBSRUNBOOK.md` — current runtime/live-preparation state and concrete remaining work. READ current sections.
-- `DMS/21_GITHUB_ZUSAMMENARBEIT.md` — Git collaboration/branch/history rules; old source repo/branch references are historical. READ.
-- `DMS/22_QUELLEN_UND_BINANCE_PRUEFUNG.md` — external-source method and historical USDT universe check. READ.
-- `DMS/23_ORDNERSTRUKTUR_UND_EINSTIEGSPUNKT.md` — single bot starter/technical entry and repository hygiene. READ.
-- `DMS/CHANGELOG.md` — chronological DMS/application history; role verified, historical by definition. GROUPED/READ role.
-- `DMS/VORLAGE_BACKTEST_RUN_MANIFEST.md` — report template, not runtime input. GROUPED.
-- `DMS/VORLAGE_INCIDENT_REPORT.md` — incident template, not runtime input. GROUPED.
+## Strategy/configuration
 
-## Strategy source material
-
-- `strategy/pine/Der_Hixton_Indikator_v6.pine` — owner-provided Pine reference used by Pine-v6 semantics/golden tests; immutable reference role verified.
-- `strategy/pine/.gitkeep` — structural placeholder, inert. GROUPED.
-- `strategy/source_material/Der Hixton Indikator.md` — original analysis/source material, non-executable. GROUPED/READ role.
-
-## Configuration
-
-- `config/examples/config.example.json` — strict active V6-USDC runtime config, 10 markets, 250/3×80 defaults, localhost UI, USDC DB. READ through config loader/current audit.
+- `strategy/pine/Der_Hixton_Indikator_v6.pine` — owner-provided Pine reference.
+- `strategy/source_material/Der Hixton Indikator.md` — original analysis/source material.
+- `config/examples/config.example.json` — strict active V6-USDC runtime config: ten USDC markets, 250 shared Paper cash, default 3×80, localhost UI, USDC DB.
 
 ## Python application
 
-### Entry/config/constants
-- `src/main.py` — sole technical application entry, delegates to CLI. READ.
-- `src/hixton/__init__.py` — package/version metadata, inert application boundary. GROUPED.
-- `src/hixton/cli.py` — status/start/data/backtest/paper/maintenance/live/ui command routing. READ.
-- `src/hixton/config.py` — strict JSON config loader and active strategy/config invariants. READ.
-- `src/hixton/constants.py` — active USDC universe/timeframe/constants. READ.
-
-### Domain
-- `src/hixton/domain/__init__.py` — package exports. GROUPED.
-- `src/hixton/domain/models.py` — Candle/indicator/signal/parameter/semantics records. READ.
-- `src/hixton/domain/strategy.py` — deterministic Hixton indicator/signal state machine and centralized entry priority. READ.
-- `src/hixton/domain/trade_policy.py` — coin policy filters/close-stop/trailing decision gate. READ.
-- `src/hixton/domain/versions.py` — versioned StrategyDefinition/CoinProfile maps incl. active V6 and research definitions. READ.
-- `src/hixton/domain/risk.py` — 5% UTC-day entry pause + persistent 20% high-water drawdown halt. READ.
-- `src/hixton/domain/allocation.py` — slot-allocation policies. READ.
-- `src/hixton/domain/markets.py` — quote/symbol parsing and fixed active-market validation. READ.
+### Entry/config/domain
+- `src/main.py` — sole technical application entry.
+- `src/hixton/cli.py` — status/start/data/backtest/paper/maintenance/live/ui routing.
+- `src/hixton/config.py`, `constants.py` — strict config/current market constants.
+- `domain/models.py`, `strategy.py`, `trade_policy.py`, `versions.py`, `risk.py`, `allocation.py`, `markets.py` — deterministic strategy/profile/policy/risk/allocation/domain truth.
 
 ### Data
-- `src/hixton/data/__init__.py` — exports. GROUPED.
-- `src/hixton/data/binance.py` — public REST/WebSocket-adjacent market-data adapter, exchange metadata/filter parsing. READ.
-- `src/hixton/data/quality.py` — non-mutating candle audits; gaps/duplicates/OHLC/provisional/freshness. READ.
-- `src/hixton/data/storage.py` — SQLite CandleStore, WAL/revisions/symbol rules/read-only mode. READ.
-- `src/hixton/data/sync.py` — incremental history synchronization and strict re-audit. READ.
+- `data/binance.py` — public market data/exchange metadata.
+- `data/quality.py` — strict candle validation.
+- `data/storage.py` — CandleStore SQLite/revisions/read-only support.
+- `data/sync.py` — incremental history synchronization and re-audit.
 
-### Backtest
-- `src/hixton/backtest/__init__.py` — exports. GROUPED.
-- `src/hixton/backtest/models.py` — immutable cost/execution/fill/trade/result records. READ.
-- `src/hixton/backtest/metrics.py` — pure metrics/drawdown/monthly/ratios. READ.
-- `src/hixton/backtest/engine.py` — canonical single/isolated batch next-bar-open simulation. READ.
-- `src/hixton/backtest/portfolio.py` — shared-cash/slot/risk chronological portfolio simulation. READ.
-- `src/hixton/backtest/reporting.py` — immutable run bundles/manifests/hashes. READ.
-- `src/hixton/backtest/comparison.py` — stored-run provenance vs active strategy/code/cost/settings classification. READ.
-- `src/hixton/backtest/research.py` — bounded historical research, no runtime activation. READ.
-- `src/hixton/backtest/usdc_review.py` — real-USDC migration review/common continuous history/no synthetic fill. READ.
-- `src/hixton/backtest/coin_review.py` — V5 loss attribution/frozen policy catalogue/validation. READ major behavior.
-- `src/hixton/backtest/weak_coin_review.py` — V8 bounded weak-coin study; role/results verified from reports/docs/tests. READ role/historical evidence.
-- `src/hixton/backtest/portfolio_review.py` — V9 portfolio-first/risk sensitivity research; role/results verified from reports/docs/tests. READ role/historical evidence.
+### Backtest/research
+- `backtest/models.py`, `metrics.py`, `engine.py`, `portfolio.py`, `reporting.py`, `comparison.py` — canonical simulation/reporting/provenance.
+- `research.py`, `usdc_review.py`, `coin_review.py`, `weak_coin_review.py`, `portfolio_review.py` — versioned research/diagnosis only; no automatic Paper activation.
 
-### Paper
-- `src/hixton/paper/__init__.py` — exports. GROUPED.
-- `src/hixton/paper/models.py` — paper account/settings/position/event/session/soak records. READ.
-- `src/hixton/paper/storage.py` — PaperStore schema/migrations/atomic persistence/legacy-USDT fail-closed behavior. READ.
-- `src/hixton/paper/engine.py` — current simulated execution, next-open fills, slots/risk, exactly-once checkpoints/restart. READ.
-- `src/hixton/paper/maintenance.py` — explicit offline archive+fresh-start operation. READ.
+### Paper/runtime
+- `paper/models.py`, `storage.py`, `engine.py`, `maintenance.py` — persistent Paper account/settings/positions/events/checkpoints/dust/session/soak and explicit fresh-start maintenance.
+- `runtime/state.py`, `analysis.py`, `supervisor.py` — observable state, analysis/common windows, startup/sync/stream/fallback/Paper/audit/backtest orchestration.
 
-### Runtime
-- `src/hixton/runtime/__init__.py` — exports. GROUPED.
-- `src/hixton/runtime/state.py` — thread-safe runtime/health/event/backtest state. READ.
-- `src/hixton/runtime/analysis.py` — common available report start/strategy analysis helpers. READ.
-- `src/hixton/runtime/supervisor.py` — startup sync, health, stream/REST recovery, Paper loop, daily audit, backtest actions, source fingerprint. READ.
-
-### Live preparation / intentionally unreleased execution
-- `src/hixton/live/__init__.py` — package marker. GROUPED.
-- `src/hixton/live/credentials.py` — Windows Credential Manager, local password/session. READ.
-- `src/hixton/live/binance.py` — signed read-only account/preflight client and permission/market checks. READ.
-- `src/hixton/live/exchange.py` — signed order transport/parser, only reachable behind higher-level release gates. READ.
-- `src/hixton/live/orders.py` — persistent exactly-once trial order journal/executor/reconciliation primitives. READ.
-- `src/hixton/live/reconciliation.py` — baseline/balance/fill ownership reconciliation. READ.
-- `src/hixton/live/runtime.py` — trial lifecycle runtime bridge. READ.
-- `src/hixton/live/trial.py` — single-entry 50-USDC trial state machine; still release-blocked. READ.
-- `src/hixton/live/preparation.py` — live-preparation service; two independent false release gates keep order submit disabled. READ.
+### Live preparation — intentionally unreleased
+- `live/credentials.py`, `binance.py`, `exchange.py`, `orders.py`, `reconciliation.py`, `runtime.py`, `trial.py`, `preparation.py` — credential/preflight/order primitives/trial/reconciliation, with productive release still fail-closed.
+- `ui/live.py` — live-preparation route surface; also protected from autonomous swarm patches.
 
 ### UI/backend
-- `src/hixton/ui/__init__.py` — package marker. GROUPED.
-- `src/hixton/ui/api.py` — FastAPI routes/status/markets/charts/backtests/settings/session/live-preparation wiring and localhost mutation guard. READ.
-- `src/hixton/ui/chart.py` — chart range/aggregation/native-signal preparation. READ.
-- `src/hixton/ui/instance.py` — local singleton/control metadata/previous-instance replacement. READ.
-- `src/hixton/ui/lifecycle.py` — visible browser/terminal lease and stop policy. READ.
-- `src/hixton/ui/live.py` — credential/live-preparation route registration, fail-closed trial/live endpoints. READ.
-- `src/hixton/ui/server.py` — localhost Uvicorn/dashboard launcher and lifecycle. READ.
-
-### Built UI
-- `src/hixton/ui/static/index.html` — committed production HTML bundle target. GROUPED; role/serving behavior verified.
-- `src/hixton/ui/static/assets/index-B5XEI3_N.css` — generated production CSS. GROUPED.
-- `src/hixton/ui/static/assets/index-Ch6KdkH5.js` — generated production JS. GROUPED.
-
-## TypeScript UI source
-
-- `ui/package.json`, `ui/package-lock.json`, `ui/tsconfig.json`, `ui/vite.config.ts` — build/test/tooling lock/config. READ role.
-- `ui/index.html` — source HTML shell. GROUPED/read role.
-- `ui/src/main.ts` — primary dashboard controller/polling/render/settings/backtests/charts. READ.
-- `ui/src/trading-settings.ts` — settings bounds/payload/UI model. READ.
-- `ui/src/settings-draft.ts` — preserves unsaved draft against polling/concurrency. READ.
-- `ui/src/live-preparation.ts` — credential/live-preparation UI state/actions; server truth/fail-closed. READ.
-- `ui/src/backtest-context.ts` — MATCHING/DIFFERENT/UNVERIFIED and portfolio block-reason display. READ.
-- `ui/src/market-signal.ts` — last-signal/trend presentation helper; role verified through UI tests/docs. READ role.
-- `ui/src/session-lifetime.ts` — presence/stop/reconnect browser session controller; role verified through UI tests/runtime. READ role.
-- `ui/src/styles.css` — visual layer; no trading semantics. GROUPED.
+- `ui/api.py`, `chart.py`, `instance.py`, `lifecycle.py`, `server.py` — localhost API/chart/single-instance/visible-session/server lifecycle.
+- `src/hixton/ui/static/` — generated production UI bundle.
+- `ui/src/` — TypeScript source for dashboard/settings/live-preparation/backtest provenance/session lifetime/styles.
+- `ui/tests/` — front-end DOM/fetch harness and behavior tests.
 
 ## Tests
 
-Every tracked Python test file is mapped in `agent_memory/tests.md`:
-- `tests/__init__.py`, `tests/golden_reference.py`
-- `tests/test_allocation.py`
-- `tests/test_backtest_comparison.py`
-- `tests/test_backtest_engine.py`
-- `tests/test_backtest_reporting.py`
-- `tests/test_binance_adapter.py`
-- `tests/test_cli_portfolio.py`
-- `tests/test_coin_engine_parity.py`
-- `tests/test_coin_profiles.py`
-- `tests/test_config.py`
-- `tests/test_data_quality.py`
-- `tests/test_domain_models.py`
-- `tests/test_live_exchange.py`
-- `tests/test_live_orders.py`
-- `tests/test_live_preparation.py`
-- `tests/test_live_reconciliation_runtime.py`
-- `tests/test_live_trial.py`
-- `tests/test_paper_engine.py`
-- `tests/test_paper_maintenance.py`
-- `tests/test_portfolio_review.py`
-- `tests/test_risk.py`
-- `tests/test_runtime_parity.py`
-- `tests/test_storage.py`
-- `tests/test_strategy_golden.py`
-- `tests/test_swarm_core.py` — cloud swarm registry/mission/regression/protected-path contract.
-- `tests/test_trade_policy.py`
-- `tests/test_ui_api.py`
-- `tests/test_ui_chart.py`
-- `tests/test_usdc_review.py`
-- `tests/test_usdc_runtime_migration.py`
-- `tests/test_visible_session.py`
-- `tests/test_weak_coin_review.py`
+Python tests cover allocation, strategy golden/reference parity, trade policy, coin profiles, risk, market adapter/data quality/storage, USDC migration/review, backtest engine/reporting/comparison/CLI, Paper engine/maintenance/runtime parity, runtime visible-session, UI API/chart, live preparation/order/reconciliation/trial, research reviews, configuration, and the cloud swarm contract.
 
-UI test files:
-- `ui/tests/dom-harness.mjs` — isolated DOM/fetch harness.
-- `ui/tests/backtest-context.test.mjs`
-- `ui/tests/market-signal.test.mjs`
-- `ui/tests/session-lifetime.test.mjs`
-- `ui/tests/settings-draft.test.mjs`
-- `ui/tests/settings-flows.test.mjs`
+`tests/test_swarm_core.py` specifically verifies:
+- exact A01–A11 registry;
+- SWARM-002 active mission;
+- mandatory USDT/USDC regression requirements;
+- `real_money_orders_allowed=False` and `automatic_merge_allowed=False`;
+- protection of workflow/governance/Live-submit paths from autonomous patches.
 
-## Backtest evidence directories
+The secret-free GitHub preflight executed these swarm tests successfully (11/11) in an Ubuntu 24.04 / Python 3.12 virtual environment.
 
-Historical/research artifacts are not application entry points:
-- `backtests/v1/manifest-template.yaml`, report and `.gitkeep` structure — historical V1 evidence/template.
-- `backtests/v2/README.md`, `candidate.json`, ignored-run placeholder — historical V2 research/reference.
-- `backtests/v3/README.md`, `candidate.json`, ignored-run placeholder — rejected multi-slot challenger.
-- `backtests/v4/README.md`, `reports/review-20260905.json` — coin-parameter research.
-- `backtests/v5/README.md`, `reports/coin-review-20260905.json` — loss attribution/policy research.
-- `backtests/v6/README.md`, `candidate.json`, `reports/profile-review-20260906.json` — historical V6 profile selection/reference.
-- `backtests/v7/README.md`, `validation-20260908.json` — USDC validation/migration evidence.
-- `backtests/v8/README.md`, `reports/weak-coin-review-20260914.json`, `quote-migration-audit-20260915.json`, `slot-capacity-audit-20260915.json`, `portfolio-reference-replay-20260914.json`, `paper-portfolio-parity-20260915.json` — bounded weak-coin, quote-migration, slot and parity evidence.
-- `backtests/v9/README.md`, `reports/portfolio-first-20260915.json`, `risk-sensitivity-20260915.json` — rejected portfolio-first/risk research.
+## Backtest evidence
 
-## Agent-memory additions on GPT working branch
+Versioned evidence remains under `backtests/v1` through `v9`. Historical/research artifacts are not application entrypoints. V7/V8/V9 contain the quote-migration, slot-capacity, Paper parity and later research evidence used by SWARM-002. Large reproducible raw runs remain ignored where designed.
 
-- `agent_memory/state.json` — bootstrap/current cloud-swarm state.
-- `agent_memory/diagnosis_2026-09-14.md` — prior agent diagnosis.
+## Persistent agent knowledge
+
+- `agent_memory/state.json` — current engineering/cloud state.
+- `agent_memory/diagnosis_2026-09-14.md` — prior diagnosis.
 - `agent_memory/usdt_usdc_migration_diagnosis_2026-09-15.md` — verified quote/start-path diagnosis.
-- `agent_memory/swarm/README.md`, `registry.json`, `protocol.md`, `taskboard.json` — 11-agent cloud governance model and active mission.
-- `agent_memory/swarm/agents/A01...A11*.md` — role contracts.
-- `agent_memory/inventory.md`, `architecture.md`, `dataflows.md`, `ui_map.md`, `storage.md`, `tests.md`, `security.md`, `unknowns.md`, `cross_check.md` — persistent verified engineering knowledge.
+- `agent_memory/swarm/README.md`, `registry.json`, `protocol.md`, `taskboard.json` — 11-agent cloud governance and active mission.
+- `agent_memory/swarm/agents/A01...A11*.md` — specialist contracts.
+- `inventory.md`, `architecture.md`, `dataflows.md`, `ui_map.md`, `storage.md`, `tests.md`, `security.md`, `unknowns.md`, `cross_check.md` — durable verified engineering knowledge.
 
 ## Inventory conclusion
 
-No tracked trading application file is unassigned to a component above. Runtime-only/ignored files are intentionally external to Git. Public market data may be generated ephemerally by GitHub Actions for cloud research. Private operator credentials/account state are never part of the autonomous swarm input. `Startbot.bat -> src/main.py` remains the only trading application start path; the engineering swarm is CI tooling, not a second bot entrypoint.
+No tracked trading application file is unassigned. Public market data may be generated ephemerally by GitHub Actions. Private operator credentials/account state are never autonomous swarm inputs. `Startbot.bat -> src/main.py` remains the only trading application start path; the engineering swarm is GitHub CI tooling, not a second bot runtime.
