@@ -2,24 +2,26 @@
 
 ## Scope and baseline
 
-Inventory source is the recursively enumerated tracked Git tree imported from `127027/Der-Hixton@codex/backtest-audit-20260915`. Before swarm-memory additions, target tree SHA matched source exactly: `b09ba60f7a41b984f57a8b95ab2ac3722788e1f2`. Runtime/ignored files such as `.venv`, `data/`, backups, logs and raw local run directories are deliberately not part of the tracked inventory.
+Inventory source is the recursively enumerated tracked Git tree imported from `127027/Der-Hixton@codex/backtest-audit-20260915`, followed by the GPT-repository swarm/cloud changes on `gpt/usdc-audit`. Before swarm additions, target tree SHA matched source exactly: `b09ba60f7a41b984f57a8b95ab2ac3722788e1f2`. Runtime/ignored files such as `.venv`, `data/`, backups, logs and raw local run directories are deliberately not part of the tracked inventory.
 
 Status notation: **READ** = implementation/content inspected; **GROUPED** = generated/static/template content whose role is verified as a group; **HISTORICAL EVIDENCE** = immutable research/results, not active behavior.
 
 ## Root / engineering tooling
 
 - `.gitattributes` — line-ending stability for hashed sources. GROUPED.
-- `.gitignore` — excludes local runtime databases, data, runs, secrets/caches. READ role.
-- `.github/workflows/codex-supervisor.yml` — validates committed agent-memory structure only on its configured agent branch; does not run the trading bot and uses no exchange secret. READ.
+- `.gitignore` — excludes runtime databases, data, runs, secrets/caches. READ role.
 - `AGENTS.md` — authoritative persistent-agent bootstrap and safety contract. READ.
 - `README.md` — current human entry, operational/current-result summary; newest headings override historical sections. READ.
 - `Startbot.bat` — sole trading application Windows starter; environment/dependency/UI checks then `src/main.py start`. READ.
-- `StartAgent.bat` — engineering-agent launcher; not trading starter. READ role.
-- `AgentChat.bat` — interactive engineering-agent launcher. READ role.
 - `pyproject.toml` — package metadata, pinned runtime dependencies, pytest/ruff/mypy configuration. READ.
-- `scripts/local_agent.ps1` — current single Codex learning loop, disposable worktree, old hard-coded `agent/codex-supervisor-v1`, persists only `agent_memory` during bootstrap. READ.
-- `scripts/agent_chat.ps1` — current interactive single-agent chat, same old branch hard-code and bootstrap boundary. READ.
+- `scripts/__init__.py` — engineering-helper package marker; cloud-swarm tooling is outside trading runtime. READ role.
+- `scripts/swarm_core.py` — standard-library-only GitHub cloud swarm contract: exact A01–A11 registry, active mission, regression cases and protected-path validation; no trading/runtime/network side effects. READ.
 - `scripts/qa_gate.sh` — compile, Ruff, mypy, pytest, UI tests, TypeScript and production-build gate. READ.
+- `.github/workflows/hixton-cloud-swarm-reusable.yml` — authoritative GitHub-hosted A01–A11 execution graph on `gpt/usdc-audit`; builds virtual environments, runs specialists, A10, A09, A11 and one automatic repair round. READ.
+
+Removed obsolete laptop-agent tooling is intentionally **not** part of the current tree: `StartAgent.bat`, `AgentChat.bat`, `scripts/local_agent.ps1`, `scripts/agent_chat.ps1`, the local executable swarm runner and the old memory-only `codex-supervisor.yml` workflow.
+
+Default-branch cloud entry (tracked on `main`, not this engineering branch inventory tree): `.github/workflows/hixton-cloud-swarm.yml` — manual/scheduled dispatcher calling the reusable workflow at `gpt/usdc-audit`. The one-time import workflow was removed after successful repository import.
 
 ## DMS — normative/current plus historical context
 
@@ -180,6 +182,7 @@ Every tracked Python test file is mapped in `agent_memory/tests.md`:
 - `tests/test_runtime_parity.py`
 - `tests/test_storage.py`
 - `tests/test_strategy_golden.py`
+- `tests/test_swarm_core.py` — cloud swarm registry/mission/regression/protected-path contract.
 - `tests/test_trade_policy.py`
 - `tests/test_ui_api.py`
 - `tests/test_ui_chart.py`
@@ -211,13 +214,13 @@ Historical/research artifacts are not application entry points:
 
 ## Agent-memory additions on GPT working branch
 
-- `agent_memory/state.json` — bootstrap progress/control.
+- `agent_memory/state.json` — bootstrap/current cloud-swarm state.
 - `agent_memory/diagnosis_2026-09-14.md` — prior agent diagnosis.
 - `agent_memory/usdt_usdc_migration_diagnosis_2026-09-15.md` — verified quote/start-path diagnosis.
-- `agent_memory/swarm/README.md`, `registry.json`, `protocol.md`, `taskboard.json` — 11-agent governance model.
+- `agent_memory/swarm/README.md`, `registry.json`, `protocol.md`, `taskboard.json` — 11-agent cloud governance model and active mission.
 - `agent_memory/swarm/agents/A01...A11*.md` — role contracts.
-- this inventory and the remaining required knowledge maps.
+- `agent_memory/inventory.md`, `architecture.md`, `dataflows.md`, `ui_map.md`, `storage.md`, `tests.md`, `security.md`, `unknowns.md`, `cross_check.md` — persistent verified engineering knowledge.
 
 ## Inventory conclusion
 
-No tracked trading application file is unassigned to a component above. Runtime-only/ignored files are intentionally external to Git and must be inspected only on the operator machine when a task explicitly requires runtime evidence; their absence from this repository is not a code-understanding gap.
+No tracked trading application file is unassigned to a component above. Runtime-only/ignored files are intentionally external to Git. Public market data may be generated ephemerally by GitHub Actions for cloud research. Private operator credentials/account state are never part of the autonomous swarm input. `Startbot.bat -> src/main.py` remains the only trading application start path; the engineering swarm is CI tooling, not a second bot entrypoint.
