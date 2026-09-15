@@ -18,7 +18,7 @@ Historical README/DMS18 test counts describe their original commits; cloud jobs 
 ## Cloud swarm infrastructure tests
 
 - `tests/test_swarm_core.py` — exact A01–A11 registry, active SWARM-002 mission, mandatory all-agent participation, USDT/USDC regression contract, cloud-safe summary, and rejection of autonomous changes to GitHub workflow/governance and unreleased Live-submit paths.
-- `.github/workflows/hixton-cloud-preflight.yml` — secret-free GitHub-hosted validation: fresh Python venv, compile of engineering scripts, `test_swarm_core.py`, `validate_cloud_ready()`, and explicit assertion that obsolete `StartAgent.bat`, `AgentChat.bat`, local PowerShell runners and local swarm runner are absent.
+- `.github/workflows/hixton-cloud-preflight.yml` — secret-free GitHub-hosted validation: fresh Python venv, compile of engineering scripts, `test_swarm_core.py`, `validate_cloud_ready()`, plus generic enforcement that `Startbot.bat` is the sole tracked batch launcher and no local PowerShell engineering runner exists.
 - `.github/workflows/hixton-cloud-swarm-reusable.yml` — integration orchestration: fresh virtual environments, A01–A08 independent reports, isolated A10 branch, deterministic QA, A09, A11, one repair loop and PR-only handoff.
 
 Proof boundary: a green swarm preflight proves orchestration contracts and repository safety checks, not model quality, market profitability or Binance execution.
@@ -106,19 +106,7 @@ Proof boundary — critical: all productive live-order tests use fake/synthetic 
 
 ## Regression incidents already encoded
 
-Existing tests/reports cover:
-- strategy batch/replay drift;
-- Paper/backtest drift;
-- Paper restart duplicate processing;
-- missing next-open reference;
-- stale/provisional/gapped candles;
-- slot priority/cash over-allocation;
-- quote migration/history truncation/legacy-account confusion;
-- source-code provenance changed while runtime still loaded;
-- stale UI/backtest context;
-- duplicate live submit after timeout/restart;
-- unsafe hidden runtime/duplicate instance;
-- fake live state despite blocked release.
+Existing tests/reports cover strategy batch/replay drift, Paper/backtest drift, Paper restart duplicate processing, missing next-open reference, stale/provisional/gapped candles, slot priority/cash over-allocation, quote migration/history truncation/legacy-account confusion, source-code provenance changes while runtime remains loaded, stale UI/backtest context, duplicate live submit after timeout/restart, unsafe hidden runtime/duplicate instance, and fake live state despite blocked release.
 
 The USDT→USDC incident is also an explicit swarm system regression: same-window quote comparison + start-state/path analysis must prevent diagnosing `733 -> 203` as a currency-conversion bug.
 
