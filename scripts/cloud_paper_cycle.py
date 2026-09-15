@@ -10,19 +10,26 @@ from __future__ import annotations
 import argparse
 import asyncio
 import json
+from dataclasses import replace
 from pathlib import Path
 
-from hixton.config import load_project_config
+from hixton.config import ProjectConfig, load_project_config
 from hixton.paper.storage import PaperStore
 from hixton.runtime.supervisor import RuntimeSupervisor
 
 PROJECT_ROOT = Path(__file__).resolve().parents[1]
 DEFAULT_CONFIG = PROJECT_ROOT / "config" / "examples" / "config.example.json"
+BINANCE_MARKET_DATA_ONLY_URL = "https://data-api.binance.vision"
+
+
+def cloud_market_data_config(config: ProjectConfig) -> ProjectConfig:
+    """Keep all bot settings identical while forcing Binance's public-data-only host."""
+    return replace(config, binance_base_url=BINANCE_MARKET_DATA_ONLY_URL)
 
 
 async def run_cycle(config_path: Path) -> dict[str, object]:
     resolved = config_path if config_path.is_absolute() else PROJECT_ROOT / config_path
-    config = load_project_config(resolved, project_root=PROJECT_ROOT)
+    config = cloud_market_data_config(load_project_config(resolved, project_root=PROJECT_ROOT))
     supervisor = RuntimeSupervisor(config)
 
     # Reuse the canonical startup recovery path. On the first ever Paper account
@@ -47,6 +54,7 @@ async def run_cycle(config_path: Path) -> dict[str, object]:
     return {
         "mode": "PAPER_ONLY",
         "market_data": "BINANCE_PUBLIC_USDC",
+        "market_data_base_url": config.binance_base_url,
         "strategy_key": session.strategy_key,
         "strategy_version": session.strategy_version,
         "cash_usdc": str(account.cash_usdc),
