@@ -13,7 +13,7 @@
   "active_mission": {
     "id": "SWARM-002",
     "title": "USDC 3x80 early-loss-path improvement",
-    "objective": "Use the full cloud swarm to diagnose and improve the fresh USDC 3x80 portfolio path that reaches the early drawdown halt. Seek robust signal/strategy/execution improvements with time-separated validation; do not simply disable risk protection or optimize to one historical number.",
+    "objective": "Use the full cloud swarm to diagnose and improve the fresh USDC 3x80 portfolio path that reaches the early drawdown halt. Seek robust signal/strategy/execution improvements with time-separated validation; do not simply disable risk protection or optimize to one historical number. All operational validation is Paper-only against real public Binance USDC market data with simulated fills.",
     "state": "NEW",
     "owner_instruction_date": "2026-09-15",
     "primary_agents": ["A02", "A08", "A10", "A11"],
@@ -21,7 +21,9 @@
     "regression_cases": ["USDT_USDC_MIGRATION"],
     "constraints": [
       "Run in GitHub-hosted virtual environments; no owner laptop dependency.",
-      "Never send real or testnet exchange orders and never request Binance credentials.",
+      "Trading mode is permanently Paper-only for this project phase: real public Binance market data, simulated orders/fills, persistent Paper account state.",
+      "Never send real or testnet exchange orders and never request Binance account credentials.",
+      "Do not replace real Binance candles with synthetic market data for operational Paper evaluation; deterministic fixtures remain allowed only for unit/regression tests.",
       "Do not weaken the 5 percent daily loss pause or 20 percent drawdown halt merely to improve historical performance.",
       "Do not relabel a fresh-start result as continuation of the older USDT account path.",
       "Do not activate new strategy or risk parameters without a separate explicit owner activation decision.",
@@ -34,6 +36,7 @@
       "A03 verifies Paper/portfolio behavior remains consistent for equivalent assumptions.",
       "A04 verifies UI/report provenance remains current after any patch.",
       "A05 and A06 check runtime and cross-component regressions.",
+      "Operational Paper evidence uses real public Binance USDC candles and simulated fills only.",
       "Deterministic Python/UI QA passes on a fresh GitHub runner.",
       "A09 issues QA_PASS and A11 issues GOVERNANCE_PASS before a pull request is opened.",
       "No automatic merge or active-strategy activation occurs."
@@ -43,7 +46,13 @@
   "agent_runtime": {
     "execution": "github_actions_cloud",
     "base_branch": "gpt/usdc-audit",
+    "trading_mode": "paper_only",
+    "market_data_source": "binance_public_live_usdc",
+    "paper_account_persistence_required": true,
+    "continuous_operation_target": "24x7",
     "real_money_orders_allowed": false,
+    "testnet_orders_allowed": false,
+    "binance_private_credentials_allowed": false,
     "automatic_merge_allowed": false
   }
 }
