@@ -15,6 +15,7 @@ on:
 
 # Paper-only runtime: official Binance public market-data endpoint,
 # simulated fills, persistent Paper ledger, no exchange secrets.
+# Every new VM must restore the existing Paper ledger before market processing.
 permissions:
   contents: write
   actions: read
