@@ -2,8 +2,8 @@
   "mode": "ENGINEERING_READY",
   "bootstrap_complete": true,
   "progress_percent": 100,
-  "current_focus": "Repository bootstrap completed with full tracked-file inventory, architecture, dataflow, UI, storage, tests, security and final cross-check maps. Eleven-agent swarm contracts are defined. SWARM-001 now moves to implementation of the executable dispatcher/meta-auditor using the existing engineering-agent entrypoints; trading application/live behavior remains unchanged.",
-  "last_indexed_commit": "ec0c14eb21e223e0904c6234325462098325f3db",
+  "current_focus": "The eleven-agent swarm is now cloud-hosted on GitHub Actions. Obsolete laptop StartAgent/AgentChat/local Codex runners were removed. SWARM-002 is the active mission: improve the fresh USDC 3x80 early-loss path using all eleven roles, deterministic QA, A11 governance and an automatic repair round without real-money execution or automatic strategy activation.",
+  "last_indexed_commit": "ec512628c4531f4ee84135c16dea2e6774cb48b4",
   "last_learning_round": 4,
   "areas": {
     "inventory": 100,
@@ -25,13 +25,13 @@
   "cross_check_complete": true,
   "unresolved_repository_questions": [],
   "external_runtime_unknowns": [
+    "A GitHub repository secret named OPENAI_API_KEY must be configured before Codex cloud jobs can execute; GitHub-hosted runners cannot reuse a laptop ChatGPT/Codex login.",
     "Current real Binance account permissions, IP restriction state, balances, fees and real execution behavior require operator/runtime evidence.",
     "Current exchange filters/status at a future order instant are time-varying runtime facts.",
     "External Binance Spot Testnet/operational acceptance for the unreleased one-off live trial is not completed.",
     "Full foreign/manual-order history/account-isolation and tradable-remainder/dust acceptance remain live-release blockers.",
     "External encrypted backup/retention/restore health on the operator machine is not proven from Git.",
-    "Current bot runtime health cannot be asserted when no running operator instance is observable.",
     "Future strategy profitability and market-regime robustness cannot be established from repository inspection."
   ],
-  "notes": "Bootstrap evidence is persisted in inventory.md, architecture.md, dataflows.md, ui_map.md, storage.md, tests.md, security.md, unknowns.md and cross_check.md. USDT/USDC diagnosis is stored in usdt_usdc_migration_diagnosis_2026-09-15.md. Historical DMS statements are interpreted using DMS 00/decision-log precedence rather than globally rewritten. Real-money order release remains explicitly outside the engineering-agent mandate."
+  "notes": "Bootstrap evidence remains in inventory.md, architecture.md, dataflows.md, ui_map.md, storage.md, tests.md, security.md, unknowns.md and cross_check.md. The cloud swarm contract lives under agent_memory/swarm and .github/workflows. Public market data may be generated ephemerally in GitHub Actions; Binance credentials and real-money order release remain explicitly outside the autonomous swarm mandate."
 }
