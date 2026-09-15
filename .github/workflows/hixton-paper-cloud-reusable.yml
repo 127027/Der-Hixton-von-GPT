@@ -91,7 +91,7 @@ jobs:
           set -euo pipefail
           timeout 30m .venv/bin/python scripts/cloud_paper_cycle.py | tee /tmp/paper-summary.json
 
-      - name: Verify resulting Paper database
+      - name: Verify and checkpoint resulting Paper database
         shell: bash
         run: |
           set -euo pipefail
@@ -104,6 +104,7 @@ jobs:
           if not path.is_file() or path.stat().st_size == 0:
               raise SystemExit('Paper cycle did not produce a database')
           with sqlite3.connect(path) as connection:
+              connection.execute('PRAGMA wal_checkpoint(TRUNCATE)').fetchall()
               result = connection.execute('PRAGMA integrity_check').fetchone()[0]
           if result != 'ok':
               raise SystemExit(f'SQLite integrity check failed after cycle: {result}')
@@ -113,6 +114,8 @@ jobs:
               raise SystemExit('Paper-only invariant missing from cycle result')
           if summary.get('market_data') != 'BINANCE_PUBLIC_USDC':
               raise SystemExit('cycle did not certify real public Binance USDC data')
+          if summary.get('market_data_base_url') != 'https://data-api.binance.vision':
+              raise SystemExit('cloud cycle did not use the Binance market-data-only endpoint')
           if summary.get('real_money_orders_allowed') is not False:
               raise SystemExit('real-money order invariant violated')
           if summary.get('testnet_orders_allowed') is not False:
@@ -135,12 +138,16 @@ jobs:
           import hashlib
           import json
           import os
+          import subprocess
           from datetime import UTC, datetime
           from pathlib import Path
 
           db = Path('data/hixton-usdc.sqlite3')
           packed = Path('/tmp/hixton-usdc.sqlite3.gz')
           summary = json.loads(Path('/tmp/paper-summary.json').read_text(encoding='utf-8'))
+          source_commit = subprocess.check_output(
+              ['git', 'rev-parse', 'HEAD'], text=True
+          ).strip()
           previous = None
           previous_path = Path('/tmp/previous-manifest.json')
           if previous_path.exists():
@@ -150,7 +157,7 @@ jobs:
               'mode': 'PAPER_ONLY',
               'market_data': 'BINANCE_PUBLIC_USDC',
               'source_branch': os.environ['BASE_BRANCH'],
-              'source_commit': os.environ['GITHUB_SHA'],
+              'source_commit': source_commit,
               'workflow_run_id': os.environ['GITHUB_RUN_ID'],
               'saved_at_utc': datetime.now(UTC).isoformat(),
               'database_sha256': hashlib.sha256(db.read_bytes()).hexdigest(),
@@ -189,12 +196,14 @@ jobs:
           git -C "$state_dir" add README.md state
           git -C "$state_dir" commit -m "state(paper): persist cloud Paper cycle ${GITHUB_RUN_ID}"
           git -C "$state_dir" remote add origin "https://x-access-token:${GH_TOKEN}@github.com/${GITHUB_REPOSITORY}.git"
-          git -C "$state_dir" push --force origin "HEAD:refs/heads/${STATE_BRANCH}"
 
+          # On a first bootstrap, the tag is the durable reset guard. Publish it
+          # before the state branch so a partial first write fails closed later.
           if [ "$BOOTSTRAP" = "true" ]; then
             git -C "$state_dir" tag "$STATE_TAG"
             git -C "$state_dir" push origin "refs/tags/${STATE_TAG}"
           fi
+          git -C "$state_dir" push --force origin "HEAD:refs/heads/${STATE_BRANCH}"
 
       - name: Upload short-lived Paper cycle evidence
         uses: actions/upload-artifact@v4
