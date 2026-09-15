@@ -1,5 +1,6 @@
-"""Engineering helper scripts for Der Hixton.
+"""Engineering helper modules for Der Hixton.
 
-These helpers are not imported by the trading runtime. They exist so the local
-agent swarm can be tested without creating a second application entry point.
+These helpers are not imported by the trading runtime. They support the GitHub-hosted
+engineering swarm, QA gates and repository safety checks without creating a second
+application entry point.
 """
