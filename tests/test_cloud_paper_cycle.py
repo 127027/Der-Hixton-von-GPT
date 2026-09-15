@@ -1,17 +1,15 @@
 from __future__ import annotations
 
+import asyncio
 from datetime import UTC, datetime
 from decimal import Decimal
 from pathlib import Path
 from types import SimpleNamespace
 
-import pytest
-
 from scripts import cloud_paper_cycle
 
 
-@pytest.mark.asyncio
-async def test_cloud_cycle_reuses_startup_recovery_without_live_credentials(monkeypatch, tmp_path: Path):
+def test_cloud_cycle_reuses_startup_recovery_without_live_credentials(monkeypatch, tmp_path: Path):
     calls: list[bool] = []
     database = tmp_path / "paper.sqlite3"
     config = SimpleNamespace(database_path=database)
@@ -77,7 +75,7 @@ async def test_cloud_cycle_reuses_startup_recovery_without_live_credentials(monk
     monkeypatch.setattr(cloud_paper_cycle, "RuntimeSupervisor", FakeSupervisor)
     monkeypatch.setattr(cloud_paper_cycle, "PaperStore", FakeStore)
 
-    result = await cloud_paper_cycle.run_cycle(Path("ignored.json"))
+    result = asyncio.run(cloud_paper_cycle.run_cycle(Path("ignored.json")))
 
     assert calls == [True]
     assert result["mode"] == "PAPER_ONLY"
