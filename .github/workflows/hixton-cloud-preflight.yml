@@ -61,3 +61,36 @@ jobs:
             exit 1
           fi
           echo "Cloud-only engineering boundary confirmed; Startbot.bat is the sole tracked batch launcher."
+
+      - name: Confirm legacy local-agent markers are absent from current tracked text
+        shell: bash
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          import subprocess
+          from pathlib import Path
+
+          forbidden = (
+              "Start" + "Agent",
+              "Agent" + "Chat",
+              "local_" + "agent",
+              "agent_" + "chat",
+              "swarm_" + "runner",
+          )
+          paths = subprocess.check_output(["git", "ls-files", "-z"]).split(b"\0")
+          hits = []
+          for raw in paths:
+              if not raw:
+                  continue
+              path = Path(raw.decode())
+              try:
+                  text = path.read_text(encoding="utf-8")
+              except (UnicodeDecodeError, OSError):
+                  continue
+              for marker in forbidden:
+                  if marker in text:
+                      hits.append(f"{path}: {marker}")
+          if hits:
+              raise SystemExit("Legacy local-agent markers remain:\n" + "\n".join(hits))
+          print("No legacy local-agent marker remains in current tracked UTF-8 text.")
+          PY
