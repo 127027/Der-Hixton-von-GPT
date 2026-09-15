@@ -1,0 +1,207 @@
+name: Hixton Paper Cloud Core
+
+on:
+  workflow_call:
+
+permissions:
+  contents: write
+  actions: read
+
+concurrency:
+  group: hixton-paper-cloud-runtime
+  cancel-in-progress: false
+
+env:
+  BASE_BRANCH: gpt/usdc-audit
+  STATE_BRANCH: paper-runtime-state
+  STATE_TAG: paper-cloud-initialized
+  PYTHON_VERSION: "3.12"
+
+jobs:
+  paper-cycle:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - name: Checkout Paper engineering branch
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ env.BASE_BRANCH }}
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+
+      - name: Build isolated Paper virtual environment
+        shell: bash
+        run: |
+          set -euo pipefail
+          python -m venv .venv
+          .venv/bin/python -m pip install --upgrade pip
+          .venv/bin/pip install -e '.[dev]'
+          .venv/bin/python -m pytest -q tests/test_cloud_paper_cycle.py
+
+      - name: Restore persistent Paper state or authorize first bootstrap
+        id: restore
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p data
+          if git ls-remote --exit-code --heads origin "refs/heads/${STATE_BRANCH}" >/dev/null 2>&1; then
+            git fetch --no-tags origin "+refs/heads/${STATE_BRANCH}:refs/remotes/origin/${STATE_BRANCH}"
+            git show "refs/remotes/origin/${STATE_BRANCH}:state/hixton-usdc.sqlite3.gz" > /tmp/hixton-usdc.sqlite3.gz
+            gzip -dc /tmp/hixton-usdc.sqlite3.gz > data/hixton-usdc.sqlite3
+            git show "refs/remotes/origin/${STATE_BRANCH}:state/manifest.json" > /tmp/previous-manifest.json
+            echo "bootstrap=false" >> "$GITHUB_OUTPUT"
+            echo "Restored persistent Paper database from ${STATE_BRANCH}."
+          else
+            if git ls-remote --exit-code --tags origin "refs/tags/${STATE_TAG}" >/dev/null 2>&1; then
+              echo "::error::Paper state branch is missing after prior initialization. Refusing silent 250-USDC reset."
+              exit 1
+            fi
+            echo "bootstrap=true" >> "$GITHUB_OUTPUT"
+            echo "No prior Paper state exists. First cloud Paper account will initialize at the latest market point."
+          fi
+
+      - name: Verify restored SQLite state before market access
+        if: steps.restore.outputs.bootstrap == 'false'
+        shell: bash
+        run: |
+          set -euo pipefail
+          .venv/bin/python - <<'PY'
+          import sqlite3
+          from pathlib import Path
+          path = Path('data/hixton-usdc.sqlite3')
+          if not path.is_file() or path.stat().st_size == 0:
+              raise SystemExit('restored Paper database is missing or empty')
+          with sqlite3.connect(path) as connection:
+              result = connection.execute('PRAGMA integrity_check').fetchone()[0]
+          if result != 'ok':
+              raise SystemExit(f'SQLite integrity check failed before cycle: {result}')
+          print('Restored Paper database integrity: OK')
+          PY
+
+      - name: Run one real-Binance Paper recovery cycle
+        shell: bash
+        env:
+          HIXTON_TRADING_MODE: PAPER_ONLY
+        run: |
+          set -euo pipefail
+          timeout 30m .venv/bin/python scripts/cloud_paper_cycle.py | tee /tmp/paper-summary.json
+
+      - name: Verify resulting Paper database
+        shell: bash
+        run: |
+          set -euo pipefail
+          .venv/bin/python - <<'PY'
+          import json
+          import sqlite3
+          from pathlib import Path
+
+          path = Path('data/hixton-usdc.sqlite3')
+          if not path.is_file() or path.stat().st_size == 0:
+              raise SystemExit('Paper cycle did not produce a database')
+          with sqlite3.connect(path) as connection:
+              result = connection.execute('PRAGMA integrity_check').fetchone()[0]
+          if result != 'ok':
+              raise SystemExit(f'SQLite integrity check failed after cycle: {result}')
+
+          summary = json.loads(Path('/tmp/paper-summary.json').read_text(encoding='utf-8'))
+          if summary.get('mode') != 'PAPER_ONLY':
+              raise SystemExit('Paper-only invariant missing from cycle result')
+          if summary.get('market_data') != 'BINANCE_PUBLIC_USDC':
+              raise SystemExit('cycle did not certify real public Binance USDC data')
+          if summary.get('real_money_orders_allowed') is not False:
+              raise SystemExit('real-money order invariant violated')
+          if summary.get('testnet_orders_allowed') is not False:
+              raise SystemExit('testnet order invariant violated')
+          print('Paper-only post-cycle invariants: OK')
+          PY
+
+      - name: Package durable Paper state
+        id: package
+        shell: bash
+        run: |
+          set -euo pipefail
+          gzip -9 -c data/hixton-usdc.sqlite3 > /tmp/hixton-usdc.sqlite3.gz
+          size="$(stat -c %s /tmp/hixton-usdc.sqlite3.gz)"
+          if [ "$size" -ge 95000000 ]; then
+            echo "::error::Compressed Paper database is too large for safe GitHub state-branch storage ($size bytes)."
+            exit 1
+          fi
+          .venv/bin/python - <<'PY'
+          import hashlib
+          import json
+          import os
+          from datetime import UTC, datetime
+          from pathlib import Path
+
+          db = Path('data/hixton-usdc.sqlite3')
+          packed = Path('/tmp/hixton-usdc.sqlite3.gz')
+          summary = json.loads(Path('/tmp/paper-summary.json').read_text(encoding='utf-8'))
+          previous = None
+          previous_path = Path('/tmp/previous-manifest.json')
+          if previous_path.exists():
+              previous = json.loads(previous_path.read_text(encoding='utf-8'))
+          manifest = {
+              'schema_version': 1,
+              'mode': 'PAPER_ONLY',
+              'market_data': 'BINANCE_PUBLIC_USDC',
+              'source_branch': os.environ['BASE_BRANCH'],
+              'source_commit': os.environ['GITHUB_SHA'],
+              'workflow_run_id': os.environ['GITHUB_RUN_ID'],
+              'saved_at_utc': datetime.now(UTC).isoformat(),
+              'database_sha256': hashlib.sha256(db.read_bytes()).hexdigest(),
+              'compressed_sha256': hashlib.sha256(packed.read_bytes()).hexdigest(),
+              'previous_workflow_run_id': previous.get('workflow_run_id') if previous else None,
+              'paper_summary': summary,
+              'real_money_orders_allowed': False,
+              'testnet_orders_allowed': False,
+          }
+          Path('/tmp/manifest.json').write_text(
+              json.dumps(manifest, indent=2, ensure_ascii=False) + '\n', encoding='utf-8'
+          )
+          PY
+
+      - name: Persist Paper state on isolated state branch
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+          BOOTSTRAP: ${{ steps.restore.outputs.bootstrap }}
+        run: |
+          set -euo pipefail
+          state_dir="$(mktemp -d)"
+          git -C "$state_dir" init -b "$STATE_BRANCH"
+          git -C "$state_dir" config user.name "hixton-paper[bot]"
+          git -C "$state_dir" config user.email "hixton-paper@users.noreply.github.com"
+          mkdir -p "$state_dir/state"
+          cp /tmp/hixton-usdc.sqlite3.gz "$state_dir/state/hixton-usdc.sqlite3.gz"
+          cp /tmp/manifest.json "$state_dir/state/manifest.json"
+          cat > "$state_dir/README.md" <<'EOF'
+          # Hixton Paper runtime state
+
+          Machine-managed state for the GitHub-hosted Paper-only runtime.
+          Contains public Binance market candles and simulated Paper account state only.
+          Never add Binance credentials or real-order data here.
+          EOF
+          git -C "$state_dir" add README.md state
+          git -C "$state_dir" commit -m "state(paper): persist cloud Paper cycle ${GITHUB_RUN_ID}"
+          git -C "$state_dir" remote add origin "https://x-access-token:${GH_TOKEN}@github.com/${GITHUB_REPOSITORY}.git"
+          git -C "$state_dir" push --force origin "HEAD:refs/heads/${STATE_BRANCH}"
+
+          if [ "$BOOTSTRAP" = "true" ]; then
+            git -C "$state_dir" tag "$STATE_TAG"
+            git -C "$state_dir" push origin "refs/tags/${STATE_TAG}"
+          fi
+
+      - name: Upload short-lived Paper cycle evidence
+        uses: actions/upload-artifact@v4
+        with:
+          name: hixton-paper-cycle-${{ github.run_id }}
+          path: |
+            /tmp/paper-summary.json
+            /tmp/manifest.json
+          retention-days: 7
+          if-no-files-found: error
