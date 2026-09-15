@@ -1,0 +1,49 @@
+schema_version: 1
+backtest_version: v1
+run_id: TO_BE_ASSIGNED
+run_mode: all_ten_isolated  # alternativ: single_symbol oder paper_live_mirror
+created_at_utc: TO_BE_ASSIGNED
+status: not_run
+
+strategy:
+  version: HIXTON-SPEC-1.0
+  normative_spec: DMS/03_STRATEGIE_HIXTON.md
+  owner_pine_reference_sha256: null  # V1 predates the later V2 reference
+  config_sha256: TO_BE_ASSIGNED
+  code_commit: TO_BE_ASSIGNED
+
+data:
+  provider: binance_spot
+  snapshot_sha256: TO_BE_ASSIGNED
+  timeframe: 1h
+  warmup_bars: 400
+  warmup_start_utc: TO_BE_ASSIGNED
+  report_start_utc: TO_BE_ASSIGNED
+  report_end_utc: TO_BE_ASSIGNED
+
+capital:
+  isolated_starting_usdt_per_symbol: 250.00
+  isolated_target_notional_usdt: 250.00
+  isolated_compounding: false
+  paper_live_mirror_total_usdt: 240.00
+  paper_live_mirror_slots: 3
+  paper_live_mirror_target_notional_usdt: 80.00
+
+execution:
+  fill_model: next_bar_open
+  baseline_bps_per_side:
+    fee: 10
+    spread: 2
+    slippage: 3
+    total: 15
+  stress_bps_per_side:
+    fee: 10
+    spread: 10
+    slippage: 20
+    total: 40
+  bnb_or_vip_discount_assumed: false
+
+artifacts:
+  data_quality: TO_BE_ASSIGNED
+  report: TO_BE_ASSIGNED
+  trades: TO_BE_ASSIGNED

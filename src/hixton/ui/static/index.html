@@ -1,0 +1,233 @@
+<!doctype html>
+<html lang="de">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="color-scheme" content="dark" />
+    <title>Der Hixton</title>
+    <script type="module" crossorigin src="/assets/index-Ch6KdkH5.js"></script>
+    <link rel="stylesheet" crossorigin href="/assets/index-B5XEI3_N.css">
+  </head>
+  <body>
+    <div id="app-shell">
+      <aside class="sidebar">
+        <div class="brand">
+          <span class="brand-mark">HX</span>
+          <div><strong>DER HIXTON</strong><small>TRADING SYSTEM</small></div>
+        </div>
+        <nav aria-label="Hauptnavigation">
+          <button class="nav-item active" data-target="overview">Übersicht</button>
+          <button class="nav-item" data-target="chart-panel">Chart & Signale</button>
+          <button class="nav-item" data-target="positions">Positionen & Orders</button>
+          <button class="nav-item" data-target="backtests">Backtests</button>
+          <button class="nav-item" data-target="quality">Datenqualität</button>
+          <button class="nav-item" data-target="system">System & Logs</button>
+          <button class="nav-item" data-target="settings">Einstellungen</button>
+          <button class="nav-item" data-target="documentation">Dokumentation</button>
+        </nav>
+        <div class="sidebar-foot">
+          <span id="connection-dot" class="status-dot"></span>
+          <span id="connection-label">Verbinde …</span>
+        </div>
+      </aside>
+
+      <main>
+        <header class="topbar">
+          <div>
+            <p id="active-strategy-label" class="eyebrow">BINANCE SPOT · 1H · STRATEGIE WIRD GELADEN</p>
+            <h1 id="page-title">Übersicht</h1>
+          </div>
+          <div class="status-cluster">
+            <span class="mode-pill paper">PAPER</span>
+            <span class="mode-pill disabled">LIVE_DISABLED</span>
+            <span id="health-pill" class="health-pill starting">STARTING</span>
+          </div>
+        </header>
+
+        <section id="overview" class="page active">
+          <div id="runtime-banner" class="runtime-banner loading">
+            <div><span class="pulse"></span><strong id="runtime-message">Startup-Prüfungen laufen</strong></div>
+            <small id="runtime-detail">Die UI bleibt sichtbar, während die zehn Märkte geprüft werden.</small>
+          </div>
+          <div class="metric-grid">
+            <article class="metric-card"><span>Paper Equity</span><strong id="metric-equity">—</strong><small>USDC</small></article>
+            <article class="metric-card"><span>Freier Cash</span><strong id="metric-cash">—</strong><small>USDC</small></article>
+            <article class="metric-card"><span>Freie Slots</span><strong id="metric-slots">—</strong><small>von 3</small></article>
+            <article class="metric-card"><span>Drawdown</span><strong id="metric-drawdown">—</strong><small>20 % Haltgrenze</small></article>
+          </div>
+          <div class="section-heading">
+            <div><p class="eyebrow">MARKTUNIVERSUM</p><h2>Alle zehn Kryptowährungen</h2></div>
+            <button id="sync-button" class="button secondary">Jetzt prüfen</button>
+          </div>
+          <div id="market-grid" class="market-grid" aria-live="polite"></div>
+        </section>
+
+        <section id="chart-panel" class="page">
+          <div class="section-heading chart-heading">
+            <div><p class="eyebrow">CHART & SIGNALE</p><h2><span id="chart-symbol">BTC/USDC</span></h2></div>
+            <div class="chart-controls">
+              <select id="coin-select" aria-label="Coin auswählen"></select>
+              <select id="timezone-select" aria-label="Zeitzone">
+                <option value="Europe/Berlin">Europe/Berlin</option>
+                <option value="UTC">UTC</option>
+              </select>
+              <label class="toggle"><input id="overlay-toggle" type="checkbox" checked /><span></span> Overlays</label>
+            </div>
+          </div>
+          <div class="range-bar" role="group" aria-label="Chartzeitraum">
+            <button data-range="today">Heute</button><button data-range="1w">1 Woche</button>
+            <button data-range="1m" class="active">1 Monat</button><button data-range="1y">1 Jahr</button>
+            <button data-range="3y">3 Jahre</button>
+            <span id="resolution-label">Trading 1h · Anzeige 1h</span>
+          </div>
+          <article class="chart-card">
+            <div id="chart-loading" class="chart-loading">Chart wird geladen …</div>
+            <div id="chart" aria-label="Candlestick-Chart"></div>
+            <div id="chart-tooltip" class="chart-tooltip hidden"></div>
+          </article>
+          <div class="legend">
+            <span><i class="legend-line vidya"></i>VIDYA</span>
+            <span><i class="legend-line band"></i>ATR-Bänder</span>
+            <span><i class="legend-marker buy"></i>Kaufsignal</span>
+            <span><i class="legend-marker sell"></i>Verkaufssignal</span>
+            <span><i class="legend-marker fill"></i>Paper-Fill</span>
+          </div>
+          <article class="table-card chart-signal-table">
+            <h3>Letzte Signale im gewählten Zeitraum <small id="chart-signal-count">0 Signale</small></h3>
+            <div class="table-scroll"><table><thead><tr><th>Signalkerze</th><th>Aktion</th><th>Preis</th><th>Ausbruch</th><th>Signal-ID</th></tr></thead><tbody id="chart-signals-body"></tbody></table></div>
+          </article>
+        </section>
+
+        <section id="positions" class="page">
+          <div class="section-heading"><div><p class="eyebrow">PAPER-LEDGER</p><h2>Positionen & Ereignisse</h2></div></div>
+          <div id="position-cards" class="position-grid"></div>
+          <article class="table-card"><h3>Letzte Signale, Fills und Blockaden</h3><div class="table-scroll">
+            <table><thead><tr><th>Zeit (Europe/Berlin)</th><th>Coin</th><th>Aktion</th><th>Status</th><th>Preis</th><th>Grund / PnL</th></tr></thead><tbody id="events-body"></tbody></table>
+          </div></article>
+        </section>
+
+        <section id="backtests" class="page">
+          <div class="section-heading"><div><p id="backtest-eyebrow" class="eyebrow">BACKTEST</p><h2 id="backtest-title">Aktive Strategie wird geladen</h2></div></div>
+          <article class="action-card">
+            <div><strong>Historischer Test</strong><p>Gewählte Handelsregeln rückwirkend simulieren: bis zu drei Jahre verfügbare Daten, 400 Warm-up-Bars, Baseline und Stress, Next-Bar-Open. Das tatsächliche Fenster steht beim Ergebnis. VALID bestätigt die Berechnung, nicht die Binance-Ausführung oder künftigen Gewinn.</p></div>
+            <select id="backtest-strategy" aria-label="Backteststrategie"><option value="v6">V6 · Paper-Experiment / Coin-Mix</option><option value="v2">V2 · vorherige Referenz</option><option value="v1">V1 · Historie</option><option value="v3">V3 · Mehrfachslot verworfen</option></select>
+            <select id="backtest-symbol" aria-label="Backtestart"><option value="PORTFOLIO">Gemeinsames Portfolio</option><option value="ALL">10×250 isoliert</option></select>
+            <button id="backtest-button" class="button primary">Backtest starten</button>
+          </article>
+          <p class="backtest-note">Historische Simulation, kein bisheriger Papergewinn. RISIKOHALT betrifft den jeweiligen Test. Die Auswahl ändert den laufenden Bot nicht.</p>
+          <div id="backtest-runs" class="run-list"></div>
+          <details id="backtest-history" class="backtest-history hidden">
+            <summary id="backtest-history-label">Frühere Läufe dieser Auswahl</summary>
+            <div id="backtest-history-runs" class="run-list"></div>
+          </details>
+          <article class="table-card backtest-detail">
+            <p id="backtest-comparison" class="backtest-note">Abgleich mit aktivem Bot wird geladen.</p>
+            <p id="backtest-blocks" class="backtest-note"></p>
+            <h3><span id="backtest-detail-title">Letzter Run · Baseline</span> <small>Netto nach Kosten</small></h3>
+            <div class="table-scroll"><table><thead><tr><th>Coin</th><th>Start</th><th>Ende</th><th>Rendite</th><th>Trades</th><th>Max. Drawdown</th><th>Buy & Hold Ende</th></tr></thead><tbody id="backtest-detail-body"></tbody></table></div>
+          </article>
+        </section>
+
+        <section id="quality" class="page">
+          <div class="section-heading"><div><p class="eyebrow">DATENQUALITÄT</p><h2>Verfügbare Historie einschließlich Warm-up</h2></div></div>
+          <article class="table-card"><div class="table-scroll"><table><thead><tr><th>Coin</th><th>Status</th><th>Bars</th><th>Von</th><th>Bis</th><th>Lücken</th></tr></thead><tbody id="quality-body"></tbody></table></div></article>
+        </section>
+
+        <section id="system" class="page">
+          <div class="section-heading"><div><p class="eyebrow">24/7-BETRIEB</p><h2>System & Scheduler</h2></div></div>
+          <div id="system-grid" class="details-grid"></div>
+          <article class="table-card system-log-table">
+            <h3>Strukturierte Laufzeitereignisse <small>maximal 250 sichtbar</small></h3>
+            <div class="table-scroll"><table><thead><tr><th>Zeit (UTC)</th><th>Level</th><th>Komponente</th><th>Eventcode</th><th>Meldung</th><th>Korrelations-ID</th></tr></thead><tbody id="runtime-logs-body"></tbody></table></div>
+          </article>
+        </section>
+
+        <section id="settings" class="page">
+          <div class="settings-layout">
+            <article class="settings-card">
+              <h2>1 · Handel</h2>
+              <form id="trading-form" class="settings-form">
+                <div class="settings-fields">
+                  <label>Maximal offene Trades<input id="slot-input" type="number" min="1" max="10" step="1" value="3" required /></label>
+                  <label>USDC pro Trade<input id="notional-input" type="number" min="1" step="1" value="80" required /></label>
+                </div>
+                <p id="settings-validation" class="negative" role="alert"></p>
+                <button id="settings-button" type="submit" class="button primary">Übernehmen</button>
+              </form>
+              <p id="settings-saved">Einstellungen werden geladen …</p>
+              <p id="settings-edit-state" role="status"></p>
+              <p>Gilt für neue Trades in Paper und später Live. Kontostand und laufende Positionen bleiben erhalten.</p>
+            </article>
+
+            <article class="settings-card">
+              <h2>2 · Binance verbinden</h2>
+              <form id="live-auth-panel" class="settings-form">
+                <label>Lokales Hixton-Passwort<input id="live-password" type="password" minlength="12" maxlength="256" autocomplete="current-password" required /></label>
+                <label id="live-password-repeat-label">Passwort wiederholen<input id="live-password-repeat" type="password" maxlength="256" autocomplete="new-password" /></label>
+                <p id="live-auth-help">Nicht dein Binance-Passwort. Mindestens 12 Zeichen.</p>
+                <button id="live-unlock" type="submit" class="button secondary">Entsperren</button>
+              </form>
+              <p id="live-auth-result" role="alert"></p>
+              <fieldset id="live-protected" class="live-controls" disabled>
+                <legend>API-Zugang</legend>
+                <form id="live-key-form" class="settings-form">
+                  <label>Binance API-Key<input id="live-api-key" type="password" autocomplete="off" minlength="32" maxlength="256" spellcheck="false" required /></label>
+                  <label>Binance Secret<input id="live-api-secret" type="password" autocomplete="off" minlength="32" maxlength="256" spellcheck="false" required /></label>
+                  <button id="live-save-key" type="submit" class="button secondary">Schlüssel speichern</button>
+                </form>
+                <p id="live-key-result" role="alert"></p>
+                <p id="live-credentials-status">Schlüsselstatus wird geladen …</p>
+                <button id="live-check" type="button" class="button secondary">Verbindung prüfen</button>
+                <p id="live-check-result" role="status"></p>
+                <details>
+                  <summary>Sicherheit & Schlüsselverwaltung</summary>
+                  <p>HMAC-Key mit Lesen/Spot und IP-Beschränkung; keine Auszahlungen, Transfers, Margin oder Futures. Eigener Bot-Account ohne fremde Positionen. Speicherung im Windows-Anmeldedatenspeicher, nicht in Projektdateien oder GitHub. Kein Schutz gegen Schadsoftware unter deinem Windows-Konto.</p>
+                  <button id="live-lock" type="button" class="button secondary">Zugang sperren</button>
+                  <button id="live-delete-key" type="button" class="button secondary">Schlüssel entfernen</button>
+                  <div id="live-delete-panel" class="hidden">
+                    <p>Nur lokal entfernen? Bei Binance bleibt der Key gültig.</p>
+                    <button id="live-delete-confirm" type="button" class="button secondary">Ja, lokal entfernen</button>
+                    <button id="live-delete-cancel" type="button" class="button secondary">Abbrechen</button>
+                  </div>
+                </details>
+              </fieldset>
+            </article>
+
+            <article class="settings-card settings-live-card">
+              <h2>3 · Livehandel</h2>
+              <strong id="live-state" class="warning">Status wird geladen …</strong>
+              <p id="live-plan">Handelsgröße wird geladen …</p>
+              <div class="settings-fields">
+                <button id="live-request" type="button" class="button secondary" aria-pressed="false" disabled>Live an</button>
+                <button id="live-off" type="button" class="button secondary" aria-pressed="false" disabled>Live aus</button>
+              </div>
+              <p id="live-result" role="alert">Echte Orders sind noch nicht verfügbar. Paper läuft weiter.</p>
+              <p>Live aus stoppt neue Echtgeld-Trades. Offene Positionen laufen regulär aus; der Bot muss dafür eingeschaltet bleiben. Paper nutzt echte Marktdaten und Echtzeit, aber simuliertes Geld.</p>
+              <details>
+                <summary>Einmaliger 50-USDC-Test · Vorbereitung</summary>
+                <p>Ziel: ein neues Signal aus zehn USDC-Märkten abwarten, genau einen Trade mit 50 USDC Kaufbudget ausführen und regulär aussteigen. Gebühren separat. Danach keine weiteren Einstiege.</p>
+                <p>Die Echtgeld-Anbindung ist noch nicht freigegeben. Dieser Button prüft die fehlenden Voraussetzungen und startet momentan keinen Trade. Paper läuft unabhängig weiter.</p>
+                <button id="live-trial-start" type="button" class="button secondary" disabled>1 × 50 USDC · Startvoraussetzungen prüfen</button>
+                <p id="live-trial-status" role="status">Nicht gestartet.</p>
+                <p id="live-trial-result" role="alert"></p>
+              </details>
+              <details><summary>Technische Freigabe prüfen</summary><ul id="live-blockers"></ul></details>
+            </article>
+          </div>
+        </section>
+
+        <section id="documentation" class="page">
+          <div class="section-heading"><div><p class="eyebrow">VERSIONEN & WAHRHEIT</p><h2>Dokumentation</h2></div></div>
+          <div class="doc-grid">
+            <a href="https://github.com/127027/Der-Hixton/blob/codex/build-foundation-v1/DMS/00_DOKUMENTENLENKUNG_UND_START.md" target="_blank" rel="noopener"><strong>DMS Einstieg</strong><span>Aktueller Projektbranch · Dokumentenlenkung</span></a>
+            <a href="https://github.com/127027/Der-Hixton/blob/codex/build-foundation-v1/DMS/03_STRATEGIE_HIXTON.md" target="_blank" rel="noopener"><strong>Hixton-Strategie & Coin-Profile</strong><span>Aktueller Stand und versionierte Historie</span></a>
+            <a href="https://github.com/127027/Der-Hixton/blob/codex/build-foundation-v1/DMS/08_UI_UX_SPEZIFIKATION.md" target="_blank" rel="noopener"><strong>UI-Spezifikation</strong><span>Ansichten und Akzeptanz</span></a>
+            <a href="https://github.com/127027/Der-Hixton/blob/codex/build-foundation-v1/DMS/20_BETRIEBSRUNBOOK.md" target="_blank" rel="noopener"><strong>Betriebsrunbook</strong><span>Start, Recovery und Not-Aus</span></a>
+          </div>
+          <article class="version-card"><span>Bot</span><strong id="doc-app-version">—</strong><span>Aktive Paperstrategie</span><strong id="doc-strategy-version">—</strong><span>Live</span><strong class="negative">DEAKTIVIERT</strong></article>
+        </section>
+      </main>
+    </div>
+    <div id="toast" class="toast hidden" role="status"></div>
+  </body>
+</html>

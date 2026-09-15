@@ -1,0 +1,32 @@
+{
+  "mode": "BOOTSTRAP_LEARN_ONLY",
+  "bootstrap_complete": false,
+  "progress_percent": 3,
+  "current_focus": "Fresh current-code quote migration audit complete: original USDT733.31 portfolio and7152.29 batch reproduced exactly under baseline/stress; later identical window USDT201.11 vs USDC203.62. Profiles/candle hashes verified. V8/V9 research remains unapproved; no activation/risk/account changes.335 Python tests/one skip,22 UI tests,Ruff/mypy/TypeScript pass. Owner requested GitHub publication of pending code/docs/curated reports. Bootstrap remains incomplete.",
+  "last_indexed_commit": null,
+  "last_learning_round": 2,
+  "areas": {
+    "inventory": 0,
+    "architecture": 0,
+    "dataflows": 5,
+    "ui_map": 5,
+    "storage": 5,
+    "tests": 5,
+    "security": 0,
+    "cross_check": 0
+  },
+  "inventory_complete": false,
+  "architecture_complete": false,
+  "dataflows_complete": false,
+  "ui_map_complete": false,
+  "storage_complete": false,
+  "tests_complete": false,
+  "security_complete": false,
+  "cross_check_complete": false,
+  "unresolved_repository_questions": [
+    "Full repository learning pass not yet executed.",
+    "Current full USDC-window Paper replay and two processing restarts match; additional windows, intrabar risk monitoring and live/account-state boundaries remain unverified."
+  ],
+  "external_runtime_unknowns": [],
+  "notes": "During bootstrap the agent may modify only agent_memory/. Progress values must be evidence-based, monotonic unless later evidence invalidates prior understanding, and never inflated merely to finish bootstrap."
+}

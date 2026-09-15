@@ -1,0 +1,25 @@
+{
+  "strategy_version": "HIXTON-V3-SLOT-CANDIDATE-1",
+  "status": "REJECTED",
+  "paper_approved": false,
+  "live_approved": false,
+  "signal_strategy": "HIXTON-V2-RESEARCH-CANDIDATE-1",
+  "slot_allocation": "ranked_repeat",
+  "capital": {
+    "shared_portfolio_start_usdt": 240,
+    "slot_count": 3,
+    "target_notional_usdt": 80,
+    "automatic_compounding": false
+  },
+  "current_window_run": {
+    "run_id": "76a78440-405a-4624-bc0b-7765558b801c",
+    "report_start_utc": "2023-09-01T12:00:00Z",
+    "report_end_utc": "2026-09-01T12:00:00Z",
+    "baseline_ending_equity_usdt": 287.8547264966139,
+    "stress_ending_equity_usdt": 282.1627933633108,
+    "completed_positions_each_scenario": 4,
+    "risk_halted_at_utc": "2023-10-12T01:59:59.999Z"
+  },
+  "decision": "DEC-039",
+  "rejection_reason": "Concentration on one signal caused an early drawdown halt and materially underperformed active V2 one_per_symbol."
+}

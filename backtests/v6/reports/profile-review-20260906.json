@@ -1,0 +1,2497 @@
+{
+  "schema": "HIXTON-FROZEN-PROFILES-1",
+  "status": "RETROSPECTIVE_DIAGNOSTIC_NOT_HOLDOUT",
+  "strategy": {
+    "key": "v6",
+    "version": "HIXTON-V6-COIN-PAPER-1-9734f240e873",
+    "timeframe": "1h",
+    "source": "close",
+    "slot_allocation": "one_per_symbol",
+    "long_only": true,
+    "compounding": false,
+    "profiles": {
+      "BTCUSDT": {
+        "parameters": {
+          "vidya_length": 6,
+          "momentum_length": 20,
+          "smoothing_length": 8,
+          "atr_length": 120,
+          "band_multiplier": 4.4,
+          "warmup_bars": 400
+        },
+        "trade_policy": {
+          "cmo_floor": 0.2,
+          "slope_bars": 0,
+          "stop_atr": 0,
+          "trail_atr": 0
+        }
+      },
+      "ETHUSDT": {
+        "parameters": {
+          "vidya_length": 6,
+          "momentum_length": 20,
+          "smoothing_length": 8,
+          "atr_length": 60,
+          "band_multiplier": 3.8,
+          "warmup_bars": 400
+        },
+        "trade_policy": {
+          "cmo_floor": 0,
+          "slope_bars": 24,
+          "stop_atr": 0,
+          "trail_atr": 0
+        }
+      },
+      "BNBUSDT": {
+        "parameters": {
+          "vidya_length": 10,
+          "momentum_length": 20,
+          "smoothing_length": 8,
+          "atr_length": 60,
+          "band_multiplier": 4.4,
+          "warmup_bars": 400
+        },
+        "trade_policy": {
+          "cmo_floor": 0,
+          "slope_bars": 0,
+          "stop_atr": 0,
+          "trail_atr": 0
+        }
+      },
+      "SOLUSDT": {
+        "parameters": {
+          "vidya_length": 6,
+          "momentum_length": 20,
+          "smoothing_length": 15,
+          "atr_length": 60,
+          "band_multiplier": 3.8,
+          "warmup_bars": 400
+        },
+        "trade_policy": {
+          "cmo_floor": 0,
+          "slope_bars": 0,
+          "stop_atr": 0,
+          "trail_atr": 0
+        }
+      },
+      "XRPUSDT": {
+        "parameters": {
+          "vidya_length": 6,
+          "momentum_length": 20,
+          "smoothing_length": 8,
+          "atr_length": 120,
+          "band_multiplier": 3.2,
+          "warmup_bars": 400
+        },
+        "trade_policy": {
+          "cmo_floor": 0,
+          "slope_bars": 0,
+          "stop_atr": 4,
+          "trail_atr": 0
+        }
+      },
+      "ADAUSDT": {
+        "parameters": {
+          "vidya_length": 6,
+          "momentum_length": 20,
+          "smoothing_length": 8,
+          "atr_length": 60,
+          "band_multiplier": 3.8,
+          "warmup_bars": 400
+        },
+        "trade_policy": {
+          "cmo_floor": 0,
+          "slope_bars": 0,
+          "stop_atr": 0,
+          "trail_atr": 0
+        }
+      },
+      "LINKUSDT": {
+        "parameters": {
+          "vidya_length": 6,
+          "momentum_length": 20,
+          "smoothing_length": 8,
+          "atr_length": 60,
+          "band_multiplier": 3.8,
+          "warmup_bars": 400
+        },
+        "trade_policy": {
+          "cmo_floor": 0,
+          "slope_bars": 0,
+          "stop_atr": 0,
+          "trail_atr": 0
+        }
+      },
+      "AVAXUSDT": {
+        "parameters": {
+          "vidya_length": 6,
+          "momentum_length": 20,
+          "smoothing_length": 8,
+          "atr_length": 60,
+          "band_multiplier": 4.4,
+          "warmup_bars": 400
+        },
+        "trade_policy": {
+          "cmo_floor": 0,
+          "slope_bars": 0,
+          "stop_atr": 0,
+          "trail_atr": 0
+        }
+      },
+      "DOTUSDT": {
+        "parameters": {
+          "vidya_length": 6,
+          "momentum_length": 20,
+          "smoothing_length": 8,
+          "atr_length": 60,
+          "band_multiplier": 3.8,
+          "warmup_bars": 400
+        },
+        "trade_policy": {
+          "cmo_floor": 0,
+          "slope_bars": 0,
+          "stop_atr": 0,
+          "trail_atr": 0
+        }
+      },
+      "DOGEUSDT": {
+        "parameters": {
+          "vidya_length": 6,
+          "momentum_length": 20,
+          "smoothing_length": 15,
+          "atr_length": 120,
+          "band_multiplier": 4.4,
+          "warmup_bars": 400
+        },
+        "trade_policy": {
+          "cmo_floor": 0.2,
+          "slope_bars": 0,
+          "stop_atr": 0,
+          "trail_atr": 0
+        }
+      }
+    }
+  },
+  "selection": "Between V2 and each V5 finalist, maximize minimum ending equity across full/recent/older stress windows; tie: more full-stress closed trades, then V2. All these windows influenced this retrospective selection. No robustness proof.",
+  "capital": {
+    "isolated": "250",
+    "shared": "250",
+    "slots": 3,
+    "slot_notional": "80"
+  },
+  "costs": [
+    {
+      "name": "baseline",
+      "fee_bps_per_side": "10",
+      "spread_bps_per_side": "2",
+      "slippage_bps_per_side": "3"
+    },
+    {
+      "name": "stress",
+      "fee_bps_per_side": "10",
+      "spread_bps_per_side": "10",
+      "slippage_bps_per_side": "20"
+    }
+  ],
+  "source_sha256": {
+    "src\\hixton\\__init__.py": "ea7095a305e116bc3fc6f24a4e6ba57d86bcd6322e60c2fc4a44d76c6c481f52",
+    "src\\hixton\\backtest\\__init__.py": "0024e77a3ed90a8ccfea66357bed894fa8ccccea4f3f2a09420857926c111f23",
+    "src\\hixton\\backtest\\coin_review.py": "78831621a39ff3beeebf79341c4c7e5e9776c78538db5ca9ff1345cd9c201428",
+    "src\\hixton\\backtest\\engine.py": "75a5247a95c5f6807c5dd6b47a26b69b9074c63dd51b3dc49f130eaf0ac35733",
+    "src\\hixton\\backtest\\metrics.py": "5df9679b8387f0817e030de21c45ee9668aeb128a607cc665ddb28c53ced51db",
+    "src\\hixton\\backtest\\models.py": "c652b7af3e4ba95e60d59df6ad1986b3828a2660419938ae22a25d9733c11ec9",
+    "src\\hixton\\backtest\\portfolio.py": "9b935083273ec945991f8a62ca97bf41a1d076699d5b3e81754c8484c78e127e",
+    "src\\hixton\\backtest\\reporting.py": "05181784b3d398c34a92373bcc10bb0d361b071bc46317ff73e729b3c7e55bf6",
+    "src\\hixton\\backtest\\research.py": "f23e2040ee056407ff673a59699df01b68f136a38e95ee368f5e2280891f40c0",
+    "src\\hixton\\cli.py": "8234e3792dc8fd3ee0572662a08d987ff701286cff4e2c2a596aa4cbcfb7184e",
+    "src\\hixton\\config.py": "efb606417ff689b58930cfe214c09c7046d3325956a66dbda3c54edf46e127af",
+    "src\\hixton\\constants.py": "3c58caac1e2ad8dfc93075f177588843f9cc35c7dee53f7e88a5f26c899b41a7",
+    "src\\hixton\\data\\__init__.py": "ad969809d90faa97a3a7d934acb6b9ba85a8c7865e6a95b0ec7b5e30506217e1",
+    "src\\hixton\\data\\binance.py": "b8baf2b110df7648eb161fd6d43b1e34591726b68fdffac012c5b96442a92320",
+    "src\\hixton\\data\\quality.py": "58f0b73bbeffa20360f7d6b916fb4e866dace6b2e083a8aadeee053ceb0397b0",
+    "src\\hixton\\data\\storage.py": "22841c3fdb1d110089d6260e3de363eb9c10313e10a7c43a94ae1b162433ac52",
+    "src\\hixton\\data\\sync.py": "58e2b25b9d18419f2f409611770a339f3d2cbe4230f4addc48ca8ec102f451a4",
+    "src\\hixton\\domain\\__init__.py": "80fc620c1fcce7f34a3df2c90d0e09868920e76f7b0648cf98484d6328c4d063",
+    "src\\hixton\\domain\\allocation.py": "2dd98de2da8de1fb19d33e1506c0e8519fe89a05e3e8553727ae0b5ae24bda52",
+    "src\\hixton\\domain\\models.py": "f9a1bc76fabf55d16ff52d7ba4d369400aa1fe252915099afb78f58b43e71172",
+    "src\\hixton\\domain\\risk.py": "da3ce85e7e1b7e89f91b2611be59b68dfb3be90c99e0a655a8dfda8673603710",
+    "src\\hixton\\domain\\strategy.py": "40d012ed8401040d5215ae83467102b9146517c2b0e17650655dcdd1917edf1f",
+    "src\\hixton\\domain\\trade_policy.py": "8e3f6b2e551372a213b26309cdcf0568dc4d8530296d80a9ec7babbf8acd0965",
+    "src\\hixton\\domain\\versions.py": "bb8c9ec562e0d9ecda342ec360852f2879a26e7e94cb74f1b97baa8960176220",
+    "src\\hixton\\paper\\__init__.py": "0562fe91af83628aa47798cde552b97dd8dede0572a98e1c5ddeba7aa92c8a5c",
+    "src\\hixton\\paper\\engine.py": "20598e69f2309b1f1b52ec400021b5832d7ba478c1d78d12b4198cd394303c59",
+    "src\\hixton\\paper\\models.py": "0767ccd91f23250978029c15b3402eca30b8d730b2bf73bd46dbdcde19369344",
+    "src\\hixton\\paper\\storage.py": "08a5e13feb8bb2ac1081922ae38bce826aa0835bf36bdb860a1f2319b6405e94",
+    "src\\hixton\\runtime\\__init__.py": "1641249e27cc1869c647a91832ea05092d88a5348333f218c5582aed9ffb5c7b",
+    "src\\hixton\\runtime\\analysis.py": "68346b85f8b59f63981fb05d07c6a5153877d8eb09365eef0dcb5550fb079144",
+    "src\\hixton\\runtime\\state.py": "1cf475553fb625cdd98ebf99f74d154e3408a29d1b6f474f2e10eb39faaf8bd6",
+    "src\\hixton\\runtime\\supervisor.py": "e5aa7c36d6da772a5c9297c6a86c567bcb13607c40e6aab0ca01783d07ec8f05",
+    "src\\hixton\\ui\\__init__.py": "d40442dba8ffd20b9841d905f7a132fa9ce036ceadf9797c358d78ada07c498b",
+    "src\\hixton\\ui\\api.py": "6072a68e6c47e90140aeadfbbc049303547fe432ee642681eaf8f82f0de56af6",
+    "src\\hixton\\ui\\chart.py": "3f1597866d423d6ce59431237c2134fa75e827dd0219d2812f3991280db86075",
+    "src\\hixton\\ui\\server.py": "ba2f6511ea046ca3f0cfd7895db7d71fa6af5382711eaf2a0d2d4ad39fedf084"
+  },
+  "reference_pine_sha256": "8af8e9a1e6c73dc66307271b7fd1141eaae02bc1fe88e8ba97b96e7a861263dd",
+  "limitations": [
+    "Historical winners do not establish future profitability or all-ten robustness.",
+    "Isolated accounts use strategy-only sizing; shared account applies Paper risk gates.",
+    "Reserve is initial unallocated cash, not a guarantee against losses.",
+    "Existing Paper ledger remains unchanged; historical V2 240-USDT reports stay intact.",
+    "This V2 comparison starts at 250 too, isolating the strategy effect from added capital."
+  ],
+  "execution_rules": {
+    "BTCUSDT": {
+      "tick_size": "0.01000000",
+      "step_size": "0.00001000",
+      "min_qty": "0.00001000",
+      "min_notional": "5.00000000"
+    },
+    "ETHUSDT": {
+      "tick_size": "0.01000000",
+      "step_size": "0.00010000",
+      "min_qty": "0.00010000",
+      "min_notional": "5.00000000"
+    },
+    "BNBUSDT": {
+      "tick_size": "0.01000000",
+      "step_size": "0.00100000",
+      "min_qty": "0.00100000",
+      "min_notional": "5.00000000"
+    },
+    "SOLUSDT": {
+      "tick_size": "0.01000000",
+      "step_size": "0.00100000",
+      "min_qty": "0.00100000",
+      "min_notional": "5.00000000"
+    },
+    "XRPUSDT": {
+      "tick_size": "0.00010000",
+      "step_size": "0.10000000",
+      "min_qty": "0.10000000",
+      "min_notional": "5.00000000"
+    },
+    "ADAUSDT": {
+      "tick_size": "0.00010000",
+      "step_size": "0.10000000",
+      "min_qty": "0.10000000",
+      "min_notional": "5.00000000"
+    },
+    "LINKUSDT": {
+      "tick_size": "0.00100000",
+      "step_size": "0.01000000",
+      "min_qty": "0.01000000",
+      "min_notional": "5.00000000"
+    },
+    "AVAXUSDT": {
+      "tick_size": "0.00100000",
+      "step_size": "0.01000000",
+      "min_qty": "0.01000000",
+      "min_notional": "5.00000000"
+    },
+    "DOTUSDT": {
+      "tick_size": "0.00100000",
+      "step_size": "0.01000000",
+      "min_qty": "0.01000000",
+      "min_notional": "5.00000000"
+    },
+    "DOGEUSDT": {
+      "tick_size": "0.00001000",
+      "step_size": "1.00000000",
+      "min_qty": "1.00000000",
+      "min_notional": "1.00000000"
+    }
+  },
+  "windows": {
+    "full": {
+      "start": "2023-09-01 12:00:00+00:00",
+      "end_exclusive": "2026-09-01 12:00:00+00:00",
+      "history_start": "2023-08-15 20:00:00+00:00",
+      "data_sha256": {
+        "BTCUSDT": "b9f17a966c0fc5ed558434f2e530cfc4840912a14df3b438a0984653026506cc",
+        "ETHUSDT": "e66ef59765181b9c8d6c8527c085229c2dd66aee46fca58fad15631063d8f053",
+        "BNBUSDT": "7e76d7071aa05c4176bd2960c93cf4082f83a410153e760564986fb6b9caa159",
+        "SOLUSDT": "2b6dc7b97c5c09c7144be6c726f74a2d24321ae96831f8d579fee8e8c5f5cfa0",
+        "XRPUSDT": "c862609add89c1318782e2d7bd0eaa895d6eee1846bee5b03601da6933d20ddf",
+        "ADAUSDT": "50d0cff5de89dfc76a8db429918cc995d146015159a049a33689441869ec8bf2",
+        "LINKUSDT": "ac0de75d58906013b518721fc67345adace1a407aebfcbea81a8185aa49294f2",
+        "AVAXUSDT": "183229e0d5c1add6fb52f09ac17c7942285e721d9a15a21bf8ad85d838f1ac7c",
+        "DOTUSDT": "179404b895f6be7c0a728ba7c716805069e7152d1a1c37da71c35207bf67916c",
+        "DOGEUSDT": "18f3d6980cdb6d0b2f557145e4da76912a37212f27f32e78b877dfed8a707f33"
+      },
+      "coins": {
+        "v2_BTCUSDT_baseline": {
+          "metrics": {
+            "ending_equity": "414.47015803571815000",
+            "net_pnl": "164.47015803571815000",
+            "max_drawdown_pct": "34.10980559980398216529776213",
+            "completed_trades": 71,
+            "winning_trades": 23,
+            "losing_trades": 48,
+            "total_fees": "35.75138741297625000",
+            "exposure_pct": "50.09124087591240875912408759"
+          }
+        },
+        "v2_BTCUSDT_stress": {
+          "metrics": {
+            "ending_equity": "321.0784508198646000",
+            "net_pnl": "71.0784508198646000",
+            "max_drawdown_pct": "47.10708334903211735974135886",
+            "completed_trades": 71,
+            "winning_trades": 21,
+            "losing_trades": 50,
+            "total_fees": "35.6393376904999000",
+            "exposure_pct": "50.09124087591240875912408759"
+          }
+        },
+        "v2_ETHUSDT_baseline": {
+          "metrics": {
+            "ending_equity": "649.16467705042250000",
+            "net_pnl": "399.16467705042250000",
+            "max_drawdown_pct": "32.42439404240085462934326556",
+            "completed_trades": 61,
+            "winning_trades": 21,
+            "losing_trades": 40,
+            "total_fees": "30.88284521748650000",
+            "exposure_pct": "52.57755474452554744525547445"
+          }
+        },
+        "v2_ETHUSDT_stress": {
+          "metrics": {
+            "ending_equity": "571.1461746857070000",
+            "net_pnl": "321.1461746857070000",
+            "max_drawdown_pct": "36.52121182882833712931852065",
+            "completed_trades": 61,
+            "winning_trades": 19,
+            "losing_trades": 42,
+            "total_fees": "30.8034748406520000",
+            "exposure_pct": "52.57755474452554744525547445"
+          }
+        },
+        "v2_BNBUSDT_baseline": {
+          "metrics": {
+            "ending_equity": "388.68811802349000000",
+            "net_pnl": "138.68811802349000000",
+            "max_drawdown_pct": "36.04891619451647710351711999",
+            "completed_trades": 60,
+            "winning_trades": 27,
+            "losing_trades": 33,
+            "total_fees": "30.23931371490000000",
+            "exposure_pct": "49.39933090024330900243309002"
+          }
+        },
+        "v2_BNBUSDT_stress": {
+          "metrics": {
+            "ending_equity": "311.7186228889300000",
+            "net_pnl": "61.7186228889300000",
+            "max_drawdown_pct": "44.98474560823481742191884745",
+            "completed_trades": 60,
+            "winning_trades": 25,
+            "losing_trades": 35,
+            "total_fees": "30.1295872940200000",
+            "exposure_pct": "49.39933090024330900243309002"
+          }
+        },
+        "v2_SOLUSDT_baseline": {
+          "metrics": {
+            "ending_equity": "1508.45082883102000000",
+            "net_pnl": "1258.45082883102000000",
+            "max_drawdown_pct": "23.53603457604967884156425707",
+            "completed_trades": 44,
+            "winning_trades": 24,
+            "losing_trades": 20,
+            "total_fees": "23.37404935831500000",
+            "exposure_pct": "52.98053527980535279805352798"
+          }
+        },
+        "v2_SOLUSDT_stress": {
+          "metrics": {
+            "ending_equity": "1446.7920653010100000",
+            "net_pnl": "1196.7920653010100000",
+            "max_drawdown_pct": "23.61589675668912060748101205",
+            "completed_trades": 44,
+            "winning_trades": 24,
+            "losing_trades": 20,
+            "total_fees": "23.3109087845000000",
+            "exposure_pct": "52.98053527980535279805352798"
+          }
+        },
+        "v2_XRPUSDT_baseline": {
+          "metrics": {
+            "ending_equity": "557.3811332304100000000",
+            "net_pnl": "307.3811332304100000000",
+            "max_drawdown_pct": "53.15122254961398254136104082",
+            "completed_trades": 55,
+            "winning_trades": 16,
+            "losing_trades": 39,
+            "total_fees": "26.9735297020750000000",
+            "exposure_pct": "52.80945863746958637469586375"
+          }
+        },
+        "v2_XRPUSDT_stress": {
+          "metrics": {
+            "ending_equity": "451.511385223850000000",
+            "net_pnl": "201.511385223850000000",
+            "max_drawdown_pct": "59.88964619453841724122806393",
+            "completed_trades": 55,
+            "winning_trades": 16,
+            "losing_trades": 39,
+            "total_fees": "26.536288179610000000",
+            "exposure_pct": "52.80945863746958637469586375"
+          }
+        },
+        "v2_ADAUSDT_baseline": {
+          "metrics": {
+            "ending_equity": "678.7904713235250000000",
+            "net_pnl": "428.7904713235250000000",
+            "max_drawdown_pct": "41.38698083507067980242676308",
+            "completed_trades": 55,
+            "winning_trades": 22,
+            "losing_trades": 33,
+            "total_fees": "27.9156235388100000000",
+            "exposure_pct": "51.87804136253041362530413625"
+          }
+        },
+        "v2_ADAUSDT_stress": {
+          "metrics": {
+            "ending_equity": "607.429719892330000000",
+            "net_pnl": "357.429719892330000000",
+            "max_drawdown_pct": "46.03098342560113579768292109",
+            "completed_trades": 55,
+            "winning_trades": 21,
+            "losing_trades": 34,
+            "total_fees": "27.837678802480000000",
+            "exposure_pct": "51.87804136253041362530413625"
+          }
+        },
+        "v2_LINKUSDT_baseline": {
+          "metrics": {
+            "ending_equity": "612.457417567235000000",
+            "net_pnl": "362.457417567235000000",
+            "max_drawdown_pct": "37.71690475370776378358620146",
+            "completed_trades": 49,
+            "winning_trades": 19,
+            "losing_trades": 30,
+            "total_fees": "25.023650581600000000",
+            "exposure_pct": "53.60401459854014598540145985"
+          }
+        },
+        "v2_LINKUSDT_stress": {
+          "metrics": {
+            "ending_equity": "549.12255117436000000",
+            "net_pnl": "299.12255117436000000",
+            "max_drawdown_pct": "41.48282393057111862064370592",
+            "completed_trades": 49,
+            "winning_trades": 18,
+            "losing_trades": 31,
+            "total_fees": "24.96150455178000000",
+            "exposure_pct": "53.60401459854014598540145985"
+          }
+        },
+        "v2_AVAXUSDT_baseline": {
+          "metrics": {
+            "ending_equity": "526.688322197260000000",
+            "net_pnl": "276.688322197260000000",
+            "max_drawdown_pct": "35.80690075400060669865590297",
+            "completed_trades": 60,
+            "winning_trades": 24,
+            "losing_trades": 36,
+            "total_fees": "30.275042803225000000",
+            "exposure_pct": "47.75319343065693430656934307"
+          }
+        },
+        "v2_AVAXUSDT_stress": {
+          "metrics": {
+            "ending_equity": "450.42351642407000000",
+            "net_pnl": "200.42351642407000000",
+            "max_drawdown_pct": "41.87183719638030833968546240",
+            "completed_trades": 60,
+            "winning_trades": 23,
+            "losing_trades": 37,
+            "total_fees": "30.19702647150000000",
+            "exposure_pct": "47.75319343065693430656934307"
+          }
+        },
+        "v2_DOTUSDT_baseline": {
+          "metrics": {
+            "ending_equity": "447.994724856285000000",
+            "net_pnl": "197.994724856285000000",
+            "max_drawdown_pct": "47.50203682377478170998766100",
+            "completed_trades": 44,
+            "winning_trades": 16,
+            "losing_trades": 28,
+            "total_fees": "22.194837080995000000",
+            "exposure_pct": "48.32344890510948905109489051"
+          }
+        },
+        "v2_DOTUSDT_stress": {
+          "metrics": {
+            "ending_equity": "391.73989222454000000",
+            "net_pnl": "141.73989222454000000",
+            "max_drawdown_pct": "53.14133124781255610817761883",
+            "completed_trades": 44,
+            "winning_trades": 16,
+            "losing_trades": 28,
+            "total_fees": "22.13593018327000000",
+            "exposure_pct": "48.32344890510948905109489051"
+          }
+        },
+        "v2_DOGEUSDT_baseline": {
+          "metrics": {
+            "ending_equity": "808.13788115181500000000",
+            "net_pnl": "558.13788115181500000000",
+            "max_drawdown_pct": "41.52094159137863193441412880",
+            "completed_trades": 50,
+            "winning_trades": 23,
+            "losing_trades": 27,
+            "total_fees": "25.54571063710500000000",
+            "exposure_pct": "48.65799878345498783454987835"
+          }
+        },
+        "v2_DOGEUSDT_stress": {
+          "metrics": {
+            "ending_equity": "742.7691975170200000000",
+            "net_pnl": "492.7691975170200000000",
+            "max_drawdown_pct": "42.52949649185461294732263852",
+            "completed_trades": 50,
+            "winning_trades": 22,
+            "losing_trades": 28,
+            "total_fees": "25.4784032159800000000",
+            "exposure_pct": "48.65799878345498783454987835"
+          }
+        },
+        "v6_BTCUSDT_baseline": {
+          "metrics": {
+            "ending_equity": "559.72979592343990000",
+            "net_pnl": "309.72979592343990000",
+            "max_drawdown_pct": "20.95343540670101004129409375",
+            "completed_trades": 44,
+            "winning_trades": 16,
+            "losing_trades": 28,
+            "total_fees": "22.42563657827185000",
+            "exposure_pct": "48.02311435523114355231143552"
+          }
+        },
+        "v6_BTCUSDT_stress": {
+          "metrics": {
+            "ending_equity": "502.4436646597346000",
+            "net_pnl": "252.4436646597346000",
+            "max_drawdown_pct": "25.52106519089199408773502884",
+            "completed_trades": 44,
+            "winning_trades": 15,
+            "losing_trades": 29,
+            "total_fees": "22.3657396202521000",
+            "exposure_pct": "48.02311435523114355231143552"
+          }
+        },
+        "v6_ETHUSDT_baseline": {
+          "metrics": {
+            "ending_equity": "729.87251545516600000",
+            "net_pnl": "479.87251545516600000",
+            "max_drawdown_pct": "25.03247945638846498479912104",
+            "completed_trades": 36,
+            "winning_trades": 12,
+            "losing_trades": 24,
+            "total_fees": "18.47468923385250000",
+            "exposure_pct": "34.28756082725060827250608273"
+          }
+        },
+        "v6_ETHUSDT_stress": {
+          "metrics": {
+            "ending_equity": "682.7772329372950000",
+            "net_pnl": "432.7772329372950000",
+            "max_drawdown_pct": "27.39403903804034648393589235",
+            "completed_trades": 36,
+            "winning_trades": 12,
+            "losing_trades": 24,
+            "total_fees": "18.4287044160950000",
+            "exposure_pct": "34.28756082725060827250608273"
+          }
+        },
+        "v6_BNBUSDT_baseline": {
+          "metrics": {
+            "ending_equity": "418.31006698620000000",
+            "net_pnl": "168.31006698620000000",
+            "max_drawdown_pct": "32.57622499781773587453023859",
+            "completed_trades": 41,
+            "winning_trades": 17,
+            "losing_trades": 24,
+            "total_fees": "20.80578789145500000",
+            "exposure_pct": "48.95072992700729927007299270"
+          }
+        },
+        "v6_BNBUSDT_stress": {
+          "metrics": {
+            "ending_equity": "365.3255674133800000",
+            "net_pnl": "115.3255674133800000",
+            "max_drawdown_pct": "38.34453665041130185544644354",
+            "completed_trades": 41,
+            "winning_trades": 17,
+            "losing_trades": 24,
+            "total_fees": "20.7462362737400000",
+            "exposure_pct": "48.95072992700729927007299270"
+          }
+        },
+        "v6_SOLUSDT_baseline": {
+          "metrics": {
+            "ending_equity": "1540.34960989348000000",
+            "net_pnl": "1290.34960989348000000",
+            "max_drawdown_pct": "23.53603457604967884156425707",
+            "completed_trades": 57,
+            "winning_trades": 27,
+            "losing_trades": 30,
+            "total_fees": "29.91371511746500000",
+            "exposure_pct": "51.32679440389294403892944039"
+          }
+        },
+        "v6_SOLUSDT_stress": {
+          "metrics": {
+            "ending_equity": "1462.3202311928200000",
+            "net_pnl": "1212.3202311928200000",
+            "max_drawdown_pct": "23.61589675668912060748101205",
+            "completed_trades": 57,
+            "winning_trades": 25,
+            "losing_trades": 32,
+            "total_fees": "29.8348982814100000",
+            "exposure_pct": "51.32679440389294403892944039"
+          }
+        },
+        "v6_XRPUSDT_baseline": {
+          "metrics": {
+            "ending_equity": "594.8901311311600000000",
+            "net_pnl": "344.8901311311600000000",
+            "max_drawdown_pct": "41.04580403020531430927835128",
+            "completed_trades": 80,
+            "winning_trades": 24,
+            "losing_trades": 56,
+            "total_fees": "40.1327059408300000000",
+            "exposure_pct": "31.93050486618004866180048662"
+          }
+        },
+        "v6_XRPUSDT_stress": {
+          "metrics": {
+            "ending_equity": "507.401133269570000000",
+            "net_pnl": "257.401133269570000000",
+            "max_drawdown_pct": "45.29971755426914530465198598",
+            "completed_trades": 80,
+            "winning_trades": 22,
+            "losing_trades": 58,
+            "total_fees": "39.770347558380000000",
+            "exposure_pct": "31.43248175182481751824817518"
+          }
+        },
+        "v6_ADAUSDT_baseline": {
+          "metrics": {
+            "ending_equity": "678.7904713235250000000",
+            "net_pnl": "428.7904713235250000000",
+            "max_drawdown_pct": "41.38698083507067980242676308",
+            "completed_trades": 55,
+            "winning_trades": 22,
+            "losing_trades": 33,
+            "total_fees": "27.9156235388100000000",
+            "exposure_pct": "51.87804136253041362530413625"
+          }
+        },
+        "v6_ADAUSDT_stress": {
+          "metrics": {
+            "ending_equity": "607.429719892330000000",
+            "net_pnl": "357.429719892330000000",
+            "max_drawdown_pct": "46.03098342560113579768292109",
+            "completed_trades": 55,
+            "winning_trades": 21,
+            "losing_trades": 34,
+            "total_fees": "27.837678802480000000",
+            "exposure_pct": "51.87804136253041362530413625"
+          }
+        },
+        "v6_LINKUSDT_baseline": {
+          "metrics": {
+            "ending_equity": "612.457417567235000000",
+            "net_pnl": "362.457417567235000000",
+            "max_drawdown_pct": "37.71690475370776378358620146",
+            "completed_trades": 49,
+            "winning_trades": 19,
+            "losing_trades": 30,
+            "total_fees": "25.023650581600000000",
+            "exposure_pct": "53.60401459854014598540145985"
+          }
+        },
+        "v6_LINKUSDT_stress": {
+          "metrics": {
+            "ending_equity": "549.12255117436000000",
+            "net_pnl": "299.12255117436000000",
+            "max_drawdown_pct": "41.48282393057111862064370592",
+            "completed_trades": 49,
+            "winning_trades": 18,
+            "losing_trades": 31,
+            "total_fees": "24.96150455178000000",
+            "exposure_pct": "53.60401459854014598540145985"
+          }
+        },
+        "v6_AVAXUSDT_baseline": {
+          "metrics": {
+            "ending_equity": "711.740835620400000000",
+            "net_pnl": "461.740835620400000000",
+            "max_drawdown_pct": "38.61575724528782290655739930",
+            "completed_trades": 38,
+            "winning_trades": 14,
+            "losing_trades": 24,
+            "total_fees": "19.684725612810000000",
+            "exposure_pct": "51.92366180048661800486618005"
+          }
+        },
+        "v6_AVAXUSDT_stress": {
+          "metrics": {
+            "ending_equity": "661.48994589970000000",
+            "net_pnl": "411.48994589970000000",
+            "max_drawdown_pct": "39.83027537625742390221017260",
+            "completed_trades": 38,
+            "winning_trades": 14,
+            "losing_trades": 24,
+            "total_fees": "19.63668415672000000",
+            "exposure_pct": "51.92366180048661800486618005"
+          }
+        },
+        "v6_DOTUSDT_baseline": {
+          "metrics": {
+            "ending_equity": "447.994724856285000000",
+            "net_pnl": "197.994724856285000000",
+            "max_drawdown_pct": "47.50203682377478170998766100",
+            "completed_trades": 44,
+            "winning_trades": 16,
+            "losing_trades": 28,
+            "total_fees": "22.194837080995000000",
+            "exposure_pct": "48.32344890510948905109489051"
+          }
+        },
+        "v6_DOTUSDT_stress": {
+          "metrics": {
+            "ending_equity": "391.73989222454000000",
+            "net_pnl": "141.73989222454000000",
+            "max_drawdown_pct": "53.14133124781255610817761883",
+            "completed_trades": 44,
+            "winning_trades": 16,
+            "losing_trades": 28,
+            "total_fees": "22.13593018327000000",
+            "exposure_pct": "48.32344890510948905109489051"
+          }
+        },
+        "v6_DOGEUSDT_baseline": {
+          "metrics": {
+            "ending_equity": "858.15813969070000000000",
+            "net_pnl": "608.15813969070000000000",
+            "max_drawdown_pct": "32.19332488582427222658906548",
+            "completed_trades": 46,
+            "winning_trades": 21,
+            "losing_trades": 25,
+            "total_fees": "23.76982521709000000000",
+            "exposure_pct": "43.51809610705596107055961071"
+          }
+        },
+        "v6_DOGEUSDT_stress": {
+          "metrics": {
+            "ending_equity": "790.8167365442700000000",
+            "net_pnl": "540.8167365442700000000",
+            "max_drawdown_pct": "34.11168108559376209041591368",
+            "completed_trades": 46,
+            "winning_trades": 21,
+            "losing_trades": 25,
+            "total_fees": "23.6784298956700000000",
+            "exposure_pct": "43.51809610705596107055961071"
+          }
+        }
+      },
+      "portfolios": {
+        "v2_baseline": {
+          "metrics": {
+            "starting_equity": "250.00",
+            "ending_equity": "553.29085843758725000000",
+            "net_pnl": "303.29085843758725000000",
+            "return_pct": "121.316343375034900000",
+            "annualized_return_pct": "30.30944696718705",
+            "max_drawdown": "157.72598560993090000000",
+            "max_drawdown_pct": "22.41902774971748522463827495",
+            "completed_trades": 108,
+            "winning_trades": 48,
+            "losing_trades": 60,
+            "win_rate_pct": "44.44444444444444444444444444",
+            "profit_factor": "2.042968437466926049818447140",
+            "average_win": "12.28691405546907869119119119",
+            "average_loss": "-4.811396526792595072572572575",
+            "exposure_pct": "42.10766423357664233576642336",
+            "total_fees": "17.49541767606660000000",
+            "modeled_spread_slippage": "8.74778164110000000",
+            "average_holding_hours": "246.4166666666666666666666667",
+            "max_holding_hours": "1180.0",
+            "sharpe": "1.1830598010227786",
+            "sortino": "1.9844316168286353",
+            "calmar": "1.351951891293278602809552253",
+            "buy_and_hold_ending_equity": "511.3528893938338305173613631",
+            "buy_and_hold_return_pct": "104.5411557575335322069445452",
+            "monthly_returns_pct": {
+              "2023-09": "-4.0813708663950400",
+              "2023-10": "16.55591391067098951342766660",
+              "2023-11": "7.325566592381813166695195900",
+              "2023-12": "39.59216239539614158886196270",
+              "2024-01": "-8.354616065737149048675750980",
+              "2024-02": "18.12898964305472037032229700",
+              "2024-03": "18.86992705248732419439835850",
+              "2024-04": "-12.23252395634207014649529338",
+              "2024-05": "5.231268119950838214490416800",
+              "2024-06": "-3.052974900280864042104366230",
+              "2024-07": "-1.886407472495381916306413640",
+              "2024-08": "-1.407028621678312340611575110",
+              "2024-09": "2.982211194596823457677285000",
+              "2024-10": "-1.859765479396475355294356430",
+              "2024-11": "39.52611639672512618051309860",
+              "2024-12": "-9.757280259352555067394839180",
+              "2025-01": "2.442893362438279715504959700",
+              "2025-02": "-8.695557430708776407748645760",
+              "2025-03": "-0.1927153621194488355450123400",
+              "2025-04": "0.496188488701570026011183200",
+              "2025-05": "0.668065763048261626011500300",
+              "2025-06": "0.023267317531565803807713100",
+              "2025-07": "0.979274040307923172791394700",
+              "2025-08": "0.042849094893191666917826300",
+              "2025-09": "0.583612606274446920536100400",
+              "2025-10": "-0.2946918696477104143894709100",
+              "2025-11": "-1.502732135179256258609446450",
+              "2025-12": "-0.2047855234560466616701072200",
+              "2026-01": "-0.6879137357399163472253635100",
+              "2026-02": "-0.9508870168445395378814341500",
+              "2026-03": "0.062141989084682767665355400",
+              "2026-04": "0.358845284119941583701968200",
+              "2026-05": "0.050807914293141247262430500",
+              "2026-06": "-1.121248278735281139829374150",
+              "2026-07": "0.316314993305511222331083600",
+              "2026-08": "1.036094518857918758921471900",
+              "2026-09": "-0.0271673139113957241928991600"
+            }
+          },
+          "halt": "2025-02-06 18:59:59.999000+00:00",
+          "max_concurrent_positions": 3,
+          "open_symbols_at_end": []
+        },
+        "v2_stress": {
+          "metrics": {
+            "starting_equity": "250.00",
+            "ending_equity": "433.4868021227417000000",
+            "net_pnl": "183.4868021227417000000",
+            "return_pct": "73.39472084909668000",
+            "annualized_return_pct": "20.132029209294934",
+            "max_drawdown": "108.7364633337903000000",
+            "max_drawdown_pct": "20.33653138632124475896835186",
+            "completed_trades": 71,
+            "winning_trades": 31,
+            "losing_trades": 40,
+            "win_rate_pct": "43.66197183098591549295774648",
+            "profit_factor": "1.949914374134645838468114919",
+            "average_win": "11.86273846625651571248668023",
+            "average_loss": "-4.714885142291873793793793795",
+            "exposure_pct": "30.13610097323600973236009732",
+            "total_fees": "11.4629348441251000000",
+            "modeled_spread_slippage": "34.3906397085000000",
+            "average_holding_hours": "263.4366197183098591549295775",
+            "max_holding_hours": "1180.0",
+            "sharpe": "0.9551466123896585",
+            "sortino": "1.5573190484563102",
+            "calmar": "0.9899440974893160498284543621",
+            "buy_and_hold_ending_equity": "510.0783308459927691252443109",
+            "buy_and_hold_return_pct": "104.0313323383971076500977244",
+            "monthly_returns_pct": {
+              "2023-09": "-5.0691927565253600",
+              "2023-10": "15.87660803966308400940829360",
+              "2023-11": "6.486516673866276084085527100",
+              "2023-12": "40.18393251135617811757284900",
+              "2024-01": "-9.317128273341188762414062940",
+              "2024-02": "18.22631407736762195634012220",
+              "2024-03": "18.91585048262386619224549600",
+              "2024-04": "-13.21588297920208005028654127",
+              "2024-05": "5.042188901687850103454685000",
+              "2024-06": "-3.917410170802548913405597850",
+              "2024-07": "-2.500184675685034426657541750",
+              "2024-08": "-1.974487582594801359118431160",
+              "2024-09": "-1.539339478542669662337107290",
+              "2024-10": "0.207340741588855574350047600",
+              "2024-11": "1.596561891747354063675785800",
+              "2024-12": "-0.1693114994473971112275700500",
+              "2025-01": "0.297536648982476598683953100",
+              "2025-02": "-1.181512502780506972983756950",
+              "2025-03": "-0.1362428410667569959197110200",
+              "2025-04": "0.398345289207253237797016200",
+              "2025-05": "0.551839358302723940500908800",
+              "2025-06": "0.029248491322921508617100100",
+              "2025-07": "0.812379696722312523215488100",
+              "2025-08": "0.055893951223972118238073200",
+              "2025-09": "0.533741018549774338157031300",
+              "2025-10": "-0.1870226616518723354352665700",
+              "2025-11": "-1.280815871367487655709781040",
+              "2025-12": "-0.1572738437336253459081858100",
+              "2026-01": "-0.5807269595705348458607105500",
+              "2026-02": "-0.8273345899746408388502245400",
+              "2026-03": "0.049942148394670633376661900",
+              "2026-04": "0.281729981980365103646397200",
+              "2026-05": "0.084933083279115377713706200",
+              "2026-06": "-0.9565260802575885947747763100",
+              "2026-07": "0.269115679491335371446087200",
+              "2026-08": "0.867437336983518515154805300",
+              "2026-09": "-0.0238032934392426369031349100"
+            }
+          },
+          "halt": "2024-09-08 12:59:59.999000+00:00",
+          "max_concurrent_positions": 3,
+          "open_symbols_at_end": []
+        },
+        "v6_baseline": {
+          "metrics": {
+            "starting_equity": "250.00",
+            "ending_equity": "733.30648172557635000000",
+            "net_pnl": "483.30648172557635000000",
+            "return_pct": "193.322592690230540000",
+            "annualized_return_pct": "43.13409819295539",
+            "max_drawdown": "186.50653160783660000000",
+            "max_drawdown_pct": "20.46017022972760887668389298",
+            "completed_trades": 187,
+            "winning_trades": 67,
+            "losing_trades": 120,
+            "win_rate_pct": "35.82887700534759358288770053",
+            "profit_factor": "1.812211394639245168836213884",
+            "average_win": "16.22014765663888162117341222",
+            "average_loss": "-4.997346962434732565065065069",
+            "exposure_pct": "68.7500",
+            "total_fees": "30.33571064970510000000",
+            "modeled_spread_slippage": "15.16797585780000000",
+            "average_holding_hours": "229.4973262032085561497326203",
+            "max_holding_hours": "1716.0",
+            "sharpe": "1.429454400333017",
+            "sortino": "2.529918806115464",
+            "calmar": "2.108198402488542957300071131",
+            "buy_and_hold_ending_equity": "511.3528893938338305173613631",
+            "buy_and_hold_return_pct": "104.5411557575335322069445452",
+            "monthly_returns_pct": {
+              "2023-09": "0.7066219831170400",
+              "2023-10": "34.58182159820437141432090210",
+              "2023-11": "22.60698874399028844071768280",
+              "2023-12": "48.13971382956806084852381820",
+              "2024-01": "-7.414426993544570635674553000",
+              "2024-02": "15.10995361030303138666583190",
+              "2024-03": "9.364615117308921491067888900",
+              "2024-04": "-10.10545940256044266494564292",
+              "2024-05": "1.736950351432567891143516200",
+              "2024-06": "-3.481249025622778843762434480",
+              "2024-07": "-2.654686114598874229361069430",
+              "2024-08": "1.013922974384056567004346000",
+              "2024-09": "2.493931525020346164603557400",
+              "2024-10": "-1.820374170639821003390587660",
+              "2024-11": "31.51921073863157122645181220",
+              "2024-12": "-6.206176637152793618445766600",
+              "2025-01": "4.664755206818191685531369100",
+              "2025-02": "-6.757320472908695619761185940",
+              "2025-03": "-2.214244054349860253180266580",
+              "2025-04": "4.140011596850186779310637200",
+              "2025-05": "3.885854888818620844373111100",
+              "2025-06": "-2.324506978036865499379196850",
+              "2025-07": "9.658290306868163096672247400",
+              "2025-08": "1.115031350402844742861736800",
+              "2025-09": "-0.2821141303106814058708844000",
+              "2025-10": "-2.840997910418940600762804280",
+              "2025-11": "-5.608026267442089433330606270",
+              "2025-12": "-4.102858765237359598936065130",
+              "2026-01": "-0.5213543079522176095623358800",
+              "2026-02": "-3.227545825270574024991347900",
+              "2026-03": "0.029505660642632715785831600",
+              "2026-04": "0.260159210335604644922149500",
+              "2026-05": "0.024192304734236173786345200",
+              "2026-06": "-0.8880841766565260372768872700",
+              "2026-07": "0.235423032167180482679869500",
+              "2026-08": "0.870441851031617785015640900",
+              "2026-09": "-0.0184954537916347568266188400"
+            }
+          },
+          "halt": "2026-02-25 05:59:59.999000+00:00",
+          "max_concurrent_positions": 3,
+          "open_symbols_at_end": []
+        },
+        "v6_stress": {
+          "metrics": {
+            "starting_equity": "250.00",
+            "ending_equity": "564.8193836271619000000",
+            "net_pnl": "314.8193836271619000000",
+            "return_pct": "125.92775345086476000",
+            "annualized_return_pct": "31.208063354784233",
+            "max_drawdown": "141.0384217764124000000",
+            "max_drawdown_pct": "20.59370949520414656004887504",
+            "completed_trades": 25,
+            "winning_trades": 11,
+            "losing_trades": 14,
+            "win_rate_pct": "44.00",
+            "profit_factor": "4.752376567942068188504968444",
+            "average_win": "36.01758264125852421512421513",
+            "average_loss": "-5.954816251100721042471042473",
+            "exposure_pct": "15.35507907542579075425790754",
+            "total_fees": "4.2974288362400000000",
+            "modeled_spread_slippage": "12.8952133638000000",
+            "average_holding_hours": "342.44",
+            "max_holding_hours": "1716.0",
+            "sharpe": "1.3728004870995207",
+            "sortino": "2.6320691850102444",
+            "calmar": "1.515417286140311545362792039",
+            "buy_and_hold_ending_equity": "510.0783308459927691252443109",
+            "buy_and_hold_return_pct": "104.0313323383971076500977244",
+            "monthly_returns_pct": {
+              "2023-09": "-0.0113434483708800",
+              "2023-10": "34.09259906466519141377315210",
+              "2023-11": "22.28776963345422856756613690",
+              "2023-12": "48.12649365892945536667597840",
+              "2024-01": "-9.003297602894926811145287230",
+              "2024-02": "3.752226437036274392702292700",
+              "2024-03": "-1.367620786992759671105962790",
+              "2024-04": "-0.1864816090177348115726368700",
+              "2024-05": "0.094305890603623763291659200",
+              "2024-06": "-0.0728069738865450618658977700",
+              "2024-07": "0.011406383159044434906019300",
+              "2024-08": "-0.0852875200051070276902905900",
+              "2024-09": "0.057523168979219651148157000",
+              "2024-10": "0.053278154314133046056925700",
+              "2024-11": "0.381372913907283927385422600",
+              "2024-12": "-0.0662516862666230894198953300",
+              "2025-01": "0.107882291194926540212311400",
+              "2025-02": "-0.2673241611926725572482592100",
+              "2025-03": "-0.0331160644795017823223783000",
+              "2025-04": "0.108525766604483664161773900",
+              "2025-05": "0.101845378276998306436104600",
+              "2025-06": "0.006748977142799167194633700",
+              "2025-07": "0.138378487646395406714179500",
+              "2025-08": "-0.0235046276551489824330106300",
+              "2025-09": "0.074531096060295072935074600",
+              "2025-10": "-0.0782830007126156709757089100",
+              "2025-11": "-0.2424418962182856080534384000",
+              "2025-12": "-0.0408237540424673905071042900",
+              "2026-01": "-0.1077193150880314591473828400",
+              "2026-02": "-0.1369904408516205403445451800",
+              "2026-03": "0.006857866366415354163601800",
+              "2026-04": "0.068628642179693187866093400",
+              "2026-05": "-0.0130866441770299382108990800",
+              "2026-06": "-0.1698457101244802099922444900",
+              "2026-07": "0.045743374152886986566952600",
+              "2026-08": "0.171389718357861575582354100",
+              "2026-09": "-0.0042312276875738860687318000"
+            }
+          },
+          "halt": "2024-01-24 11:59:59.999000+00:00",
+          "max_concurrent_positions": 3,
+          "open_symbols_at_end": []
+        }
+      }
+    },
+    "recent": {
+      "start": "2025-09-01 12:00:00+00:00",
+      "end_exclusive": "2026-09-01 12:00:00+00:00",
+      "history_start": "2023-08-15 20:00:00+00:00",
+      "data_sha256": {
+        "BTCUSDT": "b9f17a966c0fc5ed558434f2e530cfc4840912a14df3b438a0984653026506cc",
+        "ETHUSDT": "e66ef59765181b9c8d6c8527c085229c2dd66aee46fca58fad15631063d8f053",
+        "BNBUSDT": "7e76d7071aa05c4176bd2960c93cf4082f83a410153e760564986fb6b9caa159",
+        "SOLUSDT": "2b6dc7b97c5c09c7144be6c726f74a2d24321ae96831f8d579fee8e8c5f5cfa0",
+        "XRPUSDT": "c862609add89c1318782e2d7bd0eaa895d6eee1846bee5b03601da6933d20ddf",
+        "ADAUSDT": "50d0cff5de89dfc76a8db429918cc995d146015159a049a33689441869ec8bf2",
+        "LINKUSDT": "ac0de75d58906013b518721fc67345adace1a407aebfcbea81a8185aa49294f2",
+        "AVAXUSDT": "183229e0d5c1add6fb52f09ac17c7942285e721d9a15a21bf8ad85d838f1ac7c",
+        "DOTUSDT": "179404b895f6be7c0a728ba7c716805069e7152d1a1c37da71c35207bf67916c",
+        "DOGEUSDT": "18f3d6980cdb6d0b2f557145e4da76912a37212f27f32e78b877dfed8a707f33"
+      },
+      "coins": {
+        "v2_BTCUSDT_baseline": {
+          "metrics": {
+            "ending_equity": "182.26723844163775000",
+            "net_pnl": "-67.73276155836225000",
+            "max_drawdown_pct": "47.22274448589390860757727060",
+            "completed_trades": 23,
+            "winning_trades": 4,
+            "losing_trades": 19,
+            "total_fees": "9.26434168339550000",
+            "exposure_pct": "46.42694063926940639269406393"
+          }
+        },
+        "v2_BTCUSDT_stress": {
+          "metrics": {
+            "ending_equity": "162.9898957617832000",
+            "net_pnl": "-87.0101042382168000",
+            "max_drawdown_pct": "52.46635719208045428763201152",
+            "completed_trades": 23,
+            "winning_trades": 4,
+            "losing_trades": 19,
+            "total_fees": "8.7905910142672000",
+            "exposure_pct": "46.42694063926940639269406393"
+          }
+        },
+        "v2_ETHUSDT_baseline": {
+          "metrics": {
+            "ending_equity": "237.46393112887300000",
+            "net_pnl": "-12.53606887112700000",
+            "max_drawdown_pct": "38.62288076471323200921553915",
+            "completed_trades": 21,
+            "winning_trades": 7,
+            "losing_trades": 14,
+            "total_fees": "9.04691858411050000",
+            "exposure_pct": "44.72602739726027397260273973"
+          }
+        },
+        "v2_ETHUSDT_stress": {
+          "metrics": {
+            "ending_equity": "213.6252707996790000",
+            "net_pnl": "-36.3747292003210000",
+            "max_drawdown_pct": "43.65410953310709748406922098",
+            "completed_trades": 21,
+            "winning_trades": 6,
+            "losing_trades": 15,
+            "total_fees": "8.6112554842510000",
+            "exposure_pct": "44.72602739726027397260273973"
+          }
+        },
+        "v2_BNBUSDT_baseline": {
+          "metrics": {
+            "ending_equity": "205.02494530730500000",
+            "net_pnl": "-44.97505469269500000",
+            "max_drawdown_pct": "48.55299258700271294903291073",
+            "completed_trades": 22,
+            "winning_trades": 8,
+            "losing_trades": 14,
+            "total_fees": "9.94905433257000000",
+            "exposure_pct": "40.99315068493150684931506849"
+          }
+        },
+        "v2_BNBUSDT_stress": {
+          "metrics": {
+            "ending_equity": "183.8951777706100000",
+            "net_pnl": "-66.1048222293900000",
+            "max_drawdown_pct": "53.37912220383760270261539194",
+            "completed_trades": 22,
+            "winning_trades": 8,
+            "losing_trades": 14,
+            "total_fees": "9.4507853726100000",
+            "exposure_pct": "40.99315068493150684931506849"
+          }
+        },
+        "v2_SOLUSDT_baseline": {
+          "metrics": {
+            "ending_equity": "219.43960488144500000",
+            "net_pnl": "-30.56039511855500000",
+            "max_drawdown_pct": "39.81370618843684536721275717",
+            "completed_trades": 17,
+            "winning_trades": 6,
+            "losing_trades": 11,
+            "total_fees": "6.64968125687000000",
+            "exposure_pct": "42.96803652968036529680365297"
+          }
+        },
+        "v2_SOLUSDT_stress": {
+          "metrics": {
+            "ending_equity": "201.1112392042400000",
+            "net_pnl": "-48.8887607957600000",
+            "max_drawdown_pct": "44.02440208115732806452555414",
+            "completed_trades": 17,
+            "winning_trades": 6,
+            "losing_trades": 11,
+            "total_fees": "6.3894170630700000",
+            "exposure_pct": "42.96803652968036529680365297"
+          }
+        },
+        "v2_XRPUSDT_baseline": {
+          "metrics": {
+            "ending_equity": "169.8348186749200000000",
+            "net_pnl": "-80.1651813250800000000",
+            "max_drawdown_pct": "54.26521245653195634240711901",
+            "completed_trades": 20,
+            "winning_trades": 5,
+            "losing_trades": 15,
+            "total_fees": "7.5472452121450000000",
+            "exposure_pct": "52.77397260273972602739726027"
+          }
+        },
+        "v2_XRPUSDT_stress": {
+          "metrics": {
+            "ending_equity": "153.366948124920000000",
+            "net_pnl": "-96.633051875080000000",
+            "max_drawdown_pct": "58.49792501062332692169236123",
+            "completed_trades": 20,
+            "winning_trades": 5,
+            "losing_trades": 15,
+            "total_fees": "7.223671682060000000",
+            "exposure_pct": "52.77397260273972602739726027"
+          }
+        },
+        "v2_ADAUSDT_baseline": {
+          "metrics": {
+            "ending_equity": "127.6738569913500000000",
+            "net_pnl": "-122.3261430086500000000",
+            "max_drawdown_pct": "62.22985301362519252395961700",
+            "completed_trades": 21,
+            "winning_trades": 7,
+            "losing_trades": 14,
+            "total_fees": "7.6974702837150000000",
+            "exposure_pct": "53.29908675799086757990867580"
+          }
+        },
+        "v2_ADAUSDT_stress": {
+          "metrics": {
+            "ending_equity": "114.856641743400000000",
+            "net_pnl": "-135.143358256600000000",
+            "max_drawdown_pct": "65.67963791942436393988434938",
+            "completed_trades": 21,
+            "winning_trades": 7,
+            "losing_trades": 14,
+            "total_fees": "7.361119926260000000",
+            "exposure_pct": "53.29908675799086757990867580"
+          }
+        },
+        "v2_LINKUSDT_baseline": {
+          "metrics": {
+            "ending_equity": "212.283576409225000000",
+            "net_pnl": "-37.716423590775000000",
+            "max_drawdown_pct": "43.49231556310070089865466927",
+            "completed_trades": 16,
+            "winning_trades": 6,
+            "losing_trades": 10,
+            "total_fees": "6.185856188680000000",
+            "exposure_pct": "49.13242009132420091324200913"
+          }
+        },
+        "v2_LINKUSDT_stress": {
+          "metrics": {
+            "ending_equity": "195.53277249430000000",
+            "net_pnl": "-54.46722750570000000",
+            "max_drawdown_pct": "47.73696771208038991482934791",
+            "completed_trades": 16,
+            "winning_trades": 6,
+            "losing_trades": 10,
+            "total_fees": "5.95668294709000000",
+            "exposure_pct": "49.13242009132420091324200913"
+          }
+        },
+        "v2_AVAXUSDT_baseline": {
+          "metrics": {
+            "ending_equity": "131.496097995910000000",
+            "net_pnl": "-118.503902004090000000",
+            "max_drawdown_pct": "65.65808103575169463990778318",
+            "completed_trades": 24,
+            "winning_trades": 6,
+            "losing_trades": 18,
+            "total_fees": "9.167138029660000000",
+            "exposure_pct": "45.93607305936073059360730594"
+          }
+        },
+        "v2_AVAXUSDT_stress": {
+          "metrics": {
+            "ending_equity": "116.51326460203000000",
+            "net_pnl": "-133.48673539797000000",
+            "max_drawdown_pct": "69.42365297222001461155395704",
+            "completed_trades": 24,
+            "winning_trades": 5,
+            "losing_trades": 19,
+            "total_fees": "8.72497897994000000",
+            "exposure_pct": "45.93607305936073059360730594"
+          }
+        },
+        "v2_DOTUSDT_baseline": {
+          "metrics": {
+            "ending_equity": "157.147436240095000000",
+            "net_pnl": "-92.852563759905000000",
+            "max_drawdown_pct": "53.11348110170298191461258852",
+            "completed_trades": 15,
+            "winning_trades": 5,
+            "losing_trades": 10,
+            "total_fees": "6.033442139145000000",
+            "exposure_pct": "47.56849315068493150684931507"
+          }
+        },
+        "v2_DOTUSDT_stress": {
+          "metrics": {
+            "ending_equity": "145.47161247245000000",
+            "net_pnl": "-104.52838752755000000",
+            "max_drawdown_pct": "55.99493289153176618191048673",
+            "completed_trades": 15,
+            "winning_trades": 5,
+            "losing_trades": 10,
+            "total_fees": "5.84108853301000000",
+            "exposure_pct": "47.56849315068493150684931507"
+          }
+        },
+        "v2_DOGEUSDT_baseline": {
+          "metrics": {
+            "ending_equity": "193.81782682156500000000",
+            "net_pnl": "-56.18217317843500000000",
+            "max_drawdown_pct": "49.04179515560643362296324896",
+            "completed_trades": 20,
+            "winning_trades": 7,
+            "losing_trades": 13,
+            "total_fees": "9.03082989979000000000",
+            "exposure_pct": "42.96803652968036529680365297"
+          }
+        },
+        "v2_DOGEUSDT_stress": {
+          "metrics": {
+            "ending_equity": "175.1671241015400000000",
+            "net_pnl": "-74.8328758984600000000",
+            "max_drawdown_pct": "53.60070637837410956467657719",
+            "completed_trades": 20,
+            "winning_trades": 6,
+            "losing_trades": 14,
+            "total_fees": "8.6386480191700000000",
+            "exposure_pct": "42.96803652968036529680365297"
+          }
+        },
+        "v6_BTCUSDT_baseline": {
+          "metrics": {
+            "ending_equity": "224.40441921823285000",
+            "net_pnl": "-25.59558078176715000",
+            "max_drawdown_pct": "36.92483365461204757563060999",
+            "completed_trades": 16,
+            "winning_trades": 4,
+            "losing_trades": 12,
+            "total_fees": "7.05211498319295000",
+            "exposure_pct": "45.49086757990867579908675799"
+          }
+        },
+        "v6_BTCUSDT_stress": {
+          "metrics": {
+            "ending_equity": "206.6437427380412000",
+            "net_pnl": "-43.3562572619588000",
+            "max_drawdown_pct": "40.05015683147525950309132463",
+            "completed_trades": 16,
+            "winning_trades": 3,
+            "losing_trades": 13,
+            "total_fees": "6.7961751253395000",
+            "exposure_pct": "45.49086757990867579908675799"
+          }
+        },
+        "v6_ETHUSDT_baseline": {
+          "metrics": {
+            "ending_equity": "297.82454049163600000",
+            "net_pnl": "47.82454049163600000",
+            "max_drawdown_pct": "23.00460680685192898602854189",
+            "completed_trades": 13,
+            "winning_trades": 5,
+            "losing_trades": 8,
+            "total_fees": "6.32230590676850000",
+            "exposure_pct": "31.22146118721461187214611872"
+          }
+        },
+        "v6_ETHUSDT_stress": {
+          "metrics": {
+            "ending_equity": "278.4749053522550000",
+            "net_pnl": "28.4749053522550000",
+            "max_drawdown_pct": "26.53989029431543045466521135",
+            "completed_trades": 13,
+            "winning_trades": 5,
+            "losing_trades": 8,
+            "total_fees": "6.1402102962770000",
+            "exposure_pct": "31.22146118721461187214611872"
+          }
+        },
+        "v6_BNBUSDT_baseline": {
+          "metrics": {
+            "ending_equity": "229.04222657181000000",
+            "net_pnl": "-20.95777342819000000",
+            "max_drawdown_pct": "45.60153656447197574783465118",
+            "completed_trades": 16,
+            "winning_trades": 5,
+            "losing_trades": 11,
+            "total_fees": "7.38220585866000000",
+            "exposure_pct": "44.65753424657534246575342466"
+          }
+        },
+        "v6_BNBUSDT_stress": {
+          "metrics": {
+            "ending_equity": "210.9043438926600000",
+            "net_pnl": "-39.0956561073400000",
+            "max_drawdown_pct": "49.56302249547712591994077253",
+            "completed_trades": 16,
+            "winning_trades": 5,
+            "losing_trades": 11,
+            "total_fees": "7.1065029600000000",
+            "exposure_pct": "44.65753424657534246575342466"
+          }
+        },
+        "v6_SOLUSDT_baseline": {
+          "metrics": {
+            "ending_equity": "213.79383959512000000",
+            "net_pnl": "-36.20616040488000000",
+            "max_drawdown_pct": "42.85247685378126228351518817",
+            "completed_trades": 20,
+            "winning_trades": 6,
+            "losing_trades": 14,
+            "total_fees": "7.79667220528500000",
+            "exposure_pct": "39.31506849315068493150684932"
+          }
+        },
+        "v6_SOLUSDT_stress": {
+          "metrics": {
+            "ending_equity": "192.8573898547500000",
+            "net_pnl": "-57.1426101452500000",
+            "max_drawdown_pct": "47.05380163448144083350483467",
+            "completed_trades": 20,
+            "winning_trades": 5,
+            "losing_trades": 15,
+            "total_fees": "7.4381284894300000",
+            "exposure_pct": "39.31506849315068493150684932"
+          }
+        },
+        "v6_XRPUSDT_baseline": {
+          "metrics": {
+            "ending_equity": "275.6400358366900000000",
+            "net_pnl": "25.6400358366900000000",
+            "max_drawdown_pct": "26.59972362443903921699519528",
+            "completed_trades": 28,
+            "winning_trades": 7,
+            "losing_trades": 21,
+            "total_fees": "12.9706850298550000000",
+            "exposure_pct": "33.21917808219178082191780822"
+          }
+        },
+        "v6_XRPUSDT_stress": {
+          "metrics": {
+            "ending_equity": "240.321655526450000000",
+            "net_pnl": "-9.678344473550000000",
+            "max_drawdown_pct": "34.96746233299868298846317419",
+            "completed_trades": 28,
+            "winning_trades": 6,
+            "losing_trades": 22,
+            "total_fees": "12.175042889020000000",
+            "exposure_pct": "31.98630136986301369863013699"
+          }
+        },
+        "v6_ADAUSDT_baseline": {
+          "metrics": {
+            "ending_equity": "127.6738569913500000000",
+            "net_pnl": "-122.3261430086500000000",
+            "max_drawdown_pct": "62.22985301362519252395961700",
+            "completed_trades": 21,
+            "winning_trades": 7,
+            "losing_trades": 14,
+            "total_fees": "7.6974702837150000000",
+            "exposure_pct": "53.29908675799086757990867580"
+          }
+        },
+        "v6_ADAUSDT_stress": {
+          "metrics": {
+            "ending_equity": "114.856641743400000000",
+            "net_pnl": "-135.143358256600000000",
+            "max_drawdown_pct": "65.67963791942436393988434938",
+            "completed_trades": 21,
+            "winning_trades": 7,
+            "losing_trades": 14,
+            "total_fees": "7.361119926260000000",
+            "exposure_pct": "53.29908675799086757990867580"
+          }
+        },
+        "v6_LINKUSDT_baseline": {
+          "metrics": {
+            "ending_equity": "212.283576409225000000",
+            "net_pnl": "-37.716423590775000000",
+            "max_drawdown_pct": "43.49231556310070089865466927",
+            "completed_trades": 16,
+            "winning_trades": 6,
+            "losing_trades": 10,
+            "total_fees": "6.185856188680000000",
+            "exposure_pct": "49.13242009132420091324200913"
+          }
+        },
+        "v6_LINKUSDT_stress": {
+          "metrics": {
+            "ending_equity": "195.53277249430000000",
+            "net_pnl": "-54.46722750570000000",
+            "max_drawdown_pct": "47.73696771208038991482934791",
+            "completed_trades": 16,
+            "winning_trades": 6,
+            "losing_trades": 10,
+            "total_fees": "5.95668294709000000",
+            "exposure_pct": "49.13242009132420091324200913"
+          }
+        },
+        "v6_AVAXUSDT_baseline": {
+          "metrics": {
+            "ending_equity": "130.133344374285000000",
+            "net_pnl": "-119.866655625715000000",
+            "max_drawdown_pct": "55.22644657091260054672744757",
+            "completed_trades": 15,
+            "winning_trades": 2,
+            "losing_trades": 13,
+            "total_fees": "5.162802091245000000",
+            "exposure_pct": "41.08447488584474885844748858"
+          }
+        },
+        "v6_AVAXUSDT_stress": {
+          "metrics": {
+            "ending_equity": "120.43603584712000000",
+            "net_pnl": "-129.56396415288000000",
+            "max_drawdown_pct": "58.45990731970817067079162064",
+            "completed_trades": 15,
+            "winning_trades": 2,
+            "losing_trades": 13,
+            "total_fees": "4.98830736399000000",
+            "exposure_pct": "41.08447488584474885844748858"
+          }
+        },
+        "v6_DOTUSDT_baseline": {
+          "metrics": {
+            "ending_equity": "157.147436240095000000",
+            "net_pnl": "-92.852563759905000000",
+            "max_drawdown_pct": "53.11348110170298191461258852",
+            "completed_trades": 15,
+            "winning_trades": 5,
+            "losing_trades": 10,
+            "total_fees": "6.033442139145000000",
+            "exposure_pct": "47.56849315068493150684931507"
+          }
+        },
+        "v6_DOTUSDT_stress": {
+          "metrics": {
+            "ending_equity": "145.47161247245000000",
+            "net_pnl": "-104.52838752755000000",
+            "max_drawdown_pct": "55.99493289153176618191048673",
+            "completed_trades": 15,
+            "winning_trades": 5,
+            "losing_trades": 10,
+            "total_fees": "5.84108853301000000",
+            "exposure_pct": "47.56849315068493150684931507"
+          }
+        },
+        "v6_DOGEUSDT_baseline": {
+          "metrics": {
+            "ending_equity": "205.72075745322500000000",
+            "net_pnl": "-44.27924254677500000000",
+            "max_drawdown_pct": "45.34189025968763586843984219",
+            "completed_trades": 15,
+            "winning_trades": 5,
+            "losing_trades": 10,
+            "total_fees": "7.01220703630000000000",
+            "exposure_pct": "42.02054794520547945205479452"
+          }
+        },
+        "v6_DOGEUSDT_stress": {
+          "metrics": {
+            "ending_equity": "190.3353765319700000000",
+            "net_pnl": "-59.6646234680300000000",
+            "max_drawdown_pct": "49.31221199356430953770350514",
+            "completed_trades": 15,
+            "winning_trades": 5,
+            "losing_trades": 10,
+            "total_fees": "6.7858891362100000000",
+            "exposure_pct": "42.02054794520547945205479452"
+          }
+        }
+      },
+      "portfolios": {
+        "v2_baseline": {
+          "metrics": {
+            "starting_equity": "250.00",
+            "ending_equity": "226.70746940431860000000",
+            "net_pnl": "-23.29253059568140000000",
+            "return_pct": "-9.317012238272560000",
+            "annualized_return_pct": "-9.3229043541048",
+            "max_drawdown": "66.82978817547800000000",
+            "max_drawdown_pct": "22.84888459925186691981250172",
+            "completed_trades": 17,
+            "winning_trades": 7,
+            "losing_trades": 10,
+            "win_rate_pct": "41.17647058823529411764705882",
+            "profit_factor": "0.6556612427213412610541395310",
+            "average_win": "5.63542828654930000000000000",
+            "average_loss": "-6.016521251449151501501501502",
+            "exposure_pct": "16.03881278538812785388127854",
+            "total_fees": "2.68446436614505000000",
+            "modeled_spread_slippage": "1.34222598225000000",
+            "average_holding_hours": "192.8823529411764705882352941",
+            "max_holding_hours": "449.0",
+            "sharpe": "-0.49802072304512507",
+            "sortino": "-0.6875938176193594",
+            "calmar": "-0.4080244842415658493101040920",
+            "buy_and_hold_ending_equity": "118.7097066992209705607981797",
+            "buy_and_hold_return_pct": "-52.51611732031161177568072812",
+            "monthly_returns_pct": {
+              "2025-09": "6.7666193661186400",
+              "2025-10": "-3.530819068737404941780490260",
+              "2025-11": "-11.57175245647795010075699086",
+              "2025-12": "-0.0742758203718229370762555100",
+              "2026-01": "-0.2441366549138216980416462400",
+              "2026-02": "-0.3336023443419577616879322800",
+              "2026-03": "0.021145535427653340041758700",
+              "2026-04": "0.114777634362629480045850700",
+              "2026-05": "0.023670666228277441785319100",
+              "2026-06": "-0.3905213050682697045772643800",
+              "2026-07": "0.108866090735471607499994800",
+              "2026-08": "0.350380557774316819795342700",
+              "2026-09": "-0.0089360832049641250836731500"
+            }
+          },
+          "halt": "2025-11-16 16:59:59.999000+00:00",
+          "max_concurrent_positions": 3,
+          "open_symbols_at_end": []
+        },
+        "v2_stress": {
+          "metrics": {
+            "starting_equity": "250.00",
+            "ending_equity": "220.0339080152216000000",
+            "net_pnl": "-29.9660919847784000000",
+            "return_pct": "-11.98643679391136000",
+            "annualized_return_pct": "-11.99390249169775",
+            "max_drawdown": "71.7315684433584000000",
+            "max_drawdown_pct": "24.67426795873970924796510916",
+            "completed_trades": 17,
+            "winning_trades": 7,
+            "losing_trades": 10,
+            "win_rate_pct": "41.17647058823529411764705882",
+            "profit_factor": "0.5714135924534193155139920592",
+            "average_win": "5.213482210153357557557557556",
+            "average_loss": "-6.386683122881516616616616618",
+            "exposure_pct": "16.03881278538812785388127854",
+            "total_fees": "2.6804146266803000000",
+            "modeled_spread_slippage": "8.0410208235000000",
+            "average_holding_hours": "192.8823529411764705882352941",
+            "max_holding_hours": "449.0",
+            "sharpe": "-0.6558010014366786",
+            "sortino": "-0.8876104597393186",
+            "calmar": "-0.4860894966267669607191868102",
+            "buy_and_hold_ending_equity": "118.4138200922936999462398593",
+            "buy_and_hold_return_pct": "-52.63447196308252002150405628",
+            "monthly_returns_pct": {
+              "2025-09": "5.5423576374038400",
+              "2025-10": "-4.541152779009585512976735940",
+              "2025-11": "-12.24857108614874842359166329",
+              "2025-12": "-0.0766046521075910736280950000",
+              "2026-01": "-0.2515794235484267227958179700",
+              "2026-02": "-0.3437264276928630843542489100",
+              "2026-03": "0.021746562923921822495723100",
+              "2026-04": "0.118275009788455778295767100",
+              "2026-05": "0.024379991344318231945496100",
+              "2026-06": "-0.4024764401310480481443837400",
+              "2026-07": "0.112192985842467743497109500",
+              "2026-08": "0.361090765100220654226591200",
+              "2026-09": "-0.0092035245007964604494203200"
+            }
+          },
+          "halt": "2025-11-13 18:59:59.999000+00:00",
+          "max_concurrent_positions": 3,
+          "open_symbols_at_end": []
+        },
+        "v6_baseline": {
+          "metrics": {
+            "starting_equity": "250.00",
+            "ending_equity": "216.8430030846203000000",
+            "net_pnl": "-33.1569969153797000000",
+            "return_pct": "-13.26279876615188000",
+            "annualized_return_pct": "-13.27099793702785",
+            "max_drawdown": "58.5281991183797000000",
+            "max_drawdown_pct": "21.31427425853520017699988157",
+            "completed_trades": 13,
+            "winning_trades": 5,
+            "losing_trades": 8,
+            "win_rate_pct": "38.46153846153846153846153846",
+            "profit_factor": "0.3449193953732223549309925521",
+            "average_win": "3.279515405563822702702702704",
+            "average_loss": "-5.942539491754299887387387389",
+            "exposure_pct": "12.75114155251141552511415525",
+            "total_fees": "2.0382344648277500000",
+            "modeled_spread_slippage": "1.0191086683500000",
+            "average_holding_hours": "180.2307692307692307692307692",
+            "max_holding_hours": "406.0",
+            "sharpe": "-1.0313181950424248",
+            "sortino": "-1.2455290128881582",
+            "calmar": "-0.6226342861152563865008384598",
+            "buy_and_hold_ending_equity": "118.7097066992209705607981797",
+            "buy_and_hold_return_pct": "-52.51611732031161177568072812",
+            "monthly_returns_pct": {
+              "2025-09": "-3.7953863520371600",
+              "2025-10": "-9.202384547034857612609283950",
+              "2025-11": "-0.3962062732564171667725996400",
+              "2025-12": "-0.0621885029971168902685735400",
+              "2026-01": "-0.1770376497141534594121359400",
+              "2026-02": "-0.2430744316764556535913597300",
+              "2026-03": "0.011907820468895391216057400",
+              "2026-04": "0.105126492303296155781923600",
+              "2026-05": "0.005040335285763443048270100",
+              "2026-06": "-0.2934976206900817757795651500",
+              "2026-07": "0.075029908544398081853600700",
+              "2026-08": "0.278720851116478337101009500",
+              "2026-09": "-0.0073862340339603792948118200"
+            }
+          },
+          "halt": "2025-10-22 06:59:59.999000+00:00",
+          "max_concurrent_positions": 3,
+          "open_symbols_at_end": []
+        },
+        "v6_stress": {
+          "metrics": {
+            "starting_equity": "250.00",
+            "ending_equity": "211.827704052141800000",
+            "net_pnl": "-38.172295947858200000",
+            "return_pct": "-15.2689183791432800",
+            "annualized_return_pct": "-15.278245078325003",
+            "max_drawdown": "62.884810630858200000",
+            "max_drawdown_pct": "22.95590378333888433794476057",
+            "completed_trades": 13,
+            "winning_trades": 4,
+            "losing_trades": 9,
+            "win_rate_pct": "30.76923076923076923076923077",
+            "profit_factor": "0.2858585756158310813560221423",
+            "average_win": "3.616951699688278028028028028",
+            "average_loss": "-5.623529345891413724835947061",
+            "exposure_pct": "12.75114155251141552511415525",
+            "total_fees": "2.034840120256500000",
+            "modeled_spread_slippage": "6.104212640100000",
+            "average_holding_hours": "180.2307692307692307692307692",
+            "max_holding_hours": "406.0",
+            "sharpe": "-1.1735241790669482",
+            "sortino": "-1.3997855736287947",
+            "calmar": "-0.6655475307146812223456244765",
+            "buy_and_hold_ending_equity": "118.4138200922936999462398593",
+            "buy_and_hold_return_pct": "-52.63447196308252002150405628",
+            "monthly_returns_pct": {
+              "2025-09": "-4.9740899324429600",
+              "2025-10": "-10.18693781262218519891228118",
+              "2025-11": "-0.4056856829361416994132626400",
+              "2025-12": "-0.0637185595728160262774293100",
+              "2026-01": "-0.1812735338419333230112936300",
+              "2026-02": "-0.2488450697062443689902093600",
+              "2026-03": "0.012155953694465248650747400",
+              "2026-04": "0.107621591500794204659018600",
+              "2026-05": "0.005154421780353870671683700",
+              "2026-06": "-0.3005251640446631975710926000",
+              "2026-07": "0.076822519340218519221497600",
+              "2026-08": "0.285386299530395005666682400",
+              "2026-09": "-0.0075586121055571442806575500"
+            }
+          },
+          "halt": "2025-10-21 20:59:59.999000+00:00",
+          "max_concurrent_positions": 3,
+          "open_symbols_at_end": []
+        }
+      }
+    },
+    "older": {
+      "start": "2021-10-16 01:00:00+00:00",
+      "end_exclusive": "2023-03-24 13:00:00+00:00",
+      "history_start": "2021-09-29 09:00:00+00:00",
+      "data_sha256": {
+        "BTCUSDT": "77f75bf3e47bf2b9c39a99896b07cce9690c2b3e7c666631b7f720185d2cfe1f",
+        "ETHUSDT": "8a086638bece40c90996d01e2b1d7675309631a36e75a3b866672fdc19903abf",
+        "BNBUSDT": "54ee80f4b781362303908fcb6e8dbe0e8dff1525cb9113208929729eebe6622f",
+        "SOLUSDT": "56e279130acf302d30c21e6bc16c0118caabf0bf3251493e68d2b71238abcd34",
+        "XRPUSDT": "8418421c2dd586fda442bbef3f1911192458f956db9de9d83123be48ae04a4cb",
+        "ADAUSDT": "c3b125a39515a61060f7c569d295dafee0f4588ea0c03cc56df9b4315c20a57e",
+        "LINKUSDT": "6fcd7a89ce602bd236b59f21c247c460729d29c5eca471820044b91bf98f45f4",
+        "AVAXUSDT": "b8c89e660d3455f2068f9af9818c810548235b0e08a71dca45582a5b63581da7",
+        "DOTUSDT": "3b55c63e35c482d550c19e4cfddb861354fad9ea00cc4e6370e084ee6ede8b55",
+        "DOGEUSDT": "dd2b02e620af79a7b31d14263cd0c16df6693962f6951b8f9d384cc5343a91c2"
+      },
+      "coins": {
+        "v2_BTCUSDT_baseline": {
+          "metrics": {
+            "ending_equity": "420.19653384177295000",
+            "net_pnl": "170.19653384177295000",
+            "max_drawdown_pct": "25.86461420032968182463914855",
+            "completed_trades": 26,
+            "winning_trades": 14,
+            "losing_trades": 12,
+            "total_fees": "13.01378856375715000",
+            "exposure_pct": "43.43819510645058786145535431"
+          }
+        },
+        "v2_BTCUSDT_stress": {
+          "metrics": {
+            "ending_equity": "379.8551647223008000",
+            "net_pnl": "129.8551647223008000",
+            "max_drawdown_pct": "28.81286517122345404020929370",
+            "completed_trades": 26,
+            "winning_trades": 10,
+            "losing_trades": 16,
+            "total_fees": "12.7244767022275000",
+            "exposure_pct": "43.43819510645058786145535431"
+          }
+        },
+        "v2_ETHUSDT_baseline": {
+          "metrics": {
+            "ending_equity": "311.70133925722450000",
+            "net_pnl": "61.70133925722450000",
+            "max_drawdown_pct": "36.11214604409090961438982269",
+            "completed_trades": 29,
+            "winning_trades": 7,
+            "losing_trades": 22,
+            "total_fees": "13.40294856389200000",
+            "exposure_pct": "48.59389895138226882745471878"
+          }
+        },
+        "v2_ETHUSDT_stress": {
+          "metrics": {
+            "ending_equity": "268.5848130966130000",
+            "net_pnl": "18.5848130966130000",
+            "max_drawdown_pct": "40.95922215963486390757937355",
+            "completed_trades": 29,
+            "winning_trades": 7,
+            "losing_trades": 22,
+            "total_fees": "12.5043542322950000",
+            "exposure_pct": "48.59389895138226882745471878"
+          }
+        },
+        "v2_BNBUSDT_baseline": {
+          "metrics": {
+            "ending_equity": "351.7884442230500000",
+            "net_pnl": "101.7884442230500000",
+            "max_drawdown_pct": "34.27896694896831677338811152",
+            "completed_trades": 29,
+            "winning_trades": 12,
+            "losing_trades": 17,
+            "total_fees": "14.5830757201500000",
+            "exposure_pct": "44.24054655227200508420718144"
+          }
+        },
+        "v2_BNBUSDT_stress": {
+          "metrics": {
+            "ending_equity": "313.342061734600000",
+            "net_pnl": "63.342061734600000",
+            "max_drawdown_pct": "38.78286767038217928301988386",
+            "completed_trades": 29,
+            "winning_trades": 12,
+            "losing_trades": 17,
+            "total_fees": "14.435144967200000",
+            "exposure_pct": "44.24054655227200508420718144"
+          }
+        },
+        "v2_SOLUSDT_baseline": {
+          "metrics": {
+            "ending_equity": "123.74732044959500000",
+            "net_pnl": "-126.25267955040500000",
+            "max_drawdown_pct": "65.74031771224195190348380412",
+            "completed_trades": 27,
+            "winning_trades": 7,
+            "losing_trades": 20,
+            "total_fees": "7.88215935993500000",
+            "exposure_pct": "48.65745154115030187480139816"
+          }
+        },
+        "v2_SOLUSDT_stress": {
+          "metrics": {
+            "ending_equity": "107.8265803987400000",
+            "net_pnl": "-142.1734196012600000",
+            "max_drawdown_pct": "67.57941557663281439511648469",
+            "completed_trades": 27,
+            "winning_trades": 6,
+            "losing_trades": 21,
+            "total_fees": "7.3940569752400000",
+            "exposure_pct": "48.65745154115030187480139816"
+          }
+        },
+        "v2_XRPUSDT_baseline": {
+          "metrics": {
+            "ending_equity": "150.3295831380700000000",
+            "net_pnl": "-99.6704168619300000000",
+            "max_drawdown_pct": "56.99300867728603234484888964",
+            "completed_trades": 29,
+            "winning_trades": 9,
+            "losing_trades": 20,
+            "total_fees": "11.3753591011600000000",
+            "exposure_pct": "45.81347314903082300603749603"
+          }
+        },
+        "v2_XRPUSDT_stress": {
+          "metrics": {
+            "ending_equity": "129.929214592060000000",
+            "net_pnl": "-120.070785407940000000",
+            "max_drawdown_pct": "62.00637566118695554682881025",
+            "completed_trades": 29,
+            "winning_trades": 9,
+            "losing_trades": 20,
+            "total_fees": "10.682886766040000000",
+            "exposure_pct": "45.81347314903082300603749603"
+          }
+        },
+        "v2_ADAUSDT_baseline": {
+          "metrics": {
+            "ending_equity": "214.0232006442050000000",
+            "net_pnl": "-35.9767993557950000000",
+            "max_drawdown_pct": "46.06009518100319608214135535",
+            "completed_trades": 25,
+            "winning_trades": 8,
+            "losing_trades": 17,
+            "total_fees": "10.8674177006350000000",
+            "exposure_pct": "35.66889100730854782332380044"
+          }
+        },
+        "v2_ADAUSDT_stress": {
+          "metrics": {
+            "ending_equity": "186.942316147710000000",
+            "net_pnl": "-63.057683852290000000",
+            "max_drawdown_pct": "49.26800333600293258760795207",
+            "completed_trades": 25,
+            "winning_trades": 8,
+            "losing_trades": 17,
+            "total_fees": "10.218636204060000000",
+            "exposure_pct": "35.66889100730854782332380044"
+          }
+        },
+        "v2_LINKUSDT_baseline": {
+          "metrics": {
+            "ending_equity": "178.840028173840000000",
+            "net_pnl": "-71.159971826160000000",
+            "max_drawdown_pct": "60.90139122787323889649013851",
+            "completed_trades": 23,
+            "winning_trades": 8,
+            "losing_trades": 15,
+            "total_fees": "9.495007856095000000",
+            "exposure_pct": "40.69748967270416269462980616"
+          }
+        },
+        "v2_LINKUSDT_stress": {
+          "metrics": {
+            "ending_equity": "158.47518117283000000",
+            "net_pnl": "-91.52481882717000000",
+            "max_drawdown_pct": "64.48670021970323879133471919",
+            "completed_trades": 23,
+            "winning_trades": 8,
+            "losing_trades": 15,
+            "total_fees": "9.01270894433000000",
+            "exposure_pct": "40.69748967270416269462980616"
+          }
+        },
+        "v2_AVAXUSDT_baseline": {
+          "metrics": {
+            "ending_equity": "374.51147090665000000",
+            "net_pnl": "124.51147090665000000",
+            "max_drawdown_pct": "43.69113689498842810648213229",
+            "completed_trades": 24,
+            "winning_trades": 11,
+            "losing_trades": 13,
+            "total_fees": "12.36462387125000000",
+            "exposure_pct": "54.99682237051159834763266603"
+          }
+        },
+        "v2_AVAXUSDT_stress": {
+          "metrics": {
+            "ending_equity": "327.8623967887000000",
+            "net_pnl": "77.8623967887000000",
+            "max_drawdown_pct": "48.94450907334918941792448042",
+            "completed_trades": 24,
+            "winning_trades": 11,
+            "losing_trades": 13,
+            "total_fees": "12.2605606809000000",
+            "exposure_pct": "54.99682237051159834763266603"
+          }
+        },
+        "v2_DOTUSDT_baseline": {
+          "metrics": {
+            "ending_equity": "214.953260511950000000",
+            "net_pnl": "-35.046739488050000000",
+            "max_drawdown_pct": "51.35842011808603061002198351",
+            "completed_trades": 19,
+            "winning_trades": 5,
+            "losing_trades": 14,
+            "total_fees": "8.136861066145000000",
+            "exposure_pct": "42.90594216714331108992691452"
+          }
+        },
+        "v2_DOTUSDT_stress": {
+          "metrics": {
+            "ending_equity": "194.27796954152000000",
+            "net_pnl": "-55.72203045848000000",
+            "max_drawdown_pct": "52.50356858762446500773876533",
+            "completed_trades": 19,
+            "winning_trades": 5,
+            "losing_trades": 14,
+            "total_fees": "7.77076948921000000",
+            "exposure_pct": "42.90594216714331108992691452"
+          }
+        },
+        "v2_DOGEUSDT_baseline": {
+          "metrics": {
+            "ending_equity": "266.43003911414000000000",
+            "net_pnl": "16.43003911414000000000",
+            "max_drawdown_pct": "51.72856939971198755607021071",
+            "completed_trades": 21,
+            "winning_trades": 9,
+            "losing_trades": 12,
+            "total_fees": "8.78786555059000000000",
+            "exposure_pct": "40.28439783921194788687639021"
+          }
+        },
+        "v2_DOGEUSDT_stress": {
+          "metrics": {
+            "ending_equity": "237.2945302723000000000",
+            "net_pnl": "-12.7054697277000000000",
+            "max_drawdown_pct": "53.15512840437176567355727087",
+            "completed_trades": 21,
+            "winning_trades": 8,
+            "losing_trades": 13,
+            "total_fees": "8.5693381682300000000",
+            "exposure_pct": "40.28439783921194788687639021"
+          }
+        },
+        "v6_BTCUSDT_baseline": {
+          "metrics": {
+            "ending_equity": "388.24046663915080000",
+            "net_pnl": "138.24046663915080000",
+            "max_drawdown_pct": "16.73750894931755941820446232",
+            "completed_trades": 11,
+            "winning_trades": 6,
+            "losing_trades": 5,
+            "total_fees": "5.48626048425650000",
+            "exposure_pct": "17.12742294248490625993009215"
+          }
+        },
+        "v6_BTCUSDT_stress": {
+          "metrics": {
+            "ending_equity": "370.9103220154486000",
+            "net_pnl": "120.9103220154486000",
+            "max_drawdown_pct": "16.74387721442287976298732878",
+            "completed_trades": 11,
+            "winning_trades": 6,
+            "losing_trades": 5,
+            "total_fees": "5.4078275369181000",
+            "exposure_pct": "17.12742294248490625993009215"
+          }
+        },
+        "v6_ETHUSDT_baseline": {
+          "metrics": {
+            "ending_equity": "283.61764490941500000",
+            "net_pnl": "33.61764490941500000",
+            "max_drawdown_pct": "32.38074988181980101926730445",
+            "completed_trades": 14,
+            "winning_trades": 4,
+            "losing_trades": 10,
+            "total_fees": "6.49906470329650000",
+            "exposure_pct": "19.31998728948204639339053066"
+          }
+        },
+        "v6_ETHUSDT_stress": {
+          "metrics": {
+            "ending_equity": "263.9112162635390000",
+            "net_pnl": "13.9112162635390000",
+            "max_drawdown_pct": "34.05612177690004352976731052",
+            "completed_trades": 14,
+            "winning_trades": 4,
+            "losing_trades": 10,
+            "total_fees": "6.2893909879210000",
+            "exposure_pct": "19.31998728948204639339053066"
+          }
+        },
+        "v6_BNBUSDT_baseline": {
+          "metrics": {
+            "ending_equity": "211.2622061243500000",
+            "net_pnl": "-38.7377938756500000",
+            "max_drawdown_pct": "45.97795971916843872453970816",
+            "completed_trades": 21,
+            "winning_trades": 9,
+            "losing_trades": 12,
+            "total_fees": "9.0272235550000000",
+            "exposure_pct": "37.04321576104226247219574198"
+          }
+        },
+        "v6_BNBUSDT_stress": {
+          "metrics": {
+            "ending_equity": "190.299593376200000",
+            "net_pnl": "-59.700406623800000",
+            "max_drawdown_pct": "50.13337835412307559229536462",
+            "completed_trades": 21,
+            "winning_trades": 9,
+            "losing_trades": 12,
+            "total_fees": "8.593809283300000",
+            "exposure_pct": "37.04321576104226247219574198"
+          }
+        },
+        "v6_SOLUSDT_baseline": {
+          "metrics": {
+            "ending_equity": "137.41222100826500000",
+            "net_pnl": "-112.58777899173500000",
+            "max_drawdown_pct": "66.35973037392805518125981782",
+            "completed_trades": 32,
+            "winning_trades": 9,
+            "losing_trades": 23,
+            "total_fees": "10.63797283001500000",
+            "exposure_pct": "44.67747060692723228471560216"
+          }
+        },
+        "v6_SOLUSDT_stress": {
+          "metrics": {
+            "ending_equity": "116.7926453864400000",
+            "net_pnl": "-133.2073546135600000",
+            "max_drawdown_pct": "70.31567088967472256180520238",
+            "completed_trades": 32,
+            "winning_trades": 7,
+            "losing_trades": 25,
+            "total_fees": "9.8879465271200000",
+            "exposure_pct": "44.67747060692723228471560216"
+          }
+        },
+        "v6_XRPUSDT_baseline": {
+          "metrics": {
+            "ending_equity": "212.5516922817450000000",
+            "net_pnl": "-37.4483077182550000000",
+            "max_drawdown_pct": "47.97290498283360208098422242",
+            "completed_trades": 39,
+            "winning_trades": 13,
+            "losing_trades": 26,
+            "total_fees": "16.4297857439400000000",
+            "exposure_pct": "39.60120749920559262789958691"
+          }
+        },
+        "v6_XRPUSDT_stress": {
+          "metrics": {
+            "ending_equity": "134.121538167980000000",
+            "net_pnl": "-115.878461832020000000",
+            "max_drawdown_pct": "57.67148175557317768364993878",
+            "completed_trades": 39,
+            "winning_trades": 11,
+            "losing_trades": 28,
+            "total_fees": "15.051464673430000000",
+            "exposure_pct": "36.27264061010486177311725453"
+          }
+        },
+        "v6_ADAUSDT_baseline": {
+          "metrics": {
+            "ending_equity": "214.0232006442050000000",
+            "net_pnl": "-35.9767993557950000000",
+            "max_drawdown_pct": "46.06009518100319608214135535",
+            "completed_trades": 25,
+            "winning_trades": 8,
+            "losing_trades": 17,
+            "total_fees": "10.8674177006350000000",
+            "exposure_pct": "35.66889100730854782332380044"
+          }
+        },
+        "v6_ADAUSDT_stress": {
+          "metrics": {
+            "ending_equity": "186.942316147710000000",
+            "net_pnl": "-63.057683852290000000",
+            "max_drawdown_pct": "49.26800333600293258760795207",
+            "completed_trades": 25,
+            "winning_trades": 8,
+            "losing_trades": 17,
+            "total_fees": "10.218636204060000000",
+            "exposure_pct": "35.66889100730854782332380044"
+          }
+        },
+        "v6_LINKUSDT_baseline": {
+          "metrics": {
+            "ending_equity": "178.840028173840000000",
+            "net_pnl": "-71.159971826160000000",
+            "max_drawdown_pct": "60.90139122787323889649013851",
+            "completed_trades": 23,
+            "winning_trades": 8,
+            "losing_trades": 15,
+            "total_fees": "9.495007856095000000",
+            "exposure_pct": "40.69748967270416269462980616"
+          }
+        },
+        "v6_LINKUSDT_stress": {
+          "metrics": {
+            "ending_equity": "158.47518117283000000",
+            "net_pnl": "-91.52481882717000000",
+            "max_drawdown_pct": "64.48670021970323879133471919",
+            "completed_trades": 23,
+            "winning_trades": 8,
+            "losing_trades": 15,
+            "total_fees": "9.01270894433000000",
+            "exposure_pct": "40.69748967270416269462980616"
+          }
+        },
+        "v6_AVAXUSDT_baseline": {
+          "metrics": {
+            "ending_equity": "234.70237873195000000",
+            "net_pnl": "-15.29762126805000000",
+            "max_drawdown_pct": "66.31247102672081907957226179",
+            "completed_trades": 16,
+            "winning_trades": 6,
+            "losing_trades": 10,
+            "total_fees": "7.87794864990000000",
+            "exposure_pct": "49.41213854464569431204321576"
+          }
+        },
+        "v6_AVAXUSDT_stress": {
+          "metrics": {
+            "ending_equity": "210.0248287456000000",
+            "net_pnl": "-39.9751712544000000",
+            "max_drawdown_pct": "67.46950172671182841898577627",
+            "completed_trades": 16,
+            "winning_trades": 6,
+            "losing_trades": 10,
+            "total_fees": "7.6568150441000000",
+            "exposure_pct": "49.41213854464569431204321576"
+          }
+        },
+        "v6_DOTUSDT_baseline": {
+          "metrics": {
+            "ending_equity": "214.953260511950000000",
+            "net_pnl": "-35.046739488050000000",
+            "max_drawdown_pct": "51.35842011808603061002198351",
+            "completed_trades": 19,
+            "winning_trades": 5,
+            "losing_trades": 14,
+            "total_fees": "8.136861066145000000",
+            "exposure_pct": "42.90594216714331108992691452"
+          }
+        },
+        "v6_DOTUSDT_stress": {
+          "metrics": {
+            "ending_equity": "194.27796954152000000",
+            "net_pnl": "-55.72203045848000000",
+            "max_drawdown_pct": "52.50356858762446500773876533",
+            "completed_trades": 19,
+            "winning_trades": 5,
+            "losing_trades": 14,
+            "total_fees": "7.77076948921000000",
+            "exposure_pct": "42.90594216714331108992691452"
+          }
+        },
+        "v6_DOGEUSDT_baseline": {
+          "metrics": {
+            "ending_equity": "228.97341881743500000000",
+            "net_pnl": "-21.02658118256500000000",
+            "max_drawdown_pct": "65.86632286579534818710601180",
+            "completed_trades": 18,
+            "winning_trades": 8,
+            "losing_trades": 10,
+            "total_fees": "6.47540706775500000000",
+            "exposure_pct": "42.19097553225293930727677153"
+          }
+        },
+        "v6_DOGEUSDT_stress": {
+          "metrics": {
+            "ending_equity": "208.6564753219600000000",
+            "net_pnl": "-41.3435246780400000000",
+            "max_drawdown_pct": "67.37192649559101413790546176",
+            "completed_trades": 18,
+            "winning_trades": 7,
+            "losing_trades": 11,
+            "total_fees": "6.1748908319800000000",
+            "exposure_pct": "42.19097553225293930727677153"
+          }
+        }
+      },
+      "portfolios": {
+        "v2_baseline": {
+          "metrics": {
+            "starting_equity": "250.00",
+            "ending_equity": "232.9905151344574000000",
+            "net_pnl": "-17.0094848655426000000",
+            "return_pct": "-6.80379394621704000",
+            "annualized_return_pct": "-4.788357894186335",
+            "max_drawdown": "73.1179860633716000000",
+            "max_drawdown_pct": "24.48267512714478575088960250",
+            "completed_trades": 12,
+            "winning_trades": 4,
+            "losing_trades": 8,
+            "win_rate_pct": "33.33333333333333333333333333",
+            "profit_factor": "0.6370871615737571776880046996",
+            "average_win": "6.41388085092049924924924925",
+            "average_loss": "-5.033754592602905705705705705",
+            "exposure_pct": "12.14648871941531617413409596",
+            "total_fees": "1.8967525215936500000",
+            "modeled_spread_slippage": "0.9483721084500000",
+            "average_holding_hours": "227.25",
+            "max_holding_hours": "491.0",
+            "sharpe": "-0.10475788138176781",
+            "sortino": "-0.13417334434916428",
+            "calmar": "-0.1955814823878178885664865613",
+            "buy_and_hold_ending_equity": "82.81818061419070750385649693",
+            "buy_and_hold_return_pct": "-66.87272775432371699845740123",
+            "monthly_returns_pct": {
+              "2021-10": "-0.038525639818400",
+              "2021-11": "9.140823676259950938366603700",
+              "2021-12": "-13.61708655591601564553714470",
+              "2022-01": "-0.5290402119027630159530621100",
+              "2022-02": "0.163439195358535071511772800",
+              "2022-03": "0.164087435051717612207473000",
+              "2022-04": "-0.4321835913222177398261577300",
+              "2022-05": "-0.3776677937894589900750277400",
+              "2022-06": "-0.2620995429928829381417373500",
+              "2022-07": "0.157149433468845261077698700",
+              "2022-08": "-0.0653943325587387271033389400",
+              "2022-09": "-0.0232630195874930612448910100",
+              "2022-10": "0.085794516410199547566708300",
+              "2022-11": "-0.1097749457984363303692283700",
+              "2022-12": "-0.0804648676721951213004687800",
+              "2023-01": "0.181539233046024232058122900",
+              "2023-02": "-0.0331913132186127145576680000",
+              "2023-03": "0.048559130177405990737549000"
+            }
+          },
+          "halt": "2021-12-09 10:59:59.999000+00:00",
+          "max_concurrent_positions": 3,
+          "open_symbols_at_end": []
+        },
+        "v2_stress": {
+          "metrics": {
+            "starting_equity": "250.00",
+            "ending_equity": "233.206554371198400000",
+            "net_pnl": "-16.793445628801600000",
+            "return_pct": "-6.7173782515206400",
+            "annualized_return_pct": "-4.726888469867896",
+            "max_drawdown": "63.030574695775600000",
+            "max_drawdown_pct": "21.31602159628792534883306494",
+            "completed_trades": 11,
+            "winning_trades": 4,
+            "losing_trades": 7,
+            "win_rate_pct": "36.36363636363636363636363636",
+            "profit_factor": "0.6251051558678812518210566081",
+            "average_win": "6.000616099446433933933933938",
+            "average_loss": "-5.48535466906735998855998856",
+            "exposure_pct": "8.563711471242453129965046076",
+            "total_fees": "1.738522722874900000",
+            "modeled_spread_slippage": "5.215458371700000",
+            "average_holding_hours": "206.9090909090909090909090909",
+            "max_holding_hours": "491.0",
+            "sharpe": "-0.10864252461733476",
+            "sortino": "-0.1378605003082714",
+            "calmar": "-0.2217528467268516523345450478",
+            "buy_and_hold_ending_equity": "82.61175444117428001755575791",
+            "buy_and_hold_return_pct": "-66.95529822353028799297769684",
+            "monthly_returns_pct": {
+              "2021-10": "-0.736783024950400",
+              "2021-11": "8.409328504553868226132756000",
+              "2021-12": "-12.34405270849144046326196124",
+              "2022-01": "-0.5274086585653229677281085600",
+              "2022-02": "0.162335092002240160719218900",
+              "2022-03": "0.163767793725728915177242000",
+              "2022-04": "-0.4304899292325880299348370900",
+              "2022-05": "-0.3764317321183116446400535700",
+              "2022-06": "-0.2613779358626028857287098600",
+              "2022-07": "0.156754065656698686015997100",
+              "2022-08": "-0.0650416476868767022006322600",
+              "2022-09": "-0.0241513584187202227856588300",
+              "2022-10": "0.085846977064540891308124600",
+              "2022-11": "-0.1093687126418247253363557400",
+              "2022-12": "-0.0800036555991718614039158100",
+              "2023-01": "0.181007580593491291930514900",
+              "2023-02": "-0.0329924872256517094755023900",
+              "2023-03": "0.048205609221620133216206700"
+            }
+          },
+          "halt": "2021-12-04 03:59:59.999000+00:00",
+          "max_concurrent_positions": 3,
+          "open_symbols_at_end": []
+        },
+        "v6_baseline": {
+          "metrics": {
+            "starting_equity": "250.00",
+            "ending_equity": "222.4199383540224000000",
+            "net_pnl": "-27.5800616459776000000",
+            "return_pct": "-11.03202465839104000",
+            "annualized_return_pct": "-7.817555230789363",
+            "max_drawdown": "65.3080947730066000000",
+            "max_drawdown_pct": "22.73874681752328620203439300",
+            "completed_trades": 12,
+            "winning_trades": 3,
+            "losing_trades": 9,
+            "win_rate_pct": "25.00",
+            "profit_factor": "0.4615789457685407751493197030",
+            "average_win": "7.376545289701046046046046047",
+            "average_loss": "-5.327037665910655922589255921",
+            "exposure_pct": "6.347314903082300603749602796",
+            "total_fees": "1.8888905288586500000",
+            "modeled_spread_slippage": "0.9444385034500000",
+            "average_holding_hours": "145.6666666666666666666666667",
+            "max_holding_hours": "328.0",
+            "sharpe": "-0.5968554510542767",
+            "sortino": "-0.7107679586778644",
+            "calmar": "-0.3437988598722985552803022095",
+            "buy_and_hold_ending_equity": "82.81818061419070750385649693",
+            "buy_and_hold_return_pct": "-66.87272775432371699845740123",
+            "monthly_returns_pct": {
+              "2021-10": "1.158184988011600",
+              "2021-11": "-1.413753725240806220076772640",
+              "2021-12": "-10.07642836338718921891266795",
+              "2022-01": "-0.3960665008159800072637934100",
+              "2022-02": "0.111861886347936658167802300",
+              "2022-03": "0.119953222204094876492971800",
+              "2022-04": "-0.2894781507515767151428370900",
+              "2022-05": "-0.2715933976540250399664002600",
+              "2022-06": "-0.2370035621551445863801246300",
+              "2022-07": "0.137586818174227116481434400",
+              "2022-08": "-0.0497896611511114344165322800",
+              "2022-09": "-0.0160392186528838888129462200",
+              "2022-10": "0.081677312014385917696895500",
+              "2022-11": "-0.0901048268284802778063791500",
+              "2022-12": "-0.0756684199594734001844782800",
+              "2023-01": "0.154191555134521856890972100",
+              "2023-02": "-0.0237682954742504969417929000",
+              "2023-03": "0.050528074588844304136903500"
+            }
+          },
+          "halt": "2021-12-05 00:59:59.999000+00:00",
+          "max_concurrent_positions": 3,
+          "open_symbols_at_end": []
+        },
+        "v6_stress": {
+          "metrics": {
+            "starting_equity": "250.00",
+            "ending_equity": "225.395754821808400000",
+            "net_pnl": "-24.604245178191600000",
+            "return_pct": "-9.8416980712766400",
+            "annualized_return_pct": "-6.960441370283943",
+            "max_drawdown": "60.698725285365600000",
+            "max_drawdown_pct": "21.25476476312320242230273517",
+            "completed_trades": 11,
+            "winning_trades": 3,
+            "losing_trades": 8,
+            "win_rate_pct": "27.27272727272727272727272727",
+            "profit_factor": "0.4763715367136532975220347426",
+            "average_win": "6.922989003474030697364030697",
+            "average_loss": "-5.449781685557104404404404405",
+            "exposure_pct": "6.093104544010168414362885288",
+            "total_fees": "1.725097727204900000",
+            "modeled_spread_slippage": "5.175113921700000",
+            "average_holding_hours": "155.9090909090909090909090909",
+            "max_holding_hours": "328.0",
+            "sharpe": "-0.5175392665479085",
+            "sortino": "-0.6113350553387256",
+            "calmar": "-0.3274767539352040708664956254",
+            "buy_and_hold_ending_equity": "82.61175444117428001755575791",
+            "buy_and_hold_return_pct": "-66.95529822353028799297769684",
+            "monthly_returns_pct": {
+              "2021-10": "0.572373469269600",
+              "2021-11": "-2.225763954822032878017570090",
+              "2021-12": "-7.590740693907897982006647110",
+              "2022-01": "-0.3909976858629729008108008000",
+              "2022-02": "0.110278893608425190907801700",
+              "2022-03": "0.118449898427171050681214700",
+              "2022-04": "-0.2856653090722679491005257200",
+              "2022-05": "-0.2680728635479654725428802000",
+              "2022-06": "-0.2339494322507304703138322000",
+              "2022-07": "0.135826824431967046246768400",
+              "2022-08": "-0.0491054392045618435840383600",
+              "2022-09": "-0.0160292284619537076111886100",
+              "2022-10": "0.080702712219018310443354800",
+              "2022-11": "-0.0889239947583015088038870800",
+              "2022-12": "-0.0746633702452239996371690000",
+              "2023-01": "0.152202037503440514380774400",
+              "2023-02": "-0.0234459739377529273574994000",
+              "2023-03": "0.049820943879909567452826300"
+            }
+          },
+          "halt": "2021-12-03 19:59:59.999000+00:00",
+          "max_concurrent_positions": 3,
+          "open_symbols_at_end": []
+        }
+      }
+    }
+  },
+  "raw_report_sha256": "50546F0A3458A33DF2D2A23FE509D3313A86C1249813759001F10DF76682AE6A",
+  "verified_reproduction": {
+    "code_commit": "f633f389ae9e74480ab024d0934d90b5e53c1ea7",
+    "exact_against_review": "20 isolated ending values/trade counts and 2 portfolio ending values",
+    "byte_identical_artifacts": ["metrics.json", "trades.csv", "equity.csv"],
+    "batch": {
+      "run_id": "20bc2a48-cc79-4761-9e49-8ca5fffde150",
+      "metrics_sha256": "1A114493DF66BBFF8EC2B52940D8D546C0676B6948709B6050F1E7318C1C28A8",
+      "trades_sha256": "BC8C3C723E0D1710937761B52E3AA0A7D1B3B29BCE4330DDC7C2C3CEAE2DE408",
+      "equity_sha256": "8AAEDEDC32B4706291C42F352A263A99E2730AEF13877D337017175B9998F4EB",
+      "first_run_with_incomplete_commit_metadata": "e85192ad-1cce-467c-a1a0-19dc3afadd1e"
+    },
+    "portfolio": {
+      "run_id": "95c0ca16-7385-4b57-9dd1-2cc1dc3ed047",
+      "metrics_sha256": "48BE540813643FC7A40C354810112B27E13F00C8691E7C0BF7554472DBCE26FC",
+      "trades_sha256": "F59DB41F5C65B8F8494B9A8ED614710C1B35F1A870FF7E5CB683CDF00E3B6C02",
+      "equity_sha256": "9CBC29B92A16C4F491BB5DB8172A712466B114370E81D3C45C0FFF8187E0C50A",
+      "first_run_with_incomplete_commit_metadata": "56a34f10-58fa-4968-9b24-59e430196c6d"
+    }
+  }
+}

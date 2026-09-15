@@ -1,0 +1,55 @@
+# Secrets
+.env
+.env.*
+!.env.example
+*.key
+*.pem
+secrets/
+config/local.json
+
+# Python
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.venv/
+venv/
+*.egg-info/
+
+# JavaScript/UI
+node_modules/
+dist/
+build/
+
+# IDE/OS
+.idea/
+.vscode/
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Runtime data – never commit account state or large market datasets
+/data/
+/runtime/
+/logs/
+/backups/
+*.db
+*.db-*
+*.sqlite
+*.sqlite3
+
+# Temporary/download files
+*.tmp
+*.temp
+*.part
+*.log
+
+# Concrete local runs can exceed 50 MB; only curated reports are versioned
+backtests/**/runs/*/
+
+# Test/build coverage artifacts
+.coverage
+coverage.xml
+htmlcov/
+

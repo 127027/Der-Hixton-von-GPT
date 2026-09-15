@@ -1,0 +1,90 @@
+//@version=6
+indicator('Der Hixton Indikator', 'Hixton', overlay = true)
+
+// ============================================================
+// EINSTELLUNGEN  (musst du nicht anfassen)
+// ============================================================
+vidyaLen = input.int(10, 'Glättung', minval = 1, group = 'Motor')
+momLen   = input.int(20, 'Momentum', minval = 1, group = 'Motor')
+atrLen   = input.int(200, 'ATR', minval = 1, group = 'Motor')
+bandMult = input.float(2.0, 'Band-Abstand', minval = 0.1, step = 0.1, group = 'Motor')
+src      = input.source(close, 'Quelle', group = 'Motor')
+
+upColor    = input.color(#23c562, 'Grün (Kaufen)', group = 'Optik')
+dnColor    = input.color(#e23b4e, 'Rot (Verkaufen)', group = 'Optik')
+showFill   = input.bool(true, 'Farbverlauf', group = 'Optik')
+fadeAmt    = input.int(45, 'Verlauf-Stärke', minval = 0, maxval = 95, group = 'Optik')
+showBanner = input.bool(true, 'Großes Signal oben', group = 'Optik')
+topGap     = input.int(2, 'Abstand von oben', minval = 0, maxval = 8, group = 'Optik')
+
+// ============================================================
+// VIDYA  —  adaptive moving average
+// ============================================================
+vidya(source, len, mlen) =>
+    chg   = ta.change(source)
+    upSum = math.sum(chg > 0 ?  chg : 0.0, mlen)
+    dnSum = math.sum(chg < 0 ? -chg : 0.0, mlen)
+    cmo   = (upSum + dnSum) == 0 ? 0.0 : math.abs((upSum - dnSum) / (upSum + dnSum))
+    alpha = 2.0 / (len + 1)
+    k     = alpha * cmo
+    var float v = na
+    v := na(v[1]) ? source : k * source + (1.0 - k) * v[1]
+    v
+
+vid = ta.sma(vidya(src, vidyaLen, momLen), 15)
+
+// ============================================================
+// ATR BANDS + TREND
+// ============================================================
+atrVal = ta.atr(atrLen)
+upper  = vid + atrVal * bandMult
+lower  = vid - atrVal * bandMult
+
+var bool trendUp = false
+if ta.crossover(src, upper)
+    trendUp := true
+if ta.crossunder(src, lower)
+    trendUp := false
+
+float trendLine = trendUp ? lower : upper
+trendLine := ta.change(trendUp) ? na : trendLine
+
+trendCol = trendUp ? upColor : dnColor
+
+// ============================================================
+// LINIE + BREITER FARBVERLAUF
+// ============================================================
+pTrend = plot(trendLine, 'Trend', color = trendCol, linewidth = 3, style = plot.style_linebr)
+pPrice = plot(hl2, display = display.none)
+
+hi     = math.max(hl2, trendLine)
+lo     = math.min(hl2, trendLine)
+solidC = color.new(trendCol, fadeAmt)
+clearC = color.new(trendCol, 100)
+topCol = showFill ? (trendUp ? clearC : solidC) : na
+botCol = showFill ? (trendUp ? solidC : clearC) : na
+fill(pTrend, pPrice, hi, lo, topCol, botCol, title = 'Farbverlauf')
+
+// ============================================================
+// KAUFEN / VERKAUFEN an jedem Wechsel
+// ============================================================
+flipUp = trendUp and not trendUp[1]
+flipDn = not trendUp and trendUp[1]
+
+plotshape(flipUp ? lower : na, 'Kaufen', shape.labelup, location.absolute, upColor, text = 'KAUFEN', textcolor = color.white, size = size.normal)
+plotshape(flipDn ? upper : na, 'Verkaufen', shape.labeldown, location.absolute, dnColor, text = 'VERKAUFEN', textcolor = color.white, size = size.normal)
+
+// ============================================================
+// GROSSES DAUER-SIGNAL OBEN (die Oma-Ansicht)
+// Leerzeile(n) oben halten Abstand zur Preis-Anzeige.
+// ============================================================
+var table banner = table.new(position.top_center, 1, 2, border_width = 0)
+if showBanner and barstate.islast
+    table.cell(banner, 0, 0, str.repeat('\n', topGap), text_size = size.normal)
+    table.cell(banner, 0, 1, trendUp ? '▲  JETZT KAUFEN' : '▼  JETZT VERKAUFEN', bgcolor = trendCol, text_color = color.white, text_size = size.huge)
+
+// ============================================================
+// ALARME
+// ============================================================
+alertcondition(flipUp, 'Kaufen', 'Trend Ampel: KAUFEN-Signal auf {{ticker}}')
+alertcondition(flipDn, 'Verkaufen', 'Trend Ampel: VERKAUFEN-Signal auf {{ticker}}')

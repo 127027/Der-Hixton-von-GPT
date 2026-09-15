@@ -1,0 +1,171 @@
+{
+  "key": "v6",
+  "version": "HIXTON-V6-COIN-PAPER-1-9734f240e873",
+  "timeframe": "1h",
+  "source": "close",
+  "slot_allocation": "one_per_symbol",
+  "long_only": true,
+  "compounding": false,
+  "profiles": {
+    "BTCUSDT": {
+      "parameters": {
+        "vidya_length": 6,
+        "momentum_length": 20,
+        "smoothing_length": 8,
+        "atr_length": 120,
+        "band_multiplier": 4.4,
+        "warmup_bars": 400
+      },
+      "trade_policy": {
+        "cmo_floor": 0.2,
+        "slope_bars": 0,
+        "stop_atr": 0,
+        "trail_atr": 0
+      }
+    },
+    "ETHUSDT": {
+      "parameters": {
+        "vidya_length": 6,
+        "momentum_length": 20,
+        "smoothing_length": 8,
+        "atr_length": 60,
+        "band_multiplier": 3.8,
+        "warmup_bars": 400
+      },
+      "trade_policy": {
+        "cmo_floor": 0,
+        "slope_bars": 24,
+        "stop_atr": 0,
+        "trail_atr": 0
+      }
+    },
+    "BNBUSDT": {
+      "parameters": {
+        "vidya_length": 10,
+        "momentum_length": 20,
+        "smoothing_length": 8,
+        "atr_length": 60,
+        "band_multiplier": 4.4,
+        "warmup_bars": 400
+      },
+      "trade_policy": {
+        "cmo_floor": 0,
+        "slope_bars": 0,
+        "stop_atr": 0,
+        "trail_atr": 0
+      }
+    },
+    "SOLUSDT": {
+      "parameters": {
+        "vidya_length": 6,
+        "momentum_length": 20,
+        "smoothing_length": 15,
+        "atr_length": 60,
+        "band_multiplier": 3.8,
+        "warmup_bars": 400
+      },
+      "trade_policy": {
+        "cmo_floor": 0,
+        "slope_bars": 0,
+        "stop_atr": 0,
+        "trail_atr": 0
+      }
+    },
+    "XRPUSDT": {
+      "parameters": {
+        "vidya_length": 6,
+        "momentum_length": 20,
+        "smoothing_length": 8,
+        "atr_length": 120,
+        "band_multiplier": 3.2,
+        "warmup_bars": 400
+      },
+      "trade_policy": {
+        "cmo_floor": 0,
+        "slope_bars": 0,
+        "stop_atr": 4,
+        "trail_atr": 0
+      }
+    },
+    "ADAUSDT": {
+      "parameters": {
+        "vidya_length": 6,
+        "momentum_length": 20,
+        "smoothing_length": 8,
+        "atr_length": 60,
+        "band_multiplier": 3.8,
+        "warmup_bars": 400
+      },
+      "trade_policy": {
+        "cmo_floor": 0,
+        "slope_bars": 0,
+        "stop_atr": 0,
+        "trail_atr": 0
+      }
+    },
+    "LINKUSDT": {
+      "parameters": {
+        "vidya_length": 6,
+        "momentum_length": 20,
+        "smoothing_length": 8,
+        "atr_length": 60,
+        "band_multiplier": 3.8,
+        "warmup_bars": 400
+      },
+      "trade_policy": {
+        "cmo_floor": 0,
+        "slope_bars": 0,
+        "stop_atr": 0,
+        "trail_atr": 0
+      }
+    },
+    "AVAXUSDT": {
+      "parameters": {
+        "vidya_length": 6,
+        "momentum_length": 20,
+        "smoothing_length": 8,
+        "atr_length": 60,
+        "band_multiplier": 4.4,
+        "warmup_bars": 400
+      },
+      "trade_policy": {
+        "cmo_floor": 0,
+        "slope_bars": 0,
+        "stop_atr": 0,
+        "trail_atr": 0
+      }
+    },
+    "DOTUSDT": {
+      "parameters": {
+        "vidya_length": 6,
+        "momentum_length": 20,
+        "smoothing_length": 8,
+        "atr_length": 60,
+        "band_multiplier": 3.8,
+        "warmup_bars": 400
+      },
+      "trade_policy": {
+        "cmo_floor": 0,
+        "slope_bars": 0,
+        "stop_atr": 0,
+        "trail_atr": 0
+      }
+    },
+    "DOGEUSDT": {
+      "parameters": {
+        "vidya_length": 6,
+        "momentum_length": 20,
+        "smoothing_length": 15,
+        "atr_length": 120,
+        "band_multiplier": 4.4,
+        "warmup_bars": 400
+      },
+      "trade_policy": {
+        "cmo_floor": 0.2,
+        "slope_bars": 0,
+        "stop_atr": 0,
+        "trail_atr": 0
+      }
+    }
+  }
+}

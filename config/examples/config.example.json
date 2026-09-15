@@ -1,0 +1,211 @@
+{
+  "schema_version": 1,
+  "strategy": {
+    "key": "v6",
+    "quote_asset": "USDC",
+    "version": "HIXTON-V6-COIN-PAPER-1-d57f88ec2e5f",
+    "timeframe": "1h",
+    "source": "close",
+    "slot_allocation": "one_per_symbol",
+    "long_only": true,
+    "compounding": false,
+    "profiles": {
+      "BTCUSDC": {
+        "parameters": {
+          "vidya_length": 6,
+          "momentum_length": 20,
+          "smoothing_length": 8,
+          "atr_length": 120,
+          "band_multiplier": 4.4,
+          "warmup_bars": 400
+        },
+        "trade_policy": {
+          "cmo_floor": 0.2,
+          "slope_bars": 0,
+          "stop_atr": 0,
+          "trail_atr": 0
+        }
+      },
+      "ETHUSDC": {
+        "parameters": {
+          "vidya_length": 6,
+          "momentum_length": 20,
+          "smoothing_length": 8,
+          "atr_length": 60,
+          "band_multiplier": 3.8,
+          "warmup_bars": 400
+        },
+        "trade_policy": {
+          "cmo_floor": 0,
+          "slope_bars": 24,
+          "stop_atr": 0,
+          "trail_atr": 0
+        }
+      },
+      "BNBUSDC": {
+        "parameters": {
+          "vidya_length": 10,
+          "momentum_length": 20,
+          "smoothing_length": 8,
+          "atr_length": 60,
+          "band_multiplier": 4.4,
+          "warmup_bars": 400
+        },
+        "trade_policy": {
+          "cmo_floor": 0,
+          "slope_bars": 0,
+          "stop_atr": 0,
+          "trail_atr": 0
+        }
+      },
+      "SOLUSDC": {
+        "parameters": {
+          "vidya_length": 6,
+          "momentum_length": 20,
+          "smoothing_length": 15,
+          "atr_length": 60,
+          "band_multiplier": 3.8,
+          "warmup_bars": 400
+        },
+        "trade_policy": {
+          "cmo_floor": 0,
+          "slope_bars": 0,
+          "stop_atr": 0,
+          "trail_atr": 0
+        }
+      },
+      "XRPUSDC": {
+        "parameters": {
+          "vidya_length": 6,
+          "momentum_length": 20,
+          "smoothing_length": 8,
+          "atr_length": 120,
+          "band_multiplier": 3.2,
+          "warmup_bars": 400
+        },
+        "trade_policy": {
+          "cmo_floor": 0,
+          "slope_bars": 0,
+          "stop_atr": 4,
+          "trail_atr": 0
+        }
+      },
+      "ADAUSDC": {
+        "parameters": {
+          "vidya_length": 6,
+          "momentum_length": 20,
+          "smoothing_length": 8,
+          "atr_length": 60,
+          "band_multiplier": 3.8,
+          "warmup_bars": 400
+        },
+        "trade_policy": {
+          "cmo_floor": 0,
+          "slope_bars": 0,
+          "stop_atr": 0,
+          "trail_atr": 0
+        }
+      },
+      "LINKUSDC": {
+        "parameters": {
+          "vidya_length": 6,
+          "momentum_length": 20,
+          "smoothing_length": 8,
+          "atr_length": 60,
+          "band_multiplier": 3.8,
+          "warmup_bars": 400
+        },
+        "trade_policy": {
+          "cmo_floor": 0,
+          "slope_bars": 0,
+          "stop_atr": 0,
+          "trail_atr": 0
+        }
+      },
+      "AVAXUSDC": {
+        "parameters": {
+          "vidya_length": 6,
+          "momentum_length": 20,
+          "smoothing_length": 8,
+          "atr_length": 60,
+          "band_multiplier": 4.4,
+          "warmup_bars": 400
+        },
+        "trade_policy": {
+          "cmo_floor": 0,
+          "slope_bars": 0,
+          "stop_atr": 0,
+          "trail_atr": 0
+        }
+      },
+      "DOTUSDC": {
+        "parameters": {
+          "vidya_length": 6,
+          "momentum_length": 20,
+          "smoothing_length": 8,
+          "atr_length": 60,
+          "band_multiplier": 3.8,
+          "warmup_bars": 400
+        },
+        "trade_policy": {
+          "cmo_floor": 0,
+          "slope_bars": 0,
+          "stop_atr": 0,
+          "trail_atr": 0
+        }
+      },
+      "DOGEUSDC": {
+        "parameters": {
+          "vidya_length": 6,
+          "momentum_length": 20,
+          "smoothing_length": 15,
+          "atr_length": 120,
+          "band_multiplier": 4.4,
+          "warmup_bars": 400
+        },
+        "trade_policy": {
+          "cmo_floor": 0.2,
+          "slope_bars": 0,
+          "stop_atr": 0,
+          "trail_atr": 0
+        }
+      }
+    }
+  },
+  "markets": [
+    "BTCUSDC",
+    "ETHUSDC",
+    "BNBUSDC",
+    "SOLUSDC",
+    "XRPUSDC",
+    "ADAUSDC",
+    "LINKUSDC",
+    "AVAXUSDC",
+    "DOTUSDC",
+    "DOGEUSDC"
+  ],
+  "backtest": {
+    "starting_usdc_per_symbol": "250.00",
+    "target_notional_usdc": "250.00",
+    "primary_window_years": 3,
+    "run_baseline_and_stress": true
+  },
+  "paper": {
+    "starting_cash_usdc": "250.00",
+    "slot_count": 3,
+    "target_notional_usdc": "80.00",
+    "poll_seconds": 30,
+    "daily_audit_utc": "00:05"
+  },
+  "ui": {
+    "bind": "127.0.0.1",
+    "port": 8765,
+    "timezone": "Europe/Berlin",
+    "default_range": "1m"
+  },
+  "runtime": {
+    "database_path": "data/hixton-usdc.sqlite3",
+    "run_output_root": "backtests/v6/runs",
+    "binance_base_url": "https://api.binance.com"
+  }
+}

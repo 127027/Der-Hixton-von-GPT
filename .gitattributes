@@ -1,0 +1,2 @@
+# Keep the hashed owner Pine reference byte-stable on Windows and CI.
+strategy/pine/*.pine text eol=lf

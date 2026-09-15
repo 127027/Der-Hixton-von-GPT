@@ -1,0 +1,1395 @@
+{
+  "schema_version": 1,
+  "run_id": "385bc1f7-4dca-4dcd-a138-3c33bd9c7da8",
+  "study": "USDC_FROZEN_PROFILE_TRANSFER",
+  "quote_asset": "USDC",
+  "created_at_utc": "2026-09-08T11:30:35.848109+00:00",
+  "strategy": {
+    "key": "v7",
+    "version": "HIXTON-V7-USDC-VALIDATION-1-9734f240e873",
+    "timeframe": "1h",
+    "source": "close",
+    "slot_allocation": "one_per_symbol",
+    "long_only": true,
+    "compounding": false,
+    "profiles": {
+      "BTCUSDC": {
+        "parameters": {
+          "vidya_length": 6,
+          "momentum_length": 20,
+          "smoothing_length": 8,
+          "atr_length": 120,
+          "band_multiplier": 4.4,
+          "warmup_bars": 400
+        },
+        "trade_policy": {
+          "cmo_floor": 0.2,
+          "slope_bars": 0,
+          "stop_atr": 0,
+          "trail_atr": 0
+        }
+      },
+      "ETHUSDC": {
+        "parameters": {
+          "vidya_length": 6,
+          "momentum_length": 20,
+          "smoothing_length": 8,
+          "atr_length": 60,
+          "band_multiplier": 3.8,
+          "warmup_bars": 400
+        },
+        "trade_policy": {
+          "cmo_floor": 0,
+          "slope_bars": 24,
+          "stop_atr": 0,
+          "trail_atr": 0
+        }
+      },
+      "BNBUSDC": {
+        "parameters": {
+          "vidya_length": 10,
+          "momentum_length": 20,
+          "smoothing_length": 8,
+          "atr_length": 60,
+          "band_multiplier": 4.4,
+          "warmup_bars": 400
+        },
+        "trade_policy": {
+          "cmo_floor": 0,
+          "slope_bars": 0,
+          "stop_atr": 0,
+          "trail_atr": 0
+        }
+      },
+      "SOLUSDC": {
+        "parameters": {
+          "vidya_length": 6,
+          "momentum_length": 20,
+          "smoothing_length": 15,
+          "atr_length": 60,
+          "band_multiplier": 3.8,
+          "warmup_bars": 400
+        },
+        "trade_policy": {
+          "cmo_floor": 0,
+          "slope_bars": 0,
+          "stop_atr": 0,
+          "trail_atr": 0
+        }
+      },
+      "XRPUSDC": {
+        "parameters": {
+          "vidya_length": 6,
+          "momentum_length": 20,
+          "smoothing_length": 8,
+          "atr_length": 120,
+          "band_multiplier": 3.2,
+          "warmup_bars": 400
+        },
+        "trade_policy": {
+          "cmo_floor": 0,
+          "slope_bars": 0,
+          "stop_atr": 4,
+          "trail_atr": 0
+        }
+      },
+      "ADAUSDC": {
+        "parameters": {
+          "vidya_length": 6,
+          "momentum_length": 20,
+          "smoothing_length": 8,
+          "atr_length": 60,
+          "band_multiplier": 3.8,
+          "warmup_bars": 400
+        },
+        "trade_policy": {
+          "cmo_floor": 0,
+          "slope_bars": 0,
+          "stop_atr": 0,
+          "trail_atr": 0
+        }
+      },
+      "LINKUSDC": {
+        "parameters": {
+          "vidya_length": 6,
+          "momentum_length": 20,
+          "smoothing_length": 8,
+          "atr_length": 60,
+          "band_multiplier": 3.8,
+          "warmup_bars": 400
+        },
+        "trade_policy": {
+          "cmo_floor": 0,
+          "slope_bars": 0,
+          "stop_atr": 0,
+          "trail_atr": 0
+        }
+      },
+      "AVAXUSDC": {
+        "parameters": {
+          "vidya_length": 6,
+          "momentum_length": 20,
+          "smoothing_length": 8,
+          "atr_length": 60,
+          "band_multiplier": 4.4,
+          "warmup_bars": 400
+        },
+        "trade_policy": {
+          "cmo_floor": 0,
+          "slope_bars": 0,
+          "stop_atr": 0,
+          "trail_atr": 0
+        }
+      },
+      "DOTUSDC": {
+        "parameters": {
+          "vidya_length": 6,
+          "momentum_length": 20,
+          "smoothing_length": 8,
+          "atr_length": 60,
+          "band_multiplier": 3.8,
+          "warmup_bars": 400
+        },
+        "trade_policy": {
+          "cmo_floor": 0,
+          "slope_bars": 0,
+          "stop_atr": 0,
+          "trail_atr": 0
+        }
+      },
+      "DOGEUSDC": {
+        "parameters": {
+          "vidya_length": 6,
+          "momentum_length": 20,
+          "smoothing_length": 15,
+          "atr_length": 120,
+          "band_multiplier": 4.4,
+          "warmup_bars": 400
+        },
+        "trade_policy": {
+          "cmo_floor": 0.2,
+          "slope_bars": 0,
+          "stop_atr": 0,
+          "trail_atr": 0
+        }
+      }
+    },
+    "quote_asset": "USDC"
+  },
+  "code_commit": "81a8fb84cada14ea4172c908972df8997ea97711",
+  "requested_start_utc": "2023-09-08T06:00:00+00:00",
+  "report_end_utc": "2026-09-08T06:00:00+00:00",
+  "actual_common_start_utc": "2024-03-24T00:00:00+00:00",
+  "full_three_years_available": false,
+  "coverage": {
+    "BTCUSDC": {
+      "downloaded_first_open_utc": "2023-08-22T14:00:00+00:00",
+      "continuous_suffix_start_utc": "2023-08-22T14:00:00+00:00",
+      "usable_report_start_utc": "2023-09-08T06:00:00+00:00",
+      "candle_count": 26704,
+      "gaps": []
+    },
+    "ETHUSDC": {
+      "downloaded_first_open_utc": "2023-08-22T14:00:00+00:00",
+      "continuous_suffix_start_utc": "2023-08-22T14:00:00+00:00",
+      "usable_report_start_utc": "2023-09-08T06:00:00+00:00",
+      "candle_count": 26704,
+      "gaps": []
+    },
+    "BNBUSDC": {
+      "downloaded_first_open_utc": "2023-08-22T14:00:00+00:00",
+      "continuous_suffix_start_utc": "2023-08-22T14:00:00+00:00",
+      "usable_report_start_utc": "2023-09-08T06:00:00+00:00",
+      "candle_count": 26704,
+      "gaps": []
+    },
+    "SOLUSDC": {
+      "downloaded_first_open_utc": "2023-12-28T08:00:00+00:00",
+      "continuous_suffix_start_utc": "2023-12-28T08:00:00+00:00",
+      "usable_report_start_utc": "2024-01-14T00:00:00+00:00",
+      "candle_count": 23638,
+      "gaps": []
+    },
+    "XRPUSDC": {
+      "downloaded_first_open_utc": "2023-12-28T08:00:00+00:00",
+      "continuous_suffix_start_utc": "2023-12-28T08:00:00+00:00",
+      "usable_report_start_utc": "2024-01-14T00:00:00+00:00",
+      "candle_count": 23638,
+      "gaps": []
+    },
+    "ADAUSDC": {
+      "downloaded_first_open_utc": "2023-12-28T08:00:00+00:00",
+      "continuous_suffix_start_utc": "2023-12-28T08:00:00+00:00",
+      "usable_report_start_utc": "2024-01-14T00:00:00+00:00",
+      "candle_count": 23638,
+      "gaps": []
+    },
+    "LINKUSDC": {
+      "downloaded_first_open_utc": "2024-01-24T08:00:00+00:00",
+      "continuous_suffix_start_utc": "2024-01-24T08:00:00+00:00",
+      "usable_report_start_utc": "2024-02-10T00:00:00+00:00",
+      "candle_count": 22990,
+      "gaps": []
+    },
+    "AVAXUSDC": {
+      "downloaded_first_open_utc": "2023-12-28T08:00:00+00:00",
+      "continuous_suffix_start_utc": "2023-12-28T08:00:00+00:00",
+      "usable_report_start_utc": "2024-01-14T00:00:00+00:00",
+      "candle_count": 23638,
+      "gaps": []
+    },
+    "DOTUSDC": {
+      "downloaded_first_open_utc": "2023-12-28T08:00:00+00:00",
+      "continuous_suffix_start_utc": "2023-12-28T08:00:00+00:00",
+      "usable_report_start_utc": "2024-01-14T00:00:00+00:00",
+      "candle_count": 23638,
+      "gaps": []
+    },
+    "DOGEUSDC": {
+      "downloaded_first_open_utc": "2024-03-07T08:00:00+00:00",
+      "continuous_suffix_start_utc": "2024-03-07T08:00:00+00:00",
+      "usable_report_start_utc": "2024-03-24T00:00:00+00:00",
+      "candle_count": 21958,
+      "gaps": []
+    }
+  },
+  "account_tradability_verified": false,
+  "live_ready": false,
+  "source_file_sha256": {
+    "hixton/__init__.py": "0d050e0489cdca3bc1c45e7f73cbde824a43e3c3fdef33037742af5e8bbda9dd",
+    "hixton/backtest/__init__.py": "0024e77a3ed90a8ccfea66357bed894fa8ccccea4f3f2a09420857926c111f23",
+    "hixton/backtest/coin_review.py": "228eff0b61bb2358504b56d54a3d6ea7a1ff8aa0e729807f06012a431ac0fc26",
+    "hixton/backtest/engine.py": "7341bb6985dfa6099bc776d832dc9b0711f401270e16f1b06408e43c56dae561",
+    "hixton/backtest/metrics.py": "7725a836694ed4e5d7f77dfab4bae9e899bc3c294675e945cf2e686f1d3c0834",
+    "hixton/backtest/models.py": "9e6237843b1c8c130891e11f5e9043cc881af4dedaff6051d8607bb781a84519",
+    "hixton/backtest/portfolio.py": "60f1ce27d3d611ad65e33f8428d57fadd638face5de4af9554a9eb23f095bb19",
+    "hixton/backtest/reporting.py": "766e0f6a3c9730661da02491aef3d9ae673c8c0708a30cac393a345d31589460",
+    "hixton/backtest/research.py": "f23e2040ee056407ff673a59699df01b68f136a38e95ee368f5e2280891f40c0",
+    "hixton/backtest/usdc_review.py": "a4e1da96d63dfe6c7e004f554fe123b3ec7203521e640706263085e10b1244b5",
+    "hixton/cli.py": "d680df1bde2fd7bbcb31b6043421e5703bc505b99720ef79e72811675a68b855",
+    "hixton/config.py": "f86cdedbb6171b9a1a7ea8f2bc8edfb6b52093815640f4cf719efbdee2a921a0",
+    "hixton/constants.py": "3c58caac1e2ad8dfc93075f177588843f9cc35c7dee53f7e88a5f26c899b41a7",
+    "hixton/data/__init__.py": "ad969809d90faa97a3a7d934acb6b9ba85a8c7865e6a95b0ec7b5e30506217e1",
+    "hixton/data/binance.py": "9b5617645cdd5944f350e32905d770b3c495c501771c3bd3c1da8384a2a33109",
+    "hixton/data/quality.py": "58f0b73bbeffa20360f7d6b916fb4e866dace6b2e083a8aadeee053ceb0397b0",
+    "hixton/data/storage.py": "39e312e99a88789072c04b1b94b495b9421ce4605c6fc91b023b6450488f7b59",
+    "hixton/data/sync.py": "58e2b25b9d18419f2f409611770a339f3d2cbe4230f4addc48ca8ec102f451a4",
+    "hixton/domain/__init__.py": "80fc620c1fcce7f34a3df2c90d0e09868920e76f7b0648cf98484d6328c4d063",
+    "hixton/domain/allocation.py": "2dd98de2da8de1fb19d33e1506c0e8519fe89a05e3e8553727ae0b5ae24bda52",
+    "hixton/domain/markets.py": "d5b9a7c5831cdd1b791da30c72b2d09f516e99d922d1ac346fb72123cd6abb31",
+    "hixton/domain/models.py": "f9a1bc76fabf55d16ff52d7ba4d369400aa1fe252915099afb78f58b43e71172",
+    "hixton/domain/risk.py": "da3ce85e7e1b7e89f91b2611be59b68dfb3be90c99e0a655a8dfda8673603710",
+    "hixton/domain/strategy.py": "077de6371a5203ada4dab37c23080b13f6c1190d6cfec6bbe40165a3387aabc5",
+    "hixton/domain/trade_policy.py": "8e3f6b2e551372a213b26309cdcf0568dc4d8530296d80a9ec7babbf8acd0965",
+    "hixton/domain/versions.py": "8583f020eef5e030c75a7e245079079b33f8c5541002fd6d18dc888428f3da74",
+    "hixton/live/__init__.py": "81b752ab308f1601e73693f2343171485947a9e66d7f3c459b1ae2546bfd4988",
+    "hixton/live/binance.py": "d39bba475c51eece39b664d8907522e5f9380316d8e7da2e8b0aae445d09a78c",
+    "hixton/live/credentials.py": "2ff10317aa0f3e253f71f81db2d3db9947be37119b1d322c65ec6d8c0b9c8eec",
+    "hixton/live/orders.py": "d5b0447b13ce382be3e6f0a49652c350a26af11aa70c32200ba1756f88462042",
+    "hixton/live/preparation.py": "65cd50da01b0d32081be73020a08a6535f704f87425d9211a2e77adc9feece6d",
+    "hixton/live/trial.py": "3e0f166df74449a0eaa70772b5fd3615155681802acb37b0c90c16b146faa9f2",
+    "hixton/paper/__init__.py": "0562fe91af83628aa47798cde552b97dd8dede0572a98e1c5ddeba7aa92c8a5c",
+    "hixton/paper/engine.py": "4c7e28e257178395cca5f72d89382b4aa8d9ce7dd2ecd5ee362390f4c85ff57b",
+    "hixton/paper/maintenance.py": "2c15af78733472f998200cf7ca2232bbbb1d64a65e56fb964039795336963eda",
+    "hixton/paper/models.py": "b2c2f8c47f42fdf26f3328add2a08507710e3ddb110f1051bdb973ba98cb7752",
+    "hixton/paper/storage.py": "efd391eef686fbf1c56862d0b544bf3690056839f7d329a9a7f13a63fbc7661f",
+    "hixton/runtime/__init__.py": "1641249e27cc1869c647a91832ea05092d88a5348333f218c5582aed9ffb5c7b",
+    "hixton/runtime/analysis.py": "68346b85f8b59f63981fb05d07c6a5153877d8eb09365eef0dcb5550fb079144",
+    "hixton/runtime/state.py": "1cf475553fb625cdd98ebf99f74d154e3408a29d1b6f474f2e10eb39faaf8bd6",
+    "hixton/runtime/supervisor.py": "eeed22dfdb94557cc29f12c77531ae443f04510f2fd97f25cf75f621243c7722",
+    "hixton/ui/__init__.py": "d40442dba8ffd20b9841d905f7a132fa9ce036ceadf9797c358d78ada07c498b",
+    "hixton/ui/api.py": "ea56e1932de433345ed2d4501aa46f2b8c73da56bd199fb8cceebb7431b2ba76",
+    "hixton/ui/chart.py": "3f1597866d423d6ce59431237c2134fa75e827dd0219d2812f3991280db86075",
+    "hixton/ui/live.py": "6d18b32ac36f97ec0d3e2b0864da89fc5e1254641dd209f18ae1bc4563c7bbcc",
+    "hixton/ui/server.py": "fcef48270e5131aafb0fbfd7501a981b4e44257c70355840f313cc720805eed0"
+  },
+  "limitations": [
+    "Frozen settings transferred from USDT research; not untouched out-of-sample.",
+    "Current exchange filters, not point-in-time historical filters.",
+    "Baseline/stress are model assumptions, not verified account commissions.",
+    "No USDT candles substituted, no gap filling, no account/strategy activation.",
+    "Normal live adapter/reconciliation and USDC runtime migration not completed."
+  ],
+  "windows": {
+    "available_common_history": {
+      "quote_asset": "USDC",
+      "start_utc": "2024-03-24T00:00:00+00:00",
+      "end_utc": "2026-09-08T06:00:00+00:00",
+      "per_coin": {
+        "baseline": {
+          "BTCUSDC": {
+            "ending_equity": "352.92457248743780000",
+            "net_pnl": "102.92457248743780000",
+            "completed_trades": 35,
+            "max_drawdown_pct": "28.29068849329245886780088818"
+          },
+          "ETHUSDC": {
+            "ending_equity": "573.66267043239550000",
+            "net_pnl": "323.66267043239550000",
+            "completed_trades": 30,
+            "max_drawdown_pct": "32.50899012024652553661073355"
+          },
+          "BNBUSDC": {
+            "ending_equity": "274.73990554595000000",
+            "net_pnl": "24.73990554595000000",
+            "completed_trades": 36,
+            "max_drawdown_pct": "44.61883874043520692338774829"
+          },
+          "SOLUSDC": {
+            "ending_equity": "594.13707222876500000",
+            "net_pnl": "344.13707222876500000",
+            "completed_trades": 48,
+            "max_drawdown_pct": "21.71370022321324013605829266"
+          },
+          "XRPUSDC": {
+            "ending_equity": "564.6301906446100000000",
+            "net_pnl": "314.6301906446100000000",
+            "completed_trades": 72,
+            "max_drawdown_pct": "36.81342054756464652608117220"
+          },
+          "ADAUSDC": {
+            "ending_equity": "351.0605926035550000000",
+            "net_pnl": "101.0605926035550000000",
+            "completed_trades": 49,
+            "max_drawdown_pct": "50.77220996879755211777783295"
+          },
+          "LINKUSDC": {
+            "ending_equity": "410.422867924600000000",
+            "net_pnl": "160.422867924600000000",
+            "completed_trades": 46,
+            "max_drawdown_pct": "46.15985932328193844630505880"
+          },
+          "AVAXUSDC": {
+            "ending_equity": "196.963789364545000000",
+            "net_pnl": "-53.036210635455000000",
+            "completed_trades": 36,
+            "max_drawdown_pct": "54.10246760005703114182310388"
+          },
+          "DOTUSDC": {
+            "ending_equity": "175.470676681585000000",
+            "net_pnl": "-74.529323318415000000",
+            "completed_trades": 50,
+            "max_drawdown_pct": "74.17201696251278994484003917"
+          },
+          "DOGEUSDC": {
+            "ending_equity": "647.84124285479500000000",
+            "net_pnl": "397.84124285479500000000",
+            "completed_trades": 37,
+            "max_drawdown_pct": "34.03868763434499633807880858"
+          }
+        },
+        "stress": {
+          "BTCUSDC": {
+            "ending_equity": "303.9792609131247000",
+            "net_pnl": "53.9792609131247000",
+            "completed_trades": 35,
+            "max_drawdown_pct": "34.98733371076211932643095783"
+          },
+          "ETHUSDC": {
+            "ending_equity": "527.6926255040530000",
+            "net_pnl": "277.6926255040530000",
+            "completed_trades": 30,
+            "max_drawdown_pct": "35.24691512452274157881112363"
+          },
+          "BNBUSDC": {
+            "ending_equity": "228.0890368991100000",
+            "net_pnl": "-21.9109631008900000",
+            "completed_trades": 36,
+            "max_drawdown_pct": "50.22863073074273333167808935"
+          },
+          "SOLUSDC": {
+            "ending_equity": "530.7590095224600000",
+            "net_pnl": "280.7590095224600000",
+            "completed_trades": 48,
+            "max_drawdown_pct": "27.62141453365745897669408285"
+          },
+          "XRPUSDC": {
+            "ending_equity": "385.902645347650000000",
+            "net_pnl": "135.902645347650000000",
+            "completed_trades": 72,
+            "max_drawdown_pct": "46.70355449283200793771106118"
+          },
+          "ADAUSDC": {
+            "ending_equity": "269.215650914130000000",
+            "net_pnl": "19.215650914130000000",
+            "completed_trades": 49,
+            "max_drawdown_pct": "60.14215086943688313707204006"
+          },
+          "LINKUSDC": {
+            "ending_equity": "312.63182831682000000",
+            "net_pnl": "62.63182831682000000",
+            "completed_trades": 46,
+            "max_drawdown_pct": "55.93830685080650085436931977"
+          },
+          "AVAXUSDC": {
+            "ending_equity": "160.21806003608000000",
+            "net_pnl": "-89.78193996392000000",
+            "completed_trades": 36,
+            "max_drawdown_pct": "58.68846026552999649124419269"
+          },
+          "DOTUSDC": {
+            "ending_equity": "129.00433175822000000",
+            "net_pnl": "-120.99566824178000000",
+            "completed_trades": 50,
+            "max_drawdown_pct": "79.48527377457247101386945247"
+          },
+          "DOGEUSDC": {
+            "ending_equity": "598.6935133503400000000",
+            "net_pnl": "348.6935133503400000000",
+            "completed_trades": 37,
+            "max_drawdown_pct": "35.66259124368417514192522748"
+          }
+        }
+      },
+      "portfolio_3x80": {
+        "baseline": {
+          "metrics": {
+            "starting_equity": "250",
+            "ending_equity": "203.82756937994500000000",
+            "net_pnl": "-46.17243062005500000000",
+            "return_pct": "-18.46897224802200000000",
+            "completed_trades": 14,
+            "winning_trades": 2,
+            "losing_trades": 12,
+            "max_drawdown_pct": "20.83156212913571287458219429",
+            "total_fees": "2.03036646665260000000",
+            "modeled_spread_slippage": "1.01517134260000000",
+            "profit_factor": "0.04366823218628920224377749138",
+            "buy_and_hold_ending_equity": "200.9705085752723858503848999"
+          },
+          "risk_halted_at_utc": "2024-05-01T19:59:59.999000+00:00",
+          "max_concurrent_positions": 3,
+          "open_symbols_at_end": [],
+          "ending_cash": "200.43102926234500000000",
+          "ending_position_value": "3.3965401176000000",
+          "completed_trade_realized_pnl": "-46.35805837128623123123123124"
+        },
+        "stress": {
+          "metrics": {
+            "starting_equity": "250",
+            "ending_equity": "203.4360801001084000000",
+            "net_pnl": "-46.5639198998916000000",
+            "return_pct": "-18.6255679599566400000",
+            "completed_trades": 11,
+            "winning_trades": 0,
+            "losing_trades": 11,
+            "max_drawdown_pct": "20.37369718629442142448194381",
+            "total_fees": "1.6149974497536000000",
+            "modeled_spread_slippage": "4.8445945704000000",
+            "profit_factor": "0E+26",
+            "buy_and_hold_ending_equity": "200.4695850743370110102792546"
+          },
+          "risk_halted_at_utc": "2024-04-30T12:59:59.999000+00:00",
+          "max_concurrent_positions": 3,
+          "open_symbols_at_end": [],
+          "ending_cash": "200.1747766276084000000",
+          "ending_position_value": "3.2613034725000000",
+          "completed_trade_realized_pnl": "-46.77256933251372212212212215"
+        }
+      }
+    },
+    "last_365_days": {
+      "quote_asset": "USDC",
+      "start_utc": "2025-09-08T06:00:00+00:00",
+      "end_utc": "2026-09-08T06:00:00+00:00",
+      "per_coin": {
+        "baseline": {
+          "BTCUSDC": {
+            "ending_equity": "244.70706797928730000",
+            "net_pnl": "-5.29293202071270000",
+            "completed_trades": 15,
+            "max_drawdown_pct": "31.16748503604963865009077495"
+          },
+          "ETHUSDC": {
+            "ending_equity": "287.95906487297650000",
+            "net_pnl": "37.95906487297650000",
+            "completed_trades": 12,
+            "max_drawdown_pct": "25.63492138841913459722617075"
+          },
+          "BNBUSDC": {
+            "ending_equity": "252.57868312524500000",
+            "net_pnl": "2.57868312524500000",
+            "completed_trades": 16,
+            "max_drawdown_pct": "44.95753061465253917856678254"
+          },
+          "SOLUSDC": {
+            "ending_equity": "225.33580797233500000",
+            "net_pnl": "-24.66419202766500000",
+            "completed_trades": 20,
+            "max_drawdown_pct": "40.95448456027216477275166581"
+          },
+          "XRPUSDC": {
+            "ending_equity": "288.9347713120950000000",
+            "net_pnl": "38.9347713120950000000",
+            "completed_trades": 28,
+            "max_drawdown_pct": "20.74124041508048334675683696"
+          },
+          "ADAUSDC": {
+            "ending_equity": "121.7102365152750000000",
+            "net_pnl": "-128.2897634847250000000",
+            "completed_trades": 22,
+            "max_drawdown_pct": "63.11231776383923532994440310"
+          },
+          "LINKUSDC": {
+            "ending_equity": "210.905203459120000000",
+            "net_pnl": "-39.094796540880000000",
+            "completed_trades": 17,
+            "max_drawdown_pct": "49.15630245282557915168955716"
+          },
+          "AVAXUSDC": {
+            "ending_equity": "196.131537120955000000",
+            "net_pnl": "-53.868462879045000000",
+            "completed_trades": 17,
+            "max_drawdown_pct": "53.92487882274202795023695033"
+          },
+          "DOTUSDC": {
+            "ending_equity": "122.540329941425000000",
+            "net_pnl": "-127.459670058575000000",
+            "completed_trades": 21,
+            "max_drawdown_pct": "64.59190811155462876690748486"
+          },
+          "DOGEUSDC": {
+            "ending_equity": "205.35054546392500000000",
+            "net_pnl": "-44.64945453607500000000",
+            "completed_trades": 13,
+            "max_drawdown_pct": "39.89026959110923184604049166"
+          }
+        },
+        "stress": {
+          "BTCUSDC": {
+            "ending_equity": "226.5951601302670000",
+            "net_pnl": "-23.4048398697330000",
+            "completed_trades": 15,
+            "max_drawdown_pct": "34.20984470501995537628816264"
+          },
+          "ETHUSDC": {
+            "ending_equity": "270.7670894076400000",
+            "net_pnl": "20.7670894076400000",
+            "completed_trades": 12,
+            "max_drawdown_pct": "28.66722517592489154947072515"
+          },
+          "BNBUSDC": {
+            "ending_equity": "232.6420751852300000",
+            "net_pnl": "-17.3579248147700000",
+            "completed_trades": 16,
+            "max_drawdown_pct": "48.95182314773578279900422221"
+          },
+          "SOLUSDC": {
+            "ending_equity": "203.3073655756800000",
+            "net_pnl": "-46.6926344243200000",
+            "completed_trades": 20,
+            "max_drawdown_pct": "45.28496780563291764006891183"
+          },
+          "XRPUSDC": {
+            "ending_equity": "233.848576734690000000",
+            "net_pnl": "-16.151423265310000000",
+            "completed_trades": 28,
+            "max_drawdown_pct": "31.61938209288797801649220081"
+          },
+          "ADAUSDC": {
+            "ending_equity": "108.770518908100000000",
+            "net_pnl": "-141.229481091900000000",
+            "completed_trades": 22,
+            "max_drawdown_pct": "66.62210479447505441585031809"
+          },
+          "LINKUSDC": {
+            "ending_equity": "193.26799962676000000",
+            "net_pnl": "-56.73200037324000000",
+            "completed_trades": 17,
+            "max_drawdown_pct": "53.24182009360735692657164689"
+          },
+          "AVAXUSDC": {
+            "ending_equity": "179.58625219791000000",
+            "net_pnl": "-70.41374780209000000",
+            "completed_trades": 17,
+            "max_drawdown_pct": "57.71148022779150275427337116"
+          },
+          "DOTUSDC": {
+            "ending_equity": "110.01959371817000000",
+            "net_pnl": "-139.98040628183000000",
+            "completed_trades": 21,
+            "max_drawdown_pct": "67.92089047252885551151329217"
+          },
+          "DOGEUSDC": {
+            "ending_equity": "191.9319826184700000000",
+            "net_pnl": "-58.0680173815300000000",
+            "completed_trades": 13,
+            "max_drawdown_pct": "43.67407981558762487285825041"
+          }
+        }
+      },
+      "portfolio_3x80": {
+        "baseline": {
+          "metrics": {
+            "starting_equity": "250",
+            "ending_equity": "211.00694752623815000000",
+            "net_pnl": "-38.99305247376185000000",
+            "return_pct": "-15.59722098950474000000",
+            "completed_trades": 17,
+            "winning_trades": 5,
+            "losing_trades": 12,
+            "max_drawdown_pct": "27.49206239949905793210195828",
+            "total_fees": "2.65991875438770000000",
+            "modeled_spread_slippage": "1.32994926400000000",
+            "profit_factor": "0.4916646436351898436218742496",
+            "buy_and_hold_ending_equity": "122.7233450591100177748755210"
+          },
+          "risk_halted_at_utc": "2025-11-12T16:59:59.999000+00:00",
+          "max_concurrent_positions": 3,
+          "open_symbols_at_end": [],
+          "ending_cash": "206.90820732113815000000",
+          "ending_position_value": "4.0987402051000000",
+          "completed_trade_realized_pnl": "-36.68469168199082897897897898"
+        },
+        "stress": {
+          "metrics": {
+            "starting_equity": "250",
+            "ending_equity": "204.9925435295695000000",
+            "net_pnl": "-45.0074564704305000000",
+            "return_pct": "-18.0029825881722000000",
+            "completed_trades": 17,
+            "winning_trades": 5,
+            "losing_trades": 12,
+            "max_drawdown_pct": "29.41772876011152467942830117",
+            "total_fees": "2.6438533399556000000",
+            "modeled_spread_slippage": "7.9312010946000000",
+            "profit_factor": "0.4390185063964375260321073805",
+            "buy_and_hold_ending_equity": "122.4174543685339708711495103"
+          },
+          "risk_halted_at_utc": "2025-11-09T03:59:59.999000+00:00",
+          "max_concurrent_positions": 3,
+          "open_symbols_at_end": [],
+          "ending_cash": "200.8901929285695000000",
+          "ending_position_value": "4.1023506010000000",
+          "completed_trade_realized_pnl": "-42.67829430939356306306306308"
+        }
+      }
+    },
+    "last_90_days": {
+      "quote_asset": "USDC",
+      "start_utc": "2026-06-10T06:00:00+00:00",
+      "end_utc": "2026-09-08T06:00:00+00:00",
+      "per_coin": {
+        "baseline": {
+          "BTCUSDC": {
+            "ending_equity": "302.28994550880865000",
+            "net_pnl": "52.28994550880865000",
+            "completed_trades": 1,
+            "max_drawdown_pct": "5.107231829949289576153772546"
+          },
+          "ETHUSDC": {
+            "ending_equity": "327.46382876111950000",
+            "net_pnl": "77.46382876111950000",
+            "completed_trades": 4,
+            "max_drawdown_pct": "9.943614800858434465036960166"
+          },
+          "BNBUSDC": {
+            "ending_equity": "285.6260556091000000",
+            "net_pnl": "35.6260556091000000",
+            "completed_trades": 2,
+            "max_drawdown_pct": "12.83184183913340284677117155"
+          },
+          "SOLUSDC": {
+            "ending_equity": "325.78403714503500000",
+            "net_pnl": "75.78403714503500000",
+            "completed_trades": 4,
+            "max_drawdown_pct": "12.19897604661895010918807786"
+          },
+          "XRPUSDC": {
+            "ending_equity": "342.0325886423300000000",
+            "net_pnl": "92.0325886423300000000",
+            "completed_trades": 5,
+            "max_drawdown_pct": "20.69759899635310552455202922"
+          },
+          "ADAUSDC": {
+            "ending_equity": "263.9845456797950000000",
+            "net_pnl": "13.9845456797950000000",
+            "completed_trades": 3,
+            "max_drawdown_pct": "25.15165393738345058769906405"
+          },
+          "LINKUSDC": {
+            "ending_equity": "353.025157636390000000",
+            "net_pnl": "103.025157636390000000",
+            "completed_trades": 3,
+            "max_drawdown_pct": "13.72760970417342874900577438"
+          },
+          "AVAXUSDC": {
+            "ending_equity": "234.604534071655000000",
+            "net_pnl": "-15.395465928345000000",
+            "completed_trades": 5,
+            "max_drawdown_pct": "25.30049918131960059171071078"
+          },
+          "DOTUSDC": {
+            "ending_equity": "226.647591089145000000",
+            "net_pnl": "-23.352408910855000000",
+            "completed_trades": 6,
+            "max_drawdown_pct": "31.58380114756305387205589477"
+          },
+          "DOGEUSDC": {
+            "ending_equity": "241.68029732179000000000",
+            "net_pnl": "-8.31970267821000000000",
+            "completed_trades": 4,
+            "max_drawdown_pct": "22.000406563284000"
+          }
+        },
+        "stress": {
+          "BTCUSDC": {
+            "ending_equity": "300.0209140278882000",
+            "net_pnl": "50.0209140278882000",
+            "completed_trades": 1,
+            "max_drawdown_pct": "5.486878223382630917268141634"
+          },
+          "ETHUSDC": {
+            "ending_equity": "322.0179742053730000",
+            "net_pnl": "72.0179742053730000",
+            "completed_trades": 4,
+            "max_drawdown_pct": "10.39003966541703781095475704"
+          },
+          "BNBUSDC": {
+            "ending_equity": "282.044493246500000",
+            "net_pnl": "32.044493246500000",
+            "completed_trades": 2,
+            "max_drawdown_pct": "13.7083844454000"
+          },
+          "SOLUSDC": {
+            "ending_equity": "318.4690635130000000",
+            "net_pnl": "68.4690635130000000",
+            "completed_trades": 4,
+            "max_drawdown_pct": "13.52647152896572195029775649"
+          },
+          "XRPUSDC": {
+            "ending_equity": "333.895757287330000000",
+            "net_pnl": "83.895757287330000000",
+            "completed_trades": 5,
+            "max_drawdown_pct": "20.74459907639391054450298775"
+          },
+          "ADAUSDC": {
+            "ending_equity": "259.483557504220000000",
+            "net_pnl": "9.483557504220000000",
+            "completed_trades": 3,
+            "max_drawdown_pct": "25.53062348219559771015134365"
+          },
+          "LINKUSDC": {
+            "ending_equity": "346.91627259812000000",
+            "net_pnl": "96.91627259812000000",
+            "completed_trades": 3,
+            "max_drawdown_pct": "14.93448606453282571742620407"
+          },
+          "AVAXUSDC": {
+            "ending_equity": "228.24631132723000000",
+            "net_pnl": "-21.75368867277000000",
+            "completed_trades": 5,
+            "max_drawdown_pct": "27.14407745718157575919706504"
+          },
+          "DOTUSDC": {
+            "ending_equity": "219.40190398773000000",
+            "net_pnl": "-30.59809601227000000",
+            "completed_trades": 6,
+            "max_drawdown_pct": "33.27273505723880731622816892"
+          },
+          "DOGEUSDC": {
+            "ending_equity": "236.3037000452100000000",
+            "net_pnl": "-13.6962999547900000000",
+            "completed_trades": 4,
+            "max_drawdown_pct": "23.73679640191600"
+          }
+        }
+      },
+      "portfolio_3x80": {
+        "baseline": {
+          "metrics": {
+            "starting_equity": "250",
+            "ending_equity": "263.83267084164900000000",
+            "net_pnl": "13.83267084164900000000",
+            "return_pct": "5.53306833665960000000",
+            "completed_trades": 14,
+            "winning_trades": 4,
+            "losing_trades": 10,
+            "max_drawdown_pct": "18.30514875383151236651461089",
+            "total_fees": "2.35348240238140000000",
+            "modeled_spread_slippage": "1.17668247940000000",
+            "profit_factor": "0.5152571305850336967181350264",
+            "buy_and_hold_ending_equity": "334.1624958168682255430978179"
+          },
+          "risk_halted_at_utc": null,
+          "max_concurrent_positions": 3,
+          "open_symbols_at_end": [
+            "BTCUSDC",
+            "BNBUSDC",
+            "ADAUSDC"
+          ],
+          "ending_cash": "12.87744544204900000000",
+          "ending_position_value": "250.9552253996000000",
+          "completed_trade_realized_pnl": "-23.50687643325670570570570568"
+        },
+        "stress": {
+          "metrics": {
+            "starting_equity": "250",
+            "ending_equity": "257.1858760503180000000",
+            "net_pnl": "7.1858760503180000000",
+            "return_pct": "2.8743504201272000000",
+            "completed_trades": 14,
+            "winning_trades": 4,
+            "losing_trades": 10,
+            "max_drawdown_pct": "19.64119506046362876035706283",
+            "total_fees": "2.3310025055982000000",
+            "modeled_spread_slippage": "6.9909426342000000",
+            "profit_factor": "0.4506789596108899112824819148",
+            "buy_and_hold_ending_equity": "333.3295882998770285701588901"
+          },
+          "risk_halted_at_utc": null,
+          "max_concurrent_positions": 3,
+          "open_symbols_at_end": [
+            "BTCUSDC",
+            "BNBUSDC",
+            "ADAUSDC"
+          ],
+          "ending_cash": "12.5303678840180000000",
+          "ending_position_value": "244.6555081663000000",
+          "completed_trade_realized_pnl": "-28.37949053201423223223223224"
+        }
+      }
+    }
+  },
+  "usdt_same_window_control": {
+    "available_common_history": {
+      "quote_asset": "USDT",
+      "start_utc": "2024-03-24T00:00:00+00:00",
+      "end_utc": "2026-09-08T06:00:00+00:00",
+      "per_coin": {
+        "baseline": {
+          "BTCUSDT": {
+            "ending_equity": "360.78411053954940000",
+            "net_pnl": "110.78411053954940000",
+            "completed_trades": 35,
+            "max_drawdown_pct": "30.73952247487068795041195373"
+          },
+          "ETHUSDT": {
+            "ending_equity": "568.51235387823850000",
+            "net_pnl": "318.51235387823850000",
+            "completed_trades": 31,
+            "max_drawdown_pct": "35.15151650352061944256887903"
+          },
+          "BNBUSDT": {
+            "ending_equity": "328.29727661002500000",
+            "net_pnl": "78.29727661002500000",
+            "completed_trades": 34,
+            "max_drawdown_pct": "40.98944410454284291920695147"
+          },
+          "SOLUSDT": {
+            "ending_equity": "566.43436119959500000",
+            "net_pnl": "316.43436119959500000",
+            "completed_trades": 48,
+            "max_drawdown_pct": "22.99741394529136887587508967"
+          },
+          "XRPUSDT": {
+            "ending_equity": "586.5525861791950000000",
+            "net_pnl": "336.5525861791950000000",
+            "completed_trades": 69,
+            "max_drawdown_pct": "35.36892042020460285168339641"
+          },
+          "ADAUSDT": {
+            "ending_equity": "396.7281366599450000000",
+            "net_pnl": "146.7281366599450000000",
+            "completed_trades": 46,
+            "max_drawdown_pct": "44.02083390384453935600351777"
+          },
+          "LINKUSDT": {
+            "ending_equity": "362.020849282575000000",
+            "net_pnl": "112.020849282575000000",
+            "completed_trades": 42,
+            "max_drawdown_pct": "52.25333402827823979505822024"
+          },
+          "AVAXUSDT": {
+            "ending_equity": "159.254929315260000000",
+            "net_pnl": "-90.745070684740000000",
+            "completed_trades": 33,
+            "max_drawdown_pct": "58.80017370482678075721298941"
+          },
+          "DOTUSDT": {
+            "ending_equity": "303.447765622420000000",
+            "net_pnl": "53.447765622420000000",
+            "completed_trades": 37,
+            "max_drawdown_pct": "58.68231467540658575868468981"
+          },
+          "DOGEUSDT": {
+            "ending_equity": "629.18980736125000000000",
+            "net_pnl": "379.18980736125000000000",
+            "completed_trades": 37,
+            "max_drawdown_pct": "36.07844203401803630677775930"
+          }
+        },
+        "stress": {
+          "BTCUSDT": {
+            "ending_equity": "308.7877884644019000",
+            "net_pnl": "58.7877884644019000",
+            "completed_trades": 35,
+            "max_drawdown_pct": "37.66258191655293899595570363"
+          },
+          "ETHUSDT": {
+            "ending_equity": "517.9010499645780000",
+            "net_pnl": "267.9010499645780000",
+            "completed_trades": 31,
+            "max_drawdown_pct": "38.42366814224370708144613236"
+          },
+          "BNBUSDT": {
+            "ending_equity": "273.4036547960000000",
+            "net_pnl": "23.4036547960000000",
+            "completed_trades": 34,
+            "max_drawdown_pct": "47.40785191230262198281118558"
+          },
+          "SOLUSDT": {
+            "ending_equity": "502.9888837126200000",
+            "net_pnl": "252.9888837126200000",
+            "completed_trades": 48,
+            "max_drawdown_pct": "29.81111446098348940130842751"
+          },
+          "XRPUSDT": {
+            "ending_equity": "509.986171135810000000",
+            "net_pnl": "259.986171135810000000",
+            "completed_trades": 69,
+            "max_drawdown_pct": "38.81728017901897887588591229"
+          },
+          "ADAUSDT": {
+            "ending_equity": "324.143693450690000000",
+            "net_pnl": "74.143693450690000000",
+            "completed_trades": 46,
+            "max_drawdown_pct": "52.56290546153927358867465232"
+          },
+          "LINKUSDT": {
+            "ending_equity": "274.11415736406000000",
+            "net_pnl": "24.11415736406000000",
+            "completed_trades": 42,
+            "max_drawdown_pct": "55.77519758551023748204983947"
+          },
+          "AVAXUSDT": {
+            "ending_equity": "132.80210776655000000",
+            "net_pnl": "-117.19789223345000000",
+            "completed_trades": 33,
+            "max_drawdown_pct": "62.52250141056284391695817123"
+          },
+          "DOTUSDT": {
+            "ending_equity": "241.87264609882000000",
+            "net_pnl": "-8.12735390118000000",
+            "completed_trades": 37,
+            "max_drawdown_pct": "65.44358896979877438555350380"
+          },
+          "DOGEUSDT": {
+            "ending_equity": "579.8995302571800000000",
+            "net_pnl": "329.8995302571800000000",
+            "completed_trades": 37,
+            "max_drawdown_pct": "37.37245411989412934596546946"
+          }
+        }
+      },
+      "portfolio_3x80": {
+        "baseline": {
+          "metrics": {
+            "starting_equity": "250",
+            "ending_equity": "201.2411906503235000000",
+            "net_pnl": "-48.7588093496765000000",
+            "return_pct": "-19.5035237398706000000",
+            "completed_trades": 9,
+            "winning_trades": 0,
+            "losing_trades": 9,
+            "max_drawdown_pct": "20.45095144926276992141993676",
+            "total_fees": "1.3519969593479000000",
+            "modeled_spread_slippage": "0.6759859949000000",
+            "profit_factor": "0E+26",
+            "buy_and_hold_ending_equity": "200.9641296602774310592526491"
+          },
+          "risk_halted_at_utc": "2024-04-30T11:59:59.999000+00:00",
+          "max_concurrent_positions": 3,
+          "open_symbols_at_end": [],
+          "ending_cash": "198.7342272663235000000",
+          "ending_position_value": "2.506963384000000",
+          "completed_trade_realized_pnl": "-48.91534059020442792792792793"
+        },
+        "stress": {
+          "metrics": {
+            "starting_equity": "250",
+            "ending_equity": "198.153194819610000000",
+            "net_pnl": "-51.846805180390000000",
+            "return_pct": "-20.738722072156000000",
+            "completed_trades": 9,
+            "winning_trades": 0,
+            "losing_trades": 9,
+            "max_drawdown_pct": "21.61490784152441851211351757",
+            "total_fees": "1.342447033687000000",
+            "modeled_spread_slippage": "4.026893907000000",
+            "profit_factor": "0E+26",
+            "buy_and_hold_ending_equity": "200.4632220589307774424549107"
+          },
+          "risk_halted_at_utc": "2024-04-30T11:59:59.999000+00:00",
+          "max_concurrent_positions": 3,
+          "open_symbols_at_end": [],
+          "ending_cash": "195.640511137610000000",
+          "ending_position_value": "2.512683682000000",
+          "completed_trade_realized_pnl": "-51.99820126168629629629629631"
+        }
+      }
+    },
+    "last_365_days": {
+      "quote_asset": "USDT",
+      "start_utc": "2025-09-08T06:00:00+00:00",
+      "end_utc": "2026-09-08T06:00:00+00:00",
+      "per_coin": {
+        "baseline": {
+          "BTCUSDT": {
+            "ending_equity": "225.17372411843485000",
+            "net_pnl": "-24.82627588156515000",
+            "completed_trades": 15,
+            "max_drawdown_pct": "36.88534448051526078501750805"
+          },
+          "ETHUSDT": {
+            "ending_equity": "297.83506695163600000",
+            "net_pnl": "47.83506695163600000",
+            "completed_trades": 13,
+            "max_drawdown_pct": "23.00460680685192898602854189"
+          },
+          "BNBUSDT": {
+            "ending_equity": "250.21871401181000000",
+            "net_pnl": "0.21871401181000000",
+            "completed_trades": 16,
+            "max_drawdown_pct": "45.60153656447197574783465118"
+          },
+          "SOLUSDT": {
+            "ending_equity": "215.19408599512000000",
+            "net_pnl": "-34.80591400488000000",
+            "completed_trades": 20,
+            "max_drawdown_pct": "42.85247685378126228351518817"
+          },
+          "XRPUSDT": {
+            "ending_equity": "265.5420837873550000000",
+            "net_pnl": "15.5420837873550000000",
+            "completed_trades": 28,
+            "max_drawdown_pct": "26.60347442338293017951894716"
+          },
+          "ADAUSDT": {
+            "ending_equity": "127.2391572492600000000",
+            "net_pnl": "-122.7608427507400000000",
+            "completed_trades": 20,
+            "max_drawdown_pct": "60.70588641987664431228169589"
+          },
+          "LINKUSDT": {
+            "ending_equity": "234.286687249225000000",
+            "net_pnl": "-15.713312750775000000",
+            "completed_trades": 16,
+            "max_drawdown_pct": "43.49231556310070089865466927"
+          },
+          "AVAXUSDT": {
+            "ending_equity": "179.208832424340000000",
+            "net_pnl": "-70.791167575660000000",
+            "completed_trades": 16,
+            "max_drawdown_pct": "57.87260429455330005997271824"
+          },
+          "DOTUSDT": {
+            "ending_equity": "164.479881783095000000",
+            "net_pnl": "-85.520118216905000000",
+            "completed_trades": 14,
+            "max_drawdown_pct": "53.71728471798821851754028220"
+          },
+          "DOGEUSDT": {
+            "ending_equity": "180.53040111250000000000",
+            "net_pnl": "-69.46959888750000000000",
+            "completed_trades": 14,
+            "max_drawdown_pct": "47.15119030658024446576281323"
+          }
+        },
+        "stress": {
+          "BTCUSDT": {
+            "ending_equity": "208.5357521829868000",
+            "net_pnl": "-41.4642478170132000",
+            "completed_trades": 15,
+            "max_drawdown_pct": "39.96677256188003023637007110"
+          },
+          "ETHUSDT": {
+            "ending_equity": "278.4832024122550000",
+            "net_pnl": "28.4832024122550000",
+            "completed_trades": 13,
+            "max_drawdown_pct": "26.53989029431543045466521135"
+          },
+          "BNBUSDT": {
+            "ending_equity": "230.3779547226600000",
+            "net_pnl": "-19.6220452773400000",
+            "completed_trades": 16,
+            "max_drawdown_pct": "49.56302249547712591994077253"
+          },
+          "SOLUSDT": {
+            "ending_equity": "194.1203974747500000",
+            "net_pnl": "-55.8796025252500000",
+            "completed_trades": 20,
+            "max_drawdown_pct": "47.05380163448144083350483467"
+          },
+          "XRPUSDT": {
+            "ending_equity": "232.398920832510000000",
+            "net_pnl": "-17.601079167490000000",
+            "completed_trades": 28,
+            "max_drawdown_pct": "32.00672645327026698302340517"
+          },
+          "ADAUSDT": {
+            "ending_equity": "114.854320394320000000",
+            "net_pnl": "-135.145679605680000000",
+            "completed_trades": 20,
+            "max_drawdown_pct": "64.08698526333958284332749966"
+          },
+          "LINKUSDT": {
+            "ending_equity": "215.80337954430000000",
+            "net_pnl": "-34.19662045570000000",
+            "completed_trades": 16,
+            "max_drawdown_pct": "47.73696771208038991482934791"
+          },
+          "AVAXUSDT": {
+            "ending_equity": "165.03759277529000000",
+            "net_pnl": "-84.96240722471000000",
+            "completed_trades": 16,
+            "max_drawdown_pct": "61.11264999217789340874541725"
+          },
+          "DOTUSDT": {
+            "ending_equity": "152.63699527157000000",
+            "net_pnl": "-97.36300472843000000",
+            "completed_trades": 14,
+            "max_drawdown_pct": "56.33413290874988012986744228"
+          },
+          "DOGEUSDT": {
+            "ending_equity": "167.8801609394000000000",
+            "net_pnl": "-82.1198390606000000000",
+            "completed_trades": 14,
+            "max_drawdown_pct": "50.73107329935050748048575900"
+          }
+        }
+      },
+      "portfolio_3x80": {
+        "baseline": {
+          "metrics": {
+            "starting_equity": "250",
+            "ending_equity": "232.6180158659622000000",
+            "net_pnl": "-17.3819841340378000000",
+            "return_pct": "-6.9527936536151200000",
+            "completed_trades": 14,
+            "winning_trades": 4,
+            "losing_trades": 10,
+            "max_drawdown_pct": "20.76981326343033063033546793",
+            "total_fees": "2.2133974533088500000",
+            "modeled_spread_slippage": "1.1066940332500000",
+            "profit_factor": "0.6837577834750457743159917402",
+            "buy_and_hold_ending_equity": "122.7507951638620062794041798"
+          },
+          "risk_halted_at_utc": "2025-11-06T16:59:59.999000+00:00",
+          "max_concurrent_positions": 3,
+          "open_symbols_at_end": [],
+          "ending_cash": "229.0229296959622000000",
+          "ending_position_value": "3.595086170000000",
+          "completed_trade_realized_pnl": "-15.24215997968449669669669670"
+        },
+        "stress": {
+          "metrics": {
+            "starting_equity": "250",
+            "ending_equity": "227.196036154387200000",
+            "net_pnl": "-22.803963845612800000",
+            "return_pct": "-9.121585538245120000",
+            "completed_trades": 14,
+            "winning_trades": 4,
+            "losing_trades": 10,
+            "max_drawdown_pct": "22.35910465697508442411250474",
+            "total_fees": "2.209373572523100000",
+            "modeled_spread_slippage": "6.627952597500000",
+            "profit_factor": "0.6023966111793282419723239652",
+            "buy_and_hold_ending_equity": "122.4448360532840850274614973"
+          },
+          "risk_halted_at_utc": "2025-11-05T21:59:59.999000+00:00",
+          "max_concurrent_positions": 3,
+          "open_symbols_at_end": [],
+          "ending_cash": "223.600006896387200000",
+          "ending_position_value": "3.596029258000000",
+          "completed_trade_realized_pnl": "-20.64866225987936656656656658"
+        }
+      }
+    },
+    "last_90_days": {
+      "quote_asset": "USDT",
+      "start_utc": "2026-06-10T06:00:00+00:00",
+      "end_utc": "2026-09-08T06:00:00+00:00",
+      "per_coin": {
+        "baseline": {
+          "BTCUSDT": {
+            "ending_equity": "302.14411284008935000",
+            "net_pnl": "52.14411284008935000",
+            "completed_trades": 1,
+            "max_drawdown_pct": "5.097154145756014046581046533"
+          },
+          "ETHUSDT": {
+            "ending_equity": "327.36790300820200000",
+            "net_pnl": "77.36790300820200000",
+            "completed_trades": 4,
+            "max_drawdown_pct": "9.903639361487317251738120491"
+          },
+          "BNBUSDT": {
+            "ending_equity": "285.68495459707000000",
+            "net_pnl": "35.68495459707000000",
+            "completed_trades": 2,
+            "max_drawdown_pct": "12.77755319281024935146287043"
+          },
+          "SOLUSDT": {
+            "ending_equity": "321.60699723059500000",
+            "net_pnl": "71.60699723059500000",
+            "completed_trades": 4,
+            "max_drawdown_pct": "13.31833313968679847256766595"
+          },
+          "XRPUSDT": {
+            "ending_equity": "340.5988039481050000000",
+            "net_pnl": "90.5988039481050000000",
+            "completed_trades": 5,
+            "max_drawdown_pct": "20.72764863550491500510856871"
+          },
+          "ADAUSDT": {
+            "ending_equity": "256.8614808657700000000",
+            "net_pnl": "6.8614808657700000000",
+            "completed_trades": 3,
+            "max_drawdown_pct": "25.23216459565238050725459150"
+          },
+          "LINKUSDT": {
+            "ending_equity": "352.964202913805000000",
+            "net_pnl": "102.964202913805000000",
+            "completed_trades": 3,
+            "max_drawdown_pct": "13.69991438647978391116493568"
+          },
+          "AVAXUSDT": {
+            "ending_equity": "235.036905833110000000",
+            "net_pnl": "-14.963094166890000000",
+            "completed_trades": 5,
+            "max_drawdown_pct": "25.16016071935207410380576624"
+          },
+          "DOTUSDT": {
+            "ending_equity": "246.691446928020000000",
+            "net_pnl": "-3.308553071980000000",
+            "completed_trades": 4,
+            "max_drawdown_pct": "22.13825049183652224082348807"
+          },
+          "DOGEUSDT": {
+            "ending_equity": "240.01874097038500000000",
+            "net_pnl": "-9.98125902961500000000",
+            "completed_trades": 4,
+            "max_drawdown_pct": "22.523059531846000"
+          }
+        },
+        "stress": {
+          "BTCUSDT": {
+            "ending_equity": "299.8746537709758000",
+            "net_pnl": "49.8746537709758000",
+            "completed_trades": 1,
+            "max_drawdown_pct": "5.456384950252762571362785411"
+          },
+          "ETHUSDT": {
+            "ending_equity": "321.9294075384290000",
+            "net_pnl": "71.9294075384290000",
+            "completed_trades": 4,
+            "max_drawdown_pct": "10.35670520856779012674898708"
+          },
+          "BNBUSDT": {
+            "ending_equity": "282.2648528396400000",
+            "net_pnl": "32.2648528396400000",
+            "completed_trades": 2,
+            "max_drawdown_pct": "13.64607405232387475277786703"
+          },
+          "SOLUSDT": {
+            "ending_equity": "314.3453364418800000",
+            "net_pnl": "64.3453364418800000",
+            "completed_trades": 4,
+            "max_drawdown_pct": "14.63484366920898606974669310"
+          },
+          "XRPUSDT": {
+            "ending_equity": "332.143813749980000000",
+            "net_pnl": "82.143813749980000000",
+            "completed_trades": 5,
+            "max_drawdown_pct": "20.72776951355667812693920135"
+          },
+          "ADAUSDT": {
+            "ending_equity": "252.408984561860000000",
+            "net_pnl": "2.408984561860000000",
+            "completed_trades": 3,
+            "max_drawdown_pct": "25.60544369118042652500133340"
+          },
+          "LINKUSDT": {
+            "ending_equity": "346.86129658949000000",
+            "net_pnl": "96.86129658949000000",
+            "completed_trades": 3,
+            "max_drawdown_pct": "14.84107445526574574979238187"
+          },
+          "AVAXUSDT": {
+            "ending_equity": "228.66855905185000000",
+            "net_pnl": "-21.33144094815000000",
+            "completed_trades": 5,
+            "max_drawdown_pct": "27.00738847339363114259899162"
+          },
+          "DOTUSDT": {
+            "ending_equity": "241.20368077629000000",
+            "net_pnl": "-8.79631922371000000",
+            "completed_trades": 4,
+            "max_drawdown_pct": "23.29744061194438456244533531"
+          },
+          "DOGEUSDT": {
+            "ending_equity": "234.6925258107400000000",
+            "net_pnl": "-15.3074741892600000000",
+            "completed_trades": 4,
+            "max_drawdown_pct": "24.24645583570400"
+          }
+        }
+      },
+      "portfolio_3x80": {
+        "baseline": {
+          "metrics": {
+            "starting_equity": "250",
+            "ending_equity": "259.23551481716100000000",
+            "net_pnl": "9.23551481716100000000",
+            "return_pct": "3.69420592686440000000",
+            "completed_trades": 14,
+            "winning_trades": 4,
+            "losing_trades": 10,
+            "max_drawdown_pct": "18.77346605735063796376178178",
+            "total_fees": "2.34254109349400000000",
+            "modeled_spread_slippage": "1.17121181600000000",
+            "profit_factor": "0.4444994127693248425209101263",
+            "buy_and_hold_ending_equity": "334.0663131929965861598198728"
+          },
+          "risk_halted_at_utc": null,
+          "max_concurrent_positions": 3,
+          "open_symbols_at_end": [
+            "BTCUSDT",
+            "BNBUSDT",
+            "ADAUSDT"
+          ],
+          "ending_cash": "12.85257673716100000000",
+          "ending_position_value": "246.3829380800000000",
+          "completed_trade_realized_pnl": "-26.99551825048164264264264263"
+        },
+        "stress": {
+          "metrics": {
+            "starting_equity": "250",
+            "ending_equity": "248.9366691160670000000",
+            "net_pnl": "-1.0633308839330000000",
+            "return_pct": "-0.4253323535732000000",
+            "completed_trades": 14,
+            "winning_trades": 4,
+            "losing_trades": 10,
+            "max_drawdown_pct": "20.11806685933535386612409681",
+            "total_fees": "2.2403571749590000000",
+            "modeled_spread_slippage": "6.7197240930000000",
+            "profit_factor": "0.3846424770412826821834487050",
+            "buy_and_hold_ending_equity": "333.2336454133530253767694744"
+          },
+          "risk_halted_at_utc": "2026-08-18T02:59:59.999000+00:00",
+          "max_concurrent_positions": 3,
+          "open_symbols_at_end": [
+            "BTCUSDT",
+            "BNBUSDT"
+          ],
+          "ending_cash": "92.5236615080670000000",
+          "ending_position_value": "156.4130076080000000",
+          "completed_trade_realized_pnl": "-31.85104364911618318318318318"
+        }
+      }
+    }
+  },
+  "note": "Public-market simulations only. Per-coin starting equity 250 of the respective quote. Full immutable bundles and public filters remain in the ignored local run directory. No account balances, keys or live orders included."
+}

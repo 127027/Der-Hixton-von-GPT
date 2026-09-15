@@ -1,0 +1,83 @@
+{
+  "strategy_version": "HIXTON-V2-RESEARCH-CANDIDATE-1",
+  "status": "PAPER_ACTIVE_LIVE_BLOCKED",
+  "paper_approved": true,
+  "live_approved": false,
+  "timeframe": "1h",
+  "source": "strategy/pine/Der_Hixton_Indikator_v6.pine",
+  "source_sha256": "8af8e9a1e6c73dc66307271b7fd1141eaae02bc1fe88e8ba97b96e7a861263dd",
+  "semantics": "PINE_V6",
+  "parameters": {
+    "vidya_length": 6,
+    "momentum_length": 20,
+    "smoothing_length": 8,
+    "atr_length": 60,
+    "band_multiplier": 3.8,
+    "warmup_bars": 400
+  },
+  "capital": {
+    "isolated_start_usdt_per_coin": 250,
+    "coin_count": 10,
+    "shared_portfolio_start_usdt": 240,
+    "shared_portfolio_slot_count": 3,
+    "shared_portfolio_target_notional_usdt": 80,
+    "automatic_compounding": false
+  },
+  "slot_allocation": "one_per_symbol",
+  "cost_scenarios_bps_per_side": {
+    "baseline": 15,
+    "stress": 40
+  },
+  "selection_reason": "Beste Kosten- und Mehrfenster-Robustheit der geprüften gemeinsamen Parametersätze; nicht wegen maximaler Tradezahl allein.",
+  "shared_portfolio_strategy_only_current_window": {
+    "report_start_utc": "2023-09-01T12:00:00Z",
+    "report_end_utc": "2026-09-01T12:00:00Z",
+    "primary_run_id": "4aa4d135-b077-4c29-a839-fa141952113b",
+    "reproduction_run_id": "060745da-5e9f-4445-a768-0b2c2da63851",
+    "baseline": {
+      "ending_equity_usdt": 528.3759665477908,
+      "return_pct": 120.15665272824617,
+      "completed_trades": 227,
+      "max_drawdown_pct": 34.10185907206493
+    },
+    "stress": {
+      "ending_equity_usdt": 436.3062418450931,
+      "return_pct": 81.79426743545546,
+      "completed_trades": 227,
+      "max_drawdown_pct": 43.33207445679281
+    }
+  },
+  "paper_risk_mirror_current_window": {
+    "risk_limits": {
+      "daily_loss_pause_pct": 5,
+      "max_drawdown_halt_pct": 20
+    },
+    "primary_run_id": "83b38ab1-cf26-4ab2-a4b1-6e1e290822ea",
+    "reproduction_run_id": "c908cf2f-5910-4dfe-97b0-e6c40465205d",
+    "baseline": {
+      "ending_equity_usdt": 542.4931231026223,
+      "return_pct": 126.03880129275927,
+      "completed_trades": 108,
+      "max_drawdown_pct": 22.766810116821964,
+      "risk_halted_at_utc": "2025-02-06T15:59:59.999Z"
+    },
+    "stress": {
+      "ending_equity_usdt": 406.2898649232532,
+      "return_pct": 69.28744371802217,
+      "completed_trades": 30,
+      "max_drawdown_pct": 20.13032047125736,
+      "risk_halted_at_utc": "2024-02-05T21:59:59.999Z"
+    }
+  },
+  "paper_activation": {
+    "decision": "DEC-037",
+    "decision_date": "2026-09-02",
+    "mode": "forward_only_controlled_ledger_migration",
+    "live_unchanged": "LIVE_DISABLED"
+  },
+  "remaining_live_requirements": [
+    "V2-Paper-Soak mindestens 30 Tage, 720 Bars je Coin und 20 abgeschlossene Trades",
+    "Backup/Restore, Failure-Injection, dedizierter Binance-Bot-Account und Reconciliation",
+    "ausdrückliche separate Eigentümerfreigabe für Live"
+  ]
+}

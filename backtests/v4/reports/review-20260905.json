@@ -1,0 +1,1342 @@
+{
+  "schema": "HIXTON-RESEARCH-REVIEW-1",
+  "incumbent_version": "HIXTON-V2-RESEARCH-CANDIDATE-1",
+  "cost_models": [
+    {
+      "name": "baseline",
+      "fee_bps_per_side": "10",
+      "spread_bps_per_side": "2",
+      "slippage_bps_per_side": "3"
+    },
+    {
+      "name": "stress",
+      "fee_bps_per_side": "10",
+      "spread_bps_per_side": "10",
+      "slippage_bps_per_side": "20"
+    }
+  ],
+  "source_sha256": {
+    "backtest\\__init__.py": "0024e77a3ed90a8ccfea66357bed894fa8ccccea4f3f2a09420857926c111f23",
+    "backtest\\engine.py": "d81d276c12bc478a9540ccbee6160c143a04cf6d92b216eae2a5672412624a84",
+    "backtest\\metrics.py": "7725a836694ed4e5d7f77dfab4bae9e899bc3c294675e945cf2e686f1d3c0834",
+    "backtest\\models.py": "9e6237843b1c8c130891e11f5e9043cc881af4dedaff6051d8607bb781a84519",
+    "backtest\\portfolio.py": "6cdc784f3581e724f8930c67d9209f712d2976ce324b84696af8cfa507da7df6",
+    "backtest\\reporting.py": "dc59aec073121decc5b27716eb0be7a8870f61568649bd69b70408cdeb855a5f",
+    "backtest\\research.py": "f23e2040ee056407ff673a59699df01b68f136a38e95ee368f5e2280891f40c0",
+    "domain\\__init__.py": "80fc620c1fcce7f34a3df2c90d0e09868920e76f7b0648cf98484d6328c4d063",
+    "domain\\allocation.py": "2dd98de2da8de1fb19d33e1506c0e8519fe89a05e3e8553727ae0b5ae24bda52",
+    "domain\\models.py": "f9a1bc76fabf55d16ff52d7ba4d369400aa1fe252915099afb78f58b43e71172",
+    "domain\\risk.py": "da3ce85e7e1b7e89f91b2611be59b68dfb3be90c99e0a655a8dfda8673603710",
+    "domain\\strategy.py": "077de6371a5203ada4dab37c23080b13f6c1190d6cfec6bbe40165a3387aabc5",
+    "domain\\versions.py": "74ee8cd0dd3d1a6ab4ba4acf3a3d508dbcfd484990fb9e545538ebf3a291ac99",
+    "data\\__init__.py": "ad969809d90faa97a3a7d934acb6b9ba85a8c7865e6a95b0ec7b5e30506217e1",
+    "data\\binance.py": "b8baf2b110df7648eb161fd6d43b1e34591726b68fdffac012c5b96442a92320",
+    "data\\quality.py": "58f0b73bbeffa20360f7d6b916fb4e866dace6b2e083a8aadeee053ceb0397b0",
+    "data\\storage.py": "22841c3fdb1d110089d6260e3de363eb9c10313e10a7c43a94ae1b162433ac52",
+    "data\\sync.py": "58e2b25b9d18419f2f409611770a339f3d2cbe4230f4addc48ca8ec102f451a4"
+  },
+  "status": "RESEARCH_ONLY",
+  "selection": "maximize worst training-year stress return, then mean",
+  "grid": [
+    {
+      "vidya_length": 6,
+      "momentum_length": 20,
+      "smoothing_length": 8,
+      "atr_length": 60,
+      "band_multiplier": 3.2,
+      "warmup_bars": 400
+    },
+    {
+      "vidya_length": 6,
+      "momentum_length": 20,
+      "smoothing_length": 8,
+      "atr_length": 60,
+      "band_multiplier": 3.8,
+      "warmup_bars": 400
+    },
+    {
+      "vidya_length": 6,
+      "momentum_length": 20,
+      "smoothing_length": 8,
+      "atr_length": 60,
+      "band_multiplier": 4.4,
+      "warmup_bars": 400
+    },
+    {
+      "vidya_length": 6,
+      "momentum_length": 20,
+      "smoothing_length": 8,
+      "atr_length": 120,
+      "band_multiplier": 3.2,
+      "warmup_bars": 400
+    },
+    {
+      "vidya_length": 6,
+      "momentum_length": 20,
+      "smoothing_length": 8,
+      "atr_length": 120,
+      "band_multiplier": 3.8,
+      "warmup_bars": 400
+    },
+    {
+      "vidya_length": 6,
+      "momentum_length": 20,
+      "smoothing_length": 8,
+      "atr_length": 120,
+      "band_multiplier": 4.4,
+      "warmup_bars": 400
+    },
+    {
+      "vidya_length": 6,
+      "momentum_length": 20,
+      "smoothing_length": 15,
+      "atr_length": 60,
+      "band_multiplier": 3.2,
+      "warmup_bars": 400
+    },
+    {
+      "vidya_length": 6,
+      "momentum_length": 20,
+      "smoothing_length": 15,
+      "atr_length": 60,
+      "band_multiplier": 3.8,
+      "warmup_bars": 400
+    },
+    {
+      "vidya_length": 6,
+      "momentum_length": 20,
+      "smoothing_length": 15,
+      "atr_length": 60,
+      "band_multiplier": 4.4,
+      "warmup_bars": 400
+    },
+    {
+      "vidya_length": 6,
+      "momentum_length": 20,
+      "smoothing_length": 15,
+      "atr_length": 120,
+      "band_multiplier": 3.2,
+      "warmup_bars": 400
+    },
+    {
+      "vidya_length": 6,
+      "momentum_length": 20,
+      "smoothing_length": 15,
+      "atr_length": 120,
+      "band_multiplier": 3.8,
+      "warmup_bars": 400
+    },
+    {
+      "vidya_length": 6,
+      "momentum_length": 20,
+      "smoothing_length": 15,
+      "atr_length": 120,
+      "band_multiplier": 4.4,
+      "warmup_bars": 400
+    },
+    {
+      "vidya_length": 10,
+      "momentum_length": 20,
+      "smoothing_length": 8,
+      "atr_length": 60,
+      "band_multiplier": 3.2,
+      "warmup_bars": 400
+    },
+    {
+      "vidya_length": 10,
+      "momentum_length": 20,
+      "smoothing_length": 8,
+      "atr_length": 60,
+      "band_multiplier": 3.8,
+      "warmup_bars": 400
+    },
+    {
+      "vidya_length": 10,
+      "momentum_length": 20,
+      "smoothing_length": 8,
+      "atr_length": 60,
+      "band_multiplier": 4.4,
+      "warmup_bars": 400
+    },
+    {
+      "vidya_length": 10,
+      "momentum_length": 20,
+      "smoothing_length": 8,
+      "atr_length": 120,
+      "band_multiplier": 3.2,
+      "warmup_bars": 400
+    },
+    {
+      "vidya_length": 10,
+      "momentum_length": 20,
+      "smoothing_length": 8,
+      "atr_length": 120,
+      "band_multiplier": 3.8,
+      "warmup_bars": 400
+    },
+    {
+      "vidya_length": 10,
+      "momentum_length": 20,
+      "smoothing_length": 8,
+      "atr_length": 120,
+      "band_multiplier": 4.4,
+      "warmup_bars": 400
+    },
+    {
+      "vidya_length": 10,
+      "momentum_length": 20,
+      "smoothing_length": 15,
+      "atr_length": 60,
+      "band_multiplier": 3.2,
+      "warmup_bars": 400
+    },
+    {
+      "vidya_length": 10,
+      "momentum_length": 20,
+      "smoothing_length": 15,
+      "atr_length": 60,
+      "band_multiplier": 3.8,
+      "warmup_bars": 400
+    },
+    {
+      "vidya_length": 10,
+      "momentum_length": 20,
+      "smoothing_length": 15,
+      "atr_length": 60,
+      "band_multiplier": 4.4,
+      "warmup_bars": 400
+    },
+    {
+      "vidya_length": 10,
+      "momentum_length": 20,
+      "smoothing_length": 15,
+      "atr_length": 120,
+      "band_multiplier": 3.2,
+      "warmup_bars": 400
+    },
+    {
+      "vidya_length": 10,
+      "momentum_length": 20,
+      "smoothing_length": 15,
+      "atr_length": 120,
+      "band_multiplier": 3.8,
+      "warmup_bars": 400
+    },
+    {
+      "vidya_length": 10,
+      "momentum_length": 20,
+      "smoothing_length": 15,
+      "atr_length": 120,
+      "band_multiplier": 4.4,
+      "warmup_bars": 400
+    }
+  ],
+  "candidates_per_coin": 24,
+  "training": [
+    "2023-09-01T14:00:00+02:00",
+    "2025-09-01T14:00:00+02:00"
+  ],
+  "validation": [
+    "2025-09-01T14:00:00+02:00",
+    "2026-09-01T14:00:00+02:00"
+  ],
+  "limitations": [
+    "Validation year was inspected during V2 research; not an untouched holdout.",
+    "Screening omits quantity rounding; finalists use production Decimal engine.",
+    "Scale-in is a separate exploratory screen, never paper-approved."
+  ],
+  "coins": {
+    "BTCUSDT": {
+      "selected": {
+        "vidya_length": 6,
+        "momentum_length": 20,
+        "smoothing_length": 8,
+        "atr_length": 120,
+        "band_multiplier": 4.4,
+        "warmup_bars": 400
+      },
+      "data_sha256": "b9f17a966c0fc5ed558434f2e530cfc4840912a14df3b438a0984653026506cc",
+      "exact": {
+        "incumbent_validation_baseline": {
+          "ending_equity": "182.26723844163775000",
+          "return_pct": "-27.093104623344900",
+          "completed_trades": 23,
+          "max_drawdown_pct": "47.22274448589390860757727060",
+          "profit_factor": "0.3537941375607388165672462838",
+          "total_fees": "9.26434168339550000"
+        },
+        "incumbent_validation_stress": {
+          "ending_equity": "162.9898957617832000",
+          "return_pct": "-34.8040416952867200",
+          "completed_trades": 23,
+          "max_drawdown_pct": "52.46635719208045428763201152",
+          "profit_factor": "0.2934259606011259266996996764",
+          "total_fees": "8.7905910142672000"
+        },
+        "incumbent_full_3y_baseline": {
+          "ending_equity": "414.47015803571815000",
+          "return_pct": "65.7880632142872600",
+          "completed_trades": 71,
+          "max_drawdown_pct": "34.10980559980398216529776213",
+          "profit_factor": "1.263645980773959281180442997",
+          "total_fees": "35.75138741297625000"
+        },
+        "incumbent_full_3y_stress": {
+          "ending_equity": "321.0784508198646000",
+          "return_pct": "28.4313803279458400",
+          "completed_trades": 71,
+          "max_drawdown_pct": "47.10708334903211735974135886",
+          "profit_factor": "1.046776001712631873864086654",
+          "total_fees": "35.6393376904999000"
+        },
+        "selected_validation_baseline": {
+          "ending_equity": "224.40441921823285000",
+          "return_pct": "-10.2382323127068600",
+          "completed_trades": 16,
+          "max_drawdown_pct": "36.92483365461204757563060999",
+          "profit_factor": "0.4000146653038709164712076184",
+          "total_fees": "7.05211498319295000"
+        },
+        "selected_validation_stress": {
+          "ending_equity": "206.6437427380412000",
+          "return_pct": "-17.3425029047835200",
+          "completed_trades": 16,
+          "max_drawdown_pct": "40.05015683147525950309132463",
+          "profit_factor": "0.3221742711109896538773406598",
+          "total_fees": "6.7961751253395000"
+        },
+        "selected_full_3y_baseline": {
+          "ending_equity": "533.04716799063145000",
+          "return_pct": "113.2188671962525800",
+          "completed_trades": 47,
+          "max_drawdown_pct": "23.24481919939699057284212380",
+          "profit_factor": "1.688720827817260656480896586",
+          "total_fees": "23.89124347672515000"
+        },
+        "selected_full_3y_stress": {
+          "ending_equity": "471.9235169711010000",
+          "return_pct": "88.769406788440400",
+          "completed_trades": 47,
+          "max_drawdown_pct": "29.32522519182739717272209177",
+          "profit_factor": "1.459752408616672299321301826",
+          "total_fees": "23.8190455500590000"
+        }
+      },
+      "scale_in_validation_screen": {
+        "one_slot": {
+          "ending_equity": 228.10960450764793,
+          "return_pct": -4.954331455146699,
+          "max_drawdown_pct": 16.09327868096486,
+          "completed_trades": 16,
+          "entries": 17
+        },
+        "confirmed_additions": {
+          "ending_equity": 252.83855625767973,
+          "return_pct": 5.349398440699882,
+          "max_drawdown_pct": 20.182038896789766,
+          "completed_trades": 16,
+          "entries": 26
+        }
+      }
+    },
+    "ETHUSDT": {
+      "selected": {
+        "vidya_length": 6,
+        "momentum_length": 20,
+        "smoothing_length": 8,
+        "atr_length": 60,
+        "band_multiplier": 3.8,
+        "warmup_bars": 400
+      },
+      "data_sha256": "e66ef59765181b9c8d6c8527c085229c2dd66aee46fca58fad15631063d8f053",
+      "exact": {
+        "incumbent_validation_baseline": {
+          "ending_equity": "237.46393112887300000",
+          "return_pct": "-5.014427548450800",
+          "completed_trades": 21,
+          "max_drawdown_pct": "38.62288076471323200921553915",
+          "profit_factor": "0.8973897761172820321064180392",
+          "total_fees": "9.04691858411050000"
+        },
+        "incumbent_validation_stress": {
+          "ending_equity": "213.6252707996790000",
+          "return_pct": "-14.549891680128400",
+          "completed_trades": 21,
+          "max_drawdown_pct": "43.65410953310709748406922098",
+          "profit_factor": "0.7257991205065041721138599911",
+          "total_fees": "8.6112554842510000"
+        },
+        "incumbent_full_3y_baseline": {
+          "ending_equity": "649.16467705042250000",
+          "return_pct": "159.665870820169000",
+          "completed_trades": 61,
+          "max_drawdown_pct": "32.42439404240085462934326556",
+          "profit_factor": "1.916967833616709562674768731",
+          "total_fees": "30.88284521748650000"
+        },
+        "incumbent_full_3y_stress": {
+          "ending_equity": "571.1461746857070000",
+          "return_pct": "128.458469874282800",
+          "completed_trades": 61,
+          "max_drawdown_pct": "36.52121182882833712931852065",
+          "profit_factor": "1.663637129789947431789201462",
+          "total_fees": "30.8034748406520000"
+        },
+        "selected_validation_baseline": {
+          "ending_equity": "237.46393112887300000",
+          "return_pct": "-5.014427548450800",
+          "completed_trades": 21,
+          "max_drawdown_pct": "38.62288076471323200921553915",
+          "profit_factor": "0.8973897761172820321064180392",
+          "total_fees": "9.04691858411050000"
+        },
+        "selected_validation_stress": {
+          "ending_equity": "213.6252707996790000",
+          "return_pct": "-14.549891680128400",
+          "completed_trades": 21,
+          "max_drawdown_pct": "43.65410953310709748406922098",
+          "profit_factor": "0.7257991205065041721138599911",
+          "total_fees": "8.6112554842510000"
+        },
+        "selected_full_3y_baseline": {
+          "ending_equity": "649.16467705042250000",
+          "return_pct": "159.665870820169000",
+          "completed_trades": 61,
+          "max_drawdown_pct": "32.42439404240085462934326556",
+          "profit_factor": "1.916967833616709562674768731",
+          "total_fees": "30.88284521748650000"
+        },
+        "selected_full_3y_stress": {
+          "ending_equity": "571.1461746857070000",
+          "return_pct": "128.458469874282800",
+          "completed_trades": 61,
+          "max_drawdown_pct": "36.52121182882833712931852065",
+          "profit_factor": "1.663637129789947431789201462",
+          "total_fees": "30.8034748406520000"
+        }
+      },
+      "scale_in_validation_screen": {
+        "one_slot": {
+          "ending_equity": 231.3413016625243,
+          "return_pct": -3.6077909739482106,
+          "max_drawdown_pct": 18.10397844675693,
+          "completed_trades": 21,
+          "entries": 21
+        },
+        "confirmed_additions": {
+          "ending_equity": 226.5468517041256,
+          "return_pct": -5.605478456614332,
+          "max_drawdown_pct": 29.235360810788247,
+          "completed_trades": 21,
+          "entries": 34
+        }
+      }
+    },
+    "BNBUSDT": {
+      "selected": {
+        "vidya_length": 10,
+        "momentum_length": 20,
+        "smoothing_length": 8,
+        "atr_length": 60,
+        "band_multiplier": 4.4,
+        "warmup_bars": 400
+      },
+      "data_sha256": "7e76d7071aa05c4176bd2960c93cf4082f83a410153e760564986fb6b9caa159",
+      "exact": {
+        "incumbent_validation_baseline": {
+          "ending_equity": "205.02494530730500000",
+          "return_pct": "-17.990021877078000",
+          "completed_trades": 22,
+          "max_drawdown_pct": "48.55299258700271294903291073",
+          "profit_factor": "0.5170632961749270925372841731",
+          "total_fees": "9.94905433257000000"
+        },
+        "incumbent_validation_stress": {
+          "ending_equity": "183.8951777706100000",
+          "return_pct": "-26.44192889175600",
+          "completed_trades": 22,
+          "max_drawdown_pct": "53.37912220383760270261539194",
+          "profit_factor": "0.4154268991728239653815805818",
+          "total_fees": "9.4507853726100000"
+        },
+        "incumbent_full_3y_baseline": {
+          "ending_equity": "388.68811802349000000",
+          "return_pct": "55.475247209396000",
+          "completed_trades": 60,
+          "max_drawdown_pct": "36.04891619451647710351711999",
+          "profit_factor": "1.306068301663207539456521316",
+          "total_fees": "30.23931371490000000"
+        },
+        "incumbent_full_3y_stress": {
+          "ending_equity": "311.7186228889300000",
+          "return_pct": "24.68744915557200",
+          "completed_trades": 60,
+          "max_drawdown_pct": "44.98474560823481742191884745",
+          "profit_factor": "1.070499019016055029036980040",
+          "total_fees": "30.1295872940200000"
+        },
+        "selected_validation_baseline": {
+          "ending_equity": "229.04222657181000000",
+          "return_pct": "-8.383109371276000",
+          "completed_trades": 16,
+          "max_drawdown_pct": "45.60153656447197574783465118",
+          "profit_factor": "0.6014532176180293012123695199",
+          "total_fees": "7.38220585866000000"
+        },
+        "selected_validation_stress": {
+          "ending_equity": "210.9043438926600000",
+          "return_pct": "-15.63826244293600",
+          "completed_trades": 16,
+          "max_drawdown_pct": "49.56302249547712591994077253",
+          "profit_factor": "0.5139300348592515075637253344",
+          "total_fees": "7.1065029600000000"
+        },
+        "selected_full_3y_baseline": {
+          "ending_equity": "418.31006698620000000",
+          "return_pct": "67.324026794480000",
+          "completed_trades": 41,
+          "max_drawdown_pct": "32.57622499781773587453023859",
+          "profit_factor": "1.484783391378836008283144785",
+          "total_fees": "20.80578789145500000"
+        },
+        "selected_full_3y_stress": {
+          "ending_equity": "365.3255674133800000",
+          "return_pct": "46.13022696535200",
+          "completed_trades": 41,
+          "max_drawdown_pct": "38.34453665041130185544644354",
+          "profit_factor": "1.254879489216824572808030404",
+          "total_fees": "20.7462362737400000"
+        }
+      },
+      "scale_in_validation_screen": {
+        "one_slot": {
+          "ending_equity": 228.93941289659102,
+          "return_pct": -4.608577959753745,
+          "max_drawdown_pct": 21.43176061414126,
+          "completed_trades": 16,
+          "entries": 17
+        },
+        "confirmed_additions": {
+          "ending_equity": 233.6969251357769,
+          "return_pct": -2.626281193426294,
+          "max_drawdown_pct": 35.57792666958232,
+          "completed_trades": 16,
+          "entries": 32
+        }
+      }
+    },
+    "SOLUSDT": {
+      "selected": {
+        "vidya_length": 6,
+        "momentum_length": 20,
+        "smoothing_length": 15,
+        "atr_length": 60,
+        "band_multiplier": 3.8,
+        "warmup_bars": 400
+      },
+      "data_sha256": "2b6dc7b97c5c09c7144be6c726f74a2d24321ae96831f8d579fee8e8c5f5cfa0",
+      "exact": {
+        "incumbent_validation_baseline": {
+          "ending_equity": "219.43960488144500000",
+          "return_pct": "-12.224158047422000",
+          "completed_trades": 17,
+          "max_drawdown_pct": "39.81370618843684536721275717",
+          "profit_factor": "0.3787123735615007887426958007",
+          "total_fees": "6.64968125687000000"
+        },
+        "incumbent_validation_stress": {
+          "ending_equity": "201.1112392042400000",
+          "return_pct": "-19.55550431830400",
+          "completed_trades": 17,
+          "max_drawdown_pct": "44.02440208115732806452555414",
+          "profit_factor": "0.3120279505958952460506666581",
+          "total_fees": "6.3894170630700000"
+        },
+        "incumbent_full_3y_baseline": {
+          "ending_equity": "1508.45082883102000000",
+          "return_pct": "503.380331532408000",
+          "completed_trades": 44,
+          "max_drawdown_pct": "23.53603457604967884156425707",
+          "profit_factor": "4.881405414298785775989813346",
+          "total_fees": "23.37404935831500000"
+        },
+        "incumbent_full_3y_stress": {
+          "ending_equity": "1446.7920653010100000",
+          "return_pct": "478.71682612040400",
+          "completed_trades": 44,
+          "max_drawdown_pct": "23.61589675668912060748101205",
+          "profit_factor": "4.414710604685394873941120785",
+          "total_fees": "23.3109087845000000"
+        },
+        "selected_validation_baseline": {
+          "ending_equity": "213.79383959512000000",
+          "return_pct": "-14.482464161952000",
+          "completed_trades": 20,
+          "max_drawdown_pct": "42.85247685378126228351518817",
+          "profit_factor": "0.3357162069090865075012793746",
+          "total_fees": "7.79667220528500000"
+        },
+        "selected_validation_stress": {
+          "ending_equity": "192.8573898547500000",
+          "return_pct": "-22.85704405810000",
+          "completed_trades": 20,
+          "max_drawdown_pct": "47.05380163448144083350483467",
+          "profit_factor": "0.2668184847491762151365129794",
+          "total_fees": "7.4381284894300000"
+        },
+        "selected_full_3y_baseline": {
+          "ending_equity": "1540.34960989348000000",
+          "return_pct": "516.139843957392000",
+          "completed_trades": 57,
+          "max_drawdown_pct": "23.53603457604967884156425707",
+          "profit_factor": "4.101819752291100078620649621",
+          "total_fees": "29.91371511746500000"
+        },
+        "selected_full_3y_stress": {
+          "ending_equity": "1462.3202311928200000",
+          "return_pct": "484.92809247712800",
+          "completed_trades": 57,
+          "max_drawdown_pct": "23.61589675668912060748101205",
+          "profit_factor": "3.653017107542919803186852755",
+          "total_fees": "29.8348982814100000"
+        }
+      },
+      "scale_in_validation_screen": {
+        "one_slot": {
+          "ending_equity": 225.2344890364816,
+          "return_pct": -6.152296234799337,
+          "max_drawdown_pct": 19.832024338047948,
+          "completed_trades": 20,
+          "entries": 21
+        },
+        "confirmed_additions": {
+          "ending_equity": 212.9049617060249,
+          "return_pct": -11.289599289156293,
+          "max_drawdown_pct": 31.89645878225712,
+          "completed_trades": 20,
+          "entries": 36
+        }
+      }
+    },
+    "XRPUSDT": {
+      "selected": {
+        "vidya_length": 6,
+        "momentum_length": 20,
+        "smoothing_length": 8,
+        "atr_length": 120,
+        "band_multiplier": 3.2,
+        "warmup_bars": 400
+      },
+      "data_sha256": "c862609add89c1318782e2d7bd0eaa895d6eee1846bee5b03601da6933d20ddf",
+      "exact": {
+        "incumbent_validation_baseline": {
+          "ending_equity": "169.8348186749200000000",
+          "return_pct": "-32.06607253003200000",
+          "completed_trades": 20,
+          "max_drawdown_pct": "54.26521245653195634240711901",
+          "profit_factor": "0.2488169572796214755189942479",
+          "total_fees": "7.5472452121450000000"
+        },
+        "incumbent_validation_stress": {
+          "ending_equity": "153.366948124920000000",
+          "return_pct": "-38.6532207500320000",
+          "completed_trades": 20,
+          "max_drawdown_pct": "58.49792501062332692169236123",
+          "profit_factor": "0.2041542151919747586917929598",
+          "total_fees": "7.223671682060000000"
+        },
+        "incumbent_full_3y_baseline": {
+          "ending_equity": "557.3811332304100000000",
+          "return_pct": "122.95245329216400000",
+          "completed_trades": 55,
+          "max_drawdown_pct": "53.15122254961398254136104082",
+          "profit_factor": "1.353232118212310292982554944",
+          "total_fees": "26.9735297020750000000"
+        },
+        "incumbent_full_3y_stress": {
+          "ending_equity": "451.511385223850000000",
+          "return_pct": "80.6045540895400000",
+          "completed_trades": 55,
+          "max_drawdown_pct": "59.88964619453841724122806393",
+          "profit_factor": "1.173272981159169530623439132",
+          "total_fees": "26.536288179610000000"
+        },
+        "selected_validation_baseline": {
+          "ending_equity": "237.8347553639650000000",
+          "return_pct": "-4.86609785441400000",
+          "completed_trades": 28,
+          "max_drawdown_pct": "35.96326289708879701773209025",
+          "profit_factor": "0.5500498354706176572293264953",
+          "total_fees": "11.7560723686750000000"
+        },
+        "selected_validation_stress": {
+          "ending_equity": "206.328822513810000000",
+          "return_pct": "-17.4684709944760000",
+          "completed_trades": 28,
+          "max_drawdown_pct": "44.17060668060594730805781409",
+          "profit_factor": "0.4459832281331512892828125236",
+          "total_fees": "11.004344732830000000"
+        },
+        "selected_full_3y_baseline": {
+          "ending_equity": "565.9411549500550000000",
+          "return_pct": "126.37646198002200000",
+          "completed_trades": 80,
+          "max_drawdown_pct": "47.04033700655130293045145255",
+          "profit_factor": "1.356177018622313482313285736",
+          "total_fees": "39.5967666259000000000"
+        },
+        "selected_full_3y_stress": {
+          "ending_equity": "458.705380354200000000",
+          "return_pct": "83.4821521416800000",
+          "completed_trades": 80,
+          "max_drawdown_pct": "52.41093769315620710931737331",
+          "profit_factor": "1.174781594250116322269917161",
+          "total_fees": "38.931819383780000000"
+        }
+      },
+      "scale_in_validation_screen": {
+        "one_slot": {
+          "ending_equity": 232.98848569576808,
+          "return_pct": -2.921464293429965,
+          "max_drawdown_pct": 17.242731264406817,
+          "completed_trades": 28,
+          "entries": 29
+        },
+        "confirmed_additions": {
+          "ending_equity": 195.22365845372912,
+          "return_pct": -18.656808977612872,
+          "max_drawdown_pct": 33.45031145675986,
+          "completed_trades": 28,
+          "entries": 48
+        }
+      }
+    },
+    "ADAUSDT": {
+      "selected": {
+        "vidya_length": 10,
+        "momentum_length": 20,
+        "smoothing_length": 8,
+        "atr_length": 120,
+        "band_multiplier": 4.4,
+        "warmup_bars": 400
+      },
+      "data_sha256": "50d0cff5de89dfc76a8db429918cc995d146015159a049a33689441869ec8bf2",
+      "exact": {
+        "incumbent_validation_baseline": {
+          "ending_equity": "127.6738569913500000000",
+          "return_pct": "-48.93045720346000000",
+          "completed_trades": 21,
+          "max_drawdown_pct": "62.22985301362519252395961700",
+          "profit_factor": "0.3071267805343278013628028841",
+          "total_fees": "7.6974702837150000000"
+        },
+        "incumbent_validation_stress": {
+          "ending_equity": "114.856641743400000000",
+          "return_pct": "-54.0573433026400000",
+          "completed_trades": 21,
+          "max_drawdown_pct": "65.67963791942436393988434938",
+          "profit_factor": "0.2510572046987260495919545986",
+          "total_fees": "7.361119926260000000"
+        },
+        "incumbent_full_3y_baseline": {
+          "ending_equity": "678.7904713235250000000",
+          "return_pct": "171.51618852941000000",
+          "completed_trades": 55,
+          "max_drawdown_pct": "41.38698083507067980242676308",
+          "profit_factor": "1.684153366601449604836604693",
+          "total_fees": "27.9156235388100000000"
+        },
+        "incumbent_full_3y_stress": {
+          "ending_equity": "607.429719892330000000",
+          "return_pct": "142.9718879569320000",
+          "completed_trades": 55,
+          "max_drawdown_pct": "46.03098342560113579768292109",
+          "profit_factor": "1.537150316868488949921001934",
+          "total_fees": "27.837678802480000000"
+        },
+        "selected_validation_baseline": {
+          "ending_equity": "117.1507502414050000000",
+          "return_pct": "-53.13969990343800000",
+          "completed_trades": 15,
+          "max_drawdown_pct": "63.19223894712393445535464398",
+          "profit_factor": "0.09753213522064486581315183385",
+          "total_fees": "4.9869156337250000000"
+        },
+        "selected_validation_stress": {
+          "ending_equity": "108.423290009400000000",
+          "return_pct": "-56.6306839962400000",
+          "completed_trades": 15,
+          "max_drawdown_pct": "65.84973160179631251411148246",
+          "profit_factor": "0.07925111008402444262836860733",
+          "total_fees": "4.826870272940000000"
+        },
+        "selected_full_3y_baseline": {
+          "ending_equity": "894.8062911932200000000",
+          "return_pct": "257.92251647728800000",
+          "completed_trades": 33,
+          "max_drawdown_pct": "30.54152865593326252295222491",
+          "profit_factor": "2.359637625473636234552766483",
+          "total_fees": "17.3513996637850000000"
+        },
+        "selected_full_3y_stress": {
+          "ending_equity": "849.934836685710000000",
+          "return_pct": "239.9739346742840000",
+          "completed_trades": 33,
+          "max_drawdown_pct": "33.42421629176050846879895276",
+          "profit_factor": "2.190094888222079830975329771",
+          "total_fees": "17.307201669470000000"
+        }
+      },
+      "scale_in_validation_screen": {
+        "one_slot": {
+          "ending_equity": 179.81411792428685,
+          "return_pct": -25.07745086488048,
+          "max_drawdown_pct": 33.34640181653501,
+          "completed_trades": 15,
+          "entries": 16
+        },
+        "confirmed_additions": {
+          "ending_equity": 173.6074274324001,
+          "return_pct": -27.663571903166627,
+          "max_drawdown_pct": 40.20629028221634,
+          "completed_trades": 15,
+          "entries": 22
+        }
+      }
+    },
+    "LINKUSDT": {
+      "selected": {
+        "vidya_length": 10,
+        "momentum_length": 20,
+        "smoothing_length": 8,
+        "atr_length": 60,
+        "band_multiplier": 3.8,
+        "warmup_bars": 400
+      },
+      "data_sha256": "ac0de75d58906013b518721fc67345adace1a407aebfcbea81a8185aa49294f2",
+      "exact": {
+        "incumbent_validation_baseline": {
+          "ending_equity": "212.283576409225000000",
+          "return_pct": "-15.0865694363100000",
+          "completed_trades": 16,
+          "max_drawdown_pct": "43.49231556310070089865466927",
+          "profit_factor": "0.3007929324905907563958338642",
+          "total_fees": "6.185856188680000000"
+        },
+        "incumbent_validation_stress": {
+          "ending_equity": "195.53277249430000000",
+          "return_pct": "-21.786891002280000",
+          "completed_trades": 16,
+          "max_drawdown_pct": "47.73696771208038991482934791",
+          "profit_factor": "0.2412874305375694391302839011",
+          "total_fees": "5.95668294709000000"
+        },
+        "incumbent_full_3y_baseline": {
+          "ending_equity": "612.457417567235000000",
+          "return_pct": "144.9829670268940000",
+          "completed_trades": 49,
+          "max_drawdown_pct": "37.71690475370776378358620146",
+          "profit_factor": "1.478051764794115417638265303",
+          "total_fees": "25.023650581600000000"
+        },
+        "incumbent_full_3y_stress": {
+          "ending_equity": "549.12255117436000000",
+          "return_pct": "119.649020469744000",
+          "completed_trades": 49,
+          "max_drawdown_pct": "41.48282393057111862064370592",
+          "profit_factor": "1.346534369803235106927296181",
+          "total_fees": "24.96150455178000000"
+        },
+        "selected_validation_baseline": {
+          "ending_equity": "197.767311474055000000",
+          "return_pct": "-20.8930754103780000",
+          "completed_trades": 17,
+          "max_drawdown_pct": "48.63345600352267856124166478",
+          "profit_factor": "0.2734293549706239047153213033",
+          "total_fees": "6.608296559300000000"
+        },
+        "selected_validation_stress": {
+          "ending_equity": "181.15829605515000000",
+          "return_pct": "-27.536681577940000",
+          "completed_trades": 17,
+          "max_drawdown_pct": "52.75385352268636493166172981",
+          "profit_factor": "0.2172142922466925844849847634",
+          "total_fees": "6.35796349937000000"
+        },
+        "selected_full_3y_baseline": {
+          "ending_equity": "743.101256959800000000",
+          "return_pct": "197.2405027839200000",
+          "completed_trades": 50,
+          "max_drawdown_pct": "33.13913287793156369161242458",
+          "profit_factor": "1.777852734565476435217851943",
+          "total_fees": "25.655179894025000000"
+        },
+        "selected_full_3y_stress": {
+          "ending_equity": "677.90958478140000000",
+          "return_pct": "171.163833912560000",
+          "completed_trades": 50,
+          "max_drawdown_pct": "35.32424712641926303071867790",
+          "profit_factor": "1.614956705000868191686862582",
+          "total_fees": "25.59077468988000000"
+        }
+      },
+      "scale_in_validation_screen": {
+        "one_slot": {
+          "ending_equity": 221.50617583780883,
+          "return_pct": -7.705760067579659,
+          "max_drawdown_pct": 23.185969523886218,
+          "completed_trades": 17,
+          "entries": 18
+        },
+        "confirmed_additions": {
+          "ending_equity": 214.83316597040871,
+          "return_pct": -10.48618084566304,
+          "max_drawdown_pct": 39.047164159765146,
+          "completed_trades": 17,
+          "entries": 32
+        }
+      }
+    },
+    "AVAXUSDT": {
+      "selected": {
+        "vidya_length": 6,
+        "momentum_length": 20,
+        "smoothing_length": 8,
+        "atr_length": 60,
+        "band_multiplier": 4.4,
+        "warmup_bars": 400
+      },
+      "data_sha256": "183229e0d5c1add6fb52f09ac17c7942285e721d9a15a21bf8ad85d838f1ac7c",
+      "exact": {
+        "incumbent_validation_baseline": {
+          "ending_equity": "131.496097995910000000",
+          "return_pct": "-47.4015608016360000",
+          "completed_trades": 24,
+          "max_drawdown_pct": "65.65808103575169463990778318",
+          "profit_factor": "0.4327473463144119588749107231",
+          "total_fees": "9.167138029660000000"
+        },
+        "incumbent_validation_stress": {
+          "ending_equity": "116.51326460203000000",
+          "return_pct": "-53.394694159188000",
+          "completed_trades": 24,
+          "max_drawdown_pct": "69.42365297222001461155395704",
+          "profit_factor": "0.3840441672390573173721267492",
+          "total_fees": "8.72497897994000000"
+        },
+        "incumbent_full_3y_baseline": {
+          "ending_equity": "526.688322197260000000",
+          "return_pct": "110.6753288789040000",
+          "completed_trades": 60,
+          "max_drawdown_pct": "35.80690075400060669865590297",
+          "profit_factor": "1.473750964458630707452261904",
+          "total_fees": "30.275042803225000000"
+        },
+        "incumbent_full_3y_stress": {
+          "ending_equity": "450.42351642407000000",
+          "return_pct": "80.169406569628000",
+          "completed_trades": 60,
+          "max_drawdown_pct": "41.87183719638030833968546240",
+          "profit_factor": "1.321402642681875646275018606",
+          "total_fees": "30.19702647150000000"
+        },
+        "selected_validation_baseline": {
+          "ending_equity": "130.133344374285000000",
+          "return_pct": "-47.9466622502860000",
+          "completed_trades": 15,
+          "max_drawdown_pct": "55.22644657091260054672744757",
+          "profit_factor": "0.1380934303074368998809983265",
+          "total_fees": "5.162802091245000000"
+        },
+        "selected_validation_stress": {
+          "ending_equity": "120.43603584712000000",
+          "return_pct": "-51.825585661152000",
+          "completed_trades": 15,
+          "max_drawdown_pct": "58.45990731970817067079162064",
+          "profit_factor": "0.1179224070037077249050962478",
+          "total_fees": "4.98830736399000000"
+        },
+        "selected_full_3y_baseline": {
+          "ending_equity": "711.740835620400000000",
+          "return_pct": "184.6963342481600000",
+          "completed_trades": 38,
+          "max_drawdown_pct": "38.61575724528782290655739930",
+          "profit_factor": "1.770406055564205086629532787",
+          "total_fees": "19.684725612810000000"
+        },
+        "selected_full_3y_stress": {
+          "ending_equity": "661.48994589970000000",
+          "return_pct": "164.595978359880000",
+          "completed_trades": 38,
+          "max_drawdown_pct": "39.83027537625742390221017260",
+          "profit_factor": "1.651960269729912133880207866",
+          "total_fees": "19.63668415672000000"
+        }
+      },
+      "scale_in_validation_screen": {
+        "one_slot": {
+          "ending_equity": 185.55132397775265,
+          "return_pct": -22.686948342603063,
+          "max_drawdown_pct": 27.464490870937308,
+          "completed_trades": 15,
+          "entries": 16
+        },
+        "confirmed_additions": {
+          "ending_equity": 156.18555861455798,
+          "return_pct": -34.92268391060084,
+          "max_drawdown_pct": 39.66763821583207,
+          "completed_trades": 15,
+          "entries": 24
+        }
+      }
+    },
+    "DOTUSDT": {
+      "selected": {
+        "vidya_length": 6,
+        "momentum_length": 20,
+        "smoothing_length": 8,
+        "atr_length": 120,
+        "band_multiplier": 4.4,
+        "warmup_bars": 400
+      },
+      "data_sha256": "179404b895f6be7c0a728ba7c716805069e7152d1a1c37da71c35207bf67916c",
+      "exact": {
+        "incumbent_validation_baseline": {
+          "ending_equity": "157.147436240095000000",
+          "return_pct": "-37.1410255039620000",
+          "completed_trades": 15,
+          "max_drawdown_pct": "53.11348110170298191461258852",
+          "profit_factor": "0.3975780855584402926802465980",
+          "total_fees": "6.033442139145000000"
+        },
+        "incumbent_validation_stress": {
+          "ending_equity": "145.47161247245000000",
+          "return_pct": "-41.811355011020000",
+          "completed_trades": 15,
+          "max_drawdown_pct": "55.99493289153176618191048673",
+          "profit_factor": "0.3398743033897165606793253163",
+          "total_fees": "5.84108853301000000"
+        },
+        "incumbent_full_3y_baseline": {
+          "ending_equity": "447.994724856285000000",
+          "return_pct": "79.1978899425140000",
+          "completed_trades": 44,
+          "max_drawdown_pct": "47.50203682377478170998766100",
+          "profit_factor": "1.438823011688659475930503651",
+          "total_fees": "22.194837080995000000"
+        },
+        "incumbent_full_3y_stress": {
+          "ending_equity": "391.73989222454000000",
+          "return_pct": "56.695956889816000",
+          "completed_trades": 44,
+          "max_drawdown_pct": "53.14133124781255610817761883",
+          "profit_factor": "1.293522617153400458943634034",
+          "total_fees": "22.13593018327000000"
+        },
+        "selected_validation_baseline": {
+          "ending_equity": "113.726678597820000000",
+          "return_pct": "-54.5093285608720000",
+          "completed_trades": 14,
+          "max_drawdown_pct": "65.14033146937804999002467410",
+          "profit_factor": "0.2628574651308996712370017743",
+          "total_fees": "4.971192867935000000"
+        },
+        "selected_validation_stress": {
+          "ending_equity": "105.58727764156000000",
+          "return_pct": "-57.765088943376000",
+          "completed_trades": 14,
+          "max_drawdown_pct": "67.47326101644311738824539517",
+          "profit_factor": "0.2214193363068005454873538688",
+          "total_fees": "4.82617433102000000"
+        },
+        "selected_full_3y_baseline": {
+          "ending_equity": "314.375510940400000000",
+          "return_pct": "25.7502043761600000",
+          "completed_trades": 33,
+          "max_drawdown_pct": "57.36035897505991313136170873",
+          "profit_factor": "1.137691323229570881056879659",
+          "total_fees": "16.550825772285000000"
+        },
+        "selected_full_3y_stress": {
+          "ending_equity": "270.49050229414000000",
+          "return_pct": "8.196200917656000",
+          "completed_trades": 33,
+          "max_drawdown_pct": "62.71475042780844683173842991",
+          "profit_factor": "1.042816533988279419831020711",
+          "total_fees": "16.48102106717000000"
+        }
+      },
+      "scale_in_validation_screen": {
+        "one_slot": {
+          "ending_equity": 180.24381384822385,
+          "return_pct": -24.8984108965734,
+          "max_drawdown_pct": 32.73768316598967,
+          "completed_trades": 14,
+          "entries": 14
+        },
+        "confirmed_additions": {
+          "ending_equity": 137.39516954506854,
+          "return_pct": -42.752012689554775,
+          "max_drawdown_pct": 51.78249925703242,
+          "completed_trades": 14,
+          "entries": 23
+        }
+      }
+    },
+    "DOGEUSDT": {
+      "selected": {
+        "vidya_length": 6,
+        "momentum_length": 20,
+        "smoothing_length": 15,
+        "atr_length": 120,
+        "band_multiplier": 4.4,
+        "warmup_bars": 400
+      },
+      "data_sha256": "18f3d6980cdb6d0b2f557145e4da76912a37212f27f32e78b877dfed8a707f33",
+      "exact": {
+        "incumbent_validation_baseline": {
+          "ending_equity": "193.81782682156500000000",
+          "return_pct": "-22.472869271374000000",
+          "completed_trades": 20,
+          "max_drawdown_pct": "49.04179515560643362296324896",
+          "profit_factor": "0.6780996301867196703782229788",
+          "total_fees": "9.03082989979000000000"
+        },
+        "incumbent_validation_stress": {
+          "ending_equity": "175.1671241015400000000",
+          "return_pct": "-29.93315035938400000",
+          "completed_trades": 20,
+          "max_drawdown_pct": "53.60070637837410956467657719",
+          "profit_factor": "0.5866497404042757039675095778",
+          "total_fees": "8.6386480191700000000"
+        },
+        "incumbent_full_3y_baseline": {
+          "ending_equity": "808.13788115181500000000",
+          "return_pct": "223.255152460726000000",
+          "completed_trades": 50,
+          "max_drawdown_pct": "41.52094159137863193441412880",
+          "profit_factor": "2.195598284062880978291062813",
+          "total_fees": "25.54571063710500000000"
+        },
+        "incumbent_full_3y_stress": {
+          "ending_equity": "742.7691975170200000000",
+          "return_pct": "197.10767900680800000",
+          "completed_trades": 50,
+          "max_drawdown_pct": "42.52949649185461294732263852",
+          "profit_factor": "1.988141103656339472088250017",
+          "total_fees": "25.4784032159800000000"
+        },
+        "selected_validation_baseline": {
+          "ending_equity": "205.72075745322500000000",
+          "return_pct": "-17.711697018710000000",
+          "completed_trades": 15,
+          "max_drawdown_pct": "45.34189025968763586843984219",
+          "profit_factor": "0.5873414686124589059211663270",
+          "total_fees": "7.01220703630000000000"
+        },
+        "selected_validation_stress": {
+          "ending_equity": "190.3353765319700000000",
+          "return_pct": "-23.86584938721200000",
+          "completed_trades": 15,
+          "max_drawdown_pct": "49.31221199356430953770350514",
+          "profit_factor": "0.5249201249268562821351363249",
+          "total_fees": "6.7858891362100000000"
+        },
+        "selected_full_3y_baseline": {
+          "ending_equity": "816.24124325673000000000",
+          "return_pct": "226.496497302692000000",
+          "completed_trades": 48,
+          "max_drawdown_pct": "32.19332488582427222658906548",
+          "profit_factor": "2.095139722837801475186334680",
+          "total_fees": "24.72792100266500000000"
+        },
+        "selected_full_3y_stress": {
+          "ending_equity": "746.6071252663900000000",
+          "return_pct": "198.64285010655600000",
+          "completed_trades": 48,
+          "max_drawdown_pct": "34.11168108559376209041591368",
+          "profit_factor": "1.897028274002327149273753220",
+          "total_fees": "24.6343791006000000000"
+        }
+      },
+      "scale_in_validation_screen": {
+        "one_slot": {
+          "ending_equity": 221.64206247767333,
+          "return_pct": -7.649140634302776,
+          "max_drawdown_pct": 20.709060176123963,
+          "completed_trades": 15,
+          "entries": 16
+        },
+        "confirmed_additions": {
+          "ending_equity": 201.41510157102937,
+          "return_pct": -16.077041012071092,
+          "max_drawdown_pct": 33.21588089139913,
+          "completed_trades": 15,
+          "entries": 27
+        }
+      }
+    }
+  },
+  "portfolios": {
+    "incumbent_validation_baseline": {
+      "metrics": {
+        "ending_equity": "216.70746940431860000000",
+        "return_pct": "-9.705221081533916666666666667",
+        "completed_trades": 17,
+        "max_drawdown_pct": "23.65773476360362931191988907",
+        "profit_factor": "0.6556612427213412610541395310",
+        "total_fees": "2.68446436614505000000"
+      },
+      "halt": "2025-11-13 19:59:59.999000+00:00",
+      "blocked": 187
+    },
+    "incumbent_validation_stress": {
+      "metrics": {
+        "ending_equity": "210.4691722037116000000",
+        "return_pct": "-12.30451158178683333333333333",
+        "completed_trades": 17,
+        "max_drawdown_pct": "25.39835223877980629955521847",
+        "profit_factor": "0.5753598391276675852174674957",
+        "total_fees": "2.6723731890403000000"
+      },
+      "halt": "2025-11-13 17:59:59.999000+00:00",
+      "blocked": 187
+    },
+    "incumbent_full_3y_baseline": {
+      "metrics": {
+        "ending_equity": "542.49312310262225000000",
+        "return_pct": "126.0388012927592708333333333",
+        "completed_trades": 108,
+        "max_drawdown_pct": "22.76681011682196429246088716",
+        "profit_factor": "2.043795872362013438133112412",
+        "total_fees": "17.41868786085160000000"
+      },
+      "halt": "2025-02-06 15:59:59.999000+00:00",
+      "blocked": 446
+    },
+    "incumbent_full_3y_stress": {
+      "metrics": {
+        "ending_equity": "406.2898649232532000000",
+        "return_pct": "69.28744371802216666666666667",
+        "completed_trades": 30,
+        "max_drawdown_pct": "20.13032047125735812374485059",
+        "profit_factor": "3.520869590194043500563081566",
+        "total_fees": "4.8304120088172000000"
+      },
+      "halt": "2024-02-05 21:59:59.999000+00:00",
+      "blocked": 524
+    },
+    "coin_specific_validation_baseline": {
+      "metrics": {
+        "ending_equity": "205.6967691824656000000",
+        "return_pct": "-14.29301284063933333333333333",
+        "completed_trades": 12,
+        "max_drawdown_pct": "21.08141897250680505379824802",
+        "profit_factor": "0.2732516897817646322764874471",
+        "total_fees": "1.8445044967234500000"
+      },
+      "halt": "2025-10-17 08:59:59.999000+00:00",
+      "blocked": 173
+    },
+    "coin_specific_validation_stress": {
+      "metrics": {
+        "ending_equity": "201.505961366893600000",
+        "return_pct": "-16.03918276379433333333333333",
+        "completed_trades": 12,
+        "max_drawdown_pct": "22.50941183686887653672903176",
+        "profit_factor": "0.2196462848029407751647922696",
+        "total_fees": "1.829986143040700000"
+      },
+      "halt": "2025-10-17 06:59:59.999000+00:00",
+      "blocked": 173
+    },
+    "coin_specific_full_3y_baseline": {
+      "metrics": {
+        "ending_equity": "712.90285271655050000000",
+        "return_pct": "197.0428552985627083333333333",
+        "completed_trades": 104,
+        "max_drawdown_pct": "20.59776005811227775567413226",
+        "profit_factor": "2.432404983874273782010717477",
+        "total_fees": "17.05051385469695000000"
+      },
+      "halt": "2025-03-10 18:59:59.999000+00:00",
+      "blocked": 392
+    },
+    "coin_specific_full_3y_stress": {
+      "metrics": {
+        "ending_equity": "680.5183371372052000000",
+        "return_pct": "183.5493071405021666666666667",
+        "completed_trades": 101,
+        "max_drawdown_pct": "21.11804693122937099344422833",
+        "profit_factor": "2.292038506930052317612058943",
+        "total_fees": "16.5310439886428000000"
+      },
+      "halt": "2025-02-28 02:59:59.999000+00:00",
+      "blocked": 395
+    }
+  },
+  "execution_rules": {
+    "BTCUSDT": {
+      "tick_size": "0.01000000",
+      "step_size": "0.00001000",
+      "min_qty": "0.00001000",
+      "min_notional": "5.00000000"
+    },
+    "ETHUSDT": {
+      "tick_size": "0.01000000",
+      "step_size": "0.00010000",
+      "min_qty": "0.00010000",
+      "min_notional": "5.00000000"
+    },
+    "BNBUSDT": {
+      "tick_size": "0.01000000",
+      "step_size": "0.00100000",
+      "min_qty": "0.00100000",
+      "min_notional": "5.00000000"
+    },
+    "SOLUSDT": {
+      "tick_size": "0.01000000",
+      "step_size": "0.00100000",
+      "min_qty": "0.00100000",
+      "min_notional": "5.00000000"
+    },
+    "XRPUSDT": {
+      "tick_size": "0.00010000",
+      "step_size": "0.10000000",
+      "min_qty": "0.10000000",
+      "min_notional": "5.00000000"
+    },
+    "ADAUSDT": {
+      "tick_size": "0.00010000",
+      "step_size": "0.10000000",
+      "min_qty": "0.10000000",
+      "min_notional": "5.00000000"
+    },
+    "LINKUSDT": {
+      "tick_size": "0.00100000",
+      "step_size": "0.01000000",
+      "min_qty": "0.01000000",
+      "min_notional": "5.00000000"
+    },
+    "AVAXUSDT": {
+      "tick_size": "0.00100000",
+      "step_size": "0.01000000",
+      "min_qty": "0.01000000",
+      "min_notional": "5.00000000"
+    },
+    "DOTUSDT": {
+      "tick_size": "0.00100000",
+      "step_size": "0.01000000",
+      "min_qty": "0.01000000",
+      "min_notional": "5.00000000"
+    },
+    "DOGEUSDT": {
+      "tick_size": "0.00001000",
+      "step_size": "1.00000000",
+      "min_qty": "1.00000000",
+      "min_notional": "1.00000000"
+    }
+  },
+  "run": "review-20260905-verified",
+  "decision": "NOT_APPROVED"
+}
