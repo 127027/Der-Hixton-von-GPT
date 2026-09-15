@@ -1,6 +1,11 @@
 name: Hixton Cloud Swarm
 
 on:
+  push:
+    branches:
+      - main
+    paths:
+      - .github/workflows/hixton-cloud-swarm.yml
   workflow_dispatch:
     inputs:
       mission:
