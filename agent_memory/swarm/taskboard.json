@@ -1,0 +1,36 @@
+{
+  "schema_version": 1,
+  "states": ["NEW","PREFLIGHT","ASSIGNED","IN_PROGRESS","VERIFYING","REGRESSION","QA","GOVERNANCE","REPAIR_LOOP","BLOCKED","DONE"],
+  "active_mission": {
+    "id": "SWARM-001",
+    "title": "Build and validate persistent 11-agent Hixton swarm",
+    "objective": "Create a durable specialist swarm that prevents cross-component regressions, detects stalled work, reopens failed patches, and never declares a bot change complete without technical QA and governance review.",
+    "state": "PREFLIGHT",
+    "owner_instruction_date": "2026-09-15",
+    "primary_agents": ["A10","A11"],
+    "required_agents": ["A01","A02","A03","A04","A05","A06","A07","A08","A09","A10","A11"],
+    "constraints": [
+      "Respect AGENTS.md bootstrap restriction before modifying files outside agent_memory/.",
+      "Do not alter live trading enablement or place real orders.",
+      "Do not optimize strategy merely to make historical numbers look better."
+    ],
+    "acceptance": [
+      "All 11 role contracts exist and are non-overlapping.",
+      "Dispatcher and meta-orchestrator responsibilities are separate.",
+      "Repair-loop and downstream invalidation rules are explicit.",
+      "Existing single-agent starter limitations are documented.",
+      "After bootstrap, local swarm runner is implemented and regression-tested.",
+      "First system test uses the USDT-to-USDC migration incident as a regression scenario."
+    ]
+  },
+  "queued_missions": [
+    {
+      "id": "SWARM-002",
+      "title": "USDC 3x80 early-loss-path improvement",
+      "objective": "After swarm infrastructure is validated, investigate and improve the fresh USDC portfolio path that reaches the early drawdown halt, using time-separated validation and without simply disabling risk protection.",
+      "state": "BLOCKED",
+      "blocked_by": ["SWARM-001"]
+    }
+  ],
+  "agent_runtime": {}
+}
