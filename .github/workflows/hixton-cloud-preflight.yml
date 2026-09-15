@@ -1,0 +1,60 @@
+name: Hixton Cloud Swarm Preflight
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - gpt/usdc-audit
+    paths:
+      - scripts/swarm_core.py
+      - tests/test_swarm_core.py
+      - agent_memory/swarm/**
+      - agent_memory/state.json
+      - .github/workflows/hixton-cloud-preflight.yml
+      - .github/workflows/hixton-cloud-swarm-reusable.yml
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Checkout engineering branch
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Validate cloud-swarm contract
+        shell: bash
+        run: |
+          set -euo pipefail
+          python -m venv .venv
+          .venv/bin/python -m pip install --upgrade pip
+          .venv/bin/pip install -e '.[dev]'
+          .venv/bin/python -m compileall -q scripts
+          .venv/bin/pytest -q tests/test_swarm_core.py
+          .venv/bin/python - <<'PY'
+          from pathlib import Path
+          from scripts.swarm_core import validate_cloud_ready
+          print(validate_cloud_ready(Path('.')))
+          PY
+
+      - name: Confirm obsolete laptop-agent files are absent
+        shell: bash
+        run: |
+          set -euo pipefail
+          for path in StartAgent.bat AgentChat.bat scripts/local_agent.ps1 scripts/agent_chat.ps1 scripts/swarm_runner.py; do
+            if [ -e "$path" ]; then
+              echo "::error::Obsolete laptop agent path still exists: $path"
+              exit 1
+            fi
+          done
+          echo "Obsolete laptop-agent paths are absent."
