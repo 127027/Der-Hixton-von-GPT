@@ -2,7 +2,7 @@
 
 This directory defines the persistent eleven-agent engineering swarm for Der Hixton.
 
-The swarm is **cloud-first and laptop-independent**. Agents run on GitHub-hosted virtual machines through GitHub Actions and the official OpenAI Codex GitHub Action. `StartAgent.bat`, `AgentChat.bat` and the former local PowerShell/Codex runners are obsolete and intentionally removed.
+The swarm is **cloud-first and laptop-independent**. Agents run on GitHub-hosted virtual machines through GitHub Actions and the official OpenAI Codex GitHub Action. Legacy laptop-bound engineering launchers and local agent runners are intentionally absent.
 
 The trading application itself remains separate: `Startbot.bat` is still the human Windows starter for the actual bot installation. The cloud swarm never uses a local laptop login and never receives Binance credentials.
 
