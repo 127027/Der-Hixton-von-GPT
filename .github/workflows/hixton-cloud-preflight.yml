@@ -51,6 +51,7 @@ jobs:
           .venv/bin/pytest -q \
             tests/test_swarm_core.py \
             tests/test_key_free_swarm.py \
+            tests/test_swarm_lifecycle.py \
             tests/test_cloud_paper_cycle.py \
             tests/test_backtest_usdt_usdc_migration_mission.py
           .venv/bin/python - <<'PY'
