@@ -8,12 +8,13 @@ state and sends no orders. The active runtime remains USDC-only.
 from __future__ import annotations
 
 import argparse
+import inspect
 import json
 from dataclasses import asdict, is_dataclass
 from datetime import UTC, datetime, timedelta
 from decimal import Decimal
 from pathlib import Path
-from typing import Any
+from typing import Any, Callable
 
 from hixton.backtest.engine import run_isolated_batch
 from hixton.backtest.models import BASELINE_COSTS, ExecutionRules, STRESS_COSTS
@@ -49,6 +50,24 @@ def _primitive(value: Any) -> Any:
     return value
 
 
+def _strategy_symbols() -> tuple[str, ...]:
+    """Derive the universe from V6 profiles across old and current definitions."""
+    profiles = V6_COIN_STRATEGY.coin_profiles
+    if not profiles:
+        raise ValueError("V6 replay requires ten explicit coin profiles")
+    symbols = tuple(profile.symbol for profile in profiles)
+    if len(symbols) != 10 or len(set(symbols)) != 10:
+        raise ValueError(f"V6 replay requires ten unique profile symbols: {symbols}")
+    return symbols
+
+
+def _optional_symbols_kwarg(function: Callable[..., object]) -> dict[str, tuple[str, ...]]:
+    """Use current explicit-universe APIs while remaining compatible with old V6."""
+    if "symbols" in inspect.signature(function).parameters:
+        return {"symbols": _strategy_symbols()}
+    return {}
+
+
 def _profile_payload() -> dict[str, object]:
     result: dict[str, object] = {}
     for profile in V6_COIN_STRATEGY.coin_profiles:
@@ -63,7 +82,7 @@ def _profile_payload() -> dict[str, object]:
 def _load_market_data(
     *, quote: str, requested_start: datetime, end: datetime
 ) -> tuple[dict[str, list[Any]], dict[str, ExecutionRules], datetime, dict[str, object]]:
-    symbols = V6_COIN_STRATEGY.symbols
+    symbols = _strategy_symbols()
     if any(not symbol.endswith(quote) for symbol in symbols):
         raise ValueError(
             f"checkout strategy symbols do not match requested quote {quote}: {symbols}"
@@ -134,7 +153,7 @@ def _evaluate(
             trade_policies_by_symbol=strategy.policy_map(),
             strategy_semantics=strategy.semantics,
             strategy_version=strategy.version,
-            symbols=strategy.symbols,
+            **_optional_symbols_kwarg(run_isolated_batch),
         )
         portfolio = run_shared_portfolio_backtest(
             candles_by_symbol=candles_by_symbol,
@@ -151,7 +170,7 @@ def _evaluate(
             strategy_semantics=strategy.semantics,
             strategy_version=strategy.version,
             slot_allocation=strategy.slot_allocation,
-            symbols=strategy.symbols,
+            **_optional_symbols_kwarg(run_shared_portfolio_backtest),
         )
         result[costs.name] = {
             "portfolio_3x80": {
@@ -210,7 +229,7 @@ def main() -> int:
         "schema_version": 1,
         "quote_asset": args.quote,
         "strategy_version": V6_COIN_STRATEGY.version,
-        "strategy_symbols": V6_COIN_STRATEGY.symbols,
+        "strategy_symbols": _strategy_symbols(),
         "requested_start_utc": requested_start,
         "end_utc": end,
         "available_common_start_utc": available_start,
