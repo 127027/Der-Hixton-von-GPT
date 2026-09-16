@@ -29,6 +29,21 @@ class Vault(Protocol):
     def delete(self, name: str) -> None: ...
 
 
+def _windows_library(name: str) -> Any:
+    """Load one Windows DLL without assuming WinDLL exists on other platforms."""
+    loader = getattr(ctypes, "WinDLL", None)
+    if loader is None:
+        raise VaultError("Sichere Schlüsselablage erfordert Windows. Kein Klartext-Fallback.")
+    return loader(name, use_last_error=True)
+
+
+def _windows_last_error() -> int:
+    getter = getattr(ctypes, "get_last_error", None)
+    if getter is None:
+        raise VaultError("Windows-Fehlerstatus ist auf dieser Plattform nicht verfügbar.")
+    return int(getter())
+
+
 class _Credential(ctypes.Structure):
     _fields_ = [
         ("Flags", wintypes.DWORD),
@@ -66,7 +81,7 @@ class WindowsVault:
     def _library() -> Any:
         if os.name != "nt":
             raise VaultError("Sichere Schlüsselablage erfordert Windows. Kein Klartext-Fallback.")
-        dll = ctypes.WinDLL("advapi32", use_last_error=True)
+        dll = _windows_library("advapi32")
         pointer = ctypes.POINTER(_Credential)
         dll.CredReadW.argtypes = [
             wintypes.LPCWSTR,
@@ -88,7 +103,7 @@ class WindowsVault:
         dll = self._library()
         pointer = ctypes.POINTER(_Credential)()
         if not dll.CredReadW(target, 1, 0, ctypes.byref(pointer)):
-            if ctypes.get_last_error() == 1168:  # ERROR_NOT_FOUND, not an empty/failed vault
+            if _windows_last_error() == 1168:  # ERROR_NOT_FOUND, not an empty/failed vault
                 return None
             raise VaultError("Windows-Anmeldedatenspeicher konnte nicht gelesen werden.")
         try:
@@ -127,7 +142,7 @@ class WindowsVault:
 
     def delete(self, name: str) -> None:
         target = self._target(name)
-        if not self._library().CredDeleteW(target, 1, 0) and ctypes.get_last_error() != 1168:
+        if not self._library().CredDeleteW(target, 1, 0) and _windows_last_error() != 1168:
             raise VaultError("Windows konnte den Hixton-Schlüssel nicht entfernen.")
 
 
