@@ -17,14 +17,15 @@ def _write_reports(root: Path, agents: list[str]) -> None:
 
 
 def test_all_eleven_roles_are_registered() -> None:
-    assert AGENT_IDS == tuple(f"A{i:02d}" for i in range(1, 12))
-    assert set(cloud_swarm_agent.SIMPLE_ROLES) == {f"A{i:02d}" for i in range(1, 9)}
+    assert tuple(f"A{i:02d}" for i in range(1, 12)) == AGENT_IDS
+    assert set(cloud_swarm_agent.SIMPLE_ROLES) == {
+        f"A{i:02d}" for i in range(1, 9)
+    }
 
 
 def test_taskboard_declares_key_free_paper_only_runtime() -> None:
-    board = json.loads(
-        (cloud_swarm_agent.ROOT / "agent_memory/swarm/taskboard.json").read_text(encoding="utf-8")
-    )
+    board_path = cloud_swarm_agent.ROOT / "agent_memory/swarm/taskboard.json"
+    board = json.loads(board_path.read_text(encoding="utf-8"))
     runtime = board["agent_runtime"]
     assert runtime["agent_execution_mode"] == "deterministic_key_free"
     assert runtime["openai_api_key_required"] is False
