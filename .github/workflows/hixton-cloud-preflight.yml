@@ -7,16 +7,13 @@ on:
       - gpt/usdc-audit
     paths:
       - pyproject.toml
+      - src/**/*.py
       - ui/package.json
       - ui/package-lock.json
       - ui/tsconfig.json
       - ui/vite.config.ts
-      - scripts/swarm_core.py
-      - scripts/cloud_swarm_agent.py
-      - scripts/cloud_paper_cycle.py
-      - tests/test_swarm_core.py
-      - tests/test_key_free_swarm.py
-      - tests/test_cloud_paper_cycle.py
+      - scripts/**/*.py
+      - tests/**/*.py
       - agent_memory/**
       - .github/workflows/hixton-cloud-preflight.yml
       - .github/workflows/hixton-cloud-swarm-reusable.yml
@@ -28,7 +25,7 @@ permissions:
 jobs:
   validate:
     runs-on: ubuntu-latest
-    timeout-minutes: 20
+    timeout-minutes: 25
     steps:
       - name: Checkout engineering branch
         uses: actions/checkout@v4
@@ -41,15 +38,16 @@ jobs:
         with:
           python-version: "3.12"
 
-      - name: Validate cloud-swarm and cloud-Paper contracts
+      - name: Validate cloud-swarm, source typing and cloud-Paper contracts
         shell: bash
         run: |
           set -euo pipefail
           python -m venv .venv
           .venv/bin/python -m pip install --upgrade pip
           .venv/bin/pip install -e '.[dev]'
-          .venv/bin/python -m compileall -q scripts
-          .venv/bin/ruff check scripts/cloud_swarm_agent.py tests/test_key_free_swarm.py
+          .venv/bin/python -m compileall -q src scripts
+          .venv/bin/ruff check src scripts tests
+          .venv/bin/mypy src
           .venv/bin/pytest -q tests/test_swarm_core.py tests/test_key_free_swarm.py tests/test_cloud_paper_cycle.py
           .venv/bin/python - <<'PY'
           from pathlib import Path
