@@ -19,7 +19,8 @@ on:
 # Key-free engineering swarm for the Paper-only bot. It receives no Binance
 # credentials and no OpenAI/API secret. The only autonomous repository write
 # permitted by this workflow is the known-safe taskboard NEW -> IN_PROGRESS
-# lifecycle normalization. A09/A11 still gate every clean run; no auto-merge.
+# lifecycle normalization. Mission-specific evidence is mandatory at A10, A09
+# and A11; a bare specialist PASS can no longer satisfy the workflow.
 permissions:
   contents: write
   actions: read
