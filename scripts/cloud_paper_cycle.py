@@ -37,7 +37,7 @@ async def run_cycle(config_path: Path) -> dict[str, object]:
     # every later run it processes all finalized bars since the persisted
     # checkpoints exactly once using real Binance candles and the current bar's
     # immutable OPEN as the execution reference.
-    await supervisor._sync_and_analyze(initial=True)  # noqa: SLF001
+    await supervisor._sync_and_analyze(initial=True)
     snapshot = supervisor.state.snapshot()
     if snapshot.health != "HEALTHY":
         raise RuntimeError(f"cloud Paper cycle did not become healthy: {snapshot.health}")
