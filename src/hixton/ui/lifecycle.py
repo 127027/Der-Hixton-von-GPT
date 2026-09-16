@@ -21,12 +21,20 @@ from hixton.runtime.supervisor import RuntimeSupervisor
 PROTOCOL = "hixton-visible-session-v1"
 
 
+def _windows_library(name: str) -> Any:
+    """Load one Windows DLL without assuming WinDLL exists on other platforms."""
+    loader = getattr(ctypes, "WinDLL", None)
+    if loader is None:
+        raise RuntimeError("Windows API ist auf dieser Plattform nicht verfügbar")
+    return loader(name, use_last_error=True)
+
+
 def console_present() -> bool:
     """Minimized consoles count as open; detached/hidden Windows launches do not."""
     if os.name != "nt":
         return sys.stdin.isatty()
-    kernel = ctypes.WinDLL("kernel32", use_last_error=True)
-    user = ctypes.WinDLL("user32", use_last_error=True)
+    kernel = _windows_library("kernel32")
+    user = _windows_library("user32")
     kernel.GetConsoleWindow.restype = ctypes.c_void_p
     user.IsWindow.argtypes = [ctypes.c_void_p]
     user.IsWindowVisible.argtypes = [ctypes.c_void_p]
@@ -46,7 +54,7 @@ class ConsoleParent:
         self.kernel: Any = None
         self.shell_handles: list[Any] = []
         if os.name == "nt":
-            self.kernel = ctypes.WinDLL("kernel32", use_last_error=True)
+            self.kernel = _windows_library("kernel32")
             self.kernel.OpenProcess.argtypes = [ctypes.c_uint32, ctypes.c_bool, ctypes.c_uint32]
             self.kernel.OpenProcess.restype = ctypes.c_void_p
             self.kernel.WaitForSingleObject.argtypes = [ctypes.c_void_p, ctypes.c_uint32]
