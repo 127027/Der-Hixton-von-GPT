@@ -6,6 +6,11 @@ on:
     branches:
       - gpt/usdc-audit
     paths:
+      - pyproject.toml
+      - ui/package.json
+      - ui/package-lock.json
+      - ui/tsconfig.json
+      - ui/vite.config.ts
       - scripts/swarm_core.py
       - scripts/cloud_swarm_agent.py
       - scripts/cloud_paper_cycle.py
