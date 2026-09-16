@@ -80,6 +80,29 @@ def _profile_payload() -> dict[str, object]:
     return result
 
 
+def _first_available_open(
+    client: BinancePublicClient,
+    symbol: str,
+    *,
+    start: datetime,
+    end_exclusive: datetime,
+) -> datetime:
+    """Find the first real bar across current and historical data adapters."""
+    native = getattr(client, "first_available_open", None)
+    if callable(native):
+        return native(symbol, start=start, end_exclusive=end_exclusive)
+
+    cursor = start
+    probe_span = 1_000 * BAR
+    while cursor < end_exclusive:
+        probe_end = min(end_exclusive, cursor + probe_span)
+        candles = client.fetch_klines(symbol, start=cursor, end_exclusive=probe_end)
+        if candles:
+            return candles[0].open_time_utc
+        cursor = probe_end
+    raise ValueError(f"{symbol}: no public hourly candle found in requested history")
+
+
 def _load_market_data(
     *, quote: str, requested_start: datetime, end: datetime
 ) -> tuple[dict[str, list[Any]], dict[str, ExecutionRules], datetime, dict[str, object]]:
@@ -111,7 +134,12 @@ def _load_market_data(
             min_qty=rule.min_qty,
             min_notional=rule.min_notional,
         )
-        first = client.first_available_open(symbol, start=warmup_start, end_exclusive=end)
+        first = _first_available_open(
+            client,
+            symbol,
+            start=warmup_start,
+            end_exclusive=end,
+        )
         candles = client.fetch_klines(symbol, start=first, end_exclusive=end)
         audit = audit_candles(candles, expected_symbol=symbol)
         audit.require_valid()
