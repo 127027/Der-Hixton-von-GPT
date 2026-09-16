@@ -8,8 +8,9 @@ registry, active mission and protected patch boundaries before model work starts
 from __future__ import annotations
 
 import json
+from collections.abc import Iterable
 from pathlib import Path
-from typing import Any, Iterable
+from typing import Any
 
 AGENT_IDS = tuple(f"A{i:02d}" for i in range(1, 12))
 MANDATORY_AGENTS = frozenset(AGENT_IDS)
