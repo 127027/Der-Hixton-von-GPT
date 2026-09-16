@@ -38,6 +38,9 @@ KNOWN_REGRESSION_CASES: dict[str, tuple[str, ...]] = {
         "verify_portfolio_risk_halt_and_slot_block_reasons",
         "verify_paper_shared_portfolio_parity_when_account_assumptions_match",
         "verify_ui_and_report_quote_provenance",
+        "verify_fresh_dual_quote_replay",
+        "verify_three_year_strategy_continuity",
+        "distinguish_shared_portfolio_from_isolated_accounts",
         "do_not_patch_without_a_proven_code_or_contract_defect",
     ),
 }
@@ -45,13 +48,27 @@ KNOWN_REGRESSION_CASES: dict[str, tuple[str, ...]] = {
 REGRESSION_EVIDENCE_CONTRACTS: dict[str, dict[str, tuple[str, ...]]] = {
     "USDT_USDC_MIGRATION": {
         "A01": ("requirements_contract", "paper_only_contract", "mission_lifecycle"),
-        "A02": ("same_window_comparison", "carried_vs_fresh", "quote_migration_diagnosis"),
+        "A02": (
+            "same_window_comparison",
+            "carried_vs_fresh",
+            "quote_migration_diagnosis",
+            "fresh_dual_quote_replay",
+            "three_year_strategy_continuity",
+        ),
         "A03": ("paper_shared_parity", "persistent_paper_state"),
         "A04": ("ui_quote_provenance", "shipped_ui_bundle"),
         "A05": ("runtime_freshness", "ledger_integrity"),
         "A06": ("integration_compile", "full_regression"),
-        "A07": ("binance_usdc_universe", "public_kline_sample"),
-        "A08": ("strategy_risk_invariants", "early_loss_risk_path"),
+        "A07": (
+            "binance_usdc_universe",
+            "public_kline_sample",
+            "real_usdc_common_history_start",
+        ),
+        "A08": (
+            "strategy_risk_invariants",
+            "early_loss_risk_path",
+            "shared_vs_isolated_risk_path",
+        ),
         "A09": ("independent_full_qa", "independent_ui_qa"),
         "A10": ("evidence_contract_audit", "repair_routing"),
         "A11": ("governance_audit",),
