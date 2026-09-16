@@ -9,44 +9,21 @@ on:
   workflow_dispatch:
     inputs:
       mission:
-        description: Optional owner mission override; empty uses agent_memory/swarm/taskboard.json
+        description: Optional owner mission override; empty uses active taskboard mission
         required: false
         type: string
         default: ""
   schedule:
-    - cron: "17 */12 * * *"
+    - cron: "17 */6 * * *"
 
-# Engineering swarm reviews the Paper-only bot; it has no Binance private credentials.
+# Key-free engineering swarm for the Paper-only bot. It receives no Binance
+# credentials and no OpenAI/API secret. All roles are deterministic checks.
 permissions:
-  contents: write
-  pull-requests: write
-  issues: write
+  contents: read
   actions: read
 
 jobs:
-  cloud-key:
-    runs-on: ubuntu-latest
-    outputs:
-      configured: ${{ steps.check.outputs.configured }}
-    steps:
-      - name: Check cloud-agent credential without exposing it
-        id: check
-        shell: bash
-        env:
-          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
-        run: |
-          if [ -n "$OPENAI_API_KEY" ]; then
-            echo "configured=true" >> "$GITHUB_OUTPUT"
-            echo "OpenAI cloud-agent secret is configured."
-          else
-            echo "configured=false" >> "$GITHUB_OUTPUT"
-            echo "OPENAI_API_KEY is not configured yet; cloud swarm remains safely idle."
-          fi
-
   cloud-swarm:
-    needs: cloud-key
-    if: needs.cloud-key.outputs.configured == 'true'
     uses: 127027/Der-Hixton-von-GPT/.github/workflows/hixton-cloud-swarm-reusable.yml@gpt/usdc-audit
     with:
       mission: ${{ inputs.mission }}
-    secrets: inherit
