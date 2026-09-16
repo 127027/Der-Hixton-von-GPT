@@ -229,7 +229,8 @@ def validate_migration_research_evidence(repo: Path) -> dict[str, Any]:
     portfolio = fresh.get("portfolio_3x80")
     isolated = fresh.get("isolated_10x250")
     history = fresh.get("real_usdc_history")
-    if not isinstance(portfolio, dict) or not isinstance(isolated, dict) or not isinstance(history, dict):
+    branches = (portfolio, isolated, history)
+    if not all(isinstance(item, dict) for item in branches):
         raise SwarmContractError("fresh dual-quote report is incomplete")
     if portfolio.get("same_window_usdc_minus_usdt") != "2.51522026442150000000":
         raise SwarmContractError("same-window USDT/USDC delta drifted")
