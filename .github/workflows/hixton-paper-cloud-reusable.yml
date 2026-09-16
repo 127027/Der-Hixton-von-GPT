@@ -7,20 +7,26 @@ permissions:
   contents: write
   actions: read
 
+# A new primary/backup lease takes over from the old one. The old process has
+# already checkpointed the Paper DB at most one lease interval earlier; the new
+# process restores that DB and the canonical recovery path catches up finalized
+# 1h bars exactly once.
 concurrency:
   group: hixton-paper-cloud-runtime
-  cancel-in-progress: false
+  cancel-in-progress: true
 
 env:
   BASE_BRANCH: gpt/usdc-audit
   STATE_BRANCH: paper-runtime-state
   STATE_TAG: paper-cloud-initialized
   PYTHON_VERSION: "3.12"
+  PAPER_LEASE_SECONDS: "21000"
+  PAPER_CYCLE_INTERVAL_SECONDS: "900"
 
 jobs:
   paper-cycle:
     runs-on: ubuntu-latest
-    timeout-minutes: 45
+    timeout-minutes: 360
     steps:
       - name: Checkout Paper engineering branch
         uses: actions/checkout@v4
@@ -73,29 +79,44 @@ jobs:
           .venv/bin/python - <<'PY'
           import sqlite3
           from pathlib import Path
+
           path = Path('data/hixton-usdc.sqlite3')
           if not path.is_file() or path.stat().st_size == 0:
               raise SystemExit('restored Paper database is missing or empty')
           with sqlite3.connect(path) as connection:
               result = connection.execute('PRAGMA integrity_check').fetchone()[0]
           if result != 'ok':
-              raise SystemExit(f'SQLite integrity check failed before cycle: {result}')
+              raise SystemExit(f'SQLite integrity check failed before lease: {result}')
           print('Restored Paper database integrity: OK')
           PY
 
-      - name: Run one real-Binance Paper recovery cycle
+      - name: Run durable real-Binance Paper lease
         shell: bash
         env:
           HIXTON_TRADING_MODE: PAPER_ONLY
+          GH_TOKEN: ${{ github.token }}
+          BOOTSTRAP: ${{ steps.restore.outputs.bootstrap }}
         run: |
           set -euo pipefail
-          timeout 30m .venv/bin/python scripts/cloud_paper_cycle.py | tee /tmp/paper-summary.json
 
-      - name: Verify and checkpoint resulting Paper database
-        shell: bash
-        run: |
-          set -euo pipefail
-          .venv/bin/python - <<'PY'
+          lease_started="$(date +%s)"
+          lease_deadline="$((lease_started + PAPER_LEASE_SECONDS))"
+          cycle=0
+          state_dir="$(mktemp -d)"
+          git -C "$state_dir" init -b "$STATE_BRANCH"
+          git -C "$state_dir" config user.name "hixton-paper[bot]"
+          git -C "$state_dir" config user.email "hixton-paper@users.noreply.github.com"
+          git -C "$state_dir" remote add origin "https://x-access-token:${GH_TOKEN}@github.com/${GITHUB_REPOSITORY}.git"
+
+          persist_cycle() {
+            cycle="$((cycle + 1))"
+            export PAPER_LEASE_CYCLE="$cycle"
+            echo "[Hixton Paper] Lease cycle ${cycle} starting at $(date -u +%FT%TZ)"
+
+            timeout 30m .venv/bin/python scripts/cloud_paper_cycle.py > /tmp/paper-summary.json
+            cat /tmp/paper-summary.json
+
+            .venv/bin/python - <<'PY'
           import json
           import sqlite3
           from pathlib import Path
@@ -110,31 +131,27 @@ jobs:
               raise SystemExit(f'SQLite integrity check failed after cycle: {result}')
 
           summary = json.loads(Path('/tmp/paper-summary.json').read_text(encoding='utf-8'))
-          if summary.get('mode') != 'PAPER_ONLY':
-              raise SystemExit('Paper-only invariant missing from cycle result')
-          if summary.get('market_data') != 'BINANCE_PUBLIC_USDC':
-              raise SystemExit('cycle did not certify real public Binance USDC data')
-          if summary.get('market_data_base_url') != 'https://data-api.binance.vision':
-              raise SystemExit('cloud cycle did not use the Binance market-data-only endpoint')
-          if summary.get('real_money_orders_allowed') is not False:
-              raise SystemExit('real-money order invariant violated')
-          if summary.get('testnet_orders_allowed') is not False:
-              raise SystemExit('testnet order invariant violated')
+          required = {
+              'mode': 'PAPER_ONLY',
+              'market_data': 'BINANCE_PUBLIC_USDC',
+              'market_data_base_url': 'https://data-api.binance.vision',
+              'real_money_orders_allowed': False,
+              'testnet_orders_allowed': False,
+          }
+          for key, expected in required.items():
+              if summary.get(key) != expected:
+                  raise SystemExit(f'Paper invariant failed: {key}={summary.get(key)!r}, expected {expected!r}')
           print('Paper-only post-cycle invariants: OK')
           PY
 
-      - name: Package durable Paper state
-        id: package
-        shell: bash
-        run: |
-          set -euo pipefail
-          gzip -9 -c data/hixton-usdc.sqlite3 > /tmp/hixton-usdc.sqlite3.gz
-          size="$(stat -c %s /tmp/hixton-usdc.sqlite3.gz)"
-          if [ "$size" -ge 95000000 ]; then
-            echo "::error::Compressed Paper database is too large for safe GitHub state-branch storage ($size bytes)."
-            exit 1
-          fi
-          .venv/bin/python - <<'PY'
+            gzip -9 -c data/hixton-usdc.sqlite3 > /tmp/hixton-usdc.sqlite3.gz
+            packed_size="$(stat -c %s /tmp/hixton-usdc.sqlite3.gz)"
+            if [ "$packed_size" -ge 95000000 ]; then
+              echo "::error::Compressed Paper database is too large for safe GitHub state storage (${packed_size} bytes)."
+              exit 1
+            fi
+
+            .venv/bin/python - <<'PY'
           import hashlib
           import json
           import os
@@ -145,24 +162,24 @@ jobs:
           db = Path('data/hixton-usdc.sqlite3')
           packed = Path('/tmp/hixton-usdc.sqlite3.gz')
           summary = json.loads(Path('/tmp/paper-summary.json').read_text(encoding='utf-8'))
-          source_commit = subprocess.check_output(
-              ['git', 'rev-parse', 'HEAD'], text=True
-          ).strip()
+          source_commit = subprocess.check_output(['git', 'rev-parse', 'HEAD'], text=True).strip()
           previous = None
           previous_path = Path('/tmp/previous-manifest.json')
           if previous_path.exists():
               previous = json.loads(previous_path.read_text(encoding='utf-8'))
           manifest = {
-              'schema_version': 1,
+              'schema_version': 2,
               'mode': 'PAPER_ONLY',
               'market_data': 'BINANCE_PUBLIC_USDC',
               'source_branch': os.environ['BASE_BRANCH'],
               'source_commit': source_commit,
               'workflow_run_id': os.environ['GITHUB_RUN_ID'],
+              'lease_cycle': int(os.environ['PAPER_LEASE_CYCLE']),
               'saved_at_utc': datetime.now(UTC).isoformat(),
               'database_sha256': hashlib.sha256(db.read_bytes()).hexdigest(),
               'compressed_sha256': hashlib.sha256(packed.read_bytes()).hexdigest(),
               'previous_workflow_run_id': previous.get('workflow_run_id') if previous else None,
+              'previous_lease_cycle': previous.get('lease_cycle') if previous else None,
               'paper_summary': summary,
               'real_money_orders_allowed': False,
               'testnet_orders_allowed': False,
@@ -172,43 +189,48 @@ jobs:
           )
           PY
 
-      - name: Persist Paper state on isolated state branch
-        shell: bash
-        env:
-          GH_TOKEN: ${{ github.token }}
-          BOOTSTRAP: ${{ steps.restore.outputs.bootstrap }}
-        run: |
-          set -euo pipefail
-          state_dir="$(mktemp -d)"
-          git -C "$state_dir" init -b "$STATE_BRANCH"
-          git -C "$state_dir" config user.name "hixton-paper[bot]"
-          git -C "$state_dir" config user.email "hixton-paper@users.noreply.github.com"
-          mkdir -p "$state_dir/state"
-          cp /tmp/hixton-usdc.sqlite3.gz "$state_dir/state/hixton-usdc.sqlite3.gz"
-          cp /tmp/manifest.json "$state_dir/state/manifest.json"
-          cat > "$state_dir/README.md" <<'EOF'
+            rm -rf "$state_dir/state"
+            mkdir -p "$state_dir/state"
+            cp /tmp/hixton-usdc.sqlite3.gz "$state_dir/state/hixton-usdc.sqlite3.gz"
+            cp /tmp/manifest.json "$state_dir/state/manifest.json"
+            cat > "$state_dir/README.md" <<'EOF'
           # Hixton Paper runtime state
 
           Machine-managed state for the GitHub-hosted Paper-only runtime.
           Contains public Binance market candles and simulated Paper account state only.
           Never add Binance credentials or real-order data here.
           EOF
-          git -C "$state_dir" add README.md state
-          git -C "$state_dir" commit -m "state(paper): persist cloud Paper cycle ${GITHUB_RUN_ID}"
-          git -C "$state_dir" remote add origin "https://x-access-token:${GH_TOKEN}@github.com/${GITHUB_REPOSITORY}.git"
+            git -C "$state_dir" add -A
+            if git -C "$state_dir" rev-parse --verify HEAD >/dev/null 2>&1; then
+              git -C "$state_dir" commit --amend --no-edit
+            else
+              git -C "$state_dir" commit -m "state(paper): persist cloud Paper lease ${GITHUB_RUN_ID}"
+            fi
 
-          # On a first bootstrap, the tag is the durable reset guard. Publish it
-          # before the state branch so a partial first write fails closed later.
-          if [ "$BOOTSTRAP" = "true" ]; then
-            git -C "$state_dir" tag "$STATE_TAG"
-            git -C "$state_dir" push origin "refs/tags/${STATE_TAG}"
-          fi
-          git -C "$state_dir" push --force origin "HEAD:refs/heads/${STATE_BRANCH}"
+            if [ "$BOOTSTRAP" = "true" ] && [ "$cycle" -eq 1 ]; then
+              git -C "$state_dir" tag "$STATE_TAG"
+              git -C "$state_dir" push origin "refs/tags/${STATE_TAG}"
+            fi
+            git -C "$state_dir" push --force origin "HEAD:refs/heads/${STATE_BRANCH}"
+            cp /tmp/manifest.json /tmp/previous-manifest.json
+            echo "[Hixton Paper] Lease cycle ${cycle} persisted at $(date -u +%FT%TZ)"
+          }
 
-      - name: Upload short-lived Paper cycle evidence
+          while true; do
+            persist_cycle
+            now="$(date +%s)"
+            if [ "$((now + PAPER_CYCLE_INTERVAL_SECONDS))" -ge "$lease_deadline" ]; then
+              echo "[Hixton Paper] Lease handoff window reached after ${cycle} durable cycles."
+              break
+            fi
+            sleep "$PAPER_CYCLE_INTERVAL_SECONDS"
+          done
+
+      - name: Upload final lease evidence
+        if: ${{ !cancelled() }}
         uses: actions/upload-artifact@v4
         with:
-          name: hixton-paper-cycle-${{ github.run_id }}
+          name: hixton-paper-lease-${{ github.run_id }}
           path: |
             /tmp/paper-summary.json
             /tmp/manifest.json
