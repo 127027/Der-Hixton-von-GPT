@@ -118,6 +118,29 @@ jobs:
           print(data['available_common_start_utc'])
           PY
           cat /tmp/common_start.txt
+          python - <<'PY'
+          import json
+          from pathlib import Path
+
+          data = json.loads(Path('evidence/usdc.json').read_text(encoding='utf-8'))
+          window = data['windows']['fresh_common']['results']['baseline']
+          portfolio = window['portfolio_3x80']
+          isolated = window['isolated_10x250']
+          print(json.dumps({
+              'fresh_common_start_utc': data['comparison_start_utc'],
+              'end_utc': data['end_utc'],
+              'portfolio_3x80': portfolio,
+              'isolated_10x250': isolated,
+          }, indent=2))
+          PY
+
+      - name: Upload fresh USDC evidence immediately
+        uses: actions/upload-artifact@v4
+        with:
+          name: hixton-fresh-usdc-${{ github.run_id }}
+          path: evidence/usdc.json
+          retention-days: 30
+          if-no-files-found: error
 
       - name: Fresh historical USDT reference replay on the exact common window and full window
         shell: bash
