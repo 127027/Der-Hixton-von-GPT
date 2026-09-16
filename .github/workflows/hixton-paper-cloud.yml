@@ -8,14 +8,12 @@ on:
       - .github/workflows/hixton-paper-cloud.yml
   workflow_dispatch:
   schedule:
-    # Six checks per hour, deliberately away from minute 00 where scheduled
-    # GitHub Actions are commonly more congested. Strategy decisions still use
-    # finalized native 1h candles only; this cadence only controls catch-up lag.
-    - cron: "3,13,23,33,43,53 * * * *"
+    # Native strategy decisions use finalized 1h candles. Two durable recovery
+    # cycles per hour are sufficient; checkpoints catch up any delayed run.
+    - cron: "7,37 * * * *"
 
 # Paper-only runtime: official Binance public market-data endpoint,
 # simulated fills, persistent Paper ledger, no exchange secrets.
-# Every new VM must restore the existing Paper ledger before market processing.
 permissions:
   contents: write
   actions: read
