@@ -189,7 +189,9 @@ def required_evidence_by_agent(mission: dict[str, Any]) -> dict[str, tuple[str, 
         try:
             contract = REGRESSION_EVIDENCE_CONTRACTS[case]
         except KeyError as error:
-            raise SwarmContractError(f"Missing evidence contract for regression case: {case}") from error
+            raise SwarmContractError(
+                f"Missing evidence contract for regression case: {case}"
+            ) from error
         for agent, tags in contract.items():
             merged[agent].update(tags)
     return {agent: tuple(sorted(tags)) for agent, tags in merged.items()}
