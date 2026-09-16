@@ -24,7 +24,7 @@
     "objective": "Continuously keep the Hixton Paper-only system internally consistent as new features, fixes and experiments are added. Every material extension must be checked by all eleven role layers, must preserve the USDC migration invariants, must detect stale lifecycle/runtime/evidence state, must route any proven defect back to its owning layer, and must not reach QA/governance completion while required evidence is missing. Operational validation uses real public Binance USDC market data with simulated fills and persistent Paper account state only.",
     "state": "IN_PROGRESS",
     "completion_mode": "continuous",
-    "started_at_utc": "2026-09-16T12:00:00+00:00",
+    "started_at_utc": "2026-09-16T10:30:00+00:00",
     "last_transition_reason": "SWARM-002 completed with full A01-A11 QA/governance evidence; continuous regression and lifecycle monitoring now owns subsequent extensions.",
     "owner_instruction_date": "2026-09-16",
     "primary_agents": ["A01", "A02", "A03", "A04", "A05", "A06", "A07", "A08", "A09", "A10", "A11"],
