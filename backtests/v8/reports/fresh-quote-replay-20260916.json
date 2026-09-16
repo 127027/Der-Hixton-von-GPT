@@ -1,0 +1,53 @@
+{
+  "schema_version": 1,
+  "generated_from_workflow": {
+    "name": "Hixton Fresh Quote Replay",
+    "run_id": 35137877964,
+    "artifact_id": 10464735375,
+    "artifact_name": "hixton-fresh-quote-replay-35137877964",
+    "artifact_sha256": "28ed4ed4ed50daa1639bacb03ef64443deb4acea7bab94f4f1a12795ea910a5"
+  },
+  "profiles_identical_by_base_asset": true,
+  "requested_full_start_utc": "2023-09-01T12:00:00+00:00",
+  "fresh_common_start_utc": "2024-03-24T00:00:00+00:00",
+  "end_utc": "2026-09-01T12:00:00+00:00",
+  "portfolio_3x80": {
+    "usdt_full": {
+      "starting_equity": "250",
+      "ending_equity": "733.30648172557635000000",
+      "completed_trades": 187,
+      "risk_halted_at_utc": "2026-02-25T05:59:59.999000+00:00"
+    },
+    "usdt_fresh_common": {
+      "starting_equity": "250",
+      "ending_equity": "201.1088399751235000000",
+      "completed_trades": 9,
+      "risk_halted_at_utc": "2024-04-30T11:59:59.999000+00:00"
+    },
+    "usdc_fresh_common": {
+      "starting_equity": "250",
+      "ending_equity": "203.62406023954500000000",
+      "completed_trades": 14,
+      "risk_halted_at_utc": "2024-05-01T19:59:59.999000+00:00"
+    },
+    "same_window_usdc_minus_usdt": "2.51522026442150000000",
+    "usdt_full_minus_fresh_common": "532.19764175045285000000"
+  },
+  "isolated_10x250": {
+    "usdt_full_ending_equity": "7152.29370844759090000000",
+    "usdt_fresh_common_ending_equity": "4118.70147055677790000000",
+    "usdc_fresh_common_ending_equity": "4007.26179461508830000000"
+  },
+  "real_usdc_history": {
+    "ten_market_common_usable_start_utc": "2024-03-24T00:00:00+00:00",
+    "limiting_symbol": "DOGEUSDC",
+    "reason": "The ten-market USDC universe does not have sufficient common public 1h history plus required warm-up back to 2023-09-01."
+  },
+  "classification": "NON_EQUIVALENT_HISTORY_WINDOW_DOMINATES",
+  "finding": "On the exact same fresh-start window, USDC slightly outperformed USDT in the shared 3x80 portfolio. The large 733-versus-203 difference is dominated by the removed 2023-09 to 2024-03 strategy/account path and the fresh reset to 250 immediately before an early loss regime that triggers the persistent portfolio drawdown halt. It is not explained by a USDT-to-USDC strategy migration defect.",
+  "safety": {
+    "orders_sent": false,
+    "credentials_used": false,
+    "paper_state_modified": false
+  }
+}
