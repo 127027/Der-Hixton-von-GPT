@@ -159,7 +159,7 @@ def _evaluate(
                 "risk_halted_at_utc": portfolio.risk_halted_at_utc,
                 "max_concurrent_positions": portfolio.max_concurrent_positions,
                 "open_symbols_at_end": portfolio.open_symbols_at_end,
-                "blocked_entry_count": len(portfolio.blocked_entries),
+                "blocked_signal_count": len(portfolio.blocked_signals),
             },
             "isolated_10x250": {
                 "starting_equity": batch.starting_equity,
