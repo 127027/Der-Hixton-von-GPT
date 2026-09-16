@@ -21,6 +21,7 @@
     "regression_cases": ["USDT_USDC_MIGRATION"],
     "constraints": [
       "Run in GitHub-hosted virtual environments; no owner laptop dependency.",
+      "The eleven cloud roles must run without OpenAI/API secrets; their default mode is deterministic verification and supervision.",
       "Trading mode is permanently Paper-only for this project phase: real public Binance market data, simulated orders/fills, persistent Paper account state.",
       "Never send real or testnet exchange orders and never request Binance account credentials.",
       "Do not replace real Binance candles with synthetic market data for operational Paper evaluation; deterministic fixtures remain allowed only for unit/regression tests.",
@@ -31,6 +32,7 @@
     ],
     "acceptance": [
       "All eleven roles participate or explicitly report not applicable with evidence.",
+      "All eleven default cloud roles execute without OpenAI or Binance private API credentials.",
       "Same-window USDT/USDC and fresh-start versus carried-account differences remain correctly separated.",
       "A02 and A08 identify the concrete early-loss contributors and test bounded improvement hypotheses without data leakage.",
       "A03 verifies Paper/portfolio behavior remains consistent for equivalent assumptions.",
@@ -38,13 +40,15 @@
       "A05 and A06 check runtime and cross-component regressions.",
       "Operational Paper evidence uses real public Binance USDC candles and simulated fills only.",
       "Deterministic Python/UI QA passes on a fresh GitHub runner.",
-      "A09 issues QA_PASS and A11 issues GOVERNANCE_PASS before a pull request is opened.",
+      "A09 issues QA_PASS and A11 issues GOVERNANCE_PASS before completion is claimed.",
       "No automatic merge or active-strategy activation occurs."
     ]
   },
   "queued_missions": [],
   "agent_runtime": {
     "execution": "github_actions_cloud",
+    "agent_execution_mode": "deterministic_key_free",
+    "openai_api_key_required": false,
     "base_branch": "gpt/usdc-audit",
     "trading_mode": "paper_only",
     "market_data_source": "binance_public_live_usdc",
