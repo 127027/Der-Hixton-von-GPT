@@ -17,7 +17,7 @@ on:
     - cron: "17 */6 * * *"
 
 # Key-free engineering swarm for the Paper-only bot. It receives no Binance
-# credentials and no OpenAI/API secret. All roles are deterministic checks.
+# credentials and no OpenAI/API secret. A09/A11 gate every scheduled run.
 permissions:
   contents: read
   actions: read
