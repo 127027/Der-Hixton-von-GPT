@@ -9,7 +9,7 @@ on:
         default: ""
 
 permissions:
-  contents: read
+  contents: write
   actions: read
 
 concurrency:
@@ -23,7 +23,48 @@ env:
   NODE_VERSION: "22"
 
 jobs:
+  lifecycle-guard:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ env.BASE_BRANCH }}
+          fetch-depth: 0
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+      - name: A10 known-safe lifecycle self-repair
+        shell: bash
+        run: |
+          set -euo pipefail
+          python -m scripts.swarm_lifecycle
+      - name: Persist lifecycle repair only when taskboard changed
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          path="agent_memory/swarm/taskboard.json"
+          if git diff --quiet -- "$path"; then
+            echo "Lifecycle state already valid; no repository mutation required."
+            exit 0
+          fi
+          changed="$(git diff --name-only)"
+          if [ "$changed" != "$path" ]; then
+            echo "::error::Lifecycle guard attempted to change an unexpected path: $changed"
+            exit 1
+          fi
+          git config user.name "hixton-swarm[bot]"
+          git config user.email "hixton-swarm@users.noreply.github.com"
+          git add -- "$path"
+          git commit -m "state(swarm): auto-repair stale NEW mission lifecycle"
+          git remote set-url origin "https://x-access-token:${GH_TOKEN}@github.com/${GITHUB_REPOSITORY}.git"
+          git push origin "HEAD:${BASE_BRANCH}"
+
   prepare-state:
+    needs: lifecycle-guard
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
@@ -136,7 +177,7 @@ jobs:
           pattern: swarm-report-A0*-${{ github.run_id }}
           path: collected
           merge-multiple: true
-      - name: A10 audit assignments, failures and repair routing
+      - name: A10 audit assignments, evidence coverage, failures and repair routing
         shell: bash
         run: |
           set -o pipefail
@@ -196,7 +237,7 @@ jobs:
           pattern: swarm-report-*-${{ github.run_id }}
           path: collected
           merge-multiple: true
-      - name: A09 independent full Python QA gate
+      - name: A09 independent full Python QA and upstream evidence gate
         shell: bash
         run: |
           set -o pipefail
@@ -234,7 +275,7 @@ jobs:
           pattern: swarm-report-*-${{ github.run_id }}
           path: collected
           merge-multiple: true
-      - name: A11 audit all agents and A10/A09 gates
+      - name: A11 audit all agents, evidence matrix and A10/A09 gates
         shell: bash
         run: |
           set -o pipefail
