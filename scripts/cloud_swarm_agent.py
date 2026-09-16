@@ -16,7 +16,13 @@ from datetime import UTC, datetime, timedelta
 from pathlib import Path
 from typing import Any
 
-from scripts.swarm_core import AGENT_IDS, load_json, validate_cloud_ready
+from scripts.swarm_core import (
+    AGENT_IDS,
+    load_json,
+    load_mission,
+    required_evidence_by_agent,
+    validate_cloud_ready,
+)
 
 ROOT = Path(__file__).resolve().parents[1]
 MARKET_DATA_URL = "https://data-api.binance.vision"
@@ -58,6 +64,34 @@ def existing_tests(*patterns: str) -> list[str]:
     for pattern in patterns:
         paths.update((ROOT / "tests").glob(pattern))
     return [str(path.relative_to(ROOT)) for path in sorted(paths)]
+
+
+def coverage(*tags: str) -> dict[str, Any]:
+    return {"coverage_tags": list(tags)}
+
+
+def report_coverage(report: dict[str, Any]) -> set[str]:
+    result: set[str] = set()
+    evidence = report.get("evidence")
+    if not isinstance(evidence, list):
+        return result
+    for item in evidence:
+        if not isinstance(item, dict):
+            continue
+        tags = item.get("coverage_tags")
+        if isinstance(tags, list):
+            result.update(str(tag) for tag in tags)
+    return result
+
+
+def evidence_flag(report: dict[str, Any], key: str) -> Any:
+    evidence = report.get("evidence")
+    if not isinstance(evidence, list):
+        return None
+    for item in evidence:
+        if isinstance(item, dict) and key in item:
+            return item[key]
+    return None
 
 
 def paper_runtime_contract() -> dict[str, Any]:
@@ -158,7 +192,11 @@ def role_a01() -> list[dict[str, Any]]:
     for path in documents:
         if not (ROOT / path).is_file():
             raise CheckFailure(f"required documentation missing: {path}")
-    return [{"cloud_ready": ready}, {"paper_contract": contract}]
+    return [
+        {"cloud_ready": ready},
+        {"paper_contract": contract},
+        coverage("requirements_contract", "paper_only_contract", "mission_lifecycle"),
+    ]
 
 
 def role_a02() -> list[dict[str, Any]]:
@@ -171,7 +209,11 @@ def role_a02() -> list[dict[str, Any]]:
     if not tests:
         raise CheckFailure("no backtest/research regression tests found")
     command = [sys.executable, "-m", "pytest", "-q", *tests]
-    return [require_command(command, timeout=1200)]
+    result = require_command(command, timeout=1200)
+    return [
+        result,
+        coverage("same_window_comparison", "carried_vs_fresh", "quote_migration_diagnosis"),
+    ]
 
 
 def role_a03() -> list[dict[str, Any]]:
@@ -180,11 +222,13 @@ def role_a03() -> list[dict[str, Any]]:
         "test_paper*.py",
         "test_*parity*.py",
         "test_cloud_paper_cycle.py",
+        "test_backtest_usdt_usdc_migration_mission.py",
     )
     evidence: list[dict[str, Any]] = [{"paper_state": state}]
     if tests:
         command = [sys.executable, "-m", "pytest", "-q", *tests]
         evidence.append(require_command(command, timeout=1200))
+    evidence.append(coverage("paper_shared_parity", "persistent_paper_state"))
     return evidence
 
 
@@ -193,11 +237,17 @@ def role_a04() -> list[dict[str, Any]]:
     files = [path for path in static.rglob("*") if path.is_file()]
     if not files:
         raise CheckFailure("tracked UI static bundle is empty")
-    tests = existing_tests("test_ui*.py", "test_*api*.py", "test_chart*.py")
+    tests = existing_tests(
+        "test_ui*.py",
+        "test_*api*.py",
+        "test_chart*.py",
+        "test_backtest_usdt_usdc_migration_mission.py",
+    )
     evidence: list[dict[str, Any]] = [{"static_file_count": len(files)}]
     if tests:
         command = [sys.executable, "-m", "pytest", "-q", *tests]
         evidence.append(require_command(command, timeout=900))
+    evidence.append(coverage("ui_quote_provenance", "shipped_ui_bundle"))
     return evidence
 
 
@@ -218,7 +268,11 @@ def role_a05() -> list[dict[str, Any]]:
         "saved_at_utc": saved_at.isoformat(),
         "age_seconds": age.total_seconds(),
     }
-    return [{"paper_state": state}, freshness]
+    return [
+        {"paper_state": state},
+        freshness,
+        coverage("runtime_freshness", "ledger_integrity"),
+    ]
 
 
 def _json_url(path: str) -> Any:
@@ -240,7 +294,11 @@ def role_a06() -> list[dict[str, Any]]:
         [sys.executable, "-m", "pytest", "-q"],
         timeout=1800,
     )
-    return [compile_result, tests]
+    return [
+        compile_result,
+        tests,
+        coverage("integration_compile", "full_regression"),
+    ]
 
 
 def role_a07() -> list[dict[str, Any]]:
@@ -268,7 +326,9 @@ def role_a07() -> list[dict[str, Any]]:
             "endpoint": MARKET_DATA_URL,
             "markets": list(SYMBOLS),
             "server_time": server_time,
-        }
+            "kline_sample_count": len(sample),
+        },
+        coverage("binance_usdc_universe", "public_kline_sample"),
     ]
 
 
@@ -279,6 +339,7 @@ def role_a08() -> list[dict[str, Any]]:
         "test_coin_profiles.py",
         "test_strategy*.py",
         "test_trade_policy*.py",
+        "test_backtest_usdt_usdc_migration_mission.py",
     )
     if not tests:
         raise CheckFailure("no strategy/risk regression tests found")
@@ -290,11 +351,19 @@ def role_a08() -> list[dict[str, Any]]:
         "slot_count": 3,
         "target_notional_usdc": "80.00",
     }
-    drift = {key: paper.get(key) for key, value in expected.items() if paper.get(key) != value}
+    drift = {
+        key: paper.get(key)
+        for key, value in expected.items()
+        if paper.get(key) != value
+    }
     if drift:
         raise CheckFailure(f"Paper baseline config drifted: {drift}")
     command = [sys.executable, "-m", "pytest", "-q", *tests]
-    return [require_command(command, timeout=1200)]
+    result = require_command(command, timeout=1200)
+    return [
+        result,
+        coverage("strategy_risk_invariants", "early_loss_risk_path"),
+    ]
 
 
 def load_reports(directory: Path) -> dict[str, dict[str, Any]]:
@@ -310,17 +379,45 @@ def load_reports(directory: Path) -> dict[str, dict[str, Any]]:
     return reports
 
 
+def coverage_defects(
+    reports: dict[str, dict[str, Any]], agents: list[str]
+) -> dict[str, list[str]]:
+    mission = load_mission(ROOT)
+    contract = required_evidence_by_agent(mission)
+    defects: dict[str, list[str]] = {}
+    for agent in agents:
+        required = set(contract.get(agent, ()))
+        actual = report_coverage(reports.get(agent, {}))
+        missing = sorted(required - actual)
+        if missing:
+            defects[agent] = missing
+    return defects
+
+
 def role_a10(reports_dir: Path) -> list[dict[str, Any]]:
+    ready = validate_cloud_ready(ROOT)
     reports = load_reports(reports_dir)
     required = [f"A{i:02d}" for i in range(1, 9)]
     missing = [agent for agent in required if agent not in reports]
     failed = [
         agent for agent in required if reports.get(agent, {}).get("verdict") != "PASS"
     ]
-    if missing or failed:
-        detail = f"missing={missing}, failed={failed}"
+    evidence_missing = coverage_defects(reports, required)
+    if missing or failed or evidence_missing:
+        detail = (
+            f"missing={missing}, failed={failed}, evidence_missing={evidence_missing}"
+        )
         raise CheckFailure(f"dispatcher repair loop: {detail}")
-    return [{"specialists_received": required, "repair_required": False}]
+    return [
+        {
+            "mission_id": ready["mission_id"],
+            "mission_state": ready["mission_state"],
+            "specialists_received": required,
+            "evidence_contract_passed": True,
+            "repair_required": False,
+        },
+        coverage("evidence_contract_audit", "repair_routing"),
+    ]
 
 
 def role_a09(reports_dir: Path) -> list[dict[str, Any]]:
@@ -329,8 +426,20 @@ def role_a09(reports_dir: Path) -> list[dict[str, Any]]:
     bad = [
         agent for agent in required if reports.get(agent, {}).get("verdict") != "PASS"
     ]
-    if bad:
-        raise CheckFailure(f"QA cannot pass; prior roles not PASS: {bad}")
+    evidence_missing = coverage_defects(reports, required)
+    a10 = reports.get("A10", {})
+    if (
+        bad
+        or evidence_missing
+        or evidence_flag(a10, "evidence_contract_passed") is not True
+        or evidence_flag(a10, "repair_required") is not False
+    ):
+        detail = (
+            f"bad={bad}, evidence_missing={evidence_missing}, "
+            f"a10_contract={evidence_flag(a10, 'evidence_contract_passed')}, "
+            f"a10_repair={evidence_flag(a10, 'repair_required')}"
+        )
+        raise CheckFailure(f"QA cannot pass; upstream contract incomplete: {detail}")
     commands = (
         ([sys.executable, "-m", "compileall", "-q", "src", "scripts"], 900),
         ([sys.executable, "-m", "ruff", "check", "src", "scripts", "tests"], 900),
@@ -338,29 +447,49 @@ def role_a09(reports_dir: Path) -> list[dict[str, Any]]:
         ([sys.executable, "-m", "pytest", "-q"], 1800),
         ([sys.executable, "src/main.py", "status"], 120),
     )
-    return [require_command(command, timeout=timeout) for command, timeout in commands]
+    evidence = [require_command(command, timeout=timeout) for command, timeout in commands]
+    evidence.append(coverage("independent_full_qa", "independent_ui_qa"))
+    return evidence
 
 
 def role_a11(reports_dir: Path) -> list[dict[str, Any]]:
+    ready = validate_cloud_ready(ROOT)
     reports = load_reports(reports_dir)
     required = [f"A{i:02d}" for i in range(1, 11)]
     missing = [agent for agent in required if agent not in reports]
     failed = [
         agent for agent in required if reports.get(agent, {}).get("verdict") != "PASS"
     ]
+    evidence_missing = coverage_defects(reports, required)
     qa = reports.get("A09", {})
-    if missing or failed or qa.get("gate") != "QA_PASS":
+    a10 = reports.get("A10", {})
+    if (
+        missing
+        or failed
+        or evidence_missing
+        or qa.get("gate") != "QA_PASS"
+        or evidence_flag(a10, "evidence_contract_passed") is not True
+        or evidence_flag(a10, "repair_required") is not False
+    ):
         detail = (
-            f"missing={missing}, failed={failed}, qa_gate={qa.get('gate')}"
+            f"missing={missing}, failed={failed}, evidence_missing={evidence_missing}, "
+            f"qa_gate={qa.get('gate')}, "
+            f"a10_contract={evidence_flag(a10, 'evidence_contract_passed')}, "
+            f"a10_repair={evidence_flag(a10, 'repair_required')}"
         )
         raise CheckFailure(f"governance denied: {detail}")
     paper_runtime_contract()
     return [
         {
+            "mission_id": ready["mission_id"],
+            "mission_state": ready["mission_state"],
             "audited_agents": required,
+            "evidence_contract_passed": True,
             "qa_gate": "QA_PASS",
+            "repair_required": False,
             "governance": "GOVERNANCE_PASS",
-        }
+        },
+        coverage("governance_audit"),
     ]
 
 
@@ -379,7 +508,7 @@ SIMPLE_ROLES = {
 def execute(role: str, reports_dir: Path | None) -> dict[str, Any]:
     started = datetime.now(UTC)
     report: dict[str, Any] = {
-        "schema_version": 1,
+        "schema_version": 2,
         "agent": role,
         "started_at_utc": started.isoformat(),
         "execution_mode": "DETERMINISTIC_KEY_FREE",
@@ -414,6 +543,10 @@ def execute(role: str, reports_dir: Path | None) -> dict[str, Any]:
     except Exception as error:
         report["verdict"] = "FAIL"
         report["error"] = f"{type(error).__name__}: {error}"
+        if role == "A10":
+            report["repair_required"] = True
+            report["repair_owner"] = "A10"
+            report["defect_class"] = "LIFECYCLE_OR_EVIDENCE_CONTRACT"
         if role == "A09":
             report["gate"] = "QA_FAIL"
         if role == "A11":
