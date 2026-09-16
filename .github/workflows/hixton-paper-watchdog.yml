@@ -8,9 +8,9 @@ on:
       - .github/workflows/hixton-paper-watchdog.yml
   workflow_dispatch:
   schedule:
-    # Independent backup dispatcher. The reusable core has a shared concurrency
-    # group, so this cannot race the primary Paper cycle.
-    - cron: "52 * * * *"
+    # Backup lease starts three hours after each primary epoch. The reusable
+    # runtime persists every 15 minutes and safely takes over the same ledger.
+    - cron: "52 3-23/6 * * *"
 
 permissions:
   contents: write
