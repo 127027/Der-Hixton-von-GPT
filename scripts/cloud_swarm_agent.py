@@ -8,7 +8,6 @@ from __future__ import annotations
 
 import argparse
 import json
-import os
 import sqlite3
 import subprocess
 import sys
@@ -26,7 +25,7 @@ STATE_MANIFEST = ROOT / "runtime_state" / "manifest.json"
 
 
 class CheckFailure(RuntimeError):
-    pass
+    """Raised when one deterministic role cannot satisfy its duty."""
 
 
 def run(command: list[str], *, timeout: int = 900) -> dict[str, Any]:
@@ -49,7 +48,8 @@ def run(command: list[str], *, timeout: int = 900) -> dict[str, Any]:
 def require_command(command: list[str], *, timeout: int = 900) -> dict[str, Any]:
     result = run(command, timeout=timeout)
     if result["returncode"] != 0:
-        raise CheckFailure(f"command failed: {result['command']}\n{result['output_tail']}")
+        message = f"command failed: {result['command']}\n{result['output_tail']}"
+        raise CheckFailure(message)
     return result
 
 
@@ -66,6 +66,8 @@ def paper_runtime_contract() -> dict[str, Any]:
     if not isinstance(runtime, dict):
         raise CheckFailure("taskboard.agent_runtime missing")
     expected = {
+        "agent_execution_mode": "deterministic_key_free",
+        "openai_api_key_required": False,
         "trading_mode": "paper_only",
         "market_data_source": "binance_public_live_usdc",
         "paper_account_persistence_required": True,
@@ -75,7 +77,11 @@ def paper_runtime_contract() -> dict[str, Any]:
         "binance_private_credentials_allowed": False,
         "automatic_merge_allowed": False,
     }
-    wrong = {key: (runtime.get(key), value) for key, value in expected.items() if runtime.get(key) != value}
+    wrong = {
+        key: (runtime.get(key), value)
+        for key, value in expected.items()
+        if runtime.get(key) != value
+    }
     if wrong:
         raise CheckFailure(f"Paper-only taskboard invariant mismatch: {wrong}")
     return expected
@@ -90,7 +96,9 @@ def check_state_db() -> dict[str, Any]:
             raise CheckFailure(f"Paper SQLite integrity failed: {integrity}")
         tables = {
             row[0]
-            for row in connection.execute("SELECT name FROM sqlite_master WHERE type='table'")
+            for row in connection.execute(
+                "SELECT name FROM sqlite_master WHERE type='table'"
+            )
         }
         required = {
             "paper_account",
@@ -104,13 +112,19 @@ def check_state_db() -> dict[str, Any]:
         if missing:
             raise CheckFailure(f"Paper tables missing: {missing}")
         account = connection.execute(
-            "SELECT cash_text, starting_cash_text, high_water_text, halted, halt_reason FROM paper_account WHERE singleton=1"
+            "SELECT cash_text, starting_cash_text, high_water_text, halted, "
+            "halt_reason FROM paper_account WHERE singleton=1"
         ).fetchone()
         settings = connection.execute(
-            "SELECT slot_count, target_notional_text, emergency_stop FROM paper_settings WHERE singleton=1"
+            "SELECT slot_count, target_notional_text, emergency_stop "
+            "FROM paper_settings WHERE singleton=1"
         ).fetchone()
-        checkpoint_count = connection.execute("SELECT COUNT(*) FROM paper_checkpoints").fetchone()[0]
-        latest_checkpoint = connection.execute("SELECT MAX(last_close_utc) FROM paper_checkpoints").fetchone()[0]
+        checkpoint_count = connection.execute(
+            "SELECT COUNT(*) FROM paper_checkpoints"
+        ).fetchone()[0]
+        latest_checkpoint = connection.execute(
+            "SELECT MAX(last_close_utc) FROM paper_checkpoints"
+        ).fetchone()[0]
     if account is None or settings is None:
         raise CheckFailure("Paper account/settings are not initialized")
     if int(settings[0]) != 3 or str(settings[1]) != "80.00":
@@ -135,7 +149,13 @@ def check_state_db() -> dict[str, Any]:
 def role_a01() -> list[dict[str, Any]]:
     ready = validate_cloud_ready(ROOT)
     contract = paper_runtime_contract()
-    for path in ("README.md", "AGENTS.md", "agent_memory/architecture.md", "agent_memory/dataflows.md"):
+    documents = (
+        "README.md",
+        "AGENTS.md",
+        "agent_memory/architecture.md",
+        "agent_memory/dataflows.md",
+    )
+    for path in documents:
         if not (ROOT / path).is_file():
             raise CheckFailure(f"required documentation missing: {path}")
     return [{"cloud_ready": ready}, {"paper_contract": contract}]
@@ -150,15 +170,21 @@ def role_a02() -> list[dict[str, Any]]:
     )
     if not tests:
         raise CheckFailure("no backtest/research regression tests found")
-    return [require_command([sys.executable, "-m", "pytest", "-q", *tests], timeout=1200)]
+    command = [sys.executable, "-m", "pytest", "-q", *tests]
+    return [require_command(command, timeout=1200)]
 
 
 def role_a03() -> list[dict[str, Any]]:
     state = check_state_db()
-    tests = existing_tests("test_paper*.py", "test_*parity*.py", "test_cloud_paper_cycle.py")
+    tests = existing_tests(
+        "test_paper*.py",
+        "test_*parity*.py",
+        "test_cloud_paper_cycle.py",
+    )
     evidence: list[dict[str, Any]] = [{"paper_state": state}]
     if tests:
-        evidence.append(require_command([sys.executable, "-m", "pytest", "-q", *tests], timeout=1200))
+        command = [sys.executable, "-m", "pytest", "-q", *tests]
+        evidence.append(require_command(command, timeout=1200))
     return evidence
 
 
@@ -170,7 +196,8 @@ def role_a04() -> list[dict[str, Any]]:
     tests = existing_tests("test_ui*.py", "test_*api*.py", "test_chart*.py")
     evidence: list[dict[str, Any]] = [{"static_file_count": len(files)}]
     if tests:
-        evidence.append(require_command([sys.executable, "-m", "pytest", "-q", *tests], timeout=900))
+        command = [sys.executable, "-m", "pytest", "-q", *tests]
+        evidence.append(require_command(command, timeout=900))
     return evidence
 
 
@@ -185,11 +212,13 @@ def role_a05() -> list[dict[str, Any]]:
         raise CheckFailure("state manifest allows real orders")
     saved_at = datetime.fromisoformat(str(manifest["saved_at_utc"])).astimezone(UTC)
     age = datetime.now(UTC) - saved_at
-    # Strategy is native 1h. More than 2h without a durable cycle is an actual
-    # liveness problem; shorter GitHub scheduling delays are tolerated and caught up.
     if age > timedelta(hours=2):
         raise CheckFailure(f"Paper state is stale by {age}")
-    return [{"paper_state": state}, {"saved_at_utc": saved_at.isoformat(), "age_seconds": age.total_seconds()}]
+    freshness = {
+        "saved_at_utc": saved_at.isoformat(),
+        "age_seconds": age.total_seconds(),
+    }
+    return [{"paper_state": state}, freshness]
 
 
 def _json_url(path: str) -> Any:
@@ -204,10 +233,14 @@ def _json_url(path: str) -> Any:
 
 
 def role_a06() -> list[dict[str, Any]]:
-    return [
-        require_command([sys.executable, "-m", "compileall", "-q", "src", "scripts"]),
-        require_command([sys.executable, "-m", "pytest", "-q"], timeout=1800),
-    ]
+    compile_result = require_command(
+        [sys.executable, "-m", "compileall", "-q", "src", "scripts"]
+    )
+    tests = require_command(
+        [sys.executable, "-m", "pytest", "-q"],
+        timeout=1800,
+    )
+    return [compile_result, tests]
 
 
 def role_a07() -> list[dict[str, Any]]:
@@ -217,27 +250,51 @@ def role_a07() -> list[dict[str, Any]]:
     from hixton.constants import SYMBOLS
 
     missing = [symbol for symbol in SYMBOLS if symbol not in symbols]
-    nontrading = [symbol for symbol in SYMBOLS if symbol in symbols and symbols[symbol].get("status") != "TRADING"]
+    nontrading = [
+        symbol
+        for symbol in SYMBOLS
+        if symbol in symbols and symbols[symbol].get("status") != "TRADING"
+    ]
     if missing or nontrading:
-        raise CheckFailure(f"Binance USDC market problem missing={missing} nontrading={nontrading}")
+        detail = f"missing={missing} nontrading={nontrading}"
+        raise CheckFailure(f"Binance USDC market problem {detail}")
     server_time = _json_url("/api/v3/time")
-    sample = _json_url(f"/api/v3/klines?symbol={SYMBOLS[0]}&interval=1h&limit=2")
+    sample_path = f"/api/v3/klines?symbol={SYMBOLS[0]}&interval=1h&limit=2"
+    sample = _json_url(sample_path)
     if not isinstance(sample, list) or len(sample) < 2:
         raise CheckFailure("Binance public kline sample invalid")
-    return [{"endpoint": MARKET_DATA_URL, "markets": list(SYMBOLS), "server_time": server_time}]
+    return [
+        {
+            "endpoint": MARKET_DATA_URL,
+            "markets": list(SYMBOLS),
+            "server_time": server_time,
+        }
+    ]
 
 
 def role_a08() -> list[dict[str, Any]]:
     paper_runtime_contract()
-    tests = existing_tests("test_*risk*.py", "test_coin_profiles.py", "test_strategy*.py", "test_trade_policy*.py")
+    tests = existing_tests(
+        "test_*risk*.py",
+        "test_coin_profiles.py",
+        "test_strategy*.py",
+        "test_trade_policy*.py",
+    )
     if not tests:
         raise CheckFailure("no strategy/risk regression tests found")
     config = ROOT / "config" / "examples" / "config.example.json"
     payload = json.loads(config.read_text(encoding="utf-8"))
     paper = payload.get("paper", {})
-    if paper.get("starting_cash_usdc") != "250.00" or paper.get("slot_count") != 3 or paper.get("target_notional_usdc") != "80.00":
-        raise CheckFailure(f"Paper baseline config drifted: {paper}")
-    return [require_command([sys.executable, "-m", "pytest", "-q", *tests], timeout=1200)]
+    expected = {
+        "starting_cash_usdc": "250.00",
+        "slot_count": 3,
+        "target_notional_usdc": "80.00",
+    }
+    drift = {key: paper.get(key) for key, value in expected.items() if paper.get(key) != value}
+    if drift:
+        raise CheckFailure(f"Paper baseline config drifted: {drift}")
+    command = [sys.executable, "-m", "pytest", "-q", *tests]
+    return [require_command(command, timeout=1200)]
 
 
 def load_reports(directory: Path) -> dict[str, dict[str, Any]]:
@@ -257,40 +314,54 @@ def role_a10(reports_dir: Path) -> list[dict[str, Any]]:
     reports = load_reports(reports_dir)
     required = [f"A{i:02d}" for i in range(1, 9)]
     missing = [agent for agent in required if agent not in reports]
-    failed = [agent for agent in required if reports.get(agent, {}).get("verdict") != "PASS"]
+    failed = [
+        agent for agent in required if reports.get(agent, {}).get("verdict") != "PASS"
+    ]
     if missing or failed:
-        raise CheckFailure(f"dispatcher repair loop: missing={missing}, failed={failed}")
+        detail = f"missing={missing}, failed={failed}"
+        raise CheckFailure(f"dispatcher repair loop: {detail}")
     return [{"specialists_received": required, "repair_required": False}]
 
 
 def role_a09(reports_dir: Path) -> list[dict[str, Any]]:
     reports = load_reports(reports_dir)
     required = [f"A{i:02d}" for i in range(1, 9)] + ["A10"]
-    bad = [agent for agent in required if reports.get(agent, {}).get("verdict") != "PASS"]
+    bad = [
+        agent for agent in required if reports.get(agent, {}).get("verdict") != "PASS"
+    ]
     if bad:
         raise CheckFailure(f"QA cannot pass; prior roles not PASS: {bad}")
-    evidence = [
-        require_command([sys.executable, "-m", "compileall", "-q", "src", "scripts"]),
-        require_command([sys.executable, "-m", "ruff", "check", "src", "scripts", "tests"], timeout=900),
-        require_command([sys.executable, "-m", "mypy", "src"], timeout=1200),
-        require_command([sys.executable, "-m", "pytest", "-q"], timeout=1800),
-        require_command([sys.executable, "src/main.py", "status"], timeout=120),
-    ]
-    return evidence
+    commands = (
+        ([sys.executable, "-m", "compileall", "-q", "src", "scripts"], 900),
+        ([sys.executable, "-m", "ruff", "check", "src", "scripts", "tests"], 900),
+        ([sys.executable, "-m", "mypy", "src"], 1200),
+        ([sys.executable, "-m", "pytest", "-q"], 1800),
+        ([sys.executable, "src/main.py", "status"], 120),
+    )
+    return [require_command(command, timeout=timeout) for command, timeout in commands]
 
 
 def role_a11(reports_dir: Path) -> list[dict[str, Any]]:
     reports = load_reports(reports_dir)
     required = [f"A{i:02d}" for i in range(1, 11)]
     missing = [agent for agent in required if agent not in reports]
-    failed = [agent for agent in required if reports.get(agent, {}).get("verdict") != "PASS"]
+    failed = [
+        agent for agent in required if reports.get(agent, {}).get("verdict") != "PASS"
+    ]
     qa = reports.get("A09", {})
     if missing or failed or qa.get("gate") != "QA_PASS":
-        raise CheckFailure(
-            f"governance denied: missing={missing}, failed={failed}, qa_gate={qa.get('gate')}"
+        detail = (
+            f"missing={missing}, failed={failed}, qa_gate={qa.get('gate')}"
         )
+        raise CheckFailure(f"governance denied: {detail}")
     paper_runtime_contract()
-    return [{"audited_agents": required, "qa_gate": "QA_PASS", "governance": "GOVERNANCE_PASS"}]
+    return [
+        {
+            "audited_agents": required,
+            "qa_gate": "QA_PASS",
+            "governance": "GOVERNANCE_PASS",
+        }
+    ]
 
 
 SIMPLE_ROLES = {
@@ -359,7 +430,8 @@ def main(argv: list[str] | None = None) -> int:
     args = parser.parse_args(argv)
     report = execute(args.role, args.reports_dir)
     args.output.parent.mkdir(parents=True, exist_ok=True)
-    args.output.write_text(json.dumps(report, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
+    serialized = json.dumps(report, indent=2, ensure_ascii=False) + "\n"
+    args.output.write_text(serialized, encoding="utf-8")
     print(json.dumps(report, indent=2, ensure_ascii=False))
     return 0 if report["verdict"] == "PASS" else 1
 
