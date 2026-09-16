@@ -48,27 +48,13 @@ KNOWN_REGRESSION_CASES: dict[str, tuple[str, ...]] = {
 REGRESSION_EVIDENCE_CONTRACTS: dict[str, dict[str, tuple[str, ...]]] = {
     "USDT_USDC_MIGRATION": {
         "A01": ("requirements_contract", "paper_only_contract", "mission_lifecycle"),
-        "A02": (
-            "same_window_comparison",
-            "carried_vs_fresh",
-            "quote_migration_diagnosis",
-            "fresh_dual_quote_replay",
-            "three_year_strategy_continuity",
-        ),
+        "A02": ("same_window_comparison", "carried_vs_fresh", "quote_migration_diagnosis"),
         "A03": ("paper_shared_parity", "persistent_paper_state"),
         "A04": ("ui_quote_provenance", "shipped_ui_bundle"),
         "A05": ("runtime_freshness", "ledger_integrity"),
         "A06": ("integration_compile", "full_regression"),
-        "A07": (
-            "binance_usdc_universe",
-            "public_kline_sample",
-            "real_usdc_common_history_start",
-        ),
-        "A08": (
-            "strategy_risk_invariants",
-            "early_loss_risk_path",
-            "shared_vs_isolated_risk_path",
-        ),
+        "A07": ("binance_usdc_universe", "public_kline_sample"),
+        "A08": ("strategy_risk_invariants", "early_loss_risk_path"),
         "A09": ("independent_full_qa", "independent_ui_qa"),
         "A10": ("evidence_contract_audit", "repair_routing"),
         "A11": ("governance_audit",),
@@ -227,6 +213,81 @@ def required_evidence_by_agent(mission: dict[str, Any]) -> dict[str, tuple[str, 
     return {agent: tuple(sorted(tags)) for agent, tags in merged.items()}
 
 
+def validate_migration_research_evidence(repo: Path) -> dict[str, Any]:
+    """Require durable fresh evidence for the USDT/USDC history-window diagnosis."""
+    reports = repo / "backtests" / "v8" / "reports"
+    fresh = load_json(reports / "fresh-quote-replay-20260916.json")
+    proxy = load_json(reports / "three-year-usdc-strategy-proxy-20260916.json")
+
+    if fresh.get("classification") != "NON_EQUIVALENT_HISTORY_WINDOW_DOMINATES":
+        raise SwarmContractError("fresh dual-quote replay has unexpected classification")
+    if fresh.get("profiles_identical_by_base_asset") is not True:
+        raise SwarmContractError("fresh USDT/USDC profiles are not identical by base asset")
+    if fresh.get("fresh_common_start_utc") != "2024-03-24T00:00:00+00:00":
+        raise SwarmContractError("fresh USDT/USDC common start drifted")
+
+    portfolio = fresh.get("portfolio_3x80")
+    isolated = fresh.get("isolated_10x250")
+    history = fresh.get("real_usdc_history")
+    if not isinstance(portfolio, dict) or not isinstance(isolated, dict) or not isinstance(history, dict):
+        raise SwarmContractError("fresh dual-quote report is incomplete")
+    if portfolio.get("same_window_usdc_minus_usdt") != "2.51522026442150000000":
+        raise SwarmContractError("same-window USDT/USDC delta drifted")
+    if history.get("limiting_symbol") != "DOGEUSDC":
+        raise SwarmContractError("real USDC common-history limiting symbol drifted")
+    if history.get("ten_market_common_usable_start_utc") != "2024-03-24T00:00:00+00:00":
+        raise SwarmContractError("real USDC ten-market history start drifted")
+
+    usdt_full = portfolio.get("usdt_full")
+    usdt_common = portfolio.get("usdt_fresh_common")
+    usdc_common = portfolio.get("usdc_fresh_common")
+    if not all(isinstance(item, dict) for item in (usdt_full, usdt_common, usdc_common)):
+        raise SwarmContractError("portfolio replay branches are incomplete")
+    if usdt_full.get("ending_equity") != "733.30648172557635000000":
+        raise SwarmContractError("full-window USDT portfolio reference drifted")
+    if usdt_common.get("ending_equity") != "201.1088399751235000000":
+        raise SwarmContractError("same-window fresh USDT portfolio reference drifted")
+    if usdc_common.get("ending_equity") != "203.62406023954500000000":
+        raise SwarmContractError("same-window fresh USDC portfolio reference drifted")
+    if usdt_common.get("risk_halted_at_utc") == usdt_full.get("risk_halted_at_utc"):
+        raise SwarmContractError("fresh and carried/full risk paths were collapsed together")
+
+    if isolated.get("usdt_full_ending_equity") != "7152.29370844759090000000":
+        raise SwarmContractError("full-window USDT isolated-batch reference drifted")
+    if isolated.get("usdt_fresh_common_ending_equity") != "4118.70147055677790000000":
+        raise SwarmContractError("same-window fresh USDT isolated-batch reference drifted")
+    if isolated.get("usdc_fresh_common_ending_equity") != "4007.26179461508830000000":
+        raise SwarmContractError("same-window fresh USDC isolated-batch reference drifted")
+
+    if proxy.get("research_mode") != "USDT_BASE_MARKET_PROXY_FOR_CURRENT_USDC_STRATEGY":
+        raise SwarmContractError("three-year strategy continuity evidence is not labelled as proxy")
+    finding = proxy.get("finding")
+    baseline = proxy.get("baseline")
+    if not isinstance(finding, dict) or not isinstance(baseline, dict):
+        raise SwarmContractError("three-year strategy continuity report is incomplete")
+    if finding.get("full_three_year_schema_f_reproduced") is not True:
+        raise SwarmContractError("current USDC schema did not reproduce three-year continuity")
+    proxy_portfolio = baseline.get("portfolio_3x80")
+    proxy_isolated = baseline.get("isolated_10x250")
+    if not isinstance(proxy_portfolio, dict) or not isinstance(proxy_isolated, dict):
+        raise SwarmContractError("three-year proxy baseline branches are incomplete")
+    if proxy_portfolio.get("ending_equity") != "733.30648172557635000000":
+        raise SwarmContractError("current USDC strategy three-year portfolio continuity drifted")
+    if proxy_isolated.get("ending_equity") != "7152.29370844759090000000":
+        raise SwarmContractError("current USDC strategy three-year isolated continuity drifted")
+
+    return {
+        "fresh_common_start_utc": fresh["fresh_common_start_utc"],
+        "limiting_usdc_symbol": history["limiting_symbol"],
+        "same_window_usdt_ending": usdt_common["ending_equity"],
+        "same_window_usdc_ending": usdc_common["ending_equity"],
+        "three_year_portfolio_ending": proxy_portfolio["ending_equity"],
+        "three_year_isolated_ending": proxy_isolated["ending_equity"],
+        "classification": fresh["classification"],
+        "proxy_labelled": True,
+    }
+
+
 def normalize_repo_path(path: str) -> str:
     normalized = path.replace("\\", "/")
     while normalized.startswith("./"):
@@ -255,6 +316,9 @@ def validate_cloud_ready(repo: Path) -> dict[str, Any]:
     agents = required_agents(mission)
     regressions = known_regression_requirements(mission)
     evidence = required_evidence_by_agent(mission)
+    migration_evidence: dict[str, Any] | None = None
+    if "USDT_USDC_MIGRATION" in regressions:
+        migration_evidence = validate_migration_research_evidence(repo)
     return {
         "agent_count": registry["agent_count"],
         "mission_id": mission.get("id"),
@@ -262,6 +326,7 @@ def validate_cloud_ready(repo: Path) -> dict[str, Any]:
         "required_agents": list(agents),
         "regression_cases": sorted(regressions),
         "required_evidence_by_agent": {key: list(value) for key, value in evidence.items()},
+        "migration_research_evidence": migration_evidence,
         "real_money_orders_allowed": False,
         "automatic_merge_allowed": False,
         "execution": "github_actions_cloud",
