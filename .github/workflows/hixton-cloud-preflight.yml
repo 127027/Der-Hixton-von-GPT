@@ -38,7 +38,7 @@ jobs:
         with:
           python-version: "3.12"
 
-      - name: Validate cloud-swarm, source typing and cloud-Paper contracts
+      - name: Validate cloud-swarm, migration, source typing and cloud-Paper contracts
         shell: bash
         run: |
           set -euo pipefail
@@ -48,7 +48,11 @@ jobs:
           .venv/bin/python -m compileall -q src scripts
           .venv/bin/ruff check src scripts tests
           .venv/bin/mypy src
-          .venv/bin/pytest -q tests/test_swarm_core.py tests/test_key_free_swarm.py tests/test_cloud_paper_cycle.py
+          .venv/bin/pytest -q \
+            tests/test_swarm_core.py \
+            tests/test_key_free_swarm.py \
+            tests/test_cloud_paper_cycle.py \
+            tests/test_backtest_usdt_usdc_migration_mission.py
           .venv/bin/python - <<'PY'
           from pathlib import Path
           from scripts.swarm_core import validate_cloud_ready
