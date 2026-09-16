@@ -16,7 +16,7 @@ from pathlib import Path
 from typing import Any
 
 from hixton.backtest.engine import run_isolated_batch
-from hixton.backtest.models import BASELINE_COSTS, STRESS_COSTS, ExecutionRules
+from hixton.backtest.models import BASELINE_COSTS, ExecutionRules, STRESS_COSTS
 from hixton.backtest.portfolio import run_shared_portfolio_backtest
 from hixton.data.binance import BinancePublicClient
 from hixton.data.quality import audit_candles
@@ -169,9 +169,7 @@ def _evaluate(
                 "completed_trades": batch.completed_trades,
                 "max_drawdown": batch.max_drawdown,
                 "max_drawdown_pct": batch.max_drawdown_pct,
-                "per_coin": {
-                    single.symbol: single.metrics for single in batch.results
-                },
+                "per_coin": {single.symbol: single.metrics for single in batch.results},
             },
         }
     return result
