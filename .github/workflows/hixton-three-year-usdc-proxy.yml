@@ -1,0 +1,59 @@
+name: Hixton Three-Year USDC Strategy Proxy
+
+on:
+  push:
+    branches:
+      - gpt/usdc-audit
+    paths:
+      - .github/workflows/hixton-three-year-usdc-proxy.yml
+      - scripts/three_year_usdc_proxy_replay.py
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: hixton-three-year-usdc-proxy
+  cancel-in-progress: true
+
+jobs:
+  replay:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 90
+    steps:
+      - name: Checkout current engineering branch
+        uses: actions/checkout@v4
+        with:
+          ref: gpt/usdc-audit
+          persist-credentials: false
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Build isolated environment
+        shell: bash
+        run: |
+          set -euo pipefail
+          python -m venv .venv
+          .venv/bin/pip install -e '.[dev]'
+          .venv/bin/ruff check scripts/three_year_usdc_proxy_replay.py
+
+      - name: Run current USDC strategy for three years on labelled USDT market proxy
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p evidence
+          .venv/bin/python scripts/three_year_usdc_proxy_replay.py \
+            --start 2023-09-01T12:00:00Z \
+            --end 2026-09-01T12:00:00Z \
+            --output evidence/three-year-usdc-proxy.json
+
+      - name: Upload immutable proxy evidence
+        uses: actions/upload-artifact@v4
+        with:
+          name: hixton-three-year-usdc-proxy-${{ github.run_id }}
+          path: evidence/three-year-usdc-proxy.json
+          retention-days: 30
+          if-no-files-found: error
