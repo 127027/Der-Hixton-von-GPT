@@ -17,6 +17,14 @@ from urllib.request import HTTPRedirectHandler, ProxyHandler, Request, build_ope
 from hixton.ui.lifecycle import PROTOCOL, VisibleSession
 
 
+def _windows_library(name: str) -> Any:
+    """Load one Windows DLL without assuming WinDLL exists on other platforms."""
+    loader = getattr(ctypes, "WinDLL", None)
+    if loader is None:
+        raise OSError("Windows API ist auf dieser Plattform nicht verfügbar")
+    return loader(name, use_last_error=True)
+
+
 class _NoRedirect(HTTPRedirectHandler):
     def redirect_request(
         self, req: Any, fp: Any, code: int, msg: str, headers: Any, newurl: str
@@ -32,7 +40,7 @@ class PreviousProcess:
         self.handle = None
         self.kernel = None
         if os.name == "nt":
-            self.kernel = ctypes.WinDLL("kernel32", use_last_error=True)
+            self.kernel = _windows_library("kernel32")
             self.kernel.OpenProcess.argtypes = [ctypes.c_uint32, ctypes.c_bool, ctypes.c_uint32]
             self.kernel.OpenProcess.restype = ctypes.c_void_p
             self.kernel.WaitForSingleObject.argtypes = [ctypes.c_void_p, ctypes.c_uint32]
