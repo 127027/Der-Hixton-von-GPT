@@ -10,14 +10,15 @@ from __future__ import annotations
 import argparse
 import inspect
 import json
+from collections.abc import Callable
 from dataclasses import asdict, is_dataclass
 from datetime import UTC, datetime, timedelta
 from decimal import Decimal
 from pathlib import Path
-from typing import Any, Callable
+from typing import Any
 
 from hixton.backtest.engine import run_isolated_batch
-from hixton.backtest.models import BASELINE_COSTS, ExecutionRules, STRESS_COSTS
+from hixton.backtest.models import BASELINE_COSTS, STRESS_COSTS, ExecutionRules
 from hixton.backtest.portfolio import run_shared_portfolio_backtest
 from hixton.data.binance import BinancePublicClient
 from hixton.data.quality import audit_candles
