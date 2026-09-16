@@ -13,7 +13,6 @@ from scripts.swarm_core import (
     validate_registry,
 )
 
-
 ROOT = Path(__file__).resolve().parents[1]
 
 
