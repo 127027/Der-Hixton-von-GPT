@@ -1,0 +1,21 @@
+name: Hixton Paper Backup Watchdog
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - .github/workflows/hixton-paper-watchdog.yml
+  workflow_dispatch:
+  schedule:
+    # Independent backup dispatcher. The reusable core has a shared concurrency
+    # group, so this cannot race the primary Paper cycle.
+    - cron: "52 * * * *"
+
+permissions:
+  contents: write
+  actions: read
+
+jobs:
+  backup-paper-runtime:
+    uses: 127027/Der-Hixton-von-GPT/.github/workflows/hixton-paper-cloud-reusable.yml@gpt/usdc-audit
