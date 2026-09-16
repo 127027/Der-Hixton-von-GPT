@@ -80,7 +80,7 @@ jobs:
         run: |
           set -o pipefail
           mkdir -p reports
-          .venv/bin/python scripts/cloud_swarm_agent.py --role "${{ matrix.role }}" --output "reports/${{ matrix.role }}.json"
+          .venv/bin/python -m scripts.cloud_swarm_agent --role "${{ matrix.role }}" --output "reports/${{ matrix.role }}.json"
       - name: Persist ${{ matrix.role }} evidence
         if: always()
         uses: actions/upload-artifact@v4
@@ -118,7 +118,7 @@ jobs:
         run: |
           set -o pipefail
           mkdir -p reports
-          .venv/bin/python scripts/cloud_swarm_agent.py --role A10 --reports-dir collected --output reports/A10.json
+          .venv/bin/python -m scripts.cloud_swarm_agent --role A10 --reports-dir collected --output reports/A10.json
       - name: Persist A10 evidence
         if: always()
         uses: actions/upload-artifact@v4
@@ -158,7 +158,7 @@ jobs:
         run: |
           set -o pipefail
           mkdir -p reports
-          .venv/bin/python scripts/cloud_swarm_agent.py --role A09 --reports-dir collected --output reports/A09.json
+          .venv/bin/python -m scripts.cloud_swarm_agent --role A09 --reports-dir collected --output reports/A09.json
       - name: Persist A09 evidence
         if: always()
         uses: actions/upload-artifact@v4
@@ -196,7 +196,7 @@ jobs:
         run: |
           set -o pipefail
           mkdir -p reports
-          .venv/bin/python scripts/cloud_swarm_agent.py --role A11 --reports-dir collected --output reports/A11.json
+          .venv/bin/python -m scripts.cloud_swarm_agent --role A11 --reports-dir collected --output reports/A11.json
       - name: Persist A11 governance evidence
         if: always()
         uses: actions/upload-artifact@v4
