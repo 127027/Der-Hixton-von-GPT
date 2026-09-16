@@ -7,8 +7,10 @@ on:
       - gpt/usdc-audit
     paths:
       - scripts/swarm_core.py
+      - scripts/cloud_swarm_agent.py
       - scripts/cloud_paper_cycle.py
       - tests/test_swarm_core.py
+      - tests/test_key_free_swarm.py
       - tests/test_cloud_paper_cycle.py
       - agent_memory/**
       - .github/workflows/hixton-cloud-preflight.yml
@@ -21,7 +23,7 @@ permissions:
 jobs:
   validate:
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    timeout-minutes: 20
     steps:
       - name: Checkout engineering branch
         uses: actions/checkout@v4
@@ -42,14 +44,15 @@ jobs:
           .venv/bin/python -m pip install --upgrade pip
           .venv/bin/pip install -e '.[dev]'
           .venv/bin/python -m compileall -q scripts
-          .venv/bin/pytest -q tests/test_swarm_core.py tests/test_cloud_paper_cycle.py
+          .venv/bin/ruff check scripts/cloud_swarm_agent.py tests/test_key_free_swarm.py
+          .venv/bin/pytest -q tests/test_swarm_core.py tests/test_key_free_swarm.py tests/test_cloud_paper_cycle.py
           .venv/bin/python - <<'PY'
           from pathlib import Path
           from scripts.swarm_core import validate_cloud_ready
           print(validate_cloud_ready(Path('.')))
           PY
 
-      - name: Confirm engineering is cloud-only
+      - name: Confirm engineering is cloud-only and key-free
         shell: bash
         run: |
           set -euo pipefail
@@ -62,7 +65,11 @@ jobs:
             echo "::error::Local PowerShell engineering runners are not allowed."
             exit 1
           fi
-          echo "Cloud-only engineering boundary confirmed; Startbot.bat is the sole tracked batch launcher."
+          if grep -R "OPENAI_API_KEY" .github/workflows/hixton-cloud-swarm-reusable.yml scripts/cloud_swarm_agent.py; then
+            echo "::error::Default cloud swarm must not depend on OPENAI_API_KEY."
+            exit 1
+          fi
+          echo "Cloud-only/key-free engineering boundary confirmed."
 
       - name: Confirm legacy local-agent markers are absent from current tracked text
         shell: bash
