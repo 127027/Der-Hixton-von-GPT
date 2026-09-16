@@ -24,7 +24,6 @@ from hixton.data.binance import BinancePublicClient
 from hixton.data.quality import audit_candles
 from hixton.domain.versions import V6_COIN_STRATEGY
 
-
 BINANCE_PUBLIC_BASE_URL = "https://data-api.binance.vision"
 WARMUP_BARS = 400
 BAR = timedelta(hours=1)
