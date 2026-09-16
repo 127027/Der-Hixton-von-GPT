@@ -10,6 +10,7 @@ from __future__ import annotations
 
 import json
 from collections.abc import Iterable
+from datetime import UTC, datetime, timedelta
 from pathlib import Path
 from typing import Any
 
@@ -150,6 +151,18 @@ def validate_active_mission_state(mission: dict[str, Any]) -> str:
         raise SwarmContractError("A DONE mission cannot remain the active mission")
     if state not in ACTIVE_MISSION_STATES:
         raise SwarmContractError(f"Unknown or invalid active mission state: {state!r}")
+
+    raw_started = mission.get("started_at_utc")
+    if not isinstance(raw_started, str) or not raw_started:
+        raise SwarmContractError("Active mission must record started_at_utc")
+    try:
+        started = datetime.fromisoformat(raw_started)
+    except ValueError as error:
+        raise SwarmContractError("Active mission started_at_utc is not valid ISO-8601") from error
+    if started.tzinfo is None:
+        raise SwarmContractError("Active mission started_at_utc must be timezone-aware")
+    if started.astimezone(UTC) > datetime.now(UTC) + timedelta(minutes=5):
+        raise SwarmContractError("Active mission started_at_utc cannot be in the future")
     return state
 
 
