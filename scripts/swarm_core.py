@@ -2,7 +2,8 @@
 
 This module is standard-library only, imports no trading runtime and performs no
 network or exchange action. GitHub Actions uses it to validate the eleven-agent
-registry, active mission and protected patch boundaries before model work starts.
+registry, active mission, lifecycle state, evidence contract and protected patch
+boundaries before specialist work can be accepted.
 """
 
 from __future__ import annotations
@@ -15,6 +16,19 @@ from typing import Any
 AGENT_IDS = tuple(f"A{i:02d}" for i in range(1, 12))
 MANDATORY_AGENTS = frozenset(AGENT_IDS)
 
+ACTIVE_MISSION_STATES = frozenset(
+    {
+        "PREFLIGHT",
+        "ASSIGNED",
+        "IN_PROGRESS",
+        "VERIFYING",
+        "REGRESSION",
+        "QA",
+        "GOVERNANCE",
+        "REPAIR_LOOP",
+    }
+)
+
 KNOWN_REGRESSION_CASES: dict[str, tuple[str, ...]] = {
     "USDT_USDC_MIGRATION": (
         "compare_exact_same_window",
@@ -25,6 +39,22 @@ KNOWN_REGRESSION_CASES: dict[str, tuple[str, ...]] = {
         "verify_ui_and_report_quote_provenance",
         "do_not_patch_without_a_proven_code_or_contract_defect",
     ),
+}
+
+REGRESSION_EVIDENCE_CONTRACTS: dict[str, dict[str, tuple[str, ...]]] = {
+    "USDT_USDC_MIGRATION": {
+        "A01": ("requirements_contract", "paper_only_contract", "mission_lifecycle"),
+        "A02": ("same_window_comparison", "carried_vs_fresh", "quote_migration_diagnosis"),
+        "A03": ("paper_shared_parity", "persistent_paper_state"),
+        "A04": ("ui_quote_provenance", "shipped_ui_bundle"),
+        "A05": ("runtime_freshness", "ledger_integrity"),
+        "A06": ("integration_compile", "full_regression"),
+        "A07": ("binance_usdc_universe", "public_kline_sample"),
+        "A08": ("strategy_risk_invariants", "early_loss_risk_path"),
+        "A09": ("independent_full_qa", "independent_ui_qa"),
+        "A10": ("evidence_contract_audit", "repair_routing"),
+        "A11": ("governance_audit",),
+    },
 }
 
 PROTECTED_EXACT_PATHS = frozenset(
@@ -107,6 +137,22 @@ def load_mission(repo: Path, mission_id: str | None = None) -> dict[str, Any]:
     raise SwarmContractError(f"Unknown mission: {mission_id}")
 
 
+def validate_active_mission_state(mission: dict[str, Any]) -> str:
+    state = str(mission.get("state") or "")
+    if state == "NEW":
+        raise SwarmContractError(
+            "Active mission is still NEW. The lifecycle guard must normalize it to "
+            "IN_PROGRESS before specialist evidence is accepted."
+        )
+    if state == "BLOCKED":
+        raise SwarmContractError("Active mission is BLOCKED and cannot pass normal execution")
+    if state == "DONE":
+        raise SwarmContractError("A DONE mission cannot remain the active mission")
+    if state not in ACTIVE_MISSION_STATES:
+        raise SwarmContractError(f"Unknown or invalid active mission state: {state!r}")
+    return state
+
+
 def required_agents(mission: dict[str, Any]) -> tuple[str, ...]:
     configured = mission.get("required_agents")
     if not isinstance(configured, list):
@@ -133,6 +179,22 @@ def known_regression_requirements(mission: dict[str, Any]) -> dict[str, tuple[st
     return result
 
 
+def required_evidence_by_agent(mission: dict[str, Any]) -> dict[str, tuple[str, ...]]:
+    cases = mission.get("regression_cases") or []
+    if not isinstance(cases, list):
+        raise SwarmContractError("mission.regression_cases must be a list")
+    merged: dict[str, set[str]] = {agent: set() for agent in AGENT_IDS}
+    for raw in cases:
+        case = str(raw)
+        try:
+            contract = REGRESSION_EVIDENCE_CONTRACTS[case]
+        except KeyError as error:
+            raise SwarmContractError(f"Missing evidence contract for regression case: {case}") from error
+        for agent, tags in contract.items():
+            merged[agent].update(tags)
+    return {agent: tuple(sorted(tags)) for agent, tags in merged.items()}
+
+
 def normalize_repo_path(path: str) -> str:
     normalized = path.replace("\\", "/")
     while normalized.startswith("./"):
@@ -157,14 +219,17 @@ def validate_cloud_patch_paths(paths: Iterable[str]) -> tuple[str, ...]:
 def validate_cloud_ready(repo: Path) -> dict[str, Any]:
     registry = validate_registry(repo)
     mission = load_mission(repo)
+    state = validate_active_mission_state(mission)
     agents = required_agents(mission)
     regressions = known_regression_requirements(mission)
+    evidence = required_evidence_by_agent(mission)
     return {
         "agent_count": registry["agent_count"],
         "mission_id": mission.get("id"),
-        "mission_state": mission.get("state"),
+        "mission_state": state,
         "required_agents": list(agents),
         "regression_cases": sorted(regressions),
+        "required_evidence_by_agent": {key: list(value) for key, value in evidence.items()},
         "real_money_orders_allowed": False,
         "automatic_merge_allowed": False,
         "execution": "github_actions_cloud",
