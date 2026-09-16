@@ -1,0 +1,204 @@
+name: Hixton Fresh Quote Replay
+
+on:
+  push:
+    branches:
+      - gpt/usdc-audit
+    paths:
+      - .github/workflows/hixton-fresh-quote-replay.yml
+      - scripts/quote_replay_runner.py
+      - src/hixton/domain/markets.py
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: hixton-fresh-quote-replay
+  cancel-in-progress: true
+
+jobs:
+  replay:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 120
+    steps:
+      - name: Checkout current USDC engineering branch
+        uses: actions/checkout@v4
+        with:
+          ref: gpt/usdc-audit
+          path: current
+          persist-credentials: false
+
+      - name: Checkout documented historical USDT reference
+        uses: actions/checkout@v4
+        with:
+          repository: 127027/Der-Hixton
+          ref: f633f389ae9e74480ab024d0934d90b5e53c1ea7
+          path: legacy
+          persist-credentials: false
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Build isolated current and historical environments
+        shell: bash
+        run: |
+          set -euo pipefail
+          python -m venv current/.venv
+          current/.venv/bin/pip install -e 'current[dev]'
+          python -m venv legacy/.venv
+          legacy/.venv/bin/pip install -e 'legacy[dev]'
+
+      - name: Start the real current bot runtime under a visible pseudo-terminal
+        shell: bash
+        working-directory: current
+        run: |
+          set -euo pipefail
+          rm -f /tmp/hixton-runtime.log
+          script -q -c ".venv/bin/python src/main.py start --no-browser" /tmp/hixton-runtime.log &
+          BOT_WRAPPER_PID=$!
+          cleanup() {
+            kill "$BOT_WRAPPER_PID" 2>/dev/null || true
+            wait "$BOT_WRAPPER_PID" 2>/dev/null || true
+          }
+          trap cleanup EXIT
+
+          for _ in $(seq 1 60); do
+            if curl -fsS http://127.0.0.1:8765/api/session/info >/tmp/session.json 2>/dev/null; then
+              break
+            fi
+            sleep 1
+          done
+          test -s /tmp/session.json
+          cat /tmp/session.json
+
+          .venv/bin/python - <<'PY'
+          import asyncio
+          import json
+          import websockets
+
+          async def main() -> None:
+              async with websockets.connect(
+                  "ws://127.0.0.1:8765/api/session/presence",
+                  origin="http://127.0.0.1:8765",
+                  open_timeout=15,
+              ) as websocket:
+                  first = json.loads(await websocket.recv())
+                  assert first["trading_started"] is True, first
+                  print(json.dumps(first, indent=2))
+                  await asyncio.sleep(8)
+                  await websocket.send("stop")
+
+          asyncio.run(main())
+          PY
+
+          for _ in $(seq 1 30); do
+            if ! kill -0 "$BOT_WRAPPER_PID" 2>/dev/null; then
+              break
+            fi
+            sleep 1
+          done
+          cat /tmp/hixton-runtime.log
+
+      - name: Fresh current USDC 3x80 and 10x250 replay on real Binance data
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p evidence
+          current/.venv/bin/python current/scripts/quote_replay_runner.py \
+            --quote USDC \
+            --requested-start 2023-09-01T12:00:00Z \
+            --end 2026-09-01T12:00:00Z \
+            --output evidence/usdc.json
+          python - <<'PY' > /tmp/common_start.txt
+          import json
+          data = json.load(open('evidence/usdc.json', encoding='utf-8'))
+          print(data['available_common_start_utc'])
+          PY
+          cat /tmp/common_start.txt
+
+      - name: Fresh historical USDT reference replay on the exact common window and full window
+        shell: bash
+        run: |
+          set -euo pipefail
+          COMMON_START="$(cat /tmp/common_start.txt)"
+          legacy/.venv/bin/python current/scripts/quote_replay_runner.py \
+            --quote USDT \
+            --requested-start 2023-09-01T12:00:00Z \
+            --end 2026-09-01T12:00:00Z \
+            --compare-start "$COMMON_START" \
+            --output evidence/usdt.json
+
+      - name: Compare profile identity, windows, 3x80 and 10x250 outcomes
+        shell: bash
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          import json
+          from decimal import Decimal
+          from pathlib import Path
+
+          usdc = json.loads(Path('evidence/usdc.json').read_text(encoding='utf-8'))
+          usdt = json.loads(Path('evidence/usdt.json').read_text(encoding='utf-8'))
+          if usdc['profile_by_base_asset'] != usdt['profile_by_base_asset']:
+              raise SystemExit('V6 parameter/policy profiles differ by base asset')
+          if usdc['comparison_start_utc'] != usdt['comparison_start_utc']:
+              raise SystemExit('fresh comparison windows differ')
+
+          def p(payload, window):
+              return payload['windows'][window]['results']['baseline']['portfolio_3x80']
+          def b(payload, window):
+              return payload['windows'][window]['results']['baseline']['isolated_10x250']
+
+          usdt_full = p(usdt, 'requested_full')
+          usdt_common = p(usdt, 'fresh_common')
+          usdc_common = p(usdc, 'fresh_common')
+          legacy_full = Decimal(usdt_full['metrics']['ending_equity'])
+          legacy_common = Decimal(usdt_common['metrics']['ending_equity'])
+          current_common = Decimal(usdc_common['metrics']['ending_equity'])
+          same_window_delta = current_common - legacy_common
+          removed_prefix_effect = legacy_full - legacy_common
+
+          diagnosis = {
+              'schema_version': 1,
+              'profiles_identical_by_base_asset': True,
+              'requested_full_start_utc': usdt['requested_start_utc'],
+              'fresh_common_start_utc': usdc['comparison_start_utc'],
+              'end_utc': usdc['end_utc'],
+              'usdt_full_portfolio_ending': str(legacy_full),
+              'usdt_full_portfolio_trades': usdt_full['metrics']['completed_trades'],
+              'usdt_common_fresh_portfolio_ending': str(legacy_common),
+              'usdt_common_fresh_portfolio_trades': usdt_common['metrics']['completed_trades'],
+              'usdc_common_fresh_portfolio_ending': str(current_common),
+              'usdc_common_fresh_portfolio_trades': usdc_common['metrics']['completed_trades'],
+              'same_window_usdc_minus_usdt': str(same_window_delta),
+              'usdt_full_minus_fresh_common': str(removed_prefix_effect),
+              'usdt_full_risk_halt': usdt_full['risk_halted_at_utc'],
+              'usdt_common_risk_halt': usdt_common['risk_halted_at_utc'],
+              'usdc_common_risk_halt': usdc_common['risk_halted_at_utc'],
+              'usdt_full_10x250_ending': b(usdt, 'requested_full')['ending_equity'],
+              'usdt_common_10x250_ending': b(usdt, 'fresh_common')['ending_equity'],
+              'usdc_common_10x250_ending': b(usdc, 'fresh_common')['ending_equity'],
+              'classification': (
+                  'NON_EQUIVALENT_HISTORY_WINDOW_DOMINATES'
+                  if abs(removed_prefix_effect) > abs(same_window_delta) * Decimal('5')
+                  else 'REQUIRES_DEEPER_ENGINE_OR_QUOTE_INVESTIGATION'
+              ),
+              'orders_sent': False,
+              'credentials_used': False,
+          }
+          Path('evidence/diagnosis.json').write_text(
+              json.dumps(diagnosis, indent=2) + '\n', encoding='utf-8'
+          )
+          print(json.dumps(diagnosis, indent=2))
+          PY
+
+      - name: Upload immutable fresh replay evidence
+        uses: actions/upload-artifact@v4
+        with:
+          name: hixton-fresh-quote-replay-${{ github.run_id }}
+          path: evidence/
+          retention-days: 30
+          if-no-files-found: error
