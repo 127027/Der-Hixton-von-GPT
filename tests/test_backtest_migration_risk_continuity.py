@@ -1,9 +1,9 @@
 from __future__ import annotations
 
+import json
 from pathlib import Path
 
 from scripts.swarm_core import validate_migration_research_evidence
-
 
 ROOT = Path(__file__).resolve().parents[1]
 
@@ -25,8 +25,6 @@ def test_shared_portfolio_and_isolated_batch_are_not_same_capital_context() -> N
     report = (
         ROOT / "backtests" / "v8" / "reports" / "fresh-quote-replay-20260916.json"
     )
-    import json
-
     payload = json.loads(report.read_text(encoding="utf-8"))
     shared = payload["portfolio_3x80"]["usdc_fresh_common"]
     isolated = payload["isolated_10x250"]
