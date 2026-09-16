@@ -21,6 +21,7 @@ on:
 # permitted by this workflow is the known-safe taskboard NEW -> IN_PROGRESS
 # lifecycle normalization. Mission-specific evidence is mandatory at A10, A09
 # and A11; a bare specialist PASS can no longer satisfy the workflow.
+# 2026-09-16: launch after fresh dual-quote and three-year continuity evidence.
 permissions:
   contents: write
   actions: read
