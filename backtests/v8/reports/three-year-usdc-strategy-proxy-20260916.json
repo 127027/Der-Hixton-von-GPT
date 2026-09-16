@@ -1,0 +1,80 @@
+{
+  "schema_version": 1,
+  "generated_from_workflow": {
+    "name": "Hixton Three-Year USDC Strategy Proxy",
+    "run_id": 35138382854,
+    "head_sha": "8e60a51bdf4b169b58fd0b4eace6c85609456a4f",
+    "artifact_id": 10463489921,
+    "artifact_name": "hixton-three-year-usdc-proxy-35138382854",
+    "artifact_sha256": "c790b18c531c246e6131b7ffdf8b68ad218bb78dd650755e77366958eaa6004f"
+  },
+  "research_mode": "USDT_BASE_MARKET_PROXY_FOR_CURRENT_USDC_STRATEGY",
+  "period": {
+    "report_start_utc": "2023-09-01T12:00:00+00:00",
+    "report_end_utc": "2026-09-01T12:00:00+00:00",
+    "warmup_start_utc": "2023-08-15T20:00:00+00:00",
+    "bars_per_symbol": 26704,
+    "symbol_count": 10
+  },
+  "method": {
+    "strategy": "current V6 USDC profiles and current portfolio/batch engines",
+    "target_quote": "USDC",
+    "historical_market_proxy_quote": "USDT",
+    "proxy_data": "real public Binance Spot 1h candles for the same ten base assets",
+    "execution_rules": "current corresponding USDC Spot symbol rules",
+    "paper_state_modified": false,
+    "orders_sent": false,
+    "credentials_required": false
+  },
+  "baseline": {
+    "portfolio_3x80": {
+      "starting_equity": "250",
+      "ending_equity": "733.30648172557635000000",
+      "net_pnl": "483.30648172557635000000",
+      "return_pct": "193.32259269023054000000",
+      "completed_trades": 187,
+      "max_drawdown_pct": "20.46017022972760887668389298",
+      "risk_halted_at_utc": "2026-02-25T05:59:59.999000+00:00",
+      "blocked_signal_count": 340,
+      "max_concurrent_positions": 3
+    },
+    "isolated_10x250": {
+      "starting_equity": "2500.00",
+      "ending_equity": "7152.29370844759090000000",
+      "net_pnl": "4652.29370844759090000000",
+      "return_pct": "186.091748337903636000",
+      "completed_trades": 490,
+      "max_drawdown_pct": "15.91291827060517523717563965"
+    }
+  },
+  "stress": {
+    "portfolio_3x80": {
+      "starting_equity": "250",
+      "ending_equity": "564.8193836271619000000",
+      "return_pct": "125.9277534508647600000",
+      "completed_trades": 25,
+      "max_drawdown_pct": "20.59370949520414656004887504",
+      "risk_halted_at_utc": "2024-01-24T11:59:59.999000+00:00",
+      "blocked_signal_count": 502
+    },
+    "isolated_10x250": {
+      "starting_equity": "2500.00",
+      "ending_equity": "6520.8666752079996000000",
+      "return_pct": "160.83466700831998400",
+      "completed_trades": 490,
+      "max_drawdown_pct": "19.68440317182123469858398787"
+    }
+  },
+  "finding": {
+    "full_three_year_schema_f_reproduced": true,
+    "baseline_matches_documented_original_usdt_portfolio": true,
+    "baseline_matches_documented_original_usdt_isolated_batch": true,
+    "interpretation": "The current USDC V6 strategy and engines reproduce the documented 733.306 / 7152.294 three-year results when given the same base-asset market path. The approximately 203 / 4007 real-USDC fresh run is therefore not evidence of a quote-conversion strategy defect; it starts later because the complete ten-market USDC history is unavailable before 2024-03-24 and resets the shared account to 250 immediately before an early loss regime and persistent portfolio drawdown halt."
+  },
+  "limitations": [
+    "The pre-listing proxy is not historical USDC liquidity or execution evidence.",
+    "Real USDT candles are relabelled only inside this research continuity test so the current USDC strategy can be evaluated over the same base-market history.",
+    "Current USDC exchange rules are applied to the full proxy period and are not historical point-in-time rule snapshots.",
+    "Operational Paper evaluation remains real-USDC only and must never substitute proxy candles."
+  ]
+}
