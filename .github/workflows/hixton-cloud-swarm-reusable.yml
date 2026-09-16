@@ -20,6 +20,7 @@ env:
   BASE_BRANCH: gpt/usdc-audit
   STATE_BRANCH: paper-runtime-state
   PYTHON_VERSION: "3.12"
+  NODE_VERSION: "22"
 
 jobs:
   prepare-state:
@@ -54,7 +55,7 @@ jobs:
       matrix:
         role: [A01, A02, A03, A04, A05, A06, A07, A08]
     runs-on: ubuntu-latest
-    timeout-minutes: 40
+    timeout-minutes: 45
     steps:
       - uses: actions/checkout@v4
         with:
@@ -75,6 +76,28 @@ jobs:
         with:
           name: swarm-paper-state-${{ github.run_id }}
           path: runtime_state
+      - name: Set up Node for A04 UI audit
+        if: matrix.role == 'A04'
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: npm
+          cache-dependency-path: ui/package-lock.json
+      - name: A04 verify UI source, tests and shipped static bundle
+        if: matrix.role == 'A04'
+        shell: bash
+        run: |
+          set -euo pipefail
+          npm --prefix ui ci
+          npm --prefix ui test
+          npm --prefix ui run check
+          npm --prefix ui run build
+          if [ -n "$(git status --porcelain -- src/hixton/ui/static)" ]; then
+            echo "::error::UI build output differs from tracked shipped static bundle."
+            git status --short -- src/hixton/ui/static
+            git diff -- src/hixton/ui/static || true
+            exit 1
+          fi
       - name: Run ${{ matrix.role }} without any API secret
         shell: bash
         run: |
@@ -132,7 +155,7 @@ jobs:
     needs: [specialists, supervisor-a10]
     if: always() && needs.supervisor-a10.result != 'cancelled'
     runs-on: ubuntu-latest
-    timeout-minutes: 45
+    timeout-minutes: 50
     steps:
       - uses: actions/checkout@v4
         with:
@@ -142,18 +165,38 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: ${{ env.PYTHON_VERSION }}
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: npm
+          cache-dependency-path: ui/package-lock.json
       - name: Build independent QA environment
         shell: bash
         run: |
+          set -euo pipefail
           python -m venv .venv
           .venv/bin/python -m pip install --upgrade pip
           .venv/bin/pip install -e '.[dev]'
+          npm --prefix ui ci
+      - name: A09 independent UI QA and reproducible bundle gate
+        shell: bash
+        run: |
+          set -euo pipefail
+          npm --prefix ui test
+          npm --prefix ui run check
+          npm --prefix ui run build
+          if [ -n "$(git status --porcelain -- src/hixton/ui/static)" ]; then
+            echo "::error::UI build output differs from tracked shipped static bundle."
+            git status --short -- src/hixton/ui/static
+            git diff -- src/hixton/ui/static || true
+            exit 1
+          fi
       - uses: actions/download-artifact@v4
         with:
           pattern: swarm-report-*-${{ github.run_id }}
           path: collected
           merge-multiple: true
-      - name: A09 independent full QA gate
+      - name: A09 independent full Python QA gate
         shell: bash
         run: |
           set -o pipefail
