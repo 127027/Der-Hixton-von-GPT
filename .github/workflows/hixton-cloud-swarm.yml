@@ -17,10 +17,11 @@ on:
     - cron: "17 */6 * * *"
 
 # Key-free engineering swarm for the Paper-only bot. It receives no Binance
-# credentials and no OpenAI/API secret. A04/A09 verify UI; A09/A11 gate every clean run.
-# Owner migration verification trigger: 2026-09-16 USDT->USDC full audit/retest after Paper lease repair.
+# credentials and no OpenAI/API secret. The only autonomous repository write
+# permitted by this workflow is the known-safe taskboard NEW -> IN_PROGRESS
+# lifecycle normalization. A09/A11 still gate every clean run; no auto-merge.
 permissions:
-  contents: read
+  contents: write
   actions: read
 
 jobs:
