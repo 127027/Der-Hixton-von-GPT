@@ -137,16 +137,16 @@ async def _run_mode(
     if data.get("paper_state_modified") is not False or data.get("orders_sent") is not False:
         raise RuntimeError("historical dashboard test must not mutate Paper or send orders")
 
-    start = datetime.fromisoformat(manifest["report_start_utc"]).astimezone(UTC)
-    end = datetime.fromisoformat(manifest["report_end_utc"]).astimezone(UTC)
+    start = datetime.fromisoformat(data["report_start_utc"]).astimezone(UTC)
+    end = datetime.fromisoformat(data["report_end_utc"]).astimezone(UTC)
     if (end - start).days < 1_095:
         raise RuntimeError(f"dashboard {mode} window is shorter than three years: {start} -> {end}")
 
     return {
         "mode": mode,
         "comparison": run.get("comparison"),
-        "report_start_utc": manifest["report_start_utc"],
-        "report_end_utc": manifest["report_end_utc"],
+        "report_start_utc": data["report_start_utc"],
+        "report_end_utc": data["report_end_utc"],
         "history_mode": data["history_mode"],
         "runtime_quote": data["runtime_quote"],
         "market_proxy_quote": data["market_proxy_quote"],
