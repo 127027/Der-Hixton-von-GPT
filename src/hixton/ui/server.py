@@ -10,7 +10,7 @@ import webbrowser
 import uvicorn
 
 from hixton.config import ProjectConfig
-from hixton.runtime.supervisor import RuntimeSupervisor
+from hixton.runtime.continuity_supervisor import RuntimeSupervisor
 from hixton.ui.api import create_app
 from hixton.ui.instance import installation_id, remove_control, reserve_instance, write_control
 from hixton.ui.lifecycle import ConsoleParent, VisibleSession
