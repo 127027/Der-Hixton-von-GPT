@@ -2,11 +2,13 @@
 
 Aktueller Vorrang: **DMS 1.12.0 / DEC-053 / Anwendung 0.4.7**. Der integrierte Code verwendet USDC (250 Modellstart, Standard 3×80; später genau ein 50-USDC-Test). Alte datierte USDT-Anforderungen/Ergebnisse sind Historie, keine umgerechneten USDC-Nachweise. Runtime- und Laptop-Deployment sind getrennt zu prüfen. Kein Echtgeldstart: technischer Restarbeitsplan in [DMS 20](20_BETRIEBSRUNBOOK.md), tatsächlicher Testnachweis in [DMS 12](12_TESTS_ABNAHMEKRITERIEN.md). Bestehende Live-Sicherheitsgates bleiben wirksam.
 
+**Betreiberentscheidung 17.09.2026 – 3×80 ist echte Slotkapazität:** Die drei konfigurierten 80-USDC-Slots sind drei nutzbare Kapitaltranchen. Gültige gleichzeitige Kaufkandidaten erhalten zunächst je einen Slot nach der bestehenden Rangfolge. Bleiben Slots frei, werden sie dem stärksten aktuell gültigen Kandidaten zusätzlich zugeteilt. Ein Kandidat kann damit 3×80 erhalten, zwei Kandidaten 2×80 + 1×80, drei oder mehr Kandidaten zunächst je 1×80 für die drei bestplatzierten. Es werden dadurch **keine zusätzlichen Handelssignale erfunden**: Mehrere Slots auf demselben Coin sind mehrere Kapitaltranchen desselben Signal-/Positionszyklus. Auswertung und UI müssen deshalb `Positionszyklen` und `Slot-Trades` getrennt ausweisen. Paper und gemeinsamer Portfolio-Backtest verwenden dieselbe Slotvergabe. Die 5-%-Tagespause und der persistente 20-%-Drawdown-Halt bleiben unverändert.
+
 DEC-052 / 0.4.6: Zielwährung des künftigen Betreiber-Spotbetriebs ist USDC, erster geplanter Echtgeldversuch genau einmal 50 USDC. Aktive V6-Modelldaten bleiben USDT; V7-USDC ist zunächst eine gesonderte, nicht freigegebene Prüfung. Kein tatsächlicher Umtausch, Einzahlen oder Import der ca. 1200 USDC. Historische 3×80-Prüfung startet mit 250 Einheiten der jeweiligen Quote (240 Positionsbudget plus 10 Anfangsreserve). Gemeinsame Zeitfenster und identische Risikogates sind beim Vergleich Pflicht. Ein 20-%-Drawdown-Halt blockiert neue Entries, liquidiert aber nicht; der tatsächliche Drawdown kann darüber liegen. Keine tägliche Profitgarantie, kein Hebelauftrag.
 
 Aktuell DEC-051 / 0.4.5: Baseline 3×80 bleibt unverändert, die UI erlaubt 1–10 Slots × gewähltes positives Zielnotional ohne feste 240-USDT-Grenze. 5×50 bzw. 10×100 sind speicherbar; kein zusätzlicher Cash und keine neue Profitbehauptung. Das Update verändert die gespeicherten Betreiberwerte nicht. Die folgenden 3×80-Angaben beschreiben die Baseline. Slotanzahl ist eine Obergrenze, kein Auftrag, ohne qualifiziertes Signal zu kaufen. Verfügbare Mittel und interne Risikogates bleiben maßgeblich. Änderungen gelten für neue Entries, nicht als Zwangsabbau vorhandener Positionen; Positionsbudget ist keine garantierte Verlustgrenze.
 
-DEC-045: Der ausdrücklich beauftragte neue V6-Paperaccount beginnt separat mit 250 USDT. Die alte 240-USDT-Kontohistorie bleibt archiviert, nicht umgebucht. 3×80, höchstens ein Slot je Coin, Baselinekosten sowie 5-%-Tagespause und 20-%-Drawdown-Halt bleiben unverändert. Die 10 USDT sind eine Anfangsreserve, kein dauerhaft garantierter Mindestbetrag.
+DEC-045: Der ausdrücklich beauftragte neue V6-Paperaccount beginnt separat mit 250 USDT. Die alte 240-USDT-Kontohistorie bleibt archiviert, nicht umgebucht. Die damalige Ausführungsannahme war 3×80 mit höchstens einem Slot je Coin. Diese **historische** One-per-Coin-Annahme wurde durch die Betreiberentscheidung vom 17.09.2026 für die aktuelle V6-Ausführung ersetzt; Baselinekosten sowie 5-%-Tagespause und 20-%-Drawdown-Halt bleiben unverändert. Die 10 USDT sind eine Anfangsreserve, kein dauerhaft garantierter Mindestbetrag.
 
 ## Initiales Marktuniversum
 
@@ -34,9 +36,9 @@ Ein Paar darf nur aktiviert werden, wenn es beim jeweiligen Start weiterhin hand
 - Gesamtstartkapital: **250,00 USDT** für neue Konten (DEC-044). Davon höchstens 240 USDT in drei 80-USDT-Slots und 10 USDT anfängliche Cashreserve; Gewinne/Verluste verändern diesen Puffer. Bestehende Konten behalten ihren tatsächlichen Bestand und ursprünglichen Startwert.
 - Gemeinsamer Cashbestand für alle zehn beobachteten Paare.
 - Standard: **drei Positionsslots à 80,00 USDT Zielnotional**.
-- Höchstens drei gleichzeitig offene Long-Positionen.
+- Höchstens drei gleichzeitig belegte Slots. Mehrere Slots dürfen beim selben aktuell gültigen Coin-Signal liegen; sie werden intern als eine aggregierte Coin-Position mit `slot_count` geführt, solange Entry- und Exit-Zeitpunkt identisch sind.
 - Startzustand: Cash, keine Position, keine Altorder.
-- Ein Exit gibt den Slot und das tatsächlich zurückgeflossene Kapital wieder frei.
+- Ein Exit gibt alle von diesem Positionszyklus belegten Slots und das tatsächlich zurückgeflossene Kapital wieder frei.
 - Paper läuft 24/7 mit echten Binance-Marktdaten, aber simulierten Orders/Fills.
 
 Kapital, Slotanzahl und Zielnotional müssen wegen Gebühren und verfügbarem Cash konsistent sein. Der Bot darf niemals Kredit aufnehmen oder einen negativen Cashbestand erzeugen.
@@ -48,17 +50,18 @@ Kapital, Slotanzahl und Zielnotional müssen wegen Gebühren und verfügbarem Ca
 - Ziel-Quote-Budget je Einstieg ist in diesen isolierten Läufen fest 250,00 USDT oder, nach Verlusten, der kleinere verfügbare Cashbetrag; Gewinne erhöhen die nächste Zielgröße nicht automatisch.
 - Jeder Test startet ohne Position und Altorder.
 - Einzeltests beeinflussen einander nicht; Ergebnisse werden je Coin und zusätzlich als Vergleichstabelle gezeigt.
-- Der verpflichtende Spiegeltest bildet zusätzlich das Paper-/Live-Modell mit 250 USDT und 3×80 USDT samt Risikogates nach.
+- Der verpflichtende Spiegeltest bildet zusätzlich das Paper-/Live-Modell mit 250 USDT und 3×80 USDT samt derselben Slotvergabe und denselben Risikogates nach.
 - 250→500 USDT je Coin in drei Jahren ist nur ein Beispiel für einen guten Test, keine verbindliche Quote oder Garantie. Zuerst wird korrekte Indikatorreaktion bewiesen; danach wird die vollständige Performance einschließlich Zielverfehlungen berichtet.
 
 ## Positionsgröße
 
-Initiale Regel:
+Aktuelle Regel:
 
-- maximal eine Long-Position pro Paar;
-- kein Pyramiding;
-- Zielnotional je neu belegtem Slot: 80,00 USDT;
-- die 80,00 USDT sind das maximale Quote-Budget des Kaufs; bei modellierter Zahlung der Kaufgebühr im Basisasset wird die empfangene Assetmenge entsprechend reduziert;
+- pro Paar höchstens ein **aktiver Signal-/Positionszyklus** gleichzeitig; kein späteres Nachkaufen aufgrund eines weiteren Signals, solange dieser Zyklus offen ist;
+- derselbe neue gültige Entry darf beim Öffnen jedoch mehrere freie 80-USDC-Slots erhalten;
+- Zielnotional je belegtem Slot: 80,00 USDT;
+- ein mit drei Slots eröffneter Coin-Zyklus hat damit bis zu 240 USDC Zielnotional und zählt als **ein Positionszyklus, aber drei Slot-Trades**;
+- die 80,00 USDT je Slot sind das maximale Quote-Budget der jeweiligen Kapitaltranche; bei modellierter Zahlung der Kaufgebühr im Basisasset wird die empfangene Assetmenge entsprechend reduziert;
 - tatsächliches Notional höchstens verfügbarer Cash nach Reserven und Börsenfiltern;
 - Menge wird abwärts auf Binance-Schrittweite gerundet;
 - nach Rundung müssen Mindestmenge und Mindestnotional erfüllt sein;
@@ -66,15 +69,32 @@ Initiale Regel:
 - keine Kreditaufnahme, kein negativer Cash-Bestand;
 - eine UI-Änderung von Slotanzahl oder Positionsgröße wirkt nur auf neue Einstiege.
 
-Automatisches Compounding ist deaktiviert. Das Zielnotional bleibt im Paper-/Live-Modell 80 USDT und im isolierten Backtest 250 USDT, auch wenn Gewinne entstehen. Nach Verlusten wird höchstens der verfügbare Cashbetrag eingesetzt. Nur eine bewusst bestätigte und auditierte UI-Änderung verändert die Größe künftiger Paper-/Live-Einstiege; bestehende Positionen bleiben unberührt.
+Automatisches Compounding ist deaktiviert. Das Zielnotional bleibt im Paper-/Live-Modell 80 USDT je Slot und im isolierten Backtest 250 USDT, auch wenn Gewinne entstehen. Nach Verlusten wird höchstens der verfügbare Cashbetrag eingesetzt. Nur eine bewusst bestätigte und auditierte UI-Änderung verändert die Größe künftiger Paper-/Live-Einstiege; bestehende Positionen bleiben unberührt.
 
 ## Slotvergabe
 
-Freie Slots gehen verbindlich an den größten auf 12 Dezimalstellen mit Round-Half-Even gerundeten Wert `(close-upper)/ATR` der jeweiligen Flip-Up-Kerze. Gleichstand wird über diese feste Reihenfolge gebrochen: BTC, ETH, BNB, SOL, XRP, ADA, LINK, AVAX, DOT, DOGE. Die Regel verwendet ausschließlich Werte der jeweils ausgewählten Strategieversion und wird im Backtest mit simultanen Signalen geprüft.
+Freie Slots gehen verbindlich nach dem auf 12 Dezimalstellen mit Round-Half-Even gerundeten Wert `(close-upper)/ATR` der jeweiligen Flip-Up-Kerze. Gleichstand wird über diese feste Reihenfolge gebrochen: BTC, ETH, BNB, SOL, XRP, ADA, LINK, AVAX, DOT, DOGE. Die Regel verwendet ausschließlich Werte der jeweils ausgewählten Strategieversion und wird im Backtest mit simultanen Signalen geprüft.
+
+Für die aktive 3×80-Ausführung gilt `ranked_repeat`:
+
+- **1 gültiger Kandidat + 3 freie Slots → 3 Slots** auf diesen Kandidaten;
+- **2 gültige Kandidaten + 3 freie Slots → 2 Slots** auf den stärksten und 1 Slot auf den zweitstärksten;
+- **3 oder mehr gültige Kandidaten + 3 freie Slots → je 1 Slot** auf die drei bestplatzierten Kandidaten;
+- bereits belegte Slots reduzieren die Zahl der neu zu vergebenden Slots entsprechend;
+- es werden keine künstlichen zusätzlichen Kauf- oder Verkaufssignale erzeugt.
 
 Ein Kauf-Flip, der wegen voller Slots nicht ausgeführt wird, wird protokolliert. Er wird nicht später mitten im bestehenden Uptrend nachgeholt, außer die Strategie definiert ausdrücklich eine weiterhin gültige Entry-Bedingung.
 
-Aktive V2 belegt höchstens einen Slot je Coin. Mehrfachslots im selben Coin sind nicht grundsätzlich verboten, benötigen aber eine eigene Strategieversion und denselben vollständigen Vergleich. `HIXTON-V3-SLOT-CANDIDATE-1` testete bis zu drei Slots auf dem stärksten gleichzeitigen Signal und wurde wegen des frühen 20-%-Risikohalts verworfen. Drei Slots im selben Coin erzeugen nur dreifaches Notional auf demselben Signal, nicht drei unabhängige Trades.
+`HIXTON-V3-SLOT-CANDIDATE-1` war ein historischer Forschungsversuch derselben Grundidee und wurde unter seinem damaligen Test- und Risikopfad wegen eines frühen 20-%-Risikohalts nicht aktiviert. Dieser historische Befund wird nicht überschrieben. Die Betreiberentscheidung vom 17.09.2026 legt jedoch fest, dass freie 3×80-Kapazität in der **normalen V6-Ausführung** vollständig nach `ranked_repeat` nutzbar sein soll. Deshalb wird die aktuelle Implementierung neu über drei Jahre, Paper-Parität und alle A01–A11-Gates geprüft.
+
+### Tradezählung
+
+Die Auswertung unterscheidet verbindlich zwei Größen:
+
+- **Positionszyklen (`completed_trades`)**: Zahl abgeschlossener Entry→Exit-Signalzyklen. Ein BTC-Entry mit drei Slots bleibt ein gemeinsamer Markt-/Signalzyklus.
+- **Slot-Trades (`completed_slot_trades`)**: Zahl abgeschlossener 80-USDC-Kapitaltranchen. Ein Positionszyklus mit `slot_count=3` zählt hier dreifach.
+
+Damit kann ein Coin zum Beispiel 40 abgeschlossene Signalzyklen und bei durchgehender Dreifachbelegung bis zu 120 Slot-Trades erzeugen. Ob tatsächlich 120 erreicht werden, hängt von gleichzeitig konkurrierenden Signalen, verfügbarem Cash und den unveränderten Risikogates ab; die Slotlogik selbst darf freie Kapazität nicht künstlich auf einen Slot je Coin begrenzen.
 
 ## Optimierungsziel
 
@@ -109,8 +129,8 @@ Da „alles über diesen Indikator“ laufen soll, werden keine heimlichen Stop-
 | Kontrolle | Verhalten | Status |
 |---|---|---|
 | Not-Aus | keine neuen Einstiege; Exit vorhandener Positionen nur separat bestätigen | VERBINDLICH |
-| Max. Ordernotional | anfänglich 80 USDT Zielnotional und höchstens verfügbarer Cash | VERBINDLICH |
-| Max. offene Positionen | anfangs drei, je Paar höchstens eine; UI-konfigurierbar | VERBINDLICH |
+| Max. Ordernotional | 80 USDT Zielnotional je Slot; bei Mehrfachbelegung entsprechend Slots × 80 und höchstens verfügbarer Cash | VERBINDLICH |
+| Max. offene Positionen | anfangs drei belegte Slots; mehrere Slots dürfen in einem Coin-Zyklus aggregiert sein; UI-konfigurierbar | VERBINDLICH |
 | Max. Tagesverlust | ab 5 % Verlust gegenüber Start-of-Day-Equity keine neuen Entries bis 00:00 UTC; Exits bleiben erlaubt | VERBINDLICH |
 | Max. Drawdown live | ab 20 % unter globalem High-Water-Mark Zustand `HALTED`; keine automatische Liquidation | VERBINDLICH |
 | Max. Preisabweichung vor Order | 25 bps gegenüber dem zum Intent gespeicherten Referenzpreis; bei Überschreitung blockieren | VERBINDLICH |
