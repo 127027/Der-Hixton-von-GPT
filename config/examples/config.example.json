@@ -6,7 +6,7 @@
     "version": "HIXTON-V6-COIN-PAPER-1-d57f88ec2e5f",
     "timeframe": "1h",
     "source": "close",
-    "slot_allocation": "one_per_symbol",
+    "slot_allocation": "ranked_repeat",
     "long_only": true,
     "compounding": false,
     "profiles": {
