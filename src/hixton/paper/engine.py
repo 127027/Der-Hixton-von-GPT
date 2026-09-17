@@ -10,6 +10,7 @@ from decimal import ROUND_DOWN, Decimal
 
 from hixton.backtest.models import BASELINE_COSTS, ONE, ZERO, ExecutionRules
 from hixton.constants import HIXTON_SPEC_VERSION, SYMBOLS
+from hixton.domain.allocation import ONE_PER_SYMBOL, allocate_entry_slots
 from hixton.domain.models import Candle, IndicatorPoint, Signal, SignalAction
 from hixton.domain.risk import PortfolioRiskState, evaluate_portfolio_risk
 from hixton.domain.strategy import entry_priority
@@ -160,6 +161,7 @@ def process_new_closed_points(
     strategy_version: str = HIXTON_SPEC_VERSION,
     execution_candles_by_symbol: Mapping[str, list[Candle]] | None = None,
     trade_policies_by_symbol: Mapping[str, TradePolicy] | None = None,
+    slot_allocation: str = ONE_PER_SYMBOL,
 ) -> tuple[PaperEvent, ...]:
     """Process every not-yet-checkpointed bar atomically and exactly once."""
 
@@ -175,6 +177,8 @@ def process_new_closed_points(
         raise ValueError("paper policies require an explicit HIXTON-V6 version")
     if strategy_key == "v6" and trade_policies_by_symbol is None:
         raise ValueError("V6 paper requires its complete coin-policy map")
+    # Validate the allocation policy even when this cycle has no entry candidates.
+    allocate_entry_slots((), free_slots=0, policy=slot_allocation)
     policy_gates = {s: TradePolicyGate((trade_policies_by_symbol or {}).get(s)) for s in SYMBOLS}
 
     with PaperStore(database_path) as store:
@@ -313,11 +317,21 @@ def process_new_closed_points(
                     if decision.block_reason:
                         emitted.append(_blocked_event(signal, decision.block_reason))
                         continue
+                    if signal.symbol in positions:
+                        emitted.append(_blocked_event(signal, "POSITION_ALREADY_OPEN"))
+                        continue
                     candidates.append((signal, point))
             candidates.sort(
                 key=lambda item: entry_priority(item[1].rank_strength, item[0].symbol, SYMBOLS)
             )
 
+            used_slots = sum(position.slot_count for position in positions.values())
+            free_slots = max(0, settings.slot_count - used_slots)
+            allocations = allocate_entry_slots(
+                [signal.symbol for signal, _point in candidates],
+                free_slots=free_slots,
+                policy=slot_allocation,
+            )
             for signal, point in candidates:
                 if settings.emergency_stop:
                     emitted.append(_blocked_event(signal, "EMERGENCY_STOP"))
@@ -328,14 +342,15 @@ def process_new_closed_points(
                 if daily_paused:
                     emitted.append(_blocked_event(signal, "DAILY_LOSS_5_PERCENT"))
                     continue
-                if (
-                    sum(position.slot_count for position in positions.values())
-                    >= settings.slot_count
-                ):
+                allocated_slots = allocations.get(signal.symbol, 0)
+                if allocated_slots <= 0:
                     emitted.append(_blocked_event(signal, "NO_FREE_SLOT"))
                     continue
                 rules = rules_by_symbol[signal.symbol]
-                budget = min(settings.target_notional_usdc, account.cash_usdc)
+                budget = min(
+                    settings.target_notional_usdc * Decimal(allocated_slots),
+                    account.cash_usdc,
+                )
                 reference = _d(fill_candles[signal.symbol].open)
                 fill_price = reference * (ONE + BASELINE_COSTS.adverse_price_rate)
                 gross_quantity = _round_down(budget / fill_price, rules.step_size)
@@ -360,7 +375,7 @@ def process_new_closed_points(
                     entry_fee_usdc=fee_quote,
                     updated_at_utc=boundary,
                     strategy_version=signal.strategy_version,
-                    slot_count=1,
+                    slot_count=allocated_slots,
                     entry_atr=_d(signal.atr) if trade_policies_by_symbol else ZERO,
                     highest_close=fill_price if trade_policies_by_symbol else ZERO,
                 )
