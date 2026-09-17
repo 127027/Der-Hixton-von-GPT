@@ -1,0 +1,68 @@
+name: Hixton Dashboard Backtest E2E
+
+on:
+  push:
+    branches:
+      - gpt/usdc-audit
+    paths:
+      - .github/workflows/hixton-dashboard-backtest-e2e.yml
+      - scripts/dashboard_backtest_e2e.py
+      - src/hixton/backtest/continuity.py
+      - src/hixton/runtime/continuity_supervisor.py
+      - src/hixton/ui/api.py
+      - src/hixton/ui/server.py
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: hixton-dashboard-backtest-e2e
+  cancel-in-progress: true
+
+jobs:
+  dashboard-backtest:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 120
+    steps:
+      - name: Checkout engineering branch
+        uses: actions/checkout@v4
+        with:
+          ref: gpt/usdc-audit
+          persist-credentials: false
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install locked project environment
+        shell: bash
+        run: |
+          set -euo pipefail
+          python -m venv .venv
+          .venv/bin/python -m pip install --upgrade pip
+          .venv/bin/pip install -e '.[dev]'
+
+      - name: Validate E2E harness
+        shell: bash
+        run: |
+          set -euo pipefail
+          .venv/bin/ruff check scripts/dashboard_backtest_e2e.py \
+            src/hixton/backtest/continuity.py \
+            src/hixton/runtime/continuity_supervisor.py
+          .venv/bin/mypy src
+
+      - name: Run real dashboard API backtests on public Binance history
+        shell: bash
+        run: |
+          set -euo pipefail
+          .venv/bin/python scripts/dashboard_backtest_e2e.py
+
+      - name: Upload dashboard evidence
+        uses: actions/upload-artifact@v4
+        with:
+          name: hixton-dashboard-backtest-e2e-${{ github.run_id }}
+          path: evidence/dashboard-backtest-e2e.json
+          retention-days: 30
+          if-no-files-found: error
