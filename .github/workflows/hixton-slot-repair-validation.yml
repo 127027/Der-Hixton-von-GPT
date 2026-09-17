@@ -1,0 +1,84 @@
+name: Hixton Slot Capacity Repair Validation
+
+on:
+  push:
+    branches:
+      - gpt/usdc-audit
+    paths:
+      - .github/workflows/hixton-slot-repair-validation.yml
+
+permissions:
+  contents: write
+
+jobs:
+  validate-and-build:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 60
+    steps:
+      - name: Checkout engineering branch
+        uses: actions/checkout@v4
+        with:
+          ref: gpt/usdc-audit
+          fetch-depth: 0
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+          cache-dependency-path: ui/package-lock.json
+
+      - name: Install project environments
+        shell: bash
+        run: |
+          set -euo pipefail
+          python -m venv .venv
+          .venv/bin/python -m pip install --upgrade pip
+          .venv/bin/pip install -e '.[dev]'
+          npm --prefix ui ci
+
+      - name: Full Python and slot-capacity regression
+        shell: bash
+        run: |
+          set -euo pipefail
+          .venv/bin/python -m compileall -q src scripts
+          .venv/bin/ruff check src scripts tests
+          .venv/bin/mypy src
+          .venv/bin/pytest -q
+
+      - name: UI QA and production build
+        shell: bash
+        run: |
+          set -euo pipefail
+          npm --prefix ui test
+          npm --prefix ui run check
+          npm --prefix ui run build
+
+      - name: Persist only regenerated shipped UI bundle
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          if [ -z "$(git status --porcelain -- src/hixton/ui/static)" ]; then
+            echo "Shipped UI bundle already matches source."
+            exit 0
+          fi
+          changed="$(git status --porcelain | awk '{print $2}')"
+          while IFS= read -r path; do
+            [ -z "$path" ] && continue
+            case "$path" in
+              src/hixton/ui/static/*) ;;
+              *) echo "::error::Unexpected generated change: $path"; exit 1 ;;
+            esac
+          done <<< "$changed"
+          git config user.name "hixton-swarm[bot]"
+          git config user.email "hixton-swarm@users.noreply.github.com"
+          git add -- src/hixton/ui/static
+          git commit -m "build: refresh UI for slot-capacity reporting"
+          git push origin HEAD:gpt/usdc-audit
