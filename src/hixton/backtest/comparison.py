@@ -6,6 +6,7 @@ from dataclasses import asdict
 from decimal import Decimal, InvalidOperation
 from typing import Any
 
+from hixton.backtest.continuity import HISTORY_MODE
 from hixton.backtest.models import BASELINE_COSTS, STRESS_COSTS
 from hixton.domain.versions import StrategyDefinition
 from hixton.paper.models import PaperSettings
@@ -70,17 +71,33 @@ def compare_run(
                 unknown.append("Kapitalnachweis fehlt oder ist ungültig")
         if portfolio.get("risk_limits_applied") is not True:
             differences.append("Portfolio-Risikoschutz fehlt oder ist ungeklärt")
+
+    data = manifest.get("data")
+    data = data if isinstance(data, dict) else {}
+    continuity = data.get("history_mode") == HISTORY_MODE
+    if continuity and data.get("historical_usdc_liquidity_claimed") is not False:
+        differences.append("Historische Proxy-Kennzeichnung ist unvollständig")
+
     status = "DIFFERENT" if differences else "UNVERIFIED" if unknown else "MATCHING"
+    base_scope = (
+        "Gemeinsames Konto mit Slotkonkurrenz und dauerhaftem 20-%-Entry-Risikohalt."
+        if is_portfolio
+        else "Isolierte Coin-Diagnose: je 250, keine Slotkonkurrenz, kein 20-%-Portfoliohalt. "
+        "Kein vollständiger Spiegel des 3x80-Betriebs."
+    )
+    continuity_note = (
+        " Drei-Jahres-Strategie-Kontinuität: dieselbe aktive USDC-Strategie, dasselbe Konto-, "
+        "Risiko- und Kostenmodell sowie aktuelle USDC-Ausführungsregeln. Der reale Binance-"
+        "USDT-Basismarkt liefert ausschließlich den historischen Preisweg, wo eine gleich lange "
+        "USDC-Historie nicht verfügbar ist; dies ist kein Nachweis historischer USDC-Liquidität."
+        if continuity
+        else ""
+    )
     return {
         "status": status,
         "reasons": differences + unknown,
         "model": "PORTFOLIO" if is_portfolio else "ISOLATED",
-        "scope": (
-            "Gemeinsames Konto mit Slotkonkurrenz und dauerhaftem 20-%-Entry-Risikohalt."
-            if is_portfolio
-            else "Isolierte Coin-Diagnose: je 250, keine Slotkonkurrenz, kein 20-%-Portfoliohalt. "
-            "Kein vollständiger Spiegel des 3x80-Betriebs."
-        ),
+        "scope": base_scope + continuity_note,
         "window_note": "Gilt nur für das gespeicherte Testfenster; "
         "keine Aussage über neuere Kerzen. "
         "Neustart in Cash, ohne heutige Positionen, manuelle Pausen oder bestehende Kontohalts.",
