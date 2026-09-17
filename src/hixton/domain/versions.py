@@ -267,9 +267,10 @@ V6_COIN_STRATEGY = StrategyDefinition(
     reference="strategy/pine/Der_Hixton_Indikator_v6.pine",
     semantics=StrategySemantics.PINE_V6,
     parameters=V2_RESEARCH_STRATEGY.parameters,
-    # DEC-045: owner-authorized Paper experiment, not a robustness or live approval.
+    # Owner instruction 2026-09-17: all free 80-USDC slots are usable. Ranked
+    # candidates get one slot each first; leftovers repeat on the strongest signal.
     paper_approved=True,
-    slot_allocation=ONE_PER_SYMBOL,
+    slot_allocation=RANKED_REPEAT,
     coin_profiles=_V6_PROFILES,
 )
 
