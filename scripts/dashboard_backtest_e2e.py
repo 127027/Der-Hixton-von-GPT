@@ -36,7 +36,10 @@ ACTION_HEADERS = {
 
 
 def _seed_current_usdc_rules(database_path: Path) -> None:
-    public = BinancePublicClient(base_url="https://api.binance.com")
+    # GitHub-hosted runners can be geoblocked on api.binance.com. Binance's
+    # public data endpoint exposes the same read-only exchange metadata needed
+    # by this CI proof and is already the continuity-history source.
+    public = BinancePublicClient(base_url="https://data-api.binance.vision")
     checked_at = datetime.now(UTC)
     with CandleStore(database_path) as store:
         for symbol in SYMBOLS:
