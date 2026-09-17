@@ -5,14 +5,13 @@ from decimal import Decimal
 from pathlib import Path
 
 from hixton.backtest.metrics import calculate_metrics
-from hixton.backtest.models import EquityPoint, Trade
+from hixton.backtest.models import EquityPoint, ExecutionRules, Trade
 from hixton.constants import HIXTON_SPEC_VERSION, SYMBOLS
 from hixton.domain.allocation import RANKED_REPEAT
 from hixton.domain.models import Candle, IndicatorPoint, TrendState
 from hixton.domain.versions import V6_COIN_STRATEGY
 from hixton.paper.engine import initialize_paper_at_latest, process_new_closed_points
 from hixton.paper.storage import PaperStore
-from hixton.backtest.models import ExecutionRules
 
 
 def _point(
