@@ -1,8 +1,8 @@
 """Runtime supervisor with the canonical V6 three-year backtest data adapter.
 
-The running bot is inherited unchanged from RuntimeSupervisor. Only the
-historical V6 backtest data source is overridden so the same active USDC
-strategy can be simulated over one continuous three-year market path.
+The running bot is inherited from RuntimeSupervisor. V6 historical candle
+sourcing is adapted for continuity, and Paper receives the same active strategy
+slot-allocation policy as the portfolio backtest.
 """
 
 from __future__ import annotations
@@ -16,14 +16,39 @@ from hixton.backtest.models import BASELINE_COSTS, STRESS_COSTS, ExecutionRules
 from hixton.backtest.portfolio import run_shared_portfolio_backtest
 from hixton.backtest.reporting import RunResult, source_fingerprint, write_report_bundle
 from hixton.data.storage import CandleStore
+from hixton.domain.models import IndicatorPoint
 from hixton.domain.versions import V6_COIN_STRATEGY, strategy_definition
+from hixton.paper.engine import process_new_closed_points
 from hixton.paper.storage import PaperStore
 from hixton.runtime.supervisor import RuntimeSupervisor as BaseRuntimeSupervisor
 from hixton.runtime.supervisor import safe_closed_window
 
 
 class RuntimeSupervisor(BaseRuntimeSupervisor):
-    """Single Hixton runtime; only V6 historical candle sourcing is adapted."""
+    """Single Hixton runtime with one V6 strategy contract for Paper and backtest."""
+
+    def _process_paper(
+        self, points: dict[str, tuple[IndicatorPoint, ...]], rules: dict[str, ExecutionRules]
+    ) -> tuple[object, ...]:
+        if self._stop.is_set():
+            return ()
+        with CandleStore(self.config.database_path) as store:
+            execution = {
+                symbol: store.load_candles(
+                    symbol, start=values[0].candle.open_time_utc, closed_only=False
+                )
+                for symbol, values in points.items()
+            }
+        return process_new_closed_points(
+            str(self.config.database_path),
+            points,
+            rules,
+            strategy_key=self.strategy.key,
+            strategy_version=self.strategy.version,
+            execution_candles_by_symbol=execution,
+            trade_policies_by_symbol=self.strategy.policy_map(),
+            slot_allocation=self.strategy.slot_allocation,
+        )
 
     def _synchronous_backtest(
         self,
