@@ -22,6 +22,7 @@ from hixton.config import load_project_config
 from hixton.constants import SYMBOLS
 from hixton.data.binance import BinancePublicClient
 from hixton.data.storage import CandleStore, StoredSymbolRules
+from hixton.domain.allocation import RANKED_REPEAT
 from hixton.domain.versions import strategy_definition
 from hixton.paper.storage import PaperStore
 from hixton.runtime.continuity_supervisor import RuntimeSupervisor
@@ -77,14 +78,26 @@ def _baseline_summary(run: dict[str, Any], mode: str) -> dict[str, Any]:
     baseline = run["metrics"]["baseline"]
     if mode == "portfolio":
         portfolio = baseline["portfolio"]
+        metrics = portfolio["metrics"]
+        cycles = metrics["completed_trades"]
+        slot_trades = metrics.get("completed_slot_trades")
+        if not isinstance(slot_trades, int):
+            raise RuntimeError("portfolio backtest did not expose completed_slot_trades")
+        if slot_trades < cycles:
+            raise RuntimeError("slot-equivalent trades cannot be fewer than position cycles")
+        if portfolio.get("slot_allocation") != RANKED_REPEAT:
+            raise RuntimeError("dashboard portfolio is not using owner-approved ranked_repeat")
         return {
-            "ending_equity": portfolio["metrics"]["ending_equity"],
-            "return_pct": portfolio["metrics"]["return_pct"],
-            "completed_trades": portfolio["metrics"]["completed_trades"],
-            "max_drawdown_pct": portfolio["metrics"]["max_drawdown_pct"],
+            "ending_equity": metrics["ending_equity"],
+            "return_pct": metrics["return_pct"],
+            "completed_trades": cycles,
+            "completed_slot_trades": slot_trades,
+            "max_drawdown_pct": metrics["max_drawdown_pct"],
             "risk_halted_at_utc": portfolio.get("risk_halted_at_utc"),
             "slot_count": portfolio["slot_count"],
+            "slot_allocation": portfolio["slot_allocation"],
             "target_notional": portfolio["target_notional"],
+            "blocked_reasons": portfolio.get("blocked_reasons", {}),
         }
     batch = baseline["batch"]
     return {
@@ -179,7 +192,7 @@ async def main() -> None:
             isolated = await _run_mode(client, supervisor, "all")
 
         evidence = {
-            "schema_version": 1,
+            "schema_version": 2,
             "route": "/api/backtests/run",
             "strategy": supervisor.strategy.version,
             "single_runtime_supervisor": "hixton.runtime.continuity_supervisor.RuntimeSupervisor",
