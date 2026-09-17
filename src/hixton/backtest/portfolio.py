@@ -232,6 +232,7 @@ def run_shared_portfolio_backtest(
                         sold_base_quantity=sell_quantity,
                         residual_dust_quantity=residual,
                         holding_hours=holding_hours,
+                        slot_count=open_trade.slots,
                     )
                 )
                 del positions[signal.symbol]
