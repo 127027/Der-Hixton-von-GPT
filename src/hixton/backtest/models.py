@@ -100,6 +100,10 @@ class Trade:
     sold_base_quantity: Decimal
     residual_dust_quantity: Decimal
     holding_hours: Decimal
+    # Number of configured trading slots represented by this position cycle.
+    # A 3x80 entry on one signal remains one signal/position cycle, but it is
+    # three independently budgeted slot round-trips for capacity accounting.
+    slot_count: int = 1
 
 
 @dataclass(frozen=True, slots=True)
@@ -121,6 +125,7 @@ class BacktestMetrics:
     max_drawdown: Decimal
     max_drawdown_pct: Decimal
     completed_trades: int
+    completed_slot_trades: int
     winning_trades: int
     losing_trades: int
     win_rate_pct: Decimal | None
