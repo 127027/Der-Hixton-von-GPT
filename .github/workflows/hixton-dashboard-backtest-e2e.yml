@@ -6,8 +6,14 @@ on:
       - gpt/usdc-audit
     paths:
       - .github/workflows/hixton-dashboard-backtest-e2e.yml
+      - config/examples/config.example.json
       - scripts/dashboard_backtest_e2e.py
       - src/hixton/backtest/continuity.py
+      - src/hixton/backtest/metrics.py
+      - src/hixton/backtest/models.py
+      - src/hixton/backtest/portfolio.py
+      - src/hixton/domain/allocation.py
+      - src/hixton/domain/versions.py
       - src/hixton/runtime/continuity_supervisor.py
       - src/hixton/ui/api.py
       - src/hixton/ui/server.py
