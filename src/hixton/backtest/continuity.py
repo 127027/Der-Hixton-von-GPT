@@ -88,9 +88,10 @@ def load_continuity_history(
             raise ValueError(f"{market_proxy}: full three-year proxy warm-up is unavailable")
         expected_last = report_end_utc - BAR
         if proxy_candles[-1].open_time_utc != expected_last:
+            actual_last = proxy_candles[-1].open_time_utc.isoformat()
             raise ValueError(
-                f"{market_proxy}: proxy history ends at "
-                f"{proxy_candles[-1].open_time_utc.isoformat()}, expected {expected_last.isoformat()}"
+                f"{market_proxy}: proxy history ends at {actual_last}, "
+                f"expected {expected_last.isoformat()}"
             )
         adapted = [
             replace(
