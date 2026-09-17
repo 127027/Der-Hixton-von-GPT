@@ -35,7 +35,17 @@ export function portfolioBlocksText(portfolio?: Record<string, unknown>): string
   items.sort((a, b) => Number(b[1]) - Number(a[1]));
   const maximum = portfolio.max_concurrent_positions;
   const capacity = typeof maximum === "number" ? `Maximal gleichzeitig belegt: ${maximum} Slots. ` : "";
-  return capacity + (items.length
+  const metrics = portfolio.metrics;
+  let tradeAccounting = "";
+  if (metrics && typeof metrics === "object" && !Array.isArray(metrics)) {
+    const typed = metrics as Record<string, unknown>;
+    const cycles = typed.completed_trades;
+    const slotTrades = typed.completed_slot_trades;
+    if (typeof cycles === "number" && typeof slotTrades === "number") {
+      tradeAccounting = `Positionszyklen: ${cycles} · Slot-Trades (80-USDC-Kapazität): ${slotTrades}. `;
+    }
+  }
+  return capacity + tradeAccounting + (items.length
     ? `Blockiergründe: ${items.map(([reason, count]) => `${count} × ${labels[reason] ?? reason}`).join(" · ")}.`
     : "Keine blockierten Signale in diesem Lauf.");
 }
