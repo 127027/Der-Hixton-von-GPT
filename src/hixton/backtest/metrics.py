@@ -111,6 +111,7 @@ def calculate_metrics(
         else None
     )
     buy_hold_return = (buy_and_hold_ending_equity / starting_equity - Decimal("1")) * _HUNDRED
+    completed_slot_trades = sum(max(1, trade.slot_count) for trade in trades)
     return BacktestMetrics(
         starting_equity=starting_equity,
         ending_equity=ending_equity,
@@ -120,6 +121,7 @@ def calculate_metrics(
         max_drawdown=max_drawdown,
         max_drawdown_pct=max_drawdown_pct,
         completed_trades=len(trades),
+        completed_slot_trades=completed_slot_trades,
         winning_trades=len(wins),
         losing_trades=len(losses),
         win_rate_pct=win_rate,
