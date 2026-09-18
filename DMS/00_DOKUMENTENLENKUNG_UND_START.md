@@ -1,5 +1,15 @@
 # 00 – Dokumentenlenkung und Start
 
+## Aktueller Vorrang 18.09.2026 – USDC / V6 / Coin-Optimierungszyklus
+
+Der aktive Engineering-Stand ist V6 auf **USDC** mit zehn Coin-Profilen, gemeinsamem Paperkonto ab 250 USDC, Baseline **3×80 USDC** und aktiver Slotvergabe `ranked_repeat`: ein gültiger Kandidat kann drei freie Slots erhalten, zwei Kandidaten 2+1, drei oder mehr Kandidaten zunächst je einen Slot. Mehrfachslots desselben Signals sind Kapitaltranchen desselben Positionszyklus und werden zusätzlich als **Slot-Trades** gezählt. Der permanente 20-%-Portfolio-Drawdown-Halt ist seit Betreiberentscheidung 18.09.2026 aus der aktiven V6-Paper-/Portfolioausführung entfernt; Drawdown bleibt Messgröße, die 5-%-UTC-Tagespause und technische Sicherheitsgates bleiben aktiv.
+
+Der Standard-Optimierungsweg ist jetzt verbindlich: **10×250 USDC isoliert** diagnostiziert und optimiert jeden Coin separat auf Trainingsfenstern; danach wird der daraus zusammengesetzte, einmal versionierte Zehn-Coin-Profilsatz unverändert im **gemeinsamen 3×80-USDC-Portfolio** neu gerechnet. Einzel-, Batch-, Portfolio-, Paper- und UI-Pfade müssen dieselbe kanonische Profilquelle verwenden. Ein isoliert besserer Coin garantiert wegen Slotkonkurrenz nicht automatisch eine höhere gemeinsame Rendite; unveränderte oder schlechtere gemeinsame Ergebnisse sind daher zu erklären, nicht zu verstecken. Eine nicht propagierte Profiländerung ist dagegen ein Paritätsfehler.
+
+Alle abweichenden, älter datierten USDT-, `one_per_symbol`- oder 20-%-Halt-Aussagen weiter unten sind **historische Nachweise ihres damaligen Stands** und keine aktuelle Aktivierungs- oder Sollvorgabe, sofern sie nicht ausdrücklich auf den 18.09.2026 aktualisiert wurden.
+
+## Historischer Dokumentstand bis 15.09.2026
+
 ## Aktuell: DMS 1.14.0 / Anwendung 0.4.9, DEC-055
 
 Ein gemeinsamer Entscheidungsweg für Backtest/Paper/Live, unterschiedliche Daten- und Ausführungsschnittstellen. Zentrale Signalpriorität ergänzt die bereits gemeinsame Coin-Policy. Einmaltest-Laufzeit ist jetzt angeschlossen, Ausgangsbestand-/Fill-Saldovergleich implementiert; Produktion weiterhin direkt vor Orderversand gesperrt. Konkrete Abgrenzung: 292 Python-Tests/19 UI-Tests, zehn Offline-Durchläufe mit echtem Adapterparser und abgeglichenen Paperentscheidungen sind keine externe Binance-Abnahme. Markt-/Preis-/Mengenfreigaben, handelbare Restmengen, vollständige Fremdorderprüfung und Testnet/Betriebsnachweis bleiben offen. Neue Backtest-Manifeste protokollieren Python-Quelltext-Hash und Prüfbereich. DMS 20 enthält den aktuellen Arbeitsstand; ältere Aussagen „kein Runtime-Anschluss“ sind dadurch teilweise überholt, nicht die Echtgeldsperre.
