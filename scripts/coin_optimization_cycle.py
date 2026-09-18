@@ -26,7 +26,7 @@ from hixton.backtest.models import (
 )
 from hixton.backtest.portfolio import run_shared_portfolio_backtest
 from hixton.data.binance import BinancePublicClient
-from hixton.domain.models import StrategyParameters
+from hixton.domain.models import Candle, StrategyParameters
 from hixton.domain.trade_policy import TradePolicy
 from hixton.domain.versions import V6_COIN_STRATEGY
 from hixton.runtime.supervisor import safe_closed_window
@@ -162,12 +162,16 @@ def _rules() -> dict[str, ExecutionRules]:
     return result
 
 
-def _blocked_counts(result: BacktestResult) -> dict[str, int]:
+def _blocked_reason_counts(items: tuple[str, ...]) -> dict[str, int]:
     counts: dict[str, int] = {}
-    for item in result.blocked_signals:
+    for item in items:
         reason = item.rsplit(":", 1)[-1]
         counts[reason] = counts.get(reason, 0) + 1
     return dict(sorted(counts.items()))
+
+
+def _blocked_counts(result: BacktestResult) -> dict[str, int]:
+    return _blocked_reason_counts(result.blocked_signals)
 
 
 def _worst_losses(result: BacktestResult, limit: int = 5) -> list[dict[str, object]]:
@@ -213,7 +217,7 @@ def _result_summary(result: BacktestResult) -> dict[str, object]:
 def _run_single(
     *,
     symbol: str,
-    candles: list,
+    candles: list[Candle],
     rules: ExecutionRules,
     start: datetime,
     end: datetime,
@@ -275,28 +279,7 @@ def _portfolio_summary(result: Any) -> dict[str, object]:
         "risk_halted_at_utc": (
             None if result.risk_halted_at_utc is None else result.risk_halted_at_utc.isoformat()
         ),
-        "blocked_reasons": _blocked_counts(
-            BacktestResult(
-                symbol="PORTFOLIO",
-                report_start_utc=result.report_start_utc,
-                report_end_utc=result.report_end_utc,
-                warmup_start_utc=result.warmup_start_utc,
-                cost_model=result.cost_model,
-                starting_cash=result.starting_cash,
-                target_notional=result.target_notional,
-                signals=result.signals,
-                fills=result.fills,
-                trades=result.trades,
-                equity_curve=result.equity_curve,
-                blocked_signals=result.blocked_signals,
-                pending_signal_at_end=None,
-                open_position_at_end=False,
-                open_position_quantity=D("0"),
-                dust_quantity=D("0"),
-                metrics=result.metrics,
-                data_snapshot_sha256="",
-            )
-        ),
+        "blocked_reasons": _blocked_reason_counts(result.blocked_signals),
         "per_symbol": dict(sorted(by_symbol.items())),
     }
 
