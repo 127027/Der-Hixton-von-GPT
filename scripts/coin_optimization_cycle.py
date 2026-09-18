@@ -60,7 +60,7 @@ def candidate_catalog(symbol: str) -> tuple[Candidate, ...]:
     base_parameters = definition.parameters_for(symbol)
     base_policy = definition.policy_for(symbol)
     candidates: list[Candidate] = []
-    seen: set[str] = set()
+    seen: set[tuple[StrategyParameters, TradePolicy]] = set()
 
     def add(
         name: str,
@@ -73,10 +73,10 @@ def candidate_catalog(symbol: str) -> tuple[Candidate, ...]:
             parameters=parameters or base_parameters,
             policy=policy or base_policy,
         )
-        digest = _candidate_hash(candidate)
-        if digest in seen:
+        identity = (candidate.parameters, candidate.policy)
+        if identity in seen:
             return
-        seen.add(digest)
+        seen.add(identity)
         candidates.append(candidate)
 
     add("current")
