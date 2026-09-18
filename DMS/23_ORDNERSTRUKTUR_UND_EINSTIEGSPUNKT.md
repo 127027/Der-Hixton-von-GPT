@@ -1,4 +1,8 @@
 # 23 – Ordnerstruktur und einziger Einstiegspunkt
+## Aktueller Einstiegspunkt 18.09.2026
+
+Engineering-Branch: `gpt/usdc-audit`. Aktive Strategie: V6-USDC. Standarddiagnose: 10×250 USDC; gemeinsamer Spiegel: 3×80 USDC mit `ranked_repeat`. Beide Modi lesen dieselbe kanonische Profilmap. Neue Optimierungsreports gehören unter eine versionierte Research-/Reportstruktur, nicht in eine zweite Handelsengine.
+
 
 Ergänzung 0.4.1: Der isolierte Orderjournal-Kern liegt ebenfalls unter `src/hixton/live/orders.py`, seine Tests unter `tests/test_live_orders.py`. Er ist nicht angeschlossen und legt im normalen Betrieb keine weitere Datenbank an. Kein zusätzlicher Testtrade-Starter und keine duplizierte Strategieengine.
 
@@ -54,7 +58,7 @@ Verbindliche Bedienform:
 ```text
 Startbot.bat
 py -3 src/main.py backtest all
-py -3 src/main.py backtest single --symbol ETHUSDT
+py -3 src/main.py backtest single --symbol ETHUSDC
 py -3 src/main.py backtest portfolio
 py -3 src/main.py backtest all --strategy v2
 py -3 src/main.py backtest portfolio --strategy v2
