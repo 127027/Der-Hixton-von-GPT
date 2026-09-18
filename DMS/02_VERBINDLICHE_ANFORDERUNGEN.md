@@ -2,7 +2,7 @@
 
 Aktueller Vorrang: **DMS 1.12.0 / DEC-053 / Anwendung 0.4.7**. Der integrierte Code verwendet USDC (250 Modellstart, Standard 3×80; später genau ein 50-USDC-Test). Alte datierte USDT-Anforderungen/Ergebnisse sind Historie, keine umgerechneten USDC-Nachweise. Runtime- und Laptop-Deployment sind getrennt zu prüfen. Kein Echtgeldstart: technischer Restarbeitsplan in [DMS 20](20_BETRIEBSRUNBOOK.md), tatsächlicher Testnachweis in [DMS 12](12_TESTS_ABNAHMEKRITERIEN.md). Bestehende Live-Sicherheitsgates bleiben wirksam.
 
-CAP-010 / OPS-010 (DEC-045, VERBINDLICH): Nur ausdrücklich bestätigter Offline-Neuanfang darf nach geprüftem Vollarchiv das aktive Paperledger zurücksetzen. Kapital 250 USDT, maximal drei Slots à 80; kein Übertrag alter Gewinne/Verluste oder Soak-Tage. Normale Starts und Backtests dürfen keinen Reset auslösen.
+CAP-010 / OPS-010 (aktuell, VERBINDLICH): Nur ausdrücklich bestätigter Offline-Neuanfang darf nach geprüftem Vollarchiv das aktive Paperledger zurücksetzen. Kapitalbaseline 250 USDC, drei Slots à 80 USDC; kein Übertrag alter Gewinne/Verluste oder Soak-Tage. Normale Starts und Backtests dürfen keinen Reset auslösen.
 
 Ergänzung STR-009 / CAP-009 (DEC-043/044, VERBINDLICH): Ein Coin-Profil besteht aus versionierten Hixton-Parametern und expliziten Zusatzregeln. Paper, Einzeltest, Batch und Portfolio müssen dieselbe ausgewählte Definition verwenden; Charts zeigen qualifizierte Signale getrennt von tatsächlichen Paper-Fills. Eine gemeinsame Einstellung darf je Coin beibehalten werden, wenn sie im begrenzten Vergleich besser belegt ist. Profilindividualisierung ist kein Gewinnnachweis. Schlechtere Portfolio-/Stress-/Altfenster werden berichtet, nicht durch mehr Trades oder gelockerte Risikogates verdeckt.
 
@@ -25,21 +25,21 @@ Die IDs bleiben über die Entwicklung stabil. Änderungen werden nicht durch Umn
 
 | ID | Anforderung | Status |
 |---|---|---|
-| MKT-001 | Genau zehn aktive USDT-Spot-Paare bilden das initiale Universum. | VERBINDLICH |
-| MKT-002 | Initiales Universum: BTC, ETH, BNB, SOL, XRP, ADA, LINK, AVAX, DOT und DOGE gegen USDT. Alle zehn waren beim DMS-Abgleich auf Binance Spot im Status `TRADING` und besitzen mindestens drei Jahre Binance-Historie. | VERBINDLICH |
+| MKT-001 | Genau zehn aktive USDC-Spot-Paare bilden das aktive Universum. Historische USDT-Kerzen dürfen nur als klar gekennzeichneter gleicher-Basisasset-Preisproxy für vor-USDC-Zeiträume dienen. | VERBINDLICH |
+| MKT-002 | Aktives Universum: BTC, ETH, BNB, SOL, XRP, ADA, LINK, AVAX, DOT und DOGE gegen USDC. Handelbarkeit wird aktuell über Binance Spot geprüft; fehlende drei Jahre echte USDC-Historie werden nicht erfunden. | VERBINDLICH |
 | MKT-003 | Die Coinliste wird nicht automatisch nach Performance ausgetauscht. Eine spätere Überprüfung ist versioniert, vorwärtsgerichtet und benötigt neue Backtests. | VERBINDLICH |
-| CAP-001 | Paper-/späteres Live-Portfolio startet neu mit 250,00 USDT aus einem gemeinsamen Cashbestand: 3×80 USDT plus 10 USDT anfängliche Reserve. Bestehende Ledger werden nicht aufgefüllt. | VERBINDLICH |
-| CAP-002 | Anfangskonfiguration 3×80 USDT; nach DEC-051 über die UI 1–10 Slots × frei gewähltes positives Zielnotional, ohne feste 240-USDT-Grenze. Kein Auffüllen des Kontos; verfügbare Mittel prüfen und weiterhin höchstens ein Slot je Coin im aktiven Profil. | VERBINDLICH |
+| CAP-001 | Paper-/späteres Live-Portfolio startet neu mit 250,00 USDC aus einem gemeinsamen Cashbestand: 3×80 USDC plus 10 USDC anfängliche Reserve. Bestehende Ledger werden nicht aufgefüllt. | VERBINDLICH |
+| CAP-002 | Baseline 3×80 USDC. Aktive V6-Slotvergabe ist `ranked_repeat`: gültige Kandidaten erhalten nach Rangfolge zunächst je einen Slot, verbleibende freie Slots gehen erneut an den stärksten gültigen Kandidaten. Ein Coin kann damit bei nur einem gültigen Signal 3×80 USDC tragen. | VERBINDLICH |
 | CAP-003 | Positionsgröße und Slotanzahl sind später in der UI änderbar; Änderungen gelten nur vorwärts, werden validiert, bestätigt und auditierbar versioniert. | VERBINDLICH |
 | CAP-004 | 250→500 USDT und genannte Tradezahlen sind illustrative Beispiele, keine verpflichtenden Optimierungs- oder Freigabequoten. Jeder Backtest prüft zuerst korrekte Reaktion und berichtet danach die vollständige Nettoperformance. | VERBINDLICH |
 | CAP-005 | Bei mehr Kaufkandidaten als freien Slots gewinnt der auf 12 Dezimalstellen Half-Even gerundete größte Wert `(close-upper)/ATR`; Gleichstand folgt der festen Coinreihenfolge aus DMS 03. | VERBINDLICH |
 | CAP-006 | Primärziel der Portfolioauswahl ist maximaler Nettogewinn nach Kosten; hohe Tradezahl ist nur Sekundärziel. | VERBINDLICH |
 | CAP-007 | Die bestbelegte zulässige Strategieverbesserung wird nach bestandenem Vergleich und ausdrücklicher Entscheidung vorwärtsgerichtet als Paperstandard übernommen. „Bestbelegt“ verlangt Reproduzierbarkeit, Kosten-Stress, Altfenster und den risikogleichen 3×80-Spiegel; ein höchster Einzelwert genügt nicht. Live bleibt ein separates Gate. | VERBINDLICH |
-| CAP-008 | Mehrere Slots im selben Coin sind als versionierter Challenger erlaubt, aber nicht automatisch aktiv. Der V3-Test `ranked_repeat` ist wegen früher Konzentrationsverluste verworfen; aktive V6 nutzt weiterhin höchstens einen Slot je Coin. | VERBINDLICH |
+| CAP-008 | Mehrere Slots desselben Coin-Signals sind in der aktiven V6 als `ranked_repeat` ausdrücklich freigegeben. Sie bleiben ein gemeinsamer Signal-/Positionszyklus mit `slot_count` 1–3 und werden zusätzlich als Slot-Trades ausgewiesen. | VERBINDLICH |
 | RSK-001 | Kein Leverage, keine Margin, keine Futures und keine API-Auszahlungsrechte. | VERBINDLICH |
 | RSK-002 | Börsenfilter wie Mindestnotional, Schrittweite und Präzision werden vor jeder Order geprüft. | VERBINDLICH |
-| RSK-003 | Tagesverlust ab 5 % der Start-of-Day-Equity pausiert neue Entries bis zum nächsten UTC-Tag; Drawdown ab 20 % vom Live-High-Water-Mark setzt global `HALTED`. | VERBINDLICH |
-| RSK-004 | Es gibt kein automatisches Compounding; Zielnotional bleibt im Paper-/Live-Modell 80 USDT und im isolierten Backtest 250 USDT bzw. wird bei unzureichendem Cash abwärts begrenzt. | VERBINDLICH |
+| RSK-003 | Tagesverlust ab 5 % der Start-of-Day-Equity pausiert neue Entries bis zum nächsten UTC-Tag. Portfolio-Drawdown wird vollständig gemessen und ausgewiesen, erzeugt aber keinen permanenten globalen Halt. `HALTED` bleibt technischen/operativen Sicherheitsfällen vorbehalten. | VERBINDLICH |
+| RSK-004 | Es gibt kein automatisches Compounding; Zielnotional bleibt in der Baseline im Paper-/Portfolio-Modell 80 USDC je Slot und im isolierten Backtest 250 USDC bzw. wird bei unzureichendem Cash abwärts begrenzt. | VERBINDLICH |
 
 ## Daten
 
@@ -64,9 +64,10 @@ Die IDs bleiben über die Entwicklung stabil. Änderungen werden nicht durch Umn
 | BKT-005 | Einzel- und Portfolioergebnisse enthalten PnL, Rendite, Drawdown, Trades, Kosten, Exposure und Benchmark. | VERBINDLICH |
 | BKT-006 | Jeder Lauf erzeugt ein unveränderliches Run-Manifest und Datenqualitätsprotokoll. | VERBINDLICH |
 | BKT-007 | Kapitalunabhängige Signalparität wird getrennt von PnL- und Portfoliosimulation ausgewiesen. | VERBINDLICH |
-| BKT-008 | Standard-Batchlauf: zehn isolierte Coin-Backtests mit jeweils 250,00 USDT Startkapital. | VERBINDLICH |
-| BKT-009 | Einzelmodus: ein frei wählbares Paar, zum Beispiel ETH/USDT, wird separat mit 250,00 USDT getestet. | VERBINDLICH |
-| BKT-010 | Der gemeinsame Spiegellauf verwendet 250 USDT Startkapital und die aktuell gespeicherte Slot-/Notionalaufteilung (Baseline 3×80); dieselben 5-%-Tagesverlust- und 20-%-Drawdown-Gates wie Paper. Aufteilung im Manifest festhalten; historische 3×80-Ergebnisse nicht als 4×45-Ergebnisse zeigen. Varianten ohne Risikogates heißen `strategy-only`. | VERBINDLICH |
+| BKT-008 | Standard-Batchlauf: zehn isolierte Coin-Backtests mit jeweils 250,00 USDC Startkapital. Dieser Modus dient zugleich der Coin-für-Coin-Diagnose und train/validation-getrennten Profilforschung. | VERBINDLICH |
+| BKT-009 | Einzelmodus: ein frei wählbares Paar, zum Beispiel ETH/USDC, wird separat mit 250,00 USDC getestet. | VERBINDLICH |
+| BKT-010 | Der gemeinsame Spiegellauf verwendet 250 USDC Startkapital und die aktuell gespeicherte Slot-/Notionalaufteilung (Baseline 3×80), dieselbe 5-%-UTC-Tagespause wie Paper und keinen permanenten Drawdown-Halt. Aufteilung und Slotpolicy im Manifest festhalten. | VERBINDLICH |
+| BKT-012 | Jede akzeptierte Coin-Profiländerung wird ausschließlich in der kanonischen `StrategyDefinition` versioniert. Danach müssen 10×250, 3×80, Paper und UI exakt dieselben per-Coin-Parameter/Policies lesen; Parameterhash-Parität ist Abnahmekriterium. Eine isolierte Verbesserung allein ist keine Freigabe. | VERBINDLICH |
 | BKT-011 | Baseline je Orderseite: 10 bps Gebühr + 2 bps Spread + 3 bps Slippage; Stress: 10 + 10 + 20 bps. Kosten wirken advers auf Kauf und Verkauf. | VERBINDLICH |
 | BKT-012 | Strategieverbesserungen werden nur als neue Backtestversion angelegt. Suchraum, Auswahlregel, ältere Marktsegmente, Kosten-Stress, Nachbarparameter und verworfene Varianten werden dokumentiert; mehr Trades sind nur bei robuster Nettowirkung besser. | VERBINDLICH |
 
