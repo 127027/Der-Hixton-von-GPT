@@ -8,6 +8,7 @@ writes only to a temporary Paper/database directory.
 from __future__ import annotations
 
 import asyncio
+import csv
 import json
 import tempfile
 from dataclasses import replace
@@ -176,6 +177,66 @@ async def _run_mode(
     }
 
 
+
+def _portfolio_trade_breakdown(run_output_root: Path) -> dict[str, dict[str, object]]:
+    candidates: list[tuple[datetime, Path]] = []
+    for directory in run_output_root.iterdir():
+        if not directory.is_dir():
+            continue
+        manifest_path = directory / "manifest.json"
+        trades_path = directory / "trades.csv"
+        if not manifest_path.exists() or not trades_path.exists():
+            continue
+        manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+        if manifest.get("run_mode") != "portfolio":
+            continue
+        created = datetime.fromisoformat(manifest["created_at_utc"]).astimezone(UTC)
+        candidates.append((created, trades_path))
+    if not candidates:
+        raise RuntimeError("portfolio trades.csv missing after dashboard backtest")
+
+    trades_path = max(candidates, key=lambda item: item[0])[1]
+    breakdown: dict[str, dict[str, object]] = {}
+    with trades_path.open("r", encoding="utf-8", newline="") as handle:
+        for row in csv.DictReader(handle):
+            if row["scenario"] != "baseline":
+                continue
+            symbol = row["symbol"]
+            item = breakdown.setdefault(
+                symbol,
+                {
+                    "position_cycles": 0,
+                    "slot_trades": 0,
+                    "one_slot_cycles": 0,
+                    "two_slot_cycles": 0,
+                    "three_slot_cycles": 0,
+                    "wins": 0,
+                    "losses": 0,
+                    "realized_pnl": "0",
+                    "entry_quote_spend": "0",
+                    "exit_quote_receive": "0",
+                },
+            )
+            slots = int(row["slot_count"])
+            pnl = Decimal(row["realized_pnl"])
+            item["position_cycles"] = int(item["position_cycles"]) + 1
+            item["slot_trades"] = int(item["slot_trades"]) + slots
+            key = {1: "one_slot_cycles", 2: "two_slot_cycles", 3: "three_slot_cycles"}.get(slots)
+            if key is None:
+                raise RuntimeError(f"unexpected slot_count in portfolio trades: {slots}")
+            item[key] = int(item[key]) + 1
+            item["wins"] = int(item["wins"]) + int(pnl > 0)
+            item["losses"] = int(item["losses"]) + int(pnl <= 0)
+            item["realized_pnl"] = str(Decimal(str(item["realized_pnl"])) + pnl)
+            item["entry_quote_spend"] = str(
+                Decimal(str(item["entry_quote_spend"])) + Decimal(row["entry_quote_spend"])
+            )
+            item["exit_quote_receive"] = str(
+                Decimal(str(item["exit_quote_receive"])) + Decimal(row["exit_quote_receive"])
+            )
+    return dict(sorted(breakdown.items()))
+
+
 async def main() -> None:
     base_config = load_project_config(CONFIG_PATH, project_root=PROJECT_ROOT)
     with tempfile.TemporaryDirectory(prefix="hixton-dashboard-e2e-") as temporary:
@@ -198,6 +259,7 @@ async def main() -> None:
             timeout=30.0,
         ) as client:
             portfolio = await _run_mode(client, supervisor, "portfolio")
+            portfolio["per_symbol_trades"] = _portfolio_trade_breakdown(run_output_root)
             isolated = await _run_mode(client, supervisor, "all")
 
         evidence = {
