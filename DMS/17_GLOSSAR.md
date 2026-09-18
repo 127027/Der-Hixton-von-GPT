@@ -1,4 +1,14 @@
 # 17 – Glossar
+## Aktuelle Begriffe 18.09.2026
+
+- **Positionszyklus:** ein vollständiger Entry→Exit-Zyklus eines Coin-Signals. Eine aggregierte Position kann 1–3 Slots enthalten.
+- **Slot-Trade:** ein abgeschlossener 80-USDC-Kapitaltranche-Äquivalent. Ein Positionszyklus mit `slot_count=3` zählt als ein Positionszyklus und drei Slot-Trades.
+- **10×250:** zehn strikt isolierte USDC-Coin-Backtests mit jeweils 250 USDC Startkapital; Diagnose-/Forschungsmodell ohne Slotkonkurrenz.
+- **3×80:** gemeinsames 250-USDC-Portfolio mit drei 80-USDC-Slots und `ranked_repeat`; echte Slotkonkurrenz zwischen zehn Coins.
+- **Kanonische Profilmap:** die eine versionierte V6-Quelle aus zehn `CoinProfile`-Einträgen, die Einzeltest, Batch, Portfolio, Paper und UI identisch verwenden.
+- **Portfolio-Drawdown:** Rückgang vom High-Water-Mark; wird gemessen und berichtet, löst in der aktiven V6 aber keinen permanenten globalen Halt aus.
+
+
 
 | Begriff | Verbindliche Bedeutung |
 |---|---|
