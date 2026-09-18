@@ -1,5 +1,11 @@
 # 03 – Hixton-Strategie: aktive V6-Coin-Profile, V2-Referenz und V1-Historie
 
+## Aktueller V6-Strategiestand 18.09.2026
+
+Aktive V6 verwendet die zehn hashgebundenen Coin-Profile als **eine kanonische Strategiequelle** für Paper, Einzeltest, 10×250-Batch, gemeinsames 3×80-Portfolio und UI. Profiländerungen dürfen nicht in einem separaten Backtest-only Mapping aktiviert werden. Die Slotpolicy ist `ranked_repeat`; der frühere V3-Befund bleibt Historie und sperrt die heute ausdrücklich freigegebene Mehrfachbelegung nicht mehr. Der globale permanente 20-%-Drawdown-Halt gehört nicht mehr zur aktiven V6-Ausführung.
+
+Der laufende Forschungszyklus darf jeden Coin separat auf Trainingsfenstern untersuchen. Ein per Coin gewählter Kandidat wird erst nach getrenntem Validierungs-/Kostenstresstest in einen gemeinsamen Zehn-Coin-Kandidaten aufgenommen. Dieser vollständige Profilsatz wird danach unverändert im 3×80-Portfolio gerechnet.
+
 DEC-045 (06.09.2026): Auf ausdrücklichen Eigentümerwunsch wird V6 `HIXTON-V6-COIN-PAPER-1-9734f240e873` als **Paper-Experiment** aktiviert. Der frische Modellaccount startet mit 250 USDT, drei 80-USDT-Slots und 10 USDT Anfangsreserve. Alte Paperpositionen, Ereignisse, Dust und Soak bleiben ausschließlich im geprüften lokalen Vollarchiv; sie werden weder als neue Trades noch als Gewinn übernommen. Normale Neustarts erhalten das Konto weiterhin. Die schwächeren jüngsten/älteren Ergebnisse bleiben bestehen; dies ist keine Robustheits-, Optimalitäts- oder Livefreigabe.
 
 Status: `VERBINDLICH` für Strategieversion `HIXTON-SPEC-1.0`.
@@ -219,9 +225,9 @@ Nur Werte größer als `0` sind zulässig. Sortierung:
 2. Bei gleichem `rank_strength` gilt diese feste Reihenfolge:
    `BTCUSDT, ETHUSDT, BNBUSDT, SOLUSDT, XRPUSDT, ADAUSDT, LINKUSDT, AVAXUSDT, DOTUSDT, DOGEUSDT`.
 
-Die aktive V6 vergibt höchstens einen Slot an jeden Kandidaten. Es werden nur so viele Kandidaten angenommen, wie freie Slots vorhanden sind. Abgewiesene Kandidaten werden als `NO_FREE_SLOT` gespeichert und nicht mitten im laufenden Uptrend nachgeholt.
+Die aktive V6 vergibt freie Slots nach `ranked_repeat`: gleichzeitig gültige Kandidaten erhalten nach Rangfolge zunächst je einen Slot; verbleibende Slots werden dem stärksten gültigen Kandidaten zusätzlich zugeordnet. Abgewiesene Kandidaten werden als `NO_FREE_SLOT` gespeichert und nicht mitten im laufenden Uptrend nachgeholt.
 
-V3 testete zusätzlich: jeder gleichzeitige Kandidat erhält zunächst einen Slot; verbleibende Slots gehen an den stärksten Kandidaten. Damit ergaben ein Kandidat `3×80` und zwei Kandidaten `2×80 + 1×80`. Diese Konzentration erhöhte nicht die Zahl unabhängiger Signale und führte bereits im ersten aktuellen Dreijahres-Risikospiegel zu einem frühen Halt. Sie bleibt deshalb in `backtests/v3` dokumentiert, aber in Paper gesperrt.
+Historie V3: Dieser frühe Versuch testete bereits die heute verwendete Wiederholungsbelegung, wurde damals aber unter dem inzwischen entfernten permanenten Portfolio-Drawdown-Halt verworfen. Seine damalige Bewertung bleibt historischer Nachweis; seit Betreiberentscheidung 17./18.09.2026 ist `ranked_repeat` für aktive V6 freigegeben und der permanente Drawdown-Halt entfernt.
 
 ## Zeitpunkt von Signal und Fill
 
