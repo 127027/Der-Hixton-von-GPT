@@ -100,11 +100,20 @@ def _baseline_summary(run: dict[str, Any], mode: str) -> dict[str, Any]:
             "blocked_reasons": portfolio.get("blocked_reasons", {}),
         }
     batch = baseline["batch"]
+    per_symbol = baseline.get("per_symbol", {})
     return {
         "ending_equity": batch["ending_equity"],
         "return_pct": batch["return_pct"],
         "completed_trades": batch["completed_trades"],
         "max_drawdown_pct": batch["max_drawdown_pct"],
+        "per_symbol": {
+            symbol: {
+                "ending_equity": metrics["ending_equity"],
+                "completed_trades": metrics["completed_trades"],
+                "max_drawdown_pct": metrics["max_drawdown_pct"],
+            }
+            for symbol, metrics in per_symbol.items()
+        },
     }
 
 
