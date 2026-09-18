@@ -1,4 +1,8 @@
 # 08 – UI-/UX-Spezifikation
+## Aktueller UI-Vertrag 18.09.2026
+
+Die aktive Oberfläche zeigt **USDC**. Backtests unterscheiden klar zwischen `Positionszyklen` und `Slot-Trades`; bei `ranked_repeat` kann ein Positionszyklus 1–3 Slot-Trades repräsentieren. Der gemeinsame 3×80-Lauf zeigt keinen permanenten 20-%-Drawdown-Halt mehr als aktive Risikobaseline; Drawdown bleibt Kennzahl, die 5-%-UTC-Tagespause bleibt aktiver Schutz. Die Backtestansichten 10×250, Einzelcoin und 3×80 lesen dieselbe kanonische V6-Profilversion.
+
 
 Aktueller Vorrang: **DMS 1.12.0 / DEC-053 / Anwendung 0.4.7**. Der integrierte Code verwendet USDC (250 Modellstart, Standard 3×80; später genau ein 50-USDC-Test). Alte datierte USDT-Anforderungen/Ergebnisse sind Historie, keine umgerechneten USDC-Nachweise. Runtime- und Laptop-Deployment sind getrennt zu prüfen. Kein Echtgeldstart: technischer Restarbeitsplan in [DMS 20](20_BETRIEBSRUNBOOK.md), tatsächlicher Testnachweis in [DMS 12](12_TESTS_ABNAHMEKRITERIEN.md). Bestehende Live-Sicherheitsgates bleiben wirksam.
 
@@ -6,13 +10,13 @@ Aktueller Vorrang: **DMS 1.12.0 / DEC-053 / Anwendung 0.4.7**. Der integrierte C
 
 Jede Marktkarte zeigt den letzten Indikator-Trendwechsel mit Kauf/Verkauf und Zeitpunkt in Europe/Berlin. Bei grünem Trend ohne Position erklären: alter Trend ist kein neuer Kauf; historische Signale werden nicht nachgehandelt. Kein Signal ist kein Fillnachweis. Ohne geladene Signalhistorie unbekannt/noch kein Wechsel anzeigen, nicht behaupten, es habe niemals einen gegeben.
 
-USDC-V7 bleibt ein separater Validierungsstand außerhalb der aktiven Strategieauswahl. Bestehende V6-/USDT-Preis-, Konto- und Einstellungslabels nicht vor der tatsächlichen Ledger-/Runtime-Migration umetikettieren. Geplanter künftiger Einmaltest 50 USDC; bisheriger USDT-Livebereich bleibt bis zur vollständigen Umsetzung gesperrt. Layout und übrige Bedienung unverändert.
+Historie: V7 war der Übergangsvalidierungsstand. Die aktive V6-Runtime, das Paperkonto und die aktuellen UI-Labels verwenden inzwischen USDC. Der geplante Echtgeld-Einmaltest bleibt separat und Live weiterhin gesperrt.
 
 ## Gültiger Einstellungsablauf ab 0.4.5 / DEC-051
 
-1. **Handel:** maximal offene Trades (1–10), USDT je Trade (Schritt 1), ein Button „Übernehmen“. Gewähltes Positionsbudget = Slots × Betrag, keine feste 240-USDT-Grenze, kein redundanter Grenz-/Beispieltext. Kein Verwerfen, keine sichtbare Einstiegspause, keine getippte Bestätigung. Entwurf bleibt bei Polling und Fehler erhalten; erfolgreiche Serverantwort aktualisiert beide Anzeigen. Speichern erzeugt kein neues Guthaben.
+1. **Handel:** maximal offene Slots (1–10), USDC je Slot (Schritt 1), ein Button „Übernehmen“. Gewähltes Positionsbudget = Slots × Betrag, keine feste 240-USDT-Grenze, kein redundanter Grenz-/Beispieltext. Kein Verwerfen, keine sichtbare Einstiegspause, keine getippte Bestätigung. Entwurf bleibt bei Polling und Fehler erhalten; erfolgreiche Serverantwort aktualisiert beide Anzeigen. Speichern erzeugt kein neues Guthaben.
 2. **Binance verbinden:** echtes Formular mit Enter-Unterstützung; Passwort und Wiederholung nur bei erstmaliger Einrichtung. Fehler/Erfolg direkt daneben. Erfolg erst nach bestätigtem Sessioncookie; Key/Secret danach freigegeben und fokussiert. Key speichern, Verbindung prüfen. Schlüsselverwaltung einklappbar, Entfernen mit Ja/Abbrechen. Keine automatische Passwort-Recovery oder Sicherheitsumgehung.
-3. **Livehandel:** gemeinsame gespeicherte Handelsgröße, Live an/aus, kompakte Rückmeldung. Nur bestätigtes Live-an wird grün; Live-aus markiert seinen eigenen Button (Text und aria-pressed). Unbekannter Status markiert keinen, Einmaltest separat. Einmaltest und technische Freigabegründe einklappbar. Ein ausdrücklich beschrifteter Button fordert genau einen 50-USDT-Echtgeldtrade an, keine zusätzliche Checkbox und kein Dauerbetrieb. Echtgeld bleibt wegen fehlender produktiver Anbindung gesperrt.
+3. **Livehandel:** gemeinsame gespeicherte Handelsgröße, Live an/aus, kompakte Rückmeldung. Nur bestätigtes Live-an wird grün; Live-aus markiert seinen eigenen Button (Text und aria-pressed). Unbekannter Status markiert keinen, Einmaltest separat. Einmaltest und technische Freigabegründe einklappbar. Ein ausdrücklich beschrifteter Button fordert genau einen 50-USDC-Echtgeldtrade an, keine zusätzliche Checkbox und kein Dauerbetrieb. Echtgeld bleibt wegen fehlender produktiver Anbindung gesperrt.
 
 Auf Desktop zwei Formularspalten, darunter Live; schmale Fenster einspaltig. Bestehende Farben/Typografie außerhalb der Einstellungsseite unverändert. Seite wird mit Cache-Control no-store ausgeliefert; bereits geöffnete alte Tabs müssen einmal neu geladen werden. Nachfolgende 0.4.3-/0.4.2-UI-Beschreibungen sind Historie und durch diesen Ablauf ersetzt.
 
@@ -137,9 +141,9 @@ Drill-down von jedem Eintrag zu Signal, Signalkerze, Parametern, Börsenantwort 
 
 Startmaske:
 
-- `Alle 10 Coins`: zehn isolierte Läufe mit je 250 USDT;
-- `Einzeltest`: genau ein auswählbares Paar, etwa ETH/USDT, mit 250 USDT;
-- `Gemeinsames 3×80-Portfolio`: 250 USDT gemeinsamer Cashpool (10 USDT Startreserve) mit höchstens drei festen 80-USDT-Slots;
+- `Alle 10 Coins`: zehn isolierte Läufe mit je 250 USDC;
+- `Einzeltest`: genau ein auswählbares Paar, etwa ETH/USDC, mit 250 USDC;
+- `Gemeinsames 3×80-Portfolio`: 250 USDC gemeinsamer Cashpool (10 USDC Startreserve) mit drei 80-USDC-Slots und `ranked_repeat`;
 - Zeitraum, Timeframe, Kostenmodell und Strategieversion vor Start sichtbar;
 - Backteststart löst niemals eine Börsenorder aus.
 
@@ -197,7 +201,7 @@ Pro Coin:
 - Paper-/Live-Positionsgröße startet bei 80 USDT, Slotanzahl bei drei; beide sind später änderbar.
 - UI validiert `Slotanzahl × Zielnotional` gegen verfügbares/konfiguriertes Gesamtkapital und aktuelle Binance-Mindestwerte.
 - Änderungen wirken nur auf künftige Entries; bestehende Positionen werden nicht automatisch angepasst.
-- Einstellungen zeigen die unveränderlichen Risikobaselines: 5 % Tagesverlustpause, 20 % Max-Drawdown-Halt, 25 bp maximale Preisabweichung, 10 Sekunden bis `UNKNOWN` und 30 Sekunden Teilfill-Restfrist.
+- Einstellungen zeigen die aktive 5-%-Tagesverlustpause sowie operative Sicherheitsgrenzen; Drawdown wird angezeigt, ist aber kein permanenter globaler Halt mehr. Preis-/Order-/Teilfill-Schutzgrenzen bleiben getrennt.
 
 ## Zustände ohne Daten
 
