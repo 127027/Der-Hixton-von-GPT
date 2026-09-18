@@ -4,6 +4,8 @@ Aktueller Vorrang: **DMS 1.12.0 / DEC-053 / Anwendung 0.4.7**. Der integrierte C
 
 **Betreiberentscheidung 17.09.2026 – 3×80 ist echte Slotkapazität:** Die drei konfigurierten 80-USDC-Slots sind drei nutzbare Kapitaltranchen. Gültige gleichzeitige Kaufkandidaten erhalten zunächst je einen Slot nach der bestehenden Rangfolge. Bleiben Slots frei, werden sie dem stärksten aktuell gültigen Kandidaten zusätzlich zugeteilt. Ein Kandidat kann damit 3×80 erhalten, zwei Kandidaten 2×80 + 1×80, drei oder mehr Kandidaten zunächst je 1×80 für die drei bestplatzierten. Es werden dadurch **keine zusätzlichen Handelssignale erfunden**: Mehrere Slots auf demselben Coin sind mehrere Kapitaltranchen desselben Signal-/Positionszyklus. Auswertung und UI müssen deshalb `Positionszyklen` und `Slot-Trades` getrennt ausweisen. Paper und gemeinsamer Portfolio-Backtest verwenden dieselbe Slotvergabe.
 
+**Optimierungs- und Paritätsentscheidung 18.09.2026:** 10×250 USDC dient der Coin-für-Coin-Diagnose und Profilforschung. Jede akzeptierte Änderung wird nur in der kanonischen Zehn-Coin-`StrategyDefinition` versioniert und danach ohne zweite Parameterquelle im 3×80-Portfolio, Paper und UI verwendet. Ein isoliert besserer Coin garantiert wegen Slotkonkurrenz nicht automatisch einen höheren Portfolioendwert; identische Parameter-/Policy-Hashes und ein frischer Portfoliolauf sind der Paritätsnachweis.
+
 **Betreiberentscheidung 18.09.2026 – kein permanenter Portfolio-Drawdown-Halt:** Der bisherige 20-%-High-Water-Mark-Halt wird aus der aktiven V6-Paper- und Spiegelbacktest-Ausführung entfernt. Drawdown wird weiterhin vollständig berechnet und ausgewiesen, darf aber den gesamten Bot nicht dauerhaft für den Rest eines mehrjährigen Laufs einfrieren. Die 5-%-Tagespause bis zum nächsten UTC-Tag, Not-Aus, Cash-/Exchange-/Daten- und Ausführungsschutz bleiben bestehen.
 
 DEC-052 / 0.4.6: Zielwährung des künftigen Betreiber-Spotbetriebs ist USDC, erster geplanter Echtgeldversuch genau einmal 50 USDC. Aktive V6-Modelldaten bleiben USDT; V7-USDC ist zunächst eine gesonderte, nicht freigegebene Prüfung. Kein tatsächlicher Umtausch, Einzahlen oder Import der ca. 1200 USDC. Historische 3×80-Prüfung startet mit 250 Einheiten der jeweiligen Quote (240 Positionsbudget plus 10 Anfangsreserve). Gemeinsame Zeitfenster und identische aktive Risikogates sind beim Vergleich Pflicht. Historische Reports mit dem früheren 20-%-Drawdown-Halt bleiben als Historie gekennzeichnet; die aktuelle V6-Ausführung nutzt diesen permanenten Halt nicht mehr. Keine tägliche Profitgarantie, kein Hebelauftrag.
@@ -35,9 +37,9 @@ Ein Paar darf nur aktiviert werden, wenn es beim jeweiligen Start weiterhin hand
 
 ### System 1 – Paper und später Live
 
-- Gesamtstartkapital: **250,00 USDT** für neue Konten (DEC-044). Davon höchstens 240 USDT in drei 80-USDT-Slots und 10 USDT anfängliche Cashreserve; Gewinne/Verluste verändern diesen Puffer. Bestehende Konten behalten ihren tatsächlichen Bestand und ursprünglichen Startwert.
+- Gesamtstartkapital: **250,00 USDC** für neue Konten (DEC-044). Davon höchstens 240 USDT in drei 80-USDT-Slots und 10 USDT anfängliche Cashreserve; Gewinne/Verluste verändern diesen Puffer. Bestehende Konten behalten ihren tatsächlichen Bestand und ursprünglichen Startwert.
 - Gemeinsamer Cashbestand für alle zehn beobachteten Paare.
-- Standard: **drei Positionsslots à 80,00 USDT Zielnotional**.
+- Standard: **drei Positionsslots à 80,00 USDC Zielnotional**.
 - Höchstens drei gleichzeitig belegte Slots. Mehrere Slots dürfen beim selben aktuell gültigen Coin-Signal liegen; sie werden intern als eine aggregierte Coin-Position mit `slot_count` geführt, solange Entry- und Exit-Zeitpunkt identisch sind.
 - Startzustand: Cash, keine Position, keine Altorder.
 - Ein Exit gibt alle von diesem Positionszyklus belegten Slots und das tatsächlich zurückgeflossene Kapital wieder frei.
@@ -61,9 +63,9 @@ Aktuelle Regel:
 
 - pro Paar höchstens ein **aktiver Signal-/Positionszyklus** gleichzeitig; kein späteres Nachkaufen aufgrund eines weiteren Signals, solange dieser Zyklus offen ist;
 - derselbe neue gültige Entry darf beim Öffnen jedoch mehrere freie 80-USDC-Slots erhalten;
-- Zielnotional je belegtem Slot: 80,00 USDT;
+- Zielnotional je belegtem Slot: 80,00 USDC;
 - ein mit drei Slots eröffneter Coin-Zyklus hat damit bis zu 240 USDC Zielnotional und zählt als **ein Positionszyklus, aber drei Slot-Trades**;
-- die 80,00 USDT je Slot sind das maximale Quote-Budget der jeweiligen Kapitaltranche; bei modellierter Zahlung der Kaufgebühr im Basisasset wird die empfangene Assetmenge entsprechend reduziert;
+- die 80,00 USDC je Slot sind das maximale Quote-Budget der jeweiligen Kapitaltranche; bei modellierter Zahlung der Kaufgebühr im Basisasset wird die empfangene Assetmenge entsprechend reduziert;
 - tatsächliches Notional höchstens verfügbarer Cash nach Reserven und Börsenfiltern;
 - Menge wird abwärts auf Binance-Schrittweite gerundet;
 - nach Rundung müssen Mindestmenge und Mindestnotional erfüllt sein;
