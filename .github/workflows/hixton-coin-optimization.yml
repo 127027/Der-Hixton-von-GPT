@@ -1,0 +1,73 @@
+name: Hixton Coin Optimization Cycle
+
+on:
+  push:
+    branches:
+      - gpt/usdc-audit
+    paths:
+      - .github/workflows/hixton-coin-optimization.yml
+      - scripts/coin_optimization_cycle.py
+      - tests/test_backtest_coin_optimization.py
+      - agent_memory/swarm/taskboard.json
+      - src/hixton/backtest/continuity.py
+      - src/hixton/backtest/engine.py
+      - src/hixton/backtest/models.py
+      - src/hixton/backtest/portfolio.py
+      - src/hixton/domain/models.py
+      - src/hixton/domain/trade_policy.py
+      - src/hixton/domain/versions.py
+      - src/hixton/domain/risk.py
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: hixton-coin-optimization
+  cancel-in-progress: true
+
+jobs:
+  optimize:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 120
+    steps:
+      - name: Checkout engineering branch
+        uses: actions/checkout@v4
+        with:
+          ref: gpt/usdc-audit
+          persist-credentials: false
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install locked project environment
+        shell: bash
+        run: |
+          set -euo pipefail
+          python -m venv .venv
+          .venv/bin/python -m pip install --upgrade pip
+          .venv/bin/pip install -e '.[dev]'
+
+      - name: Validate optimization harness
+        shell: bash
+        run: |
+          set -euo pipefail
+          .venv/bin/ruff check scripts/coin_optimization_cycle.py tests/test_backtest_coin_optimization.py
+          .venv/bin/mypy src
+          .venv/bin/pytest -q tests/test_backtest_coin_optimization.py
+
+      - name: Run coin-by-coin optimization on public Binance continuity history
+        shell: bash
+        run: |
+          set -euo pipefail
+          .venv/bin/python scripts/coin_optimization_cycle.py
+
+      - name: Upload optimization evidence
+        uses: actions/upload-artifact@v4
+        with:
+          name: hixton-coin-optimization-${{ github.run_id }}
+          path: evidence/coin-optimization-cycle.json
+          retention-days: 30
+          if-no-files-found: error
