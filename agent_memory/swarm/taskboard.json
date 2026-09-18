@@ -33,11 +33,11 @@
   "active_mission": {
     "id": "SWARM-003",
     "title": "Continuous closed-loop Paper bot engineering guard",
-    "objective": "Continuously keep the Hixton Paper-only system internally consistent. Current owner priority: remove the permanent 20-percent portfolio drawdown entry halt from active V6 Paper and shared-portfolio backtests because it freezes the whole bot for the remainder of long tests. Preserve drawdown measurement/reporting, the 5-percent UTC-day loss pause, emergency stop, stale-data, cash, exchange-filter and execution safety gates. Keep the owner-approved ranked_repeat 3x80 slot semantics. Re-run the real three-year 3x80 dashboard portfolio backtest and the 10x250 isolated comparison on the same window, report per-coin isolated trade counts plus portfolio position cycles, slot-trades, blocked-entry reasons, ending equity and max drawdown. No entry may be blocked by MAX_DRAWDOWN_20_PERCENT after the repair.",
+    "objective": "Continuously keep the Hixton Paper-only system internally consistent. Current owner priority: optimize and diagnose all ten active V6 coin profiles individually with the real 10x250 isolated three-year backtest, then recompute the same strategy definition in the shared 3x80 portfolio. Every accepted per-coin profile change must propagate through the single canonical strategy definition used by Paper, isolated batch, shared portfolio and UI. Diagnose losing trades and candidate filters/stops per coin using train/validation separation and cost stress; do not cherry-pick on validation. Preserve ranked_repeat 3x80 slot semantics, no permanent portfolio drawdown halt, and the 5-percent UTC-day pause. In parallel audit and repair all DMS documents so current normative statements match the active USDC V6 implementation; historical sections must remain clearly labelled as historical.",
     "state": "IN_PROGRESS",
     "completion_mode": "continuous",
     "started_at_utc": "2026-09-16T10:30:00+00:00",
-    "last_transition_reason": "Owner instruction on 2026-09-18: the permanent 20-percent portfolio drawdown halt must be removed from active V6 because it blocked hundreds of otherwise valid entries and froze the 3x80 bot after only a few months. Drawdown remains a diagnostic metric; the 5-percent daily pause and operational safety gates remain.",
+    "last_transition_reason": "Owner instruction on 2026-09-18: next optimization cycle is coin-by-coin across all ten 250-USDC isolated backtests, with mandatory shared 3x80 recomputation from the same canonical strategy definition, plus a complete DMS consistency audit.",
     "owner_instruction_date": "2026-09-18",
     "primary_agents": [
       "A01",
@@ -89,7 +89,11 @@
       "After any repair, rerun all eleven roles before completion is claimed.",
       "Remove the persistent 20-percent portfolio drawdown halt from active V6 Paper and shared-portfolio backtest entry gating; keep drawdown calculation and reporting.",
       "Keep the 5-percent UTC-day loss pause, emergency stop, cash limits, exchange filters, stale-data and execution safety gates unchanged.",
-      "Do not tune coin signal parameters as part of this repair; first prove the risk-gate removal with the same V6 signals and costs."
+      "Optimize coins only through explicit versioned candidate profiles; use training windows for selection and a separate validation window for acceptance.",
+      "A candidate that improves one isolated coin is not accepted solely on that result; the assembled ten-coin candidate set must be rerun in the shared 3x80 portfolio with identical costs, window and execution semantics.",
+      "The same canonical profile map must feed 10x250 isolated backtests, 3x80 shared portfolio, Paper runtime and UI. No shadow profile map or backtest-only override may be activated.",
+      "Shared-portfolio return is not mathematically required to increase for every isolated improvement because slot competition can change which signals receive capital; however any accepted profile change must be provably present in the recomputed portfolio inputs and resulting signal/fill trace.",
+      "Audit every DMS file. Current normative statements must use USDC, ranked_repeat 3x80 semantics, separate position-cycle versus slot-trade counts, no permanent 20-percent portfolio halt, and canonical 10x250-to-3x80 profile propagation. Preserve dated historical evidence as historical rather than rewriting its original results."
     ],
     "acceptance": [
       "All eleven roles participate in every material guard run and emit fresh role-specific evidence for their assigned layer.",
@@ -112,7 +116,14 @@
       "The real three-year 3x80 dashboard portfolio run and 10x250 isolated run use the same report window and expose per-coin isolated trade counts, portfolio position cycles, slot-trades, ending equity, max drawdown and blocked-entry reasons.",
       "The repaired 3x80 three-year run reports zero MAX_DRAWDOWN_20_PERCENT blocked entries and no persistent risk_halted_at_utc.",
       "A01-A11 all rerun after the repair; A09 must issue QA_PASS and A11 GOVERNANCE_PASS before the patch is considered downloadable.",
-      "No real-money order path is enabled and no automatic merge occurs."
+      "No real-money order path is enabled and no automatic merge occurs.",
+      "For each of the ten coins, produce current baseline diagnostics: completed trades, wins/losses, realized PnL, return, max drawdown, holding-time/loss-pattern evidence and blocked-signal reasons where applicable.",
+      "Per-coin candidate selection uses training data only; validation and stress results are reported after selection and cannot trigger silent reselection.",
+      "The assembled ten-coin candidate profile set is versioned once and used unchanged by a fresh 10x250 batch and fresh 3x80 shared-portfolio run on the same report window.",
+      "A parity proof records the exact per-symbol parameter/policy hashes used by both 10x250 and 3x80 and fails if they differ.",
+      "If the 3x80 result is unchanged after a profile change, evidence must show whether the modified coin produced an identical shared-portfolio signal/fill path because of slot competition; otherwise treat the unchanged result as a parity defect.",
+      "All 27 DMS files are scanned; every current contradictory normative statement is repaired, while historical dated sections remain explicitly historical.",
+      "After code/profile/DMS changes, rerun the real 10x250, real 3x80, full Python/UI regression and A01-A11 with A09 QA_PASS and A11 GOVERNANCE_PASS."
     ]
   },
   "queued_missions": [],
