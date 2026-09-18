@@ -219,7 +219,8 @@ def test_v6_activation_preserves_global_risk_history_and_dust(tmp_path: Path) ->
     with PaperStore(path) as store:
         assert store.load_strategy_session().strategy_key == "v6"
         assert store.load_account().high_water_equity_usdc == Decimal("300")
-        assert store.load_account().halted is True
+        assert store.load_account().halted is False
+        assert store.load_account().halt_reason is None
         assert store.load_account().starting_cash_usdc == Decimal("240.00")
         assert store.load_account().cash_usdc == Decimal("160") + events[0].quote_amount_usdc
         assert store.load_dust()["BTCUSDC"] == Decimal("0.00345")
