@@ -75,7 +75,7 @@ Für regelmäßige Neubewertung wird ein rollierendes 3-Jahres-Fenster verwendet
 ## Läufe
 
 1. kapitalunabhängiger Golden-/Replay-Test der Indikatorwerte und Signale;
-2. Standard-Batch mit zehn isolierten Einzeltests à 250 USDT;
+2. Standard-Batch mit zehn isolierten Einzeltests à 250 USDC;
 3. Einzelmodus für ein frei gewähltes Paar, zum Beispiel nur ETH/USDT, mit 250 USDT;
 4. Vergleichsaggregation der zehn isolierten Ergebnisse (2.500 USDT rechnerisches Simulationskapital, kein gemeinsamer Cashpool);
 5. Paper-/Live-Spiegellauf mit gemeinsam 250 USDT und höchstens drei 80-USDT-Slots;
@@ -181,7 +181,7 @@ Ein Backtest ist nur `VALID`, wenn:
 
 ## Ergebnisinterpretation
 
-Der UI-Portfoliovergleich übernimmt die aktuell gespeicherte Paper-Slotanzahl und das Zielnotional, startet aber ein neues simuliertes Konto mit dem Startkapital der aktiven Config (jetzt 250 USDT). Er übernimmt weder aktuelle offene Positionen noch bisherige Papergewinne. Sein Endzeitpunkt wird aus der letzten für alle zehn Coins vorhandenen geschlossenen Kerze bestimmt, nicht blind aus der Wanduhr.
+Der UI-Portfoliovergleich übernimmt die aktuell gespeicherte Paper-Slotanzahl und das Zielnotional, startet aber ein neues simuliertes Konto mit dem Startkapital der aktiven Config (jetzt 250 USDC). Er übernimmt weder aktuelle offene Positionen noch bisherige Papergewinne. Sein Endzeitpunkt wird aus der letzten für alle zehn Coins vorhandenen geschlossenen Kerze bestimmt, nicht blind aus der Wanduhr.
 
 V4-Prüfung vom 05.09.2026: 24 begrenzte Parametervarianten je Coin, Auswahl anhand der schlechtesten Stressrendite der ersten beiden einzeln gestarteten Trainingsjahre, danach festgehaltener Vergleich im dritten Jahr. Exakte Finalisten verwenden die produktiven Decimal-Engines. Zusätzlich wird eine getrennte, vereinfachte Nachkaufhypothese getestet. Ergebnisse und Grenzen stehen einmalig in `backtests/v4/README.md`; weder diese Hypothese noch der coinindividuelle Kandidat ist aktiv. Ein hoher Gesamtwert bei Verlusten im jüngsten Neustartfenster rechtfertigt keine Übernahme.
 
