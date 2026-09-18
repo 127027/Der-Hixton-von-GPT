@@ -77,7 +77,8 @@ def test_current_normative_contract_matches_active_v6() -> None:
 
     assert "## Aktueller Konfigurationsvertrag 18.09.2026" in schema
     assert "`slot_allocation` ist `ranked_repeat`" in schema
-    assert "kein aktiver Konfigurationsparameter mehr" in schema
+    assert "permanenter globaler Drawdown-Halt" in schema
+    assert "**kein** aktiver Konfigurationsparameter mehr" in schema
 
     assert "## DEC-056 – 18.09.2026" in decisions
     assert "## DEC-057 – 18.09.2026" in decisions
