@@ -1,6 +1,6 @@
 # 01 – Produktvision und Scope
 
-Präzisierung 06.09.2026 (DEC-043/044): Ziel ist die effiziente Nutzung von höchstens drei 80-USDT-Slots mit guten Signalen aus zehn Coins, nicht maximale Tradezahl. Einzeltests à 250 USDT prüfen zunächst jede Signalquelle; erst der gemeinsame 3×80-Spiegel prüft ihre Konkurrenz und Kapitalwirkung. 50/150/300 Trades und 250→500 USDT sind Beispiele, keine Zielquoten. Jede Coin-Eignung bleibt nach Kosten und über unterschiedliche Marktphasen nachzuweisen; Überanpassung oder erzwungene Trades erfüllen das Ziel nicht.
+Präzisierung 18.09.2026: Ziel ist die effiziente Nutzung von drei 80-USDC-Slots mit guten Signalen aus zehn Coins. Der Standard-Batch 10×250 USDC diagnostiziert und optimiert jeden Coin separat; der anschließend unverändert zusammengesetzte Zehn-Coin-Profilsatz wird im gemeinsamen 3×80-USDC-Portfolio geprüft. Hohe Tradezahl ist erwünscht, darf aber nicht durch erfundene Signale oder Look-ahead erzeugt werden. Jede Coin-Eignung bleibt nach Kosten, Trainings-/Validierungstrennung und unterschiedlichen Marktphasen nachzuweisen.
 
 Status: `VERBINDLICH` für DMS V1.3.
 
@@ -24,9 +24,9 @@ Ein fachkundiger Dritter kann anhand dieses DMS und der späteren Artefakte:
 
 ## Enthalten
 
-- zehn konfigurierte Binance-Spot-Paare mit USDT als Quote-Währung;
-- 24/7-Papersystem als Live-Vorbereitung mit gemeinsamem Modellkapital von 250 USDT (240 USDT Slots plus 10 USDT anfängliche Reserve) und drei anfänglichen Positionsslots à 80 USDT;
-- getrenntes Backtestsystem mit zehn isolierten Tests à 250 USDT sowie frei wählbaren Einzeltests, zum Beispiel nur ETH/USDT;
+- zehn konfigurierte Binance-Spot-Paare mit USDC als aktive Quote-Währung; historische Langzeitanalyse darf denselben Basisasset-USDT-Preisweg ausschließlich als klar gekennzeichneten Proxy verwenden;
+- Papersystem als Live-Vorbereitung mit gemeinsamem Modellkapital von 250 USDC (240 USDC Slots plus 10 USDC anfängliche Reserve) und drei anfänglichen Positionsslots à 80 USDC; freie Slots werden nach `ranked_repeat` auf gültige Kandidaten verteilt;
+- getrenntes Backtestsystem mit zehn isolierten Tests à 250 USDC sowie frei wählbaren Einzeltests, zum Beispiel nur ETH/USDC; derselbe kanonische Profilsatz speist anschließend den gemeinsamen 3×80-Test;
 - Einzelberichte pro Paar und ein aggregierter Portfoliobericht;
 - Mindesttestfenster von drei vollständigen Jahren;
 - historische OHLCV-Daten und laufende inkrementelle Aktualisierung;
