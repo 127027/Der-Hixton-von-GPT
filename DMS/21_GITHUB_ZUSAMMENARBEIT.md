@@ -9,6 +9,8 @@
 
 Das lokale OneDrive-Verzeichnis ist die Arbeitskopie, GitHub die zentrale versionierte Projektablage. Synchronisation erfolgt kontrolliert per Commit/Push, niemals unbemerkt durch bloßes Speichern.
 
+Coin-Profiländerungen werden nicht als isolierte Backtest-Sonderdatei aktiviert: der akzeptierte Zehn-Coin-Satz muss in der kanonischen Strategiequelle committed, versioniert und anschließend durch 10×250, 3×80 sowie A01–A11 geprüft werden.
+
 ## Verbindliche Repository-Struktur
 
 Die vollständige Struktur steht in Dokument 23. Im Hauptordner existiert nur `README.md` als menschlicher Einstieg. Die spätere Anwendung besitzt nur `src/main.py` als technischen Einstieg; Backtest, Paper, Live und UI sind Modi desselben Programms.
@@ -33,7 +35,7 @@ LICENSE              # in DMS V1 bewusst nicht vorhanden; siehe Lizenzregel
 
 Historische Marktdaten, Datenbanken, große Logs, Backups, API-Schlüssel und lokale Secret-Dateien gehören nicht ins Git-Repository. Das gilt insbesondere für die beim Start und beim täglichen Audit automatisch geladenen `1h`-Kerzen und die SQLite-Datenbank. Lose oder durchnummerierte Startskripte im Hauptordner sind verboten.
 
-Aktuelle Übergabe vom 02.09.2026: Gemeinsamer Arbeitsstand ist Branch `codex/build-foundation-v1` in Pull Request 2. Vor Weiterarbeit zuerst diesen Branch beziehungsweise nach Merge den neuesten `main`-Stand holen; DMS 00 beschreibt den fachlichen Übergabepunkt. Große lokale Daten- und Run-Artefakte werden anhand der gespeicherten Kommandos und Hashes reproduziert, nicht per Git verteilt.
+Aktueller Engineering-Arbeitsstand am 18.09.2026 ist Branch `gpt/usdc-audit`. `main` dient der Cloud-Swarm-Orchestrierung; fachliche/codebezogene Änderungen werden gegen `gpt/usdc-audit` geprüft. Ältere Übergaben auf `codex/build-foundation-v1` sind Historie. DMS 00 beschreibt den aktuellen fachlichen Übergabepunkt. Große lokale Daten- und Run-Artefakte werden anhand der gespeicherten Kommandos und Hashes reproduziert, nicht per Git verteilt.
 
 ## Branch- und Reviewregel
 
