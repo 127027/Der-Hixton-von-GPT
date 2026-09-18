@@ -1,4 +1,10 @@
 # 06 – Backtest und Validierung
+## Aktueller Validierungsvertrag 18.09.2026
+
+Der Standardvergleich besteht aus demselben Drei-Jahresfenster für **10×250 USDC isoliert** und **3×80 USDC gemeinsam**. 10×250 dient der per-Coin-Diagnose und Kandidatensuche; Auswahl geschieht ausschließlich auf Trainingsfenstern. Danach werden Kandidaten auf getrennten Validierungsfenstern und unter Kostenstress geprüft. Der zusammengesetzte Zehn-Coin-Kandidat wird einmal versioniert und unverändert in den gemeinsamen 3×80-Lauf übernommen. Beide Modi müssen dieselben per-Symbol-Parameter-/Policy-Hashes ausweisen.
+
+Der gemeinsame Lauf nutzt `ranked_repeat`, zählt Positionszyklen und Slot-Trades getrennt, behält die 5-%-UTC-Tagespause und verwendet **keinen permanenten Portfolio-Drawdown-Halt**. Eine isolierte Verbesserung ist ohne frischen gemeinsamen Lauf keine Freigabe. Wegen Slotkonkurrenz ist ein höherer isolierter Endwert allein kein mathematischer Beweis für einen höheren gemeinsamen Endwert; jede Abweichung muss aber durch die gemeinsame Signal-/Fillspur erklärbar sein.
+
 
 ## Eigentümerpräzisierung 15.09.2026: eine Regelbasis, mehrere Prüfsichten
 
