@@ -1,4 +1,15 @@
 # 15 – Traceability-Matrix
+## Aktuelle Traceability-Ergänzung 18.09.2026
+
+| Ziel | Anforderung | Implementationsquelle | Pflichtnachweis |
+|---|---|---|---|
+| Coin-für-Coin-Optimierung | BKT-008/BKT-012 | kanonische V6 `CoinProfile` / Optimierungsreview | 10×250 Train/Validation/Stress je Coin |
+| Gemeinsame Wirkung | CAP-002/BKT-010/BKT-012 | `run_shared_portfolio_backtest` + `ranked_repeat` | frischer 3×80-Lauf mit identischen Profilhashes |
+| Kein permanenter DD-Halt | RSK-003 | `domain/risk.py` | null `MAX_DRAWDOWN_20_PERCENT`-Blocks, Drawdown weiter berichtet |
+| Slotzählung | CAP-008/BKT-005 | `slot_count`, Backtestmetrics/UI | Positionszyklen und Slot-Trades getrennt |
+| DMS-Parität | Dokumentenlenkung | DMS 00–23 + Vorlagen | Widerspruchsscan ohne aktive USDT/one-per-symbol/20-%-Halt-Vorgabe |
+
+
 
 Aktueller Vorrang: **DMS 1.12.0 / DEC-053 / Anwendung 0.4.7**. Der integrierte Code verwendet USDC (250 Modellstart, Standard 3×80; später genau ein 50-USDC-Test). Alte datierte USDT-Anforderungen/Ergebnisse sind Historie, keine umgerechneten USDC-Nachweise. Runtime- und Laptop-Deployment sind getrennt zu prüfen. Kein Echtgeldstart: technischer Restarbeitsplan in [DMS 20](20_BETRIEBSRUNBOOK.md), tatsächlicher Testnachweis in [DMS 12](12_TESTS_ABNAHMEKRITERIEN.md). Bestehende Live-Sicherheitsgates bleiben wirksam.
 
