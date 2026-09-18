@@ -1,4 +1,8 @@
 # 11 – Sicherheit und Compliance
+## Aktueller Handels-Sicherheitsrahmen 18.09.2026
+
+Die Entfernung des permanenten 20-%-Portfolio-Drawdown-Halts ist **keine** Entfernung operativer Sicherheitskontrollen. Not-Aus, Datenfrische, Cash-/Exchangefilter, Order-/Reconciliation-Gates, Secret-Schutz und die 5-%-UTC-Tagespause bleiben unverändert wirksam. Aktive Modell-/Handelsquote ist USDC.
+
 
 ## Implementierter Schutz ab 0.4.0 (Vorbereitung, keine Echtgeldfreigabe)
 
