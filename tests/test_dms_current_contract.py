@@ -57,12 +57,12 @@ def test_current_normative_contract_matches_active_v6() -> None:
 
     assert "aktive Universum" in requirements
     assert "USDC" in requirements
-    assert "\`ranked_repeat\`" in requirements
+    assert "`ranked_repeat`" in requirements
     assert "keinen permanenten Drawdown-Halt" in requirements
-    assert "kanonischen \`StrategyDefinition\`" in requirements
+    assert "kanonischen `StrategyDefinition`" in requirements
 
     assert "## Aktueller V6-Strategiestand 18.09.2026" in strategy
-    assert "\`ranked_repeat\`" in strategy
+    assert "`ranked_repeat`" in strategy
 
     assert "kein permanenter Portfolio-Drawdown-Halt" in risk
     assert "10×250 USDC" in risk
@@ -75,7 +75,7 @@ def test_current_normative_contract_matches_active_v6() -> None:
     assert "Slot-Trades" in ui
 
     assert "## Aktueller Konfigurationsvertrag 18.09.2026" in schema
-    assert "\`slot_allocation\` ist \`ranked_repeat\`" in schema
+    assert "`slot_allocation` ist `ranked_repeat`" in schema
     assert "kein aktiver Konfigurationsparameter mehr" in schema
 
     assert "## DEC-056 – 18.09.2026" in decisions
@@ -88,4 +88,4 @@ def test_current_normative_contract_matches_active_v6() -> None:
     assert "3×80-USDC-Portfolio" in runbook
 
     assert "250,00 USDC" in manifest
-    assert "\`ranked_repeat\`" in manifest
+    assert "`ranked_repeat`" in manifest
