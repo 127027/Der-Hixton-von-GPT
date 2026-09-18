@@ -1,4 +1,10 @@
 # 22 – Quellen und Binance-Prüfung
+## Aktueller Binance-Marktbezug 18.09.2026
+
+Aktive Runtime-/Paper-Symbole sind BTCUSDC, ETHUSDC, BNBUSDC, SOLUSDC, XRPUSDC, ADAUSDC, LINKUSDC, AVAXUSDC, DOTUSDC und DOGEUSDC. Vor jedem operativen Lauf werden Status `TRADING`, Spotfreigabe, Quote `USDC`, Ordertypen und Exchangefilter aus der öffentlichen Binance-API geprüft.
+
+Die unten dokumentierten USDT-Listungsdaten bleiben als **historische Preisquellen-/Proxy-Referenz** relevant: Für den dreijährigen Forschungszeitraum darf der reale Binance-USDT-Preisweg desselben Basisassets vor einer ausreichend langen USDC-Historie als klar gekennzeichneter Preisproxy verwendet werden. Daraus folgt keine Behauptung historischer USDC-Liquidität, USDC-Spreads oder tatsächlicher USDC-Fills.
+
 
 ## Zweck
 
