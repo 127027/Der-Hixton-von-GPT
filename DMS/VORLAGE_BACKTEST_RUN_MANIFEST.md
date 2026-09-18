@@ -32,11 +32,15 @@
 
 ## Handelsannahmen
 
-- Startkapital je Symbol: 250,00 USDT
+- Startkapital je Symbol: 250,00 USDC
 - Zielnotional je isoliertem Einstieg: 250,00 USDT bzw. kleinerer verfügbarer Cashbetrag
 - Run-Modus: `all_ten_isolated / single_symbol / paper_live_mirror`
 - Einzeltest-Symbol (falls zutreffend):
-- Spiegelportfolio: 250,00 USDT (historische 240,00-USDT-Läufe explizit kennzeichnen) / 3 Slots / 80,00 USDT Zielnotional
+- Slotpolicy: `ranked_repeat`
+- Profilquelle/-hash: identisch für Einzel/Batch/Portfolio/Paper
+- Positionszyklen / Slot-Trades: getrennt ausweisen
+- Permanenter Portfolio-Drawdown-Halt: nein; Drawdown trotzdem vollständig messen
+- Spiegelportfolio: 250,00 USDT (historische 240,00-USDC-Läufe explizit kennzeichnen) / 3 Slots / 80,00 USDC Zielnotional
 - Positionsgröße:
 - Compounding: `false`
 - Fillmodell: `next_bar_open`
