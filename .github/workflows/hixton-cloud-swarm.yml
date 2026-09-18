@@ -23,6 +23,7 @@ on:
 # and A11; a bare specialist PASS can no longer satisfy the workflow.
 # 2026-09-16: launch after fresh dual-quote and three-year continuity evidence.
 # 2026-09-17: launch after canonical single-system dashboard backtest integration.
+# 2026-09-18: launch after owner removal of permanent 20-percent portfolio drawdown halt.
 permissions:
   contents: write
   actions: read
