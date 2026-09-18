@@ -1,4 +1,8 @@
 # 05 – Marktdaten und Aktualisierung
+## Aktueller Marktstandard 18.09.2026
+
+Aktive Runtime-/Paper-Märkte sind die zehn **USDC**-Spotpaare. Für den dreijährigen Forschungszeitraum darf vor der jeweiligen USDC-Listung ausschließlich der reale öffentliche Binance-USDT-Preisweg desselben Basisassets als klar gekennzeichneter **Preisproxy** verwendet werden. Er ist kein Nachweis historischer USDC-Liquidität oder historischer USDC-Fills. 10×250 und 3×80 müssen für Vergleichsläufe denselben Preiszeitraum und dieselbe Proxy-Regel verwenden.
+
 
 ## Datenumfang
 
