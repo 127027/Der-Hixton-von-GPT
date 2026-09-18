@@ -1,4 +1,11 @@
 # 19 – Risikoregister
+## Aktuelle Risikoergänzung 18.09.2026
+
+- **Überanpassung je Coin:** Zehn separate Optimierungen können historische Verlustmuster zu stark anlernen. Gegenmaßnahme: Auswahl ausschließlich auf Trainingsfenstern, danach getrennte Validierung und Kostenstress; keine stille Nachselektion.
+- **Portfolio-Interaktion:** Ein isoliert besserer Coin kann durch Slotkonkurrenz andere Signale verdrängen und das gemeinsame Ergebnis verschlechtern. Gegenmaßnahme: jeder zusammengesetzte Kandidat muss unverändert im 3×80-Portfolio neu gerechnet werden.
+- **Paritätsdrift:** 10×250 könnte versehentlich andere Profile als 3×80/Paper verwenden. Gegenmaßnahme: eine kanonische `StrategyDefinition`, per-Coin-Parameter-/Policy-Hashes in beiden Reports und Regressionstest auf Gleichheit.
+- **Drawdown ohne globalen 20-%-Halt:** Der Bot kann tiefer als 20 % zwischenzeitlich fallen. Gegenmaßnahme: Drawdown vollständig berichten, 5-%-UTC-Tagespause und technische Sicherheitsgates beibehalten, Coin-Profile gezielt auf Robustheit/Drawdown untersuchen. Kein stiller Wiedereinbau eines permanenten Portfoliohalts.
+
 
 Bewertung: Eintritt `N/M/H`, Auswirkung `N/M/H`. Das Register beschreibt Risiken und Kontrollen, keine Gewinnprognose.
 
