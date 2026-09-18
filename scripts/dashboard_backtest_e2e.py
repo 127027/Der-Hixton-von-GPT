@@ -13,6 +13,7 @@ import json
 import tempfile
 from dataclasses import replace
 from datetime import UTC, datetime
+from decimal import Decimal
 from pathlib import Path
 from typing import Any
 
