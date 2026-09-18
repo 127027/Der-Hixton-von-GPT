@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from dataclasses import replace
 from datetime import UTC, datetime, timedelta
 from decimal import Decimal
 
@@ -32,18 +33,25 @@ def test_five_percent_daily_loss_pauses_only_until_next_utc_day() -> None:
     assert next_day.state.day_start_equity_usdc == Decimal("228")
 
 
-def test_twenty_percent_high_water_drawdown_halt_is_persistent() -> None:
-    halted = evaluate_portfolio_risk(
+def test_drawdown_is_reported_without_persistent_portfolio_halt() -> None:
+    decision = evaluate_portfolio_risk(
         _state(),
         equity=Decimal("192"),
         at=datetime(2026, 9, 1, 18, tzinfo=UTC),
     )
-    assert halted.state.halted is True
-    assert halted.state.halt_reason == "MAX_DRAWDOWN_20_PERCENT"
+    assert decision.drawdown_pct == Decimal("20")
+    assert decision.state.halted is False
+    assert decision.state.halt_reason is None
 
+    legacy_halted = replace(
+        decision.state,
+        halted=True,
+        halt_reason="MAX_DRAWDOWN_20_PERCENT",
+    )
     recovered = evaluate_portfolio_risk(
-        halted.state,
-        equity=Decimal("250"),
+        legacy_halted,
+        equity=Decimal("190"),
         at=datetime(2026, 9, 1, 18, tzinfo=UTC) + timedelta(hours=1),
     )
-    assert recovered.state.halted is True
+    assert recovered.state.halted is False
+    assert recovered.state.halt_reason is None
