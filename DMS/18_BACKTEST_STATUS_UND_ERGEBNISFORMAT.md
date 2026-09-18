@@ -1,4 +1,15 @@
 # 18 – Backteststatus und Ergebnisnachweis
+## Aktueller Referenzstand 18.09.2026 – nach Entfernung des permanenten Drawdown-Halts
+
+Echter Dashboard-E2E, Drei-Jahresfenster **18.09.2023 18:00 UTC bis 18.09.2026 18:00 UTC**, aktive V6-USDC-Profile, historische gleiche-Basisasset-USDT-Preiswege nur dort als klar gekennzeichneter Preisproxy, wo echte gleichlange USDC-Historie fehlt:
+
+- **Gemeinsames 3×80-USDC-Portfolio:** Start 250,00 USDC; Ende **750,7926241238353 USDC**; Rendite **+200,3170 %**; **111 Positionszyklen / 246 Slot-Trades**; maximaler Drawdown **31,9709 %**; kein permanenter Risikohalt; null `MAX_DRAWDOWN_20_PERCENT`-Blocks. Blockiert wurden 390 Kandidaten wegen `NO_FREE_SLOT`, 26 wegen VIDYA-Slope und 4 wegen CMO.
+- **10×250-USDC isoliert:** Startsumme 2.500 USDC; Ende **7.269,4231344730335 USDC**; Rendite **+190,7769 %**; **492 Positionszyklen**; kombinierter Max-Drawdown **15,8921 %**. Einzelzahlen: ADA 54, AVAX 38, BNB 42, BTC 44, DOGE 47, DOT 43, ETH 36, LINK 50, SOL 57, XRP 81 abgeschlossene Trades.
+
+Diese beiden Modi verwenden dieselbe kanonische V6-Profilmap, aber unterschiedliche Kapitalmodelle: 10×250 hat zehn getrennte Cashbestände ohne Slotkonkurrenz; 3×80 hat einen gemeinsamen Cashpool und drei Slots. Eine isolierte Verbesserung muss deshalb in den gemeinsamen Profildaten erscheinen und einen frischen 3×80-Lauf auslösen, garantiert wegen Slotkonkurrenz aber nicht automatisch einen höheren gemeinsamen Endwert.
+
+**Neuer Forschungszyklus:** Alle zehn Coins werden einzeln auf Verlustmuster, Entry-/Exit-/Stop-/Trendfilter untersucht. Auswahl nur auf Trainingsfenstern; Validierung und Kostenstress danach. Der einmal zusammengesetzte Zehn-Coin-Kandidat wird unverändert erneut in 10×250 und 3×80 geprüft. Keine automatische Aktivierung allein aufgrund historischer Verbesserung.
+
 
 ## Kontrollierter USDT-/USDC-Migrationsvergleich, 15.09.2026
 
