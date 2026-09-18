@@ -1,4 +1,5 @@
 name: Hixton Cloud Swarm
+# 2026-09-18: rerun coin optimization/DMS mission after DMS contract regression repair.
 # 2026-09-18: coin-by-coin optimization and full DMS parity mission launch.
 
 on:
