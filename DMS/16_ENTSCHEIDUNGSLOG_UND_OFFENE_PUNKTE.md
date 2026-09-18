@@ -1,4 +1,17 @@
 # 16 – Entscheidungslog und offene Punkte
+## DEC-056 – 18.09.2026 – Aktive V6 nutzt reale 3×80-Slotkapazität und keinen permanenten Portfolio-Drawdown-Halt
+
+**Entscheidung:** Aktive V6 verwendet `ranked_repeat`: ein gültiger Coin kann bei drei freien Slots 3×80 USDC erhalten; zwei gültige Coins 2×80 + 1×80; drei oder mehr zunächst 1×80 für die drei bestplatzierten. Mehrfachslots bleiben ein gemeinsamer Signal-/Positionszyklus und werden zusätzlich als Slot-Trades gezählt. Der frühere permanente 20-%-High-Water-Mark-Halt wird aus aktiver Paper-/Portfolioausführung entfernt. Drawdown bleibt Messgröße; 5-%-UTC-Tagespause und technische Sicherheitsgates bleiben.
+
+**Begründung:** Der frühere Halt blockierte im realen Drei-Jahreslauf hunderte sonst gültige Entries und fror den Bot nach wenigen Monaten für den Rest des Fensters ein. Nach Entfernung stieg der nachgewiesene Drei-Jahreslauf von wenigen Dutzend Slot-Trades auf deutlich höhere Aktivität, ohne erfundene Signale.
+
+## DEC-057 – 18.09.2026 – Coin-für-Coin-Optimierung mit zwingender gemeinsamer Systemabnahme
+
+**Entscheidung:** Der nächste Forschungszyklus untersucht alle zehn Coins im 10×250-USDC-Modell separat. Kandidaten werden je Coin ausschließlich auf Trainingsfenstern ausgewählt und danach auf separater Validierung sowie Kostenstress geprüft. Der daraus zusammengesetzte Zehn-Coin-Satz wird einmal versioniert und unverändert von Einzeltest, Batch, gemeinsamem 3×80-Portfolio, Paper und UI verwendet. Jede Änderung verlangt einen frischen gemeinsamen 3×80-Lauf und Parameter-/Policy-Hashparität.
+
+**Wichtige Einordnung:** Ein besseres isoliertes Coin-Ergebnis garantiert wegen Slotkonkurrenz nicht mathematisch einen höheren gemeinsamen Portfolioendwert. Wenn der 3×80-Pfad unverändert bleibt, muss nachgewiesen werden, dass der geänderte Coin wegen identischer gemeinsamer Signal-/Fillspur keinen Einfluss hatte; andernfalls ist dies ein Paritätsdefekt. Ein isolierter Gewinnsprung allein rechtfertigt keine Aktivierung.
+
+
 
 ## DEC-055 – Ein Handelsregelwerk, getrennte Ausführungsnachweise, 09.09.2026
 
