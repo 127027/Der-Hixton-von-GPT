@@ -100,7 +100,7 @@ def test_isolated_rules_match_but_model_difference_is_explicit():
     result = compare(manifest, {"baseline": {"per_symbol": {"DOTUSDC": {}}}})
     assert result["status"] == "MATCHING"
     assert result["model"] == "ISOLATED"
-    assert "kein 20-%-Portfoliohalt" in result["scope"]
+    assert "kein permanenter Portfolio-Drawdown-Halt" in result["scope"]
 
 
 def test_supervisor_refuses_new_backtest_after_source_change(tmp_path, monkeypatch):
