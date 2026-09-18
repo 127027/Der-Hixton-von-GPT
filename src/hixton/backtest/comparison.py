@@ -80,9 +80,9 @@ def compare_run(
 
     status = "DIFFERENT" if differences else "UNVERIFIED" if unknown else "MATCHING"
     base_scope = (
-        "Gemeinsames Konto mit Slotkonkurrenz und dauerhaftem 20-%-Entry-Risikohalt."
+        "Gemeinsames Konto mit Slotkonkurrenz und 5-%-UTC-Tagespause; kein permanenter Portfolio-Drawdown-Halt."
         if is_portfolio
-        else "Isolierte Coin-Diagnose: je 250, keine Slotkonkurrenz, kein 20-%-Portfoliohalt. "
+        else "Isolierte Coin-Diagnose: je 250, keine Slotkonkurrenz und kein permanenter Portfolio-Drawdown-Halt. "
         "Kein vollständiger Spiegel des 3x80-Betriebs."
     )
     continuity_note = (
