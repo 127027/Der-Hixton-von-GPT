@@ -25,6 +25,7 @@ on:
 # 2026-09-17: launch after canonical single-system dashboard backtest integration.
 # 2026-09-18: launch after owner removal of permanent 20-percent portfolio drawdown halt.
 # 2026-09-18: relaunch after obsolete 20-percent-halt regression tests and wording were repaired.
+# 2026-09-18: final relaunch after no-halt regression and comparison wording passed preflight.
 permissions:
   contents: write
   actions: read
