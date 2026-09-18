@@ -1,4 +1,15 @@
 # 20 – Betriebsrunbook
+## Aktueller Betriebs-/Backtestablauf 18.09.2026
+
+1. Aktive V6-USDC-Profilmap und Strategiehash prüfen.
+2. 10×250-USDC-Batch auf dem festgelegten Drei-Jahresfenster ausführen; je Coin Trades, Gewinne/Verluste, PnL, Drawdown, Haltedauer, Exitgründe und blockierte Signale sichern.
+3. Optimierungskandidaten je Coin ausschließlich auf Trainingsfenstern erzeugen/auswählen; danach Validierung und Kostenstress ohne Neuauswahl.
+4. Akzeptierte Coin-Kandidaten zu genau **einem** neuen Zehn-Coin-Profilsatz zusammensetzen und einmal versionieren.
+5. Mit exakt diesem Satz sowohl 10×250 als auch das gemeinsame 3×80-USDC-Portfolio neu ausführen. Per-Coin-Parameter-/Policy-Hashes müssen identisch sein.
+6. 3×80 muss `ranked_repeat`, drei 80-USDC-Slots, getrennte Positionszyklen/Slot-Trades, 5-%-UTC-Tagespause und **keinen permanenten Portfolio-Drawdown-Halt** verwenden.
+7. Ergebnisverschlechterungen oder unveränderte gemeinsame Ergebnisse nicht verstecken: Slotkonkurrenz/Signalspur erklären. Bei Profilhash- oder Signalparitätsabweichung Reparatur statt Bewertung.
+8. Vollständige Regression plus A01–A11; erst A09 `QA_PASS` und A11 `GOVERNANCE_PASS` erlauben einen neuen Download-/Paperkandidaten. Echtgeld bleibt separat gesperrt.
+
 
 ## Arbeitsstand 0.4.9 / DEC-055 – Einmaltest angeschlossen, noch nicht freigegeben
 
