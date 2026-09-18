@@ -1,4 +1,8 @@
 # 14 – Build-Plan und Definition of Done
+## Aktuelle Definition of Done 18.09.2026
+
+Ein Coin-Optimierungszyklus ist erst `DONE`, wenn 10×250 USDC für alle zehn Coins diagnostiziert wurde, Kandidaten train/validation-getrennt ausgewählt wurden, der daraus zusammengesetzte Profilsatz einmal versioniert wurde und derselbe Satz einen frischen 3×80-USDC-Portfoliolauf durchlaufen hat. Parameter-/Policy-Hashparität zwischen isoliertem Batch, Portfolio, Paper und UI ist zwingend. DMS 00–23 sowie Vorlagen müssen auf den aktuellen USDC-/`ranked_repeat`-/No-Permanent-Drawdown-Halt-Stand geprüft sein. Abschluss verlangt vollständige Regression, A09 `QA_PASS` und A11 `GOVERNANCE_PASS`.
+
 
 DMS 1.7 / Anwendung 0.3.1: DEC-045 ergänzt ausdrücklich autorisierte V6-Paperaktivierung und gesicherten Offline-Neuanfang; kein neuer Indikator, kein neuer Optimierungslauf. Die Aussage „alle zehn robust / optimal / live-reif“ bleibt NICHT ERFÜLLT. Aktueller Betriebsnachweis: DMS 18.
 
