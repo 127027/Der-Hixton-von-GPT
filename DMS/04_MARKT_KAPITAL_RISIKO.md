@@ -10,7 +10,7 @@ Aktueller Vorrang: **DMS 1.12.0 / DEC-053 / Anwendung 0.4.7**. Der integrierte C
 
 DEC-052 / 0.4.6: Zielwährung des künftigen Betreiber-Spotbetriebs ist USDC, erster geplanter Echtgeldversuch genau einmal 50 USDC. Aktive V6-Modelldaten bleiben USDT; V7-USDC ist zunächst eine gesonderte, nicht freigegebene Prüfung. Kein tatsächlicher Umtausch, Einzahlen oder Import der ca. 1200 USDC. Historische 3×80-Prüfung startet mit 250 Einheiten der jeweiligen Quote (240 Positionsbudget plus 10 Anfangsreserve). Gemeinsame Zeitfenster und identische aktive Risikogates sind beim Vergleich Pflicht. Historische Reports mit dem früheren 20-%-Drawdown-Halt bleiben als Historie gekennzeichnet; die aktuelle V6-Ausführung nutzt diesen permanenten Halt nicht mehr. Keine tägliche Profitgarantie, kein Hebelauftrag.
 
-Aktuell DEC-051 / 0.4.5: Baseline 3×80 bleibt unverändert, die UI erlaubt 1–10 Slots × gewähltes positives Zielnotional ohne feste 240-USDT-Grenze. 5×50 bzw. 10×100 sind speicherbar; kein zusätzlicher Cash und keine neue Profitbehauptung. Das Update verändert die gespeicherten Betreiberwerte nicht. Die folgenden 3×80-Angaben beschreiben die Baseline. Slotanzahl ist eine Obergrenze, kein Auftrag, ohne qualifiziertes Signal zu kaufen. Verfügbare Mittel und interne Risikogates bleiben maßgeblich. Änderungen gelten für neue Entries, nicht als Zwangsabbau vorhandener Positionen; Positionsbudget ist keine garantierte Verlustgrenze.
+Historischer DEC-051-/0.4.5-Stand, soweit nicht oben fortgeschrieben: Baseline 3×80 bleibt unverändert, die UI erlaubt 1–10 Slots × gewähltes positives Zielnotional ohne feste 240-USDT-Grenze. 5×50 bzw. 10×100 sind speicherbar; kein zusätzlicher Cash und keine neue Profitbehauptung. Das Update verändert die gespeicherten Betreiberwerte nicht. Die folgenden 3×80-Angaben beschreiben die Baseline. Slotanzahl ist eine Obergrenze, kein Auftrag, ohne qualifiziertes Signal zu kaufen. Verfügbare Mittel und interne Risikogates bleiben maßgeblich. Änderungen gelten für neue Entries, nicht als Zwangsabbau vorhandener Positionen; Positionsbudget ist keine garantierte Verlustgrenze.
 
 DEC-045: Der ausdrücklich beauftragte neue V6-Paperaccount beginnt separat mit 250 USDT. Die alte 240-USDT-Kontohistorie bleibt archiviert, nicht umgebucht. Die damalige Ausführungsannahme war 3×80 mit höchstens einem Slot je Coin. Diese **historische** One-per-Coin-Annahme wurde durch die Betreiberentscheidung vom 17.09.2026 für die aktuelle V6-Ausführung ersetzt; Baselinekosten sowie die 5-%-Tagespause bleiben erhalten; der historische 20-%-Drawdown-Halt wurde durch die Betreiberentscheidung vom 18.09.2026 aus der aktiven V6-Ausführung entfernt. Die 10 USDT sind eine Anfangsreserve, kein dauerhaft garantierter Mindestbetrag.
 
@@ -49,13 +49,13 @@ Kapital, Slotanzahl und Zielnotional müssen wegen Gebühren und verfügbarem Ca
 
 ### System 2 – Backtest-Labor
 
-- Standard-Batch: zehn strikt isolierte Tests mit jeweils **250,00 USDT** Startkapital, insgesamt 2.500,00 USDT reines Simulationskapital.
+- Standard-Batch: zehn strikt isolierte Tests mit jeweils **250,00 USDC** Startkapital, insgesamt 2.500,00 USDC reines Simulationskapital.
 - Einzeltest: frei wählbares Binance-Paar, zum Beispiel nur ETH/USDT, mit **250,00 USDT** Startkapital.
 - Ziel-Quote-Budget je Einstieg ist in diesen isolierten Läufen fest 250,00 USDT oder, nach Verlusten, der kleinere verfügbare Cashbetrag; Gewinne erhöhen die nächste Zielgröße nicht automatisch.
 - Jeder Test startet ohne Position und Altorder.
 - Einzeltests beeinflussen einander nicht; Ergebnisse werden je Coin und zusätzlich als Vergleichstabelle gezeigt.
 - Der verpflichtende Spiegeltest bildet zusätzlich das Paper-Modell mit 250 USDC und 3×80 USDC samt derselben Slotvergabe und den aktuell aktiven Risikogates nach. Ein permanenter Drawdown-Halt gehört nicht mehr dazu.
-- 250→500 USDT je Coin in drei Jahren ist nur ein Beispiel für einen guten Test, keine verbindliche Quote oder Garantie. Zuerst wird korrekte Indikatorreaktion bewiesen; danach wird die vollständige Performance einschließlich Zielverfehlungen berichtet.
+- 250→500 USDC je Coin in drei Jahren ist nur ein Beispiel für einen guten Test, keine verbindliche Quote oder Garantie. Zuerst wird korrekte Indikatorreaktion bewiesen; danach wird die vollständige Performance einschließlich Zielverfehlungen berichtet.
 
 ## Positionsgröße
 
@@ -133,7 +133,7 @@ Da „alles über diesen Indikator“ laufen soll, werden keine heimlichen Stop-
 | Kontrolle | Verhalten | Status |
 |---|---|---|
 | Not-Aus | keine neuen Einstiege; Exit vorhandener Positionen nur separat bestätigen | VERBINDLICH |
-| Max. Ordernotional | 80 USDT Zielnotional je Slot; bei Mehrfachbelegung entsprechend Slots × 80 und höchstens verfügbarer Cash | VERBINDLICH |
+| Max. Ordernotional | 80 USDC Zielnotional je Slot; bei Mehrfachbelegung entsprechend Slots × 80 und höchstens verfügbarer Cash | VERBINDLICH |
 | Max. offene Positionen | anfangs drei belegte Slots; mehrere Slots dürfen in einem Coin-Zyklus aggregiert sein; UI-konfigurierbar | VERBINDLICH |
 | Max. Tagesverlust | ab 5 % Verlust gegenüber Start-of-Day-Equity keine neuen Entries bis 00:00 UTC; Exits bleiben erlaubt | VERBINDLICH |
 | Portfolio-Drawdown | vollständig messen und ausweisen; **kein** permanenter `HALTED`-Zustand allein wegen Drawdown | VERBINDLICH |
