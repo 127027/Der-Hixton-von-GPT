@@ -1,4 +1,8 @@
 # 10 – Betrieb, Monitoring und Recovery
+## Aktueller Risikostatus 18.09.2026
+
+`HALTED` bleibt ein technischer/operativer Sicherheitszustand (z. B. unklare Order, Inkonsistenz, Not-Aus). Ein Portfolio-Drawdown von 20 % oder mehr löst **keinen** permanenten Halt mehr aus. Drawdown wird weiter überwacht und berichtet; die 5-%-UTC-Tagespause für neue Entries bleibt aktiv.
+
 
 ## Systemzustände
 
