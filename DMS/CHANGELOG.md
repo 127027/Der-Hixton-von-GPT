@@ -1,3 +1,13 @@
+# CHANGELOG
+
+## 18.09.2026 – Slotkapazität, Drawdown-Halt entfernt und Coin-Optimierungszyklus gestartet
+
+- Aktive V6-Slotvergabe auf `ranked_repeat`: 3×80 ist reale Kapital-/Slotkapazität; Positionszyklen und Slot-Trades getrennt ausgewiesen.
+- Permanenten 20-%-Portfolio-Drawdown-Halt aus aktiver V6-Paper-/Backtestausführung entfernt; Drawdown bleibt Telemetrie, 5-%-UTC-Tagespause und technische Sicherheitsgates bleiben.
+- Reproduzierter Drei-Jahres-E2E: 3×80 von 250 auf 750,79 USDC, 111 Positionszyklen / 246 Slot-Trades, max. DD 31,97 %, kein Risikohalt; 10×250 insgesamt 492 Trades und 7.269,42 USDC Endsumme.
+- Neuer Auftrag: alle zehn Coins einzeln diagnostizieren/optimieren, Auswahl train/validation-getrennt, danach ein gemeinsamer versionierter Zehn-Coin-Satz und zwingender frischer 3×80-Systemtest mit identischen Profilhashes.
+- DMS-Gesamtprüfung gestartet und aktuelle USDT-/`one_per_symbol`-/20-%-Halt-Widersprüche in den normativen Dokumenten korrigiert; historische datierte Nachweise bleiben erhalten.
+
 # DMS-Changelog
 
 ## 15.09.2026 – USDT-/USDC-Kontrollvergleich und Veröffentlichung
