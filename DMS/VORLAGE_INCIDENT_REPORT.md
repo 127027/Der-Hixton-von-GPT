@@ -22,3 +22,11 @@
 - Owner und Fälligkeit:
 - Abschlussfreigabe:
 
+
+## Strategie-/Backtestparität
+
+- Strategie-/Profilhash:
+- Betroffener Modus: Einzel / 10×250 / 3×80 / Paper / UI
+- Abweichende per-Coin-Parameter/Policy: ja/nein
+- Slotpolicy / slot_count:
+- Drawdown-Halt fälschlich aktiv: ja/nein
