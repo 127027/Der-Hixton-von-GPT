@@ -1,4 +1,10 @@
 # 13 – Konfiguration und Schemata
+## Aktueller Konfigurationsvertrag 18.09.2026
+
+Aktive Quote ist **USDC**. `strategy.key=v6` verweist auf die kanonische Zehn-Coin-Profilmap; `slot_allocation` ist `ranked_repeat`. Baseline-Paper: `starting_cash_usdc=250.00`, `slot_count=3`, `target_notional_usdc=80.00`. Ein permanenter globaler Drawdown-Halt ist **kein** aktiver Konfigurationsparameter mehr; Drawdown bleibt Telemetrie. Die 5-%-UTC-Tagespause bleibt aktiv. Profiländerungen verändern den Strategiehash und müssen danach in Einzel-, Batch-, Portfolio-, Paper- und UI-Pfaden identisch erscheinen.
+
+Ältere YAML-/USDT-/`one_per_symbol`-Beispiele weiter unten sind historische Schemas und dürfen nicht als aktive Runtimekonfiguration kopiert werden.
+
 
 Aktueller Vorrang: **DMS 1.12.0 / DEC-053 / Anwendung 0.4.7**. Der integrierte Code verwendet USDC (250 Modellstart, Standard 3×80; später genau ein 50-USDC-Test). Alte datierte USDT-Anforderungen/Ergebnisse sind Historie, keine umgerechneten USDC-Nachweise. Runtime- und Laptop-Deployment sind getrennt zu prüfen. Kein Echtgeldstart: technischer Restarbeitsplan in [DMS 20](20_BETRIEBSRUNBOOK.md), tatsächlicher Testnachweis in [DMS 12](12_TESTS_ABNAHMEKRITERIEN.md). Bestehende Live-Sicherheitsgates bleiben wirksam.
 
@@ -16,11 +22,11 @@ DEC-046 / Anwendung 0.4.0: Der JSON-Baselinewert 3×80 bleibt unverändert. Akti
 
 Keine API-Keys, Secrets, lokalen Passwörter oder Live-Enable-Flags in JSON/YAML/ENV. Live-Vorbereitung verwendet Windows Credential Manager sowie ein getrenntes `data/live-preparation.sqlite3` nur für Vorbereitungs-Audit, nicht als zweites Handelskonto. Konto-Vorchecks bleiben maximal 60 Sekunden im Speicher und verfallen bei Schlüsseländerung oder Restart. Geplanter erster Echtgeldumfang ist 1×50 mit mindestens 60 freien USDT; dies ist noch keine wirksame Live-Konfiguration. Erhöhung auf 3×80/750 oder darüber benötigt neue ausdrücklich bestätigte Budgetgrenzen samt Spiegeltest; wird nicht vorweggenommen.
 
-DEC-045: aktive JSON-Config `strategy.key=v6`, vollständige unveränderte Profilmap aus `candidate.json`, Runziel `backtests/v6/runs`, Paperstart 250 USDT / 3×80. Die Paperfreigabe gilt dem Experiment, nicht einer Live-Ausführung.
+DEC-045, fortgeschrieben 18.09.2026: aktive JSON-Config `strategy.key=v6`, vollständige hashgebundene Profilmap, Runziel `backtests/v6/runs`, Paperstart 250 USDC / 3×80 USDC und `ranked_repeat`. Die Paperfreigabe gilt dem Experiment, nicht einer Live-Ausführung.
 
-Aktuelle Runtime-Quelle ist ausschließlich `config/examples/config.example.json`, geprüft gegen `StrategyDefinition.config_payload()`. Neue Modellkonten starten gemäß DEC-044 mit `paper.starting_cash_usdt: "250.00"`, drei Slots à 80 USDT. Alte V2-Configs mit 240 USDT bleiben lesbar; vorhandene Konten werden bei normalen Starts nie umgebucht. Ein separater Offline-Neuanfang nach DEC-045 archiviert stattdessen das alte Konto. Das folgende umfangreiche YAML enthält auch zukünftige Live-Felder und ist kein Ersatz für diese streng geprüfte JSON-Datei.
+Aktuelle Runtime-Quelle ist ausschließlich `config/examples/config.example.json`, geprüft gegen `StrategyDefinition.config_payload()`. Neue Modellkonten starten mit `paper.starting_cash_usdc: "250.00"`, drei Slots à 80 USDC. Alte V2-Configs mit 240 USDT bleiben lesbar; vorhandene Konten werden bei normalen Starts nie umgebucht. Ein separater Offline-Neuanfang nach DEC-045 archiviert stattdessen das alte Konto. Das folgende umfangreiche YAML enthält auch zukünftige Live-Felder und ist kein Ersatz für diese streng geprüfte JSON-Datei.
 
-Für V6 enthält `strategy.profiles` exakt alle zehn Coins in DMS-Reihenfolge mit `parameters` und `trade_policy`, keine irreführenden gemeinsamen Top-Level-Indikatorparameter. Snapshot: `backtests/v6/candidate.json`; gemeinsame Formel, 1h, 400 Warm-up-Bars, long-only, `one_per_symbol`, kein Compounding. Profiländerungen erzeugen eine neue hashgebundene Version. Reports enthalten die vollständige Profilmap. Eine Config darf kein Research-Profil stillschweigend als aktive Strategie ausgeben.
+Für V6 enthält `strategy.profiles` exakt alle zehn Coins in DMS-Reihenfolge mit `parameters` und `trade_policy`, keine irreführenden gemeinsamen Top-Level-Indikatorparameter. Snapshot: `backtests/v6/candidate.json`; gemeinsame Formel, 1h, 400 Warm-up-Bars, long-only, `ranked_repeat`, kein Compounding. Profiländerungen erzeugen eine neue hashgebundene Version. Reports enthalten die vollständige Profilmap. Eine Config darf kein Research-Profil stillschweigend als aktive Strategie ausgeben.
 
 ## Grundregeln
 
@@ -234,4 +240,4 @@ Start muss fehlschlagen bzw. Live deaktiviert bleiben bei:
 
 ## Freigabestatus
 
-Binance Spot, Coinliste, 10×250-USDT-Batch, 250-USDT-Einzeltest, 3×80-USDT-Paperbetrieb, aktive V6 mit zehn Profilen auf 1h, Long-only, kein Compounding, höchstens ein Slot je Coin, Slotpriorisierung, Kostenbaseline und 00:05-UTC-Audit sind fachlich beschlossen. Ein Strategiewechsel benötigt eine explizite Bestätigung und persistiert Strategieversion, Aktivierungszeit, Start-Equity und Audit. Live bleibt bis zu Tests, Secrets, Accountabgleich und Gate D deaktiviert.
+Binance Spot, Coinliste, 10×250-USDT-Batch, 250-USDT-Einzeltest, 3×80-USDT-Paperbetrieb, aktive V6 mit zehn Profilen auf 1h, Long-only, kein Compounding, Mehrfachslots desselben gültigen Coin-Signals über `slot_count`, Slotpriorisierung, Kostenbaseline und 00:05-UTC-Audit sind fachlich beschlossen. Ein Strategiewechsel benötigt eine explizite Bestätigung und persistiert Strategieversion, Aktivierungszeit, Start-Equity und Audit. Live bleibt bis zu Tests, Secrets, Accountabgleich und Gate D deaktiviert.
