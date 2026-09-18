@@ -1,4 +1,10 @@
 # 12 – Tests und Abnahmekriterien
+## Aktuelle Abnahme 18.09.2026 – Coin-Optimierung und Systemparität
+
+Vor Übernahme eines optimierten Profilsatzes müssen alle zehn Coins im 10×250-USDC-Lauf separat diagnostiziert werden. Kandidaten werden nur auf Trainingsfenstern ausgewählt; Validierungs- und Kostenstressdaten dürfen keine stille Nachselektion auslösen. Der vollständige Zehn-Coin-Kandidat wird anschließend einmal versioniert und unverändert im gemeinsamen 3×80-USDC-Portfolio gerechnet.
+
+Pflichtnachweise: identische per-Coin-Parameter-/Policy-Hashes in 10×250 und 3×80; `ranked_repeat` aktiv; Positionszyklen und Slot-Trades getrennt; kein `MAX_DRAWDOWN_20_PERCENT`-Entryblock; 5-%-UTC-Tagespause weiter aktiv; Paper-/Backtest-/UI-Profilparität; vollständige Regression; A09 `QA_PASS`; A11 `GOVERNANCE_PASS`. Ein höherer isolierter Coin-Endwert allein ist keine Freigabe.
+
 
 ## Prüfstand 0.4.9 / DEC-055
 
@@ -99,10 +105,10 @@ DEC-043/044: `tests/test_coin_profiles.py` prüft vollständige Profile, strikte
 
 ## Backtestprüfungen
 
-- Standard-Batch startet zehn isolierte Tests mit exakt 250 USDT je Coin;
-- Einzelmodus startet genau den gewählten Coin, zum Beispiel ETH, mit 250 USDT;
+- Standard-Batch startet zehn isolierte Tests mit exakt 250 USDC je Coin;
+- Einzelmodus startet genau den gewählten Coin, zum Beispiel ETH, mit 250 USDC;
 - Batchvergleich summiert 2.500 USDT nur rechnerisch und vermischt die zehn Cashbestände nicht;
-- Paper-/Live-Spiegellauf startet neu mit 250 USDT und höchstens drei Slots à 80 USDT;
+- gemeinsamer Spiegel startet mit 250 USDC und drei Slots à 80 USDC; `ranked_repeat` darf 1–3 Slots demselben gültigen Coin-Signal zuweisen;
 - bei mehr Signalen als Slots ist die freigegebene Priorisierung deterministisch;
 - Next-bar-Fill ohne Look-ahead;
 - Gebühren/Slippage auf Ein- und Ausstieg korrekt;
@@ -159,7 +165,7 @@ Verbindliche Grenzwerte auf der dokumentierten Referenzinstallation mit zehn Mä
 - TypeScript: `tsc --noEmit` bestanden;
 - npm Audit: 0 bekannte Schwachstellen in 67 Abhängigkeiten;
 - Datenqualität: zehn von zehn Märkten mit drei Jahren plus 400 Warm-up-Bars ohne Lücke;
-- Backtest: 10×250-USDT-Batch, ETH-Einzelmodus und gemeinsames 3×80-USDT-Portfolio einschließlich risikogleichem Paper-/Live-Spiegel ausgeführt;
+- Backtest: 10×250-USDC-Batch, ETH-Einzelmodus und gemeinsames 3×80-USDC-Portfolio einschließlich identischer aktiver Paperregeln ausgeführt;
 - Reproduktion: Metrik-, Trade- und Equity-Dateien bytegleich;
 - Browsermatrix: 10 Coins × 5 Zeiträume ohne fehlgeschlagene Chartabfrage geprüft;
 - responsive Kernansicht, System-/Log-, Backtest-, Qualitäts-, Einstellungs- und Dokumentationsseite lokal abgenommen.
