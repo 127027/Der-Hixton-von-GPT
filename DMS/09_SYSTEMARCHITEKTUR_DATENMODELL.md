@@ -1,4 +1,8 @@
 # 09 – Systemarchitektur und Datenmodell
+## Aktueller Architekturvertrag 18.09.2026
+
+Es gibt **eine** kanonische V6-`StrategyDefinition` mit zehn `CoinProfile`-Einträgen. Paper, Einzeltest, 10×250-Batch, 3×80-Portfolio und UI lesen diese identische Profilmap. Ein Optimierungslauf darf Kandidaten separat berechnen, aber ein akzeptierter Satz wird nur einmal versioniert und danach ohne Backtest-Sonderpfad verwendet. Aktive Quote ist USDC; 3×80 verwendet `ranked_repeat` und persistiert Mehrfachbelegung über `slot_count`.
+
 
 V6-Erweiterung ohne zweite Engine: `StrategyDefinition` hält eine vollständige unveränderliche Map aus zehn `CoinProfile`-Einträgen. Jeder enthält `StrategyParameters` und `TradePolicy`. Analyse, Paper, Einzel-/Batch-/Portfoliobacktest und Chart lesen diese Quelle. SQLite-Positionen erhalten `entry_atr_text` und `highest_close_text` mit Legacy-Default 0; alte Zeilen werden nicht gelöscht. V6-Positionen ohne persistierten Entry-ATR stoppen die Verarbeitung sicher. Strategie-ID enthält den Profilhash.
 
@@ -13,8 +17,8 @@ V6-Erweiterung ohne zweite Engine: `StrategyDefinition` hält eine vollständige
 
 ## Zwei Systeme, ein gemeinsamer Strategiekern
 
-1. **Backtest-Labor:** historische Replay-/Batchläufe, standardmäßig 10×250 USDT oder ein frei gewählter Einzeltest mit 250 USDT; niemals Börsenorders.
-2. **24/7 Paper-/Live-System:** laufende Binance-Daten, anfangs 250 USDT gemeinsamer Cashpool (10 USDT Startreserve) und drei Slots à 80 USDT; Paper ist Pflichtvorstufe für Live.
+1. **Backtest-Labor:** historische Replay-/Batchläufe, standardmäßig 10×250 USDC oder ein frei gewählter Einzeltest mit 250 USDC; niemals Börsenorders.
+2. **24/7 Paper-/Live-System:** laufende Binance-Daten, 250 USDC gemeinsamer Cashpool (10 USDC Startreserve) und drei Slots à 80 USDC; Paper ist Pflichtvorstufe für Live.
 
 Die Systeme sind getrennte Laufmodi und Ledgers, aber keine getrennten Kopien der Hixton-Formel. Beide verwenden dieselbe versionierte Indicator-/Strategy-Engine. Dadurch wird verhindert, dass der Backtest „richtig“ und Paper/Live anders reagiert.
 
