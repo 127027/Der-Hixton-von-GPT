@@ -4,6 +4,83 @@
 `HALTED` bleibt ein technischer/operativer Sicherheitszustand (z. B. unklare Order, Inkonsistenz, Not-Aus). Ein Portfolio-Drawdown von 20 % oder mehr löst **keinen** permanenten Halt mehr aus. Drawdown wird weiter überwacht und berichtet; die 5-%-UTC-Tagespause für neue Entries bleibt aktiv.
 
 
+## Zukunftsroadmap – weitgehend autonomer 24/7-Laptopbetrieb
+
+**Status: ROADMAP / noch nicht vollständig implementiert.** Ziel ist ein dauerhaft laufender Bot,
+bei dem der Eigentümer überwacht und Entscheidungen trifft, aber Routinebetrieb, Wiederanlauf,
+Updates, Backups und technische Benachrichtigungen möglichst automatisch erledigt werden.
+Diese Betriebsautomatisierung darf die Handelsstrategie nicht durch neue Performance-Gates
+ausbremsen. Insbesondere darf **kein permanenter Portfolio-Drawdown-Halt** wieder eingeführt
+werden. Drawdown bleibt Mess- und Optimierungskennzahl; technische Sicherheitszustände bleiben
+davon getrennt.
+
+### Kontrollierte automatische Aktualisierung
+
+Ein späterer Auto-Updater darf niemals ungeprüft den aktuellen GitHub-Branch über eine laufende
+Installation kopieren. Der Zielablauf ist:
+
+1. freigegebene/versionierte Updatequelle prüfen;
+2. neues Paket in ein getrenntes Staging-Verzeichnis laden;
+3. Hash/Version, DMS-/Konfigurationsschema und Signatur bzw. vertrauenswürdige Herkunft prüfen;
+4. vollständigen Preflight und definierte Smoke-/Regressionstests ausführen;
+5. aktuelle Datenbank, Konfiguration und letzten lauffähigen Programmstand sichern;
+6. Update atomar aktivieren und Dienst kontrolliert neu starten;
+7. beim Neustart offene Paper-/spätere Live-Zustände aus Persistenz laden und vor neuen Entries
+   Daten-Gap-Fill sowie Reconciliation durchführen;
+8. Health-/Versionsprüfung nach dem Start; bei Fehlschlag automatisch auf den letzten geprüften
+   Programmstand zurückrollen und alarmieren.
+
+Strategie-/Coinprofiländerungen sind **keine** gewöhnlichen Softwareupdates. Sie benötigen weiterhin
+die Backtest-/Validierungs-/3×80-Integrationsgates und eine eigene Version. Ein Auto-Updater darf
+keine Forschungsvariante still als aktive Strategie übernehmen.
+
+### Selbstüberwachung und automatischer Wiederanlauf
+
+Für unbeaufsichtigten Betrieb sind zusätzlich vorgesehen:
+
+- Windows-Autostart bzw. Dienstbetrieb mit Restart-on-Failure;
+- Erkennung von Prozessabsturz, Internet-/DNS-/Binance-Ausfall und Websocket-Stall;
+- automatischer REST-Gap-Fill und Stream-Reconnect;
+- Prüfung auf veraltete Marktregeln/Filter vor erneuten Entries;
+- Speicherplatz-, Datenbank-, Backup-, Systemzeit- und Scheduler-Watchdogs;
+- definierter Umgang mit Windows-Neustarts und Wartungsfenstern;
+- keine Blindorder nach einem Ausfall: erst Zustand rekonstruieren, dann weiterhandeln;
+- automatische tägliche Kurzdiagnose und periodischer Restore-Test der Sicherungen.
+
+Ein technischer Fehler darf nur den betroffenen Umfang sperren, soweit der Zustand sicher
+abgrenzbar ist. Beispielsweise soll ein einzelnes stale Symbol nicht ohne Grund alle zehn Märkte
+dauerhaft stilllegen. Globale Sperren bleiben technischen Zuständen vorbehalten, bei denen Konto,
+Orders oder Datenintegrität nicht eindeutig sind.
+
+### Externe Benachrichtigung
+
+Ein optionaler Benachrichtigungsadapter soll später Meldungen außerhalb der lokalen UI senden
+können, beispielsweise über **WhatsApp** (z. B. offiziell unterstützte Business-/Cloud-API),
+alternativ einen anderen freigegebenen Kanal. Der konkrete Anbieter ist austauschbar und kein
+Bestandteil der Handelslogik.
+
+Mindestens meldungswürdig:
+
+- P1/P2-Störung und anschließende Wiederherstellung;
+- Bot-/Dienstneustart nach Absturz;
+- fehlgeschlagenes Backup oder Restore-Test;
+- dauerhaft fehlende Marktdaten / wiederhergestellte Verbindung;
+- Update verfügbar, Update erfolgreich, Update fehlgeschlagen oder Rollback erfolgt;
+- neue Programm-/Strategieversion nach ausdrücklicher Freigabe;
+- ungewöhnlich lange Zeit ohne Datenverarbeitung oder Trades als Diagnosehinweis;
+- optional tägliche Zusammenfassung von Health, offenen Positionen, Trades und Backteststatus.
+
+Ein Ausfall des Benachrichtigungskanals allein darf den Handel nicht stoppen. Secrets/Tokens des
+Kanals dürfen nie ins Repository oder in Logs gelangen. Wiederholungsversuche brauchen
+Rate-Limits und Deduplizierung, damit eine Störung keine Nachrichtenflut erzeugt.
+
+### Abnahmekriterium der Zukunftsroadmap
+
+„24/7-autonom“ darf erst behauptet werden, wenn Update, Rollback, Restart, Reconciliation,
+Backup/Restore, Netz-/Datenunterbrechung und externer Alarm in reproduzierbaren Störtests
+nachgewiesen sind. Bis dahin bleibt dieser Abschnitt eine Roadmap und kein Istzustandsversprechen.
+
+
 ## Systemzustände
 
 | Zustand | Bedeutung | Tradingverhalten |
