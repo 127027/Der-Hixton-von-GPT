@@ -37,7 +37,7 @@
     "state": "IN_PROGRESS",
     "completion_mode": "continuous",
     "started_at_utc": "2026-09-16T10:30:00+00:00",
-    "last_transition_reason": "Owner instruction 2026-09-19: start the full ten-coin isolated 10x250 optimization cycle now. Diagnose every coin's losing trades and drawdown, select candidates only on training windows, validate separately under baseline/stress costs, assemble one canonical profile map, and recompute the same unchanged profile map in the shared 3x80 portfolio. Any accepted coin improvement must propagate to Paper, isolated batch and shared portfolio through the same V6 strategy definition.",
+    "last_transition_reason": "Owner correction 2026-09-19: the 750.58 -> 594.60 shared-portfolio research candidate is rejected. Optimization must be strictly per coin against that coin's incumbent profile. A coin challenger that loses to its incumbent on the full three-year 10x250 baseline or stress run must not be assembled. After per-coin selection, the exact mixed profile map must be integrated into 3x80; if shared 3x80 regresses, the patch is not accepted and the conflicting coin changes must be isolated/reverted until the integrated candidate is non-regressive.",
     "owner_instruction_date": "2026-09-19",
     "primary_agents": [
       "A01",
@@ -92,8 +92,11 @@
       "Optimize coins only through explicit versioned candidate profiles; use training windows for selection and a separate validation window for acceptance.",
       "A candidate that improves one isolated coin is not accepted solely on that result; the assembled ten-coin candidate set must be rerun in the shared 3x80 portfolio with identical costs, window and execution semantics.",
       "The same canonical profile map must feed 10x250 isolated backtests, 3x80 shared portfolio, Paper runtime and UI. No shadow profile map or backtest-only override may be activated.",
-      "Shared-portfolio return is not mathematically required to increase for every isolated improvement because slot competition can change which signals receive capital; however any accepted profile change must be provably present in the recomputed portfolio inputs and resulting signal/fill trace.",
-      "Audit every DMS file. Current normative statements must use USDC, ranked_repeat 3x80 semantics, separate position-cycle versus slot-trade counts, no permanent 20-percent portfolio halt, and canonical 10x250-to-3x80 profile propagation. Preserve dated historical evidence as historical rather than rewriting its original results."
+      "Audit every DMS file. Current normative statements must use USDC, ranked_repeat 3x80 semantics, separate position-cycle versus slot-trade counts, no permanent 20-percent portfolio halt, and canonical 10x250-to-3x80 profile propagation. Preserve dated historical evidence as historical rather than rewriting its original results.",
+      "Never select one global candidate variant for all ten coins. Each symbol compares its own bounded candidate catalog against its own current incumbent profile.",
+      "A per-coin challenger must not replace the incumbent if the full three-year 10x250 result is worse under baseline costs or stress costs, even if a shorter validation slice looked better.",
+      "The assembled active-patch candidate must pass a shared 3x80 non-regression gate. If 3x80 ending equity falls versus the current profile map under baseline or stress costs, do not activate the assembled set; isolate the conflicting coin changes, revert them to incumbent as needed, and rerun.",
+      "Keep rejected isolated winners visible as research evidence. The active canonical map contains only portfolio-compatible per-coin improvements."
     ],
     "acceptance": [
       "All eleven roles participate in every material guard run and emit fresh role-specific evidence for their assigned layer.",
@@ -123,7 +126,12 @@
       "A parity proof records the exact per-symbol parameter/policy hashes used by both 10x250 and 3x80 and fails if they differ.",
       "If the 3x80 result is unchanged after a profile change, evidence must show whether the modified coin produced an identical shared-portfolio signal/fill path because of slot competition; otherwise treat the unchanged result as a parity defect.",
       "All 27 DMS files are scanned; every current contradictory normative statement is repaired, while historical dated sections remain explicitly historical.",
-      "After code/profile/DMS changes, rerun the real 10x250, real 3x80, full Python/UI regression and A01-A11 with A09 QA_PASS and A11 GOVERNANCE_PASS."
+      "After code/profile/DMS changes, rerun the real 10x250, real 3x80, full Python/UI regression and A01-A11 with A09 QA_PASS and A11 GOVERNANCE_PASS.",
+      "Regression evidence explicitly records the rejected 2026-09-19 candidate: current 3x80 about 750.58 USDC versus candidate about 594.60 USDC; it must not be treated as an accepted patch.",
+      "SOL regression is guarded: a candidate that changes the full isolated baseline from about 1521.88 USDC to about 1007.40 USDC must be rejected in favor of the incumbent.",
+      "For every symbol, evidence records incumbent full-3y baseline/stress versus challenger full-3y baseline/stress and the final per-symbol decision.",
+      "The final integrated mixed profile map must have 3x80 baseline and stress ending equity greater than or equal to the current canonical map before any activation/version promotion is allowed.",
+      "If an individually improved coin harms shared 3x80 because of slot competition or signal timing, its isolated winner remains research-only and the active integrated profile for that coin stays at the incumbent unless another compatible candidate is found."
     ],
     "optimization_cycle_requested_at_utc": "2026-09-19T08:23:00+00:00"
   },
