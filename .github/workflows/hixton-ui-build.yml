@@ -1,0 +1,56 @@
+name: Hixton UI Build
+
+on:
+  push:
+    branches:
+      - gpt/usdc-audit
+    paths:
+      - .github/workflows/hixton-ui-build.yml
+      - ui/**
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: hixton-ui-build
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: gpt/usdc-audit
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+          cache-dependency-path: ui/package-lock.json
+      - name: Build current UI
+        shell: bash
+        run: |
+          set -euo pipefail
+          npm --prefix ui ci
+          npm --prefix ui test
+          npm --prefix ui run check
+          npm --prefix ui run build
+      - name: Upload reproducible shipped bundle
+        uses: actions/upload-artifact@v4
+        with:
+          name: hixton-ui-static-${{ github.run_id }}
+          path: src/hixton/ui/static
+          retention-days: 30
+          if-no-files-found: error
+      - name: Require tracked bundle to match source
+        shell: bash
+        run: |
+          set -euo pipefail
+          if [ -n "$(git status --porcelain -- src/hixton/ui/static)" ]; then
+            echo "::error::UI source and shipped static bundle differ."
+            git status --short -- src/hixton/ui/static
+            exit 1
+          fi
