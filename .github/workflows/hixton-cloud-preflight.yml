@@ -53,7 +53,7 @@ jobs:
             tests/test_key_free_swarm.py \
             tests/test_swarm_lifecycle.py \
             tests/test_cloud_paper_cycle.py \
-            tests/test_backtest_usdt_usdc_migration_mission.py
+            tests/test_current_v6_product_contract.py
           .venv/bin/python - <<'PY'
           from pathlib import Path
           from scripts.swarm_core import validate_cloud_ready
