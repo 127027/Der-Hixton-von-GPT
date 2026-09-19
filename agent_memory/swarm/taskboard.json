@@ -37,7 +37,7 @@
     "state": "IN_PROGRESS",
     "completion_mode": "continuous",
     "started_at_utc": "2026-09-16T10:30:00+00:00",
-    "last_transition_reason": "A10 self-repair af1ca16316c144af4665f7d4f4e92e5325d526e3 applied the known-safe exact-three-year/current-only patch. Mission remains IN_PROGRESS while fresh preflight, dashboard E2E, A01-A11, QA and governance validate the repaired release candidate.",
+    "last_transition_reason": "A10 exact-three-year/current-only repairs are complete. Full A01-A11 run 35470258396 passed on repair head c2b7c93329e6c823f336e62c9f01a512f9efd85a. This metadata-only commit is the final release candidate trigger for exact-SHA preflight/dashboard E2E before one final A01-A11 confirmation.",
     "owner_instruction_date": "2026-09-19",
     "primary_agents": [
       "A01",
@@ -136,7 +136,13 @@
     },
     "product_cleanup_requested_at_utc": "2026-09-19T19:00:00+00:00",
     "optimization_cycle_requested_at_utc": "2026-09-19T09:14:00+00:00",
-    "latest_repair_commit": "af1ca16316c144af4665f7d4f4e92e5325d526e3"
+    "latest_repair_commit": "af1ca16316c144af4665f7d4f4e92e5325d526e3",
+    "release_candidate": {
+      "base_repair_commit": "c2b7c93329e6c823f336e62c9f01a512f9efd85a",
+      "clean_swarm_run_id": "35470258396",
+      "status": "GATES_PENDING",
+      "code_changes_after_base": false
+    }
   },
   "queued_missions": [],
   "agent_runtime": {
