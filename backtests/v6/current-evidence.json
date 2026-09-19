@@ -1,0 +1,232 @@
+{
+  "schema_version": 1,
+  "status": "CURRENT_PROMOTION_CHECKPOINT",
+  "source_run_id": 35463131378,
+  "source_artifact_id": 10590881515,
+  "source_head_sha": "6eef5262a38e9d9aa52d3be085975d063525a4a5",
+  "report_start_utc": "2023-09-19T19:00:00+00:00",
+  "report_end_utc": "2026-09-19T19:00:00+00:00",
+  "canonical_profile_patch": {
+    "BTCUSDC": "vidya_length=5"
+  },
+  "already_promoted_before_source_run": {
+    "ADAUSDC": "band_multiplier=4.4",
+    "AVAXUSDC": "band_multiplier=4.6",
+    "DOGEUSDC": "momentum_length=18"
+  },
+  "aggregate_promotion_gate": {
+    "promotable": true,
+    "non_regressive": true,
+    "improved": true
+  },
+  "isolated_10x250": {
+    "incumbent_baseline": {
+      "ending_equity": "8187.21820073804350000000",
+      "completed_trades": 409,
+      "max_drawdown_pct": "14.93257418885954333410672062"
+    },
+    "candidate_baseline": {
+      "ending_equity": "8217.00711069101365000000",
+      "completed_trades": 406,
+      "max_drawdown_pct": "14.93257418885954333410672062"
+    },
+    "incumbent_stress": {
+      "ending_equity": "7659.2309633562178000000",
+      "completed_trades": 409,
+      "max_drawdown_pct": "15.45935663220367717272613079"
+    },
+    "candidate_stress": {
+      "ending_equity": "7692.5144402748462000000",
+      "completed_trades": 406,
+      "max_drawdown_pct": "15.45935663220367717272613079"
+    }
+  },
+  "shared_3x80": {
+    "incumbent_baseline": {
+      "ending_equity": "1212.98193918381630000000",
+      "position_cycles": 93,
+      "slot_trades": 210,
+      "max_drawdown_pct": "24.13632340476877694599855375"
+    },
+    "candidate_baseline": {
+      "ending_equity": "1217.90575965983510000000",
+      "position_cycles": 94,
+      "slot_trades": 210,
+      "max_drawdown_pct": "24.09717246457732411511133253"
+    },
+    "incumbent_stress": {
+      "ending_equity": "1128.6518977168256000000",
+      "position_cycles": 93,
+      "slot_trades": 210,
+      "max_drawdown_pct": "28.60745831624759136576487790"
+    },
+    "candidate_stress": {
+      "ending_equity": "1133.4052326050468000000",
+      "position_cycles": 94,
+      "slot_trades": 210,
+      "max_drawdown_pct": "28.61896489362725888771038442"
+    }
+  },
+  "profiles": {
+    "BTCUSDC": {
+      "parameters": {
+        "vidya_length": 5,
+        "momentum_length": 20,
+        "smoothing_length": 8,
+        "atr_length": 120,
+        "band_multiplier": 4.4,
+        "warmup_bars": 400
+      },
+      "trade_policy": {
+        "cmo_floor": 0.2,
+        "slope_bars": 0,
+        "stop_atr": 0,
+        "trail_atr": 0
+      }
+    },
+    "ETHUSDC": {
+      "parameters": {
+        "vidya_length": 6,
+        "momentum_length": 20,
+        "smoothing_length": 8,
+        "atr_length": 60,
+        "band_multiplier": 3.8,
+        "warmup_bars": 400
+      },
+      "trade_policy": {
+        "cmo_floor": 0,
+        "slope_bars": 24,
+        "stop_atr": 0,
+        "trail_atr": 0
+      }
+    },
+    "BNBUSDC": {
+      "parameters": {
+        "vidya_length": 10,
+        "momentum_length": 20,
+        "smoothing_length": 8,
+        "atr_length": 120,
+        "band_multiplier": 5,
+        "warmup_bars": 400
+      },
+      "trade_policy": {
+        "cmo_floor": 0,
+        "slope_bars": 0,
+        "stop_atr": 0,
+        "trail_atr": 0
+      }
+    },
+    "SOLUSDC": {
+      "parameters": {
+        "vidya_length": 6,
+        "momentum_length": 20,
+        "smoothing_length": 15,
+        "atr_length": 60,
+        "band_multiplier": 3.8,
+        "warmup_bars": 400
+      },
+      "trade_policy": {
+        "cmo_floor": 0,
+        "slope_bars": 0,
+        "stop_atr": 0,
+        "trail_atr": 0
+      }
+    },
+    "XRPUSDC": {
+      "parameters": {
+        "vidya_length": 6,
+        "momentum_length": 20,
+        "smoothing_length": 8,
+        "atr_length": 120,
+        "band_multiplier": 3.2,
+        "warmup_bars": 400
+      },
+      "trade_policy": {
+        "cmo_floor": 0,
+        "slope_bars": 0,
+        "stop_atr": 4,
+        "trail_atr": 0
+      }
+    },
+    "ADAUSDC": {
+      "parameters": {
+        "vidya_length": 6,
+        "momentum_length": 20,
+        "smoothing_length": 8,
+        "atr_length": 60,
+        "band_multiplier": 4.4,
+        "warmup_bars": 400
+      },
+      "trade_policy": {
+        "cmo_floor": 0,
+        "slope_bars": 0,
+        "stop_atr": 0,
+        "trail_atr": 0
+      }
+    },
+    "LINKUSDC": {
+      "parameters": {
+        "vidya_length": 6,
+        "momentum_length": 20,
+        "smoothing_length": 8,
+        "atr_length": 60,
+        "band_multiplier": 3.8,
+        "warmup_bars": 400
+      },
+      "trade_policy": {
+        "cmo_floor": 0,
+        "slope_bars": 24,
+        "stop_atr": 0,
+        "trail_atr": 0
+      }
+    },
+    "AVAXUSDC": {
+      "parameters": {
+        "vidya_length": 6,
+        "momentum_length": 20,
+        "smoothing_length": 8,
+        "atr_length": 60,
+        "band_multiplier": 4.6,
+        "warmup_bars": 400
+      },
+      "trade_policy": {
+        "cmo_floor": 0,
+        "slope_bars": 0,
+        "stop_atr": 0,
+        "trail_atr": 0
+      }
+    },
+    "DOTUSDC": {
+      "parameters": {
+        "vidya_length": 6,
+        "momentum_length": 20,
+        "smoothing_length": 8,
+        "atr_length": 60,
+        "band_multiplier": 3.8,
+        "warmup_bars": 400
+      },
+      "trade_policy": {
+        "cmo_floor": 0,
+        "slope_bars": 0,
+        "stop_atr": 0,
+        "trail_atr": 0
+      }
+    },
+    "DOGEUSDC": {
+      "parameters": {
+        "vidya_length": 6,
+        "momentum_length": 18,
+        "smoothing_length": 15,
+        "atr_length": 120,
+        "band_multiplier": 4.4,
+        "warmup_bars": 400
+      },
+      "trade_policy": {
+        "cmo_floor": 0.2,
+        "slope_bars": 0,
+        "stop_atr": 0,
+        "trail_atr": 0
+      }
+    }
+  }
+}
