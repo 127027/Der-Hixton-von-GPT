@@ -166,7 +166,7 @@ _V6_PROFILES = (
             vidya_length=10,
             momentum_length=20,
             smoothing_length=8,
-            atr_length=60,
+            atr_length=120,
             band_multiplier=5.0,
             warmup_bars=400,
         ),
