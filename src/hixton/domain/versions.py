@@ -139,7 +139,7 @@ _V6_PROFILES = (
     CoinProfile(
         "BTCUSDC",
         StrategyParameters(
-            vidya_length=6,
+            vidya_length=5,
             momentum_length=20,
             smoothing_length=8,
             atr_length=120,
