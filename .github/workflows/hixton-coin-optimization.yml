@@ -17,6 +17,8 @@ on:
       - src/hixton/domain/trade_policy.py
       - src/hixton/domain/versions.py
       - src/hixton/domain/risk.py
+  schedule:
+    - cron: "47 */6 * * *"
   workflow_dispatch:
 
 permissions:
