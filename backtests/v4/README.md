@@ -1,5 +1,8 @@
 # Backtest V4 – Prüfung vom 05.09.2026
 
+> **HISTORISCHER FORSCHUNGSNACHWEIS – KEINE AKTUELLE BETRIEBSREGEL.** Die folgenden Ergebnisse und damaligen Regeln bleiben unverändert als Evidenz erhalten und können USDT, `one_per_symbol` oder den früheren permanenten 20-%-Portfoliohalt enthalten. Für den heutigen V6-Stand gelten ausschließlich `README.md`, DMS 02/04/06 und `agent_memory/swarm/taskboard.json`: USDC, gemeinsames 250-USDC-Hauptportfolio mit Baseline 3×80 `ranked_repeat`, kein permanenter Portfolio-Drawdown-Halt und 10×250 nur als Coin-Diagnose-/Optimierungslabor. Alte Regeln aus diesem Dokument dürfen nicht in den aktiven Bot zurückkopiert werden.
+
+
 Status: **RESEARCH_ONLY / NICHT AKTIVIEREN**. Aktive Paperstrategie bleibt V2. V4 ist ein Forschungsbericht, keine freigegebene Strategie und kein zusätzlicher Botstarter.
 
 ## Versuchsaufbau
