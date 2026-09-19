@@ -1,4 +1,33 @@
 # 20 – Betriebsrunbook
+## Zukunfts-Runbook – Automatisierung ohne Handelsbremse
+
+**Roadmap, nicht aktueller Funktionsnachweis.** Die folgenden Erweiterungen sollen den späteren
+24/7-Betrieb auf dem Betreiber-Laptop wartungsärmer machen, ohne die Strategie durch neue
+Performance-Stopps zu verändern:
+
+1. **Update-Watcher:** nur freigegebene/versionierte Releases erkennen; niemals ungeprüft einen
+   Entwicklungsbranch über die laufende Installation kopieren.
+2. **Staging + Selbsttest:** Update getrennt installieren, Hash/Schema prüfen, Preflight/
+   Regression ausführen und erst danach aktivieren.
+3. **Rollback:** letzter lauffähiger Programmstand plus Datenbank-/Konfigurationsbackup bleibt
+   verfügbar; fehlgeschlagener Start oder Healthcheck führt zurück zum letzten geprüften Stand.
+4. **Restart + Recovery:** nach Prozess-/Windows-/Netzausfall automatisch starten, Kerzenlücken
+   nachladen, Persistenz lesen, Reconciliation durchführen und erst danach neue Entries zulassen.
+5. **Watchdogs:** Feed, REST, Datenbank, Speicherplatz, Zeit, Scheduler, Backupalter und
+   Konfigurationsintegrität überwachen; Fehler möglichst symbolbezogen statt unnötig global behandeln.
+6. **Benachrichtigungsadapter:** P1/P2, Recovery, Update/Rollback, Backupfehler und optional
+   Tageszusammenfassung an einen externen Kanal senden. WhatsApp ist ein möglicher späterer
+   Adapter, sofern eine offiziell unterstützte API und sichere Secret-Verwaltung verwendet werden.
+7. **Keine Performance-Notbremse:** Portfolio-Drawdown wird berichtet und in Backtests/
+   Coinoptimierung bewertet, erzeugt aber keinen permanenten globalen Handelsstopp.
+8. **Strategieupdates separat:** neue Coinprofile oder Signalregeln werden nie durch den
+   Software-Updater automatisch aktiviert; sie müssen den 10×250- und 3×80-Abnahmeprozess
+   einschließlich A01–A11 durchlaufen.
+
+Vor der Kennzeichnung als „autonomer 24/7-Betrieb“ müssen Strom-/Netz-/Prozessausfall,
+Windows-Neustart, beschädigtes Update, Rollback, fehlgeschlagenes Backup, Stream-Reconnect,
+Daten-Gap-Fill und Alarmzustellung reproduzierbar getestet sein.
+
 ## Aktueller Betriebs-/Backtestablauf 18.09.2026
 
 1. Aktive V6-USDC-Profilmap und Strategiehash prüfen.
