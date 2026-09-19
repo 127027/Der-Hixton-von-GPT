@@ -56,7 +56,7 @@ def test_valid_active_v6_config_resolves_runtime_paths(tmp_path: Path) -> None:
     path = tmp_path / "config.json"
     _write(path, _payload())
     config = load_project_config(path, project_root=tmp_path)
-    assert config.database_path == tmp_path / "data" / "hixton.sqlite3"
+    assert config.database_path == tmp_path / "data" / "hixton-usdc.sqlite3"
     assert config.strategy_key == "v6"
     assert config.ui_port == 8765
     assert config.paper_poll_seconds == 30
