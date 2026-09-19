@@ -1,5 +1,8 @@
 # V8 – begrenzte Schwachstellenprüfung (nur Forschung)
 
+> **HISTORIEN-/FORSCHUNGSGRENZE.** Diese Datei bewahrt den damaligen Prüfstand und seine Ergebnisse. Enthaltene USDT-, `one_per_symbol`- oder permanente 20-%-Portfoliohalt-Aussagen sind historische Evidenz, sofern sie nicht ausdrücklich als aktueller V6-Vertrag gekennzeichnet sind. Maßgeblich für den heutigen Betrieb sind `README.md`, DMS 02/04/06 und `agent_memory/swarm/taskboard.json`: ein kanonisches USDC-Zehn-Coin-System, gemeinsames 250-USDC-Hauptportfolio mit Baseline 3×80 `ranked_repeat`, kein permanenter Portfolio-Drawdown-Halt und 10×250 nur zur Coin-für-Coin-Diagnose/Optimierung. Historische Gegenbelege werden nicht gelöscht oder umgeschrieben.
+
+
 Owner-Freigabe vom 14.09.2026: getrennte Optimierungsversuche trotz noch offener
 AGENTS-Lernphase. Kein Wechsel laufender Paperpositionen, kein Echtgeldauftrag.
 `bootstrap_complete` bleibt falsch. V8 ist eine Studie, keine aktive Botversion.
