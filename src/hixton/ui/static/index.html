@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="color-scheme" content="dark" />
     <title>Der Hixton</title>
-    <script type="module" crossorigin src="/assets/index-DKJQ-BsA.js"></script>
+    <script type="module" crossorigin src="/assets/index-CqzOB9VQ.js"></script>
     <link rel="stylesheet" crossorigin href="/assets/index-B5XEI3_N.css">
   </head>
   <body>
@@ -109,12 +109,12 @@
         <section id="backtests" class="page">
           <div class="section-heading"><div><p id="backtest-eyebrow" class="eyebrow">BACKTEST</p><h2 id="backtest-title">Aktive Strategie wird geladen</h2></div></div>
           <article class="action-card">
-            <div><strong>Historischer Test</strong><p>Gewählte Handelsregeln rückwirkend simulieren: bis zu drei Jahre verfügbare Daten, 400 Warm-up-Bars, Baseline und Stress, Next-Bar-Open. Das tatsächliche Fenster steht beim Ergebnis. VALID bestätigt die Berechnung, nicht die Binance-Ausführung oder künftigen Gewinn.</p></div>
+            <div><strong>Historischer Test</strong><p>Gewählte Handelsregeln rückwirkend simulieren: bis zu drei Jahre verfügbare Daten, 400 Warm-up-Bars, aktuelle Kosten und Next-Bar-Open. Das tatsächliche Fenster steht beim Ergebnis. VALID bestätigt die Berechnung, nicht die Binance-Ausführung oder künftigen Gewinn.</p></div>
             <select id="backtest-strategy" aria-label="Backteststrategie"><option value="v6">Aktuelle V6 · Coin-Profile</option></select>
             <select id="backtest-symbol" aria-label="Backtestart"><option value="PORTFOLIO">Gemeinsames Portfolio</option><option value="ALL">10×250 isoliert</option></select>
             <button id="backtest-button" class="button primary">Backtest starten</button>
           </article>
-          <p class="backtest-note">Historische Simulation der aktuell aktiven V6. Baseline und Stress werden getrennt ausgewiesen; die Ausführung ändert den laufenden Paperbot nicht.</p>
+          <p class="backtest-note">Historische Simulation der aktuell aktiven V6 mit den aktuellen Bot-, Kosten- und Ausführungsregeln. Es gibt genau ein Ergebnis; die Ausführung ändert den laufenden Paperbot nicht.</p>
           <div id="backtest-runs" class="run-list"></div>
           <details id="backtest-history" class="backtest-history hidden">
             <summary id="backtest-history-label">Frühere Läufe dieser Auswahl</summary>
@@ -123,7 +123,7 @@
           <article class="table-card backtest-detail">
             <p id="backtest-comparison" class="backtest-note">Abgleich mit aktivem Bot wird geladen.</p>
             <p id="backtest-blocks" class="backtest-note"></p>
-            <h3><span id="backtest-detail-title">Letzter Run · Baseline</span> <small>Netto nach Kosten</small></h3>
+            <h3><span id="backtest-detail-title">Letzter Run · Ergebnis</span> <small>Netto nach Kosten</small></h3>
             <div class="table-scroll"><table><thead><tr><th>Coin</th><th>Start</th><th>Ende</th><th>Rendite</th><th>Trades</th><th>Max. Drawdown</th><th>Buy & Hold Ende</th></tr></thead><tbody id="backtest-detail-body"></tbody></table></div>
           </article>
         </section>

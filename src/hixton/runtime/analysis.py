@@ -28,10 +28,16 @@ def available_report_start(
             expected_end_exclusive=end,
         ).require_valid()
         starts.append(series[0].open_time_utc + 400 * TIMEFRAME_DELTA)
-    actual = max(requested_start, max(starts))
-    if actual >= end:
-        raise ValueError("Insufficient common history after 400 warm-up bars")
-    return actual
+    common_start = max(starts)
+    if common_start > requested_start:
+        raise ValueError(
+            "Insufficient exact three-year history after 400 warm-up bars: "
+            f"required report start {requested_start.isoformat()}, "
+            f"first common report start {common_start.isoformat()}"
+        )
+    if requested_start >= end:
+        raise ValueError("Insufficient exact three-year history after 400 warm-up bars")
+    return requested_start
 
 
 def rebuild_analysis(

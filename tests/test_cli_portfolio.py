@@ -42,7 +42,7 @@ def test_cli_portfolio_mirrors_saved_sizes_not_installation_defaults(
     monkeypatch.setattr(cli, "run_shared_portfolio_backtest", capture)
     args = Namespace(end=datetime(2026, 9, 8, tzinfo=UTC), strategy=None)
     assert cli.command_backtest_portfolio(args, config) == 0
-    assert len(calls) == 2
+    assert len(calls) == 1
     assert all(call["slot_count"] == (4 if initialized else 3) for call in calls)
     assert all(call["target_notional"] == Decimal("45" if initialized else "80") for call in calls)
     assert all(call["starting_cash"] == Decimal("250") for call in calls)

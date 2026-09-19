@@ -12,7 +12,7 @@ import subprocess
 
 from hixton.backtest.continuity import continuity_manifest_data, load_continuity_history
 from hixton.backtest.engine import run_isolated_batch, run_single_backtest
-from hixton.backtest.models import BASELINE_COSTS, STRESS_COSTS, ExecutionRules
+from hixton.backtest.models import CURRENT_COSTS, ExecutionRules
 from hixton.backtest.portfolio import run_shared_portfolio_backtest
 from hixton.backtest.reporting import RunResult, source_fingerprint, write_report_bundle
 from hixton.data.storage import CandleStore
@@ -89,7 +89,7 @@ class RuntimeSupervisor(BaseRuntimeSupervisor):
         with PaperStore(self.config.database_path) as store:
             paper_settings = store.load_settings()
 
-        for costs in (BASELINE_COSTS, STRESS_COSTS):
+        for costs in (CURRENT_COSTS,):
             if mode == "all":
                 scenarios[costs.name] = run_isolated_batch(
                     candles_by_symbol=candles,
