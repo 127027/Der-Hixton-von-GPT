@@ -19,22 +19,7 @@ def test_windows_runtime_timezone_is_available() -> None:
 def _payload() -> dict[str, object]:
     return {
         "schema_version": 1,
-        "strategy": {
-            "key": "v2",
-            "quote_asset": "USDC",
-            "version": "HIXTON-V2-RESEARCH-CANDIDATE-1",
-            "timeframe": "1h",
-            "source": "close",
-            "vidya_length": 6,
-            "momentum_length": 20,
-            "smoothing_length": 8,
-            "atr_length": 60,
-            "band_multiplier": 3.8,
-            "warmup_bars": 400,
-            "slot_allocation": "one_per_symbol",
-            "long_only": True,
-            "compounding": False,
-        },
+        "strategy": {"key": "v6"},
         "markets": list(SYMBOLS),
         "backtest": {
             "starting_usdc_per_symbol": "250.00",
@@ -43,7 +28,7 @@ def _payload() -> dict[str, object]:
             "run_baseline_and_stress": True,
         },
         "paper": {
-            "starting_cash_usdc": "240.00",
+            "starting_cash_usdc": "250.00",
             "slot_count": 3,
             "target_notional_usdc": "80.00",
             "poll_seconds": 30,
@@ -56,8 +41,8 @@ def _payload() -> dict[str, object]:
             "default_range": "1m",
         },
         "runtime": {
-            "database_path": "data/hixton.sqlite3",
-            "run_output_root": "backtests/v2/runs",
+            "database_path": "data/hixton-usdc.sqlite3",
+            "run_output_root": "backtests/v6/runs",
             "binance_base_url": "https://api.binance.com",
         },
     }
@@ -67,15 +52,15 @@ def _write(path: Path, payload: dict[str, object]) -> None:
     path.write_text(json.dumps(payload), encoding="utf-8")
 
 
-def test_valid_active_v2_config_resolves_runtime_paths(tmp_path: Path) -> None:
+def test_valid_active_v6_config_resolves_runtime_paths(tmp_path: Path) -> None:
     path = tmp_path / "config.json"
     _write(path, _payload())
     config = load_project_config(path, project_root=tmp_path)
     assert config.database_path == tmp_path / "data" / "hixton.sqlite3"
-    assert config.strategy_key == "v2"
+    assert config.strategy_key == "v6"
     assert config.ui_port == 8765
     assert config.paper_poll_seconds == 30
-    assert config.paper_starting_cash_usdc == Decimal("240.00")
+    assert config.paper_starting_cash_usdc == Decimal("250.00")
     assert config.paper_slot_count == 3
     assert config.paper_target_notional_usdc == Decimal("80.00")
 
