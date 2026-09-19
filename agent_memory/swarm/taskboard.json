@@ -37,7 +37,7 @@
     "state": "IN_PROGRESS",
     "completion_mode": "continuous",
     "started_at_utc": "2026-09-16T10:30:00+00:00",
-    "last_transition_reason": "Documentation cleanup completed 2026-09-19: historical READMEs now carry explicit history boundaries, current DMS 06 no longer contains active USDT/permanent-20%-halt instructions, swarm documentation is key-free, and the mission now requires evidence provenance/reproducibility. Revalidate this snapshot, then continue A01-A11 reality-integrity and per-coin optimization.",
+    "last_transition_reason": "Owner instruction 2026-09-19: continue the ten-coin 10x250 diagnostic optimization cycle, preserve one canonical profile map into shared 3x80, maintain a central backtest learning journal, and document a future autonomous 24x7 laptop roadmap with staged updates, rollback, recovery and optional external notifications without reintroducing a permanent drawdown halt.",
     "owner_instruction_date": "2026-09-19",
     "primary_agents": [
       "A01",
@@ -107,7 +107,12 @@
       "Backtest performance claims must be reproducible from immutable manifest/metrics/trades/equity evidence. If raw evidence is missing, label the claim UNVERIFIED rather than reconstructing a favorable number.",
       "Optimization may seek more valid trades and better net results, but may not add hindsight-only conditions, leak validation/holdout information into selection, or hide losing coins/trades.",
       "10x250 and 3x80 must use exactly the same active per-symbol strategy hashes after integration. A profile change that does not propagate is a defect; a propagated change that is blocked by slot competition must be explained from the shared signal/fill path.",
-      "Download-ready status requires fresh preflight plus real dashboard E2E and a full A01-A11 run after the latest documentation/code patch, with A09 QA_PASS and A11 GOVERNANCE_PASS."
+      "Download-ready status requires fresh preflight plus real dashboard E2E and a full A01-A11 run after the latest documentation/code patch, with A09 QA_PASS and A11 GOVERNANCE_PASS.",
+      "DMS 10 and DMS 20 are the canonical future-operations roadmap for staged automatic updates, rollback, restart/reconciliation, watchdogs and optional external notifications such as WhatsApp; roadmap text must never be presented as already implemented.",
+      "Future operations automation must not reintroduce a permanent portfolio drawdown halt or any other performance gate that silently freezes the trading strategy. Technical safety halts remain separate and evidence-based.",
+      "Automatic software updates must be staged, verified, backed up and rollback-capable; strategy/profile changes must never be silently activated by the software updater and must still pass 10x250, shared 3x80 and A01-A11 gates.",
+      "The central backtests/README.md is the persistent learning journal. After every material optimization cycle, preserve prior findings and append per-coin baseline, loss patterns, hypotheses, candidate diffs, train/validation/stress results, accept/reject rationale, shared-3x80 impact and immutable evidence references.",
+      "Do not erase rejected candidates from the central backtest journal; failed experiments are required negative evidence and must remain available to prevent repeated bad searches."
     ],
     "acceptance": [
       "All eleven roles participate in every material guard run and emit fresh role-specific evidence for their assigned layer.",
@@ -157,12 +162,20 @@
       "A09 issues QA_PASS only after current documentation, raw-evidence reproducibility, 10x250/3x80 parity and regression suites are clean.",
       "A11 independently issues GOVERNANCE_PASS only if there are no unsupported profit/performance claims, no hidden stale current rules and no missing evidence classifications.",
       "All backtests/v2-v9 README files carry an explicit historical/research boundary so obsolete risk/quote/slot rules cannot be interpreted as current.",
-      "The current root README and DMS 02/04/06 agree on USDC, shared 250 with baseline 3x80 ranked_repeat, no permanent portfolio drawdown halt, 10x250 diagnostic role, and per-coin-to-shared integration gating."
+      "The current root README and DMS 02/04/06 agree on USDC, shared 250 with baseline 3x80 ranked_repeat, no permanent portfolio drawdown halt, 10x250 diagnostic role, and per-coin-to-shared integration gating.",
+      "A01 verifies DMS 10/20 future-roadmap wording is clearly separated from current implemented capabilities and that no roadmap item reintroduces the removed permanent portfolio drawdown halt.",
+      "A02 maintains backtests/README.md as the coin-by-coin research ledger and verifies every recorded performance claim against raw manifest/metrics/trades/equity evidence.",
+      "Every material 10x250 optimization run updates the central backtest journal for all ten coins, including unchanged incumbents and rejected challengers rather than only winners.",
+      "A03 verifies every accepted per-coin profile propagates through the same canonical profile map into both 10x250 and shared 3x80; any mismatch is a defect.",
+      "A05 reviews future 24x7 roadmap requirements for restart, reconciliation, backup/restore and watchdog observability without claiming them implemented before tests exist.",
+      "A09 and A11 reject any optimization or future-operations claim that lacks reproducible evidence, hides a rejected candidate, or confuses roadmap with current functionality."
     ],
     "optimization_cycle_requested_at_utc": "2026-09-19T09:14:00+00:00",
     "documentation_integrity_audit_requested_at_utc": "2026-09-19T09:26:00+00:00",
     "documentation_cleanup_completed_at_utc": "2026-09-19T09:38:00+00:00",
-    "download_snapshot_rule": "A download snapshot is current only when it contains the cleaned README/DMS contract, passes fresh preflight, and retains the last proven trading-code E2E invariants. The ongoing A01-A11 integrity/optimization mission continues after download without silently changing the user's local copy."
+    "download_snapshot_rule": "A download snapshot is current only when it contains the cleaned README/DMS contract, passes fresh preflight, and retains the last proven trading-code E2E invariants. The ongoing A01-A11 integrity/optimization mission continues after download without silently changing the user's local copy.",
+    "future_24x7_roadmap_requested_at_utc": "2026-09-19T10:08:00+00:00",
+    "central_backtest_journal_requested_at_utc": "2026-09-19T10:08:00+00:00"
   },
   "queued_missions": [],
   "agent_runtime": {
