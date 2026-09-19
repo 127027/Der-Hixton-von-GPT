@@ -90,6 +90,87 @@ jobs:
           print('Restored Paper database integrity: OK')
           PY
 
+      - name: Apply exact owner-authorized Paper strategy activation if required
+        if: steps.restore.outputs.bootstrap == 'false'
+        shell: bash
+        run: |
+          set -euo pipefail
+          .venv/bin/python - <<'PY'
+          import json
+          import sqlite3
+          import subprocess
+          from pathlib import Path
+
+          auth = json.loads(
+              Path('agent_memory/swarm/paper_activation_authorization.json').read_text(
+                  encoding='utf-8'
+              )
+          )
+          config = json.loads(
+              Path('config/examples/config.example.json').read_text(encoding='utf-8')
+          )
+          database = Path('data/hixton-usdc.sqlite3')
+          with sqlite3.connect(database) as connection:
+              row = connection.execute(
+                  'SELECT strategy_key, strategy_version FROM paper_strategy_state WHERE singleton=1'
+              ).fetchone()
+          if row is None:
+              raise SystemExit('Paper strategy state missing; activation refused')
+          current_key, current_version = str(row[0]), str(row[1])
+          target_key = str(config['strategy']['key'])
+          target_version = str(config['strategy']['version'])
+          if current_key == target_key and current_version == target_version:
+              print(f'Paper strategy already current: {target_key}/{target_version}')
+              raise SystemExit(0)
+          required = {
+              'scope': 'PAPER_ONLY_CONTROLLED_STRATEGY_ACTIVATION',
+              'strategy_key': target_key,
+              'authorized_from_strategy_version': current_version,
+              'authorized_to_strategy_version': target_version,
+              'confirmation': 'AKTIVIEREN',
+              'preserve_history': True,
+              'fresh_start_allowed': False,
+              'real_money_orders_allowed': False,
+              'testnet_orders_allowed': False,
+          }
+          mismatches = {
+              key: (auth.get(key), expected)
+              for key, expected in required.items()
+              if auth.get(key) != expected
+          }
+          if mismatches:
+              raise SystemExit(
+                  'Paper strategy mismatch has no exact owner authorization: '
+                  + json.dumps(mismatches, sort_keys=True)
+              )
+          subprocess.run(
+              [
+                  '.venv/bin/hixton',
+                  '--config',
+                  'config/examples/config.example.json',
+                  'paper-activate',
+                  '--strategy',
+                  target_key,
+                  '--confirmation',
+                  'AKTIVIEREN',
+              ],
+              check=True,
+          )
+          with sqlite3.connect(database) as connection:
+              activated = connection.execute(
+                  'SELECT strategy_key, strategy_version FROM paper_strategy_state WHERE singleton=1'
+              ).fetchone()
+          if activated != (target_key, target_version):
+              raise SystemExit(
+                  f'Paper activation verification failed: {activated!r} != '
+                  f'{(target_key, target_version)!r}'
+              )
+          print(
+              'Exact owner-authorized Paper activation completed; '
+              'ledger history preserved and future version drift remains fail-closed.'
+          )
+          PY
+
       - name: Run durable real-Binance Paper lease
         shell: bash
         env:
