@@ -220,7 +220,11 @@ def main() -> int:
         if isinstance(agent, str):
             reports[agent] = payload
 
-    failed = {agent for agent in ("A02", "A04", "A06") if reports.get(agent, {}).get("verdict") == "FAIL"}
+    failed = {
+        agent
+        for agent in ("A02", "A04", "A06")
+        if reports.get(agent, {}).get("verdict") == "FAIL"
+    }
     if not failed:
         result = {"changed": False, "reason": "no known-safe A02/A04/A06 repair required"}
         args.output.parent.mkdir(parents=True, exist_ok=True)
