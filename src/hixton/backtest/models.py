@@ -44,11 +44,19 @@ class CostModel:
         return self.fee_bps_per_side + self.spread_bps_per_side + self.slippage_bps_per_side
 
 
-BASELINE_COSTS = CostModel(
-    name="baseline",
+CURRENT_COSTS = CostModel(
+    name="current",
     fee_bps_per_side=Decimal("10"),
     spread_bps_per_side=Decimal("2"),
     slippage_bps_per_side=Decimal("3"),
+)
+
+# Research-only comparison models. Product backtests always use CURRENT_COSTS.
+BASELINE_COSTS = CostModel(
+    name="baseline",
+    fee_bps_per_side=CURRENT_COSTS.fee_bps_per_side,
+    spread_bps_per_side=CURRENT_COSTS.spread_bps_per_side,
+    slippage_bps_per_side=CURRENT_COSTS.slippage_bps_per_side,
 )
 
 STRESS_COSTS = CostModel(
