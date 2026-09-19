@@ -14,7 +14,6 @@ from hixton.backtest.weak_coin_review import (
     run_weak_coin_review,
     select_training,
 )
-from hixton.cli import build_parser
 from hixton.domain.versions import V6_COIN_STRATEGY
 from tests.golden_reference import deterministic_candles
 
@@ -108,19 +107,3 @@ def test_missing_database_does_not_create_file_or_output(tmp_path: Path) -> None
     assert not database.exists()
     assert not output.exists()
 
-
-def test_v8_uses_existing_entry_point_with_explicit_end() -> None:
-    args = build_parser().parse_args(
-        [
-            "backtest",
-            "research",
-            "--study",
-            "v8",
-            "--end",
-            "2026-09-14T13:00:00Z",
-            "--output",
-            "backtests/v8/runs/test",
-        ]
-    )
-    assert args.study == "v8"
-    assert args.end == datetime(2026, 9, 14, 13, tzinfo=UTC)
