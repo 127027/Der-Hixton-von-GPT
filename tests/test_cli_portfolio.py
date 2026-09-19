@@ -40,7 +40,7 @@ def test_cli_portfolio_mirrors_saved_sizes_not_installation_defaults(
         return object()
 
     monkeypatch.setattr(cli, "run_shared_portfolio_backtest", capture)
-    args = Namespace(end=datetime(2026, 9, 8, tzinfo=UTC), strategy=None, cost="both")
+    args = Namespace(end=datetime(2026, 9, 8, tzinfo=UTC), strategy=None)
     assert cli.command_backtest_portfolio(args, config) == 0
     assert len(calls) == 2
     assert all(call["slot_count"] == (4 if initialized else 3) for call in calls)
