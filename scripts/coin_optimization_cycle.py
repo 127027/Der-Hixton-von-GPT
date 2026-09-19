@@ -383,19 +383,6 @@ def run_cycle(output: Path) -> dict[str, object]:
         selected_stress = validation_results[("selected", "stress")].metrics
         current_base = validation_results[("current", "baseline")].metrics
         current_stress = validation_results[("current", "stress")].metrics
-        accepted = (
-            selected_name != "current"
-            and selected_base.return_pct >= current_base.return_pct
-            and selected_stress.return_pct >= current_stress.return_pct
-            and (
-                selected_base.return_pct > current_base.return_pct
-                or selected_stress.return_pct > current_stress.return_pct
-            )
-            and selected_base.max_drawdown_pct <= current_base.max_drawdown_pct + D("5")
-            and selected_stress.max_drawdown_pct <= current_stress.max_drawdown_pct + D("5")
-        )
-        accepted_candidate = selected if accepted else current
-        assembled[symbol] = accepted_candidate
 
         full_current = _run_single(
             symbol=symbol,
@@ -407,16 +394,62 @@ def run_cycle(output: Path) -> dict[str, object]:
             costs=BASELINE_COSTS,
             version=research_version,
         )
-        full_candidate = _run_single(
+        full_selected = _run_single(
             symbol=symbol,
             candles=candles[symbol],
             rules=rules[symbol],
             start=report_start,
             end=report_end,
-            candidate=accepted_candidate,
+            candidate=selected,
             costs=BASELINE_COSTS,
             version=research_version,
         )
+        full_current_stress = _run_single(
+            symbol=symbol,
+            candles=candles[symbol],
+            rules=rules[symbol],
+            start=report_start,
+            end=report_end,
+            candidate=current,
+            costs=STRESS_COSTS,
+            version=research_version,
+        )
+        full_selected_stress = _run_single(
+            symbol=symbol,
+            candles=candles[symbol],
+            rules=rules[symbol],
+            start=report_start,
+            end=report_end,
+            candidate=selected,
+            costs=STRESS_COSTS,
+            version=research_version,
+        )
+
+        # Owner rule: every coin keeps its own incumbent unless its own frozen
+        # challenger is at least as good over the complete 3-year 10x250 run.
+        # Validation remains mandatory, but it can no longer approve a profile
+        # that makes the coin materially worse over the owner's full test.
+        accepted = (
+            selected_name != "current"
+            and selected_base.return_pct >= current_base.return_pct
+            and selected_stress.return_pct >= current_stress.return_pct
+            and (
+                selected_base.return_pct > current_base.return_pct
+                or selected_stress.return_pct > current_stress.return_pct
+            )
+            and selected_base.max_drawdown_pct <= current_base.max_drawdown_pct + D("5")
+            and selected_stress.max_drawdown_pct <= current_stress.max_drawdown_pct + D("5")
+            and full_selected.metrics.return_pct >= full_current.metrics.return_pct
+            and full_selected_stress.metrics.return_pct >= full_current_stress.metrics.return_pct
+            and (
+                full_selected.metrics.return_pct > full_current.metrics.return_pct
+                or full_selected_stress.metrics.return_pct
+                > full_current_stress.metrics.return_pct
+            )
+        )
+        accepted_candidate = selected if accepted else current
+        assembled[symbol] = accepted_candidate
+        full_candidate = full_selected if accepted else full_current
         per_coin[symbol] = {
             "current_profile": _payload(current),
             "training_candidates": training,
@@ -426,6 +459,9 @@ def run_cycle(output: Path) -> dict[str, object]:
             "accepted": accepted,
             "accepted_profile": _payload(accepted_candidate),
             "full_current_baseline": _result_summary(full_current),
+            "full_selected_baseline": _result_summary(full_selected),
+            "full_current_stress": _result_summary(full_current_stress),
+            "full_selected_stress": _result_summary(full_selected_stress),
             "full_accepted_baseline": _result_summary(full_candidate),
         }
         print(
