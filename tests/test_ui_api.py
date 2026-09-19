@@ -10,6 +10,7 @@ from fastapi.testclient import TestClient
 
 from hixton.config import ProjectConfig
 from hixton.constants import SYMBOLS
+from hixton.domain.versions import V6_COIN_STRATEGY
 from hixton.paper.storage import PaperStore
 from hixton.runtime.supervisor import RuntimeSupervisor
 from hixton.ui.api import create_app
@@ -17,15 +18,15 @@ from hixton.ui.api import create_app
 
 def _config(tmp_path: Path) -> ProjectConfig:
     return ProjectConfig(
-        strategy_key="v2",
-        database_path=tmp_path / "hixton.sqlite3",
-        run_output_root=tmp_path / "backtests" / "v2" / "runs",
+        strategy_key="v6",
+        database_path=tmp_path / "hixton-usdc.sqlite3",
+        run_output_root=tmp_path / "backtests" / "v6" / "runs",
         binance_base_url="https://api.binance.com",
         starting_usdc_per_symbol=Decimal("250.00"),
         target_notional_usdc=Decimal("250.00"),
         run_baseline_and_stress=True,
         paper_poll_seconds=30,
-        paper_starting_cash_usdc=Decimal("240.00"),
+        paper_starting_cash_usdc=Decimal("250.00"),
         paper_slot_count=3,
         paper_target_notional_usdc=Decimal("80.00"),
         daily_audit_utc="00:05",
@@ -115,8 +116,8 @@ def test_status_exposes_restart_persistent_paper_soak_gate(tmp_path: Path) -> No
     with PaperStore(config.database_path) as store:
         store.initialize(
             at=started,
-            strategy_key="v2",
-            strategy_version="HIXTON-V2-RESEARCH-CANDIDATE-1",
+            strategy_key="v6",
+            strategy_version=V6_COIN_STRATEGY.version,
         )
         store.save_checkpoints(checkpoints)
         store.ensure_soak_started(checkpoints, at=started)
@@ -131,24 +132,20 @@ def test_status_exposes_restart_persistent_paper_soak_gate(tmp_path: Path) -> No
     assert paper["soak"]["ready"] is False
 
 
-def test_backtest_api_keeps_v1_and_v2_run_views_separate(tmp_path: Path) -> None:
+def test_backtest_api_exposes_only_current_v6(tmp_path: Path) -> None:
     config = _config(tmp_path)
     client = TestClient(
         create_app(config, RuntimeSupervisor(config)),
         base_url="http://127.0.0.1:8765",
     )
 
-    v1 = client.get("/api/backtests?strategy=v1")
-    v2 = client.get("/api/backtests?strategy=v2")
-    invalid = client.get("/api/backtests?strategy=unknown")
+    current = client.get("/api/backtests?strategy=v6")
+    assert current.status_code == 200
+    assert current.json()["strategy"]["version"] == V6_COIN_STRATEGY.version
+    assert current.json()["strategy"]["paper_approved"] is True
 
-    assert v1.status_code == 200
-    assert v1.json()["strategy"]["version"] == "HIXTON-SPEC-1.0"
-    assert v1.json()["strategy"]["paper_approved"] is False
-    assert v2.status_code == 200
-    assert v2.json()["strategy"]["version"] == "HIXTON-V2-RESEARCH-CANDIDATE-1"
-    assert v2.json()["strategy"]["paper_approved"] is True
-    assert invalid.status_code == 400
+    for legacy in ("v1", "v2", "v3", "v7", "unknown"):
+        assert client.get(f"/api/backtests?strategy={legacy}").status_code == 400
 
 
 def test_backtest_filters_mode_coin_and_sorts_creation_before_display_cap(tmp_path: Path) -> None:
@@ -196,7 +193,7 @@ def test_backtest_filters_mode_coin_and_sorts_creation_before_display_cap(tmp_pa
         ("mode=portfolio", ["portfolio-new", "portfolio-old"]),
         ("mode=single&symbol=eth/usdc", ["single-eth"]),
         ("mode=single&symbol=BTCUSDC", ["single-btc"]),
-        ("strategy=v6&mode=portfolio", []),
+        ("strategy=v6&mode=portfolio", ["portfolio-new", "portfolio-old"]),
     ):
         response = client.get(f"/api/backtests?{query}")
         assert response.status_code == 200
