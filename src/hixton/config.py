@@ -59,15 +59,11 @@ def load_project_config(path: Path, *, project_root: Path) -> ProjectConfig:
         raise ValueError("schema_version must be 1")
 
     strategy = _required_mapping(root.get("strategy"), "strategy")
+    _reject_unknown(strategy, {"key"}, "strategy")
     strategy_key = str(strategy.get("key", "")).lower()
+    if strategy_key != "v6":
+        raise ValueError("only the current V6 strategy is supported by the product configuration")
     definition = strategy_definition(strategy_key)
-    expected_strategy = definition.config_payload()
-    _reject_unknown(strategy, set(expected_strategy), "strategy")
-    if strategy != expected_strategy:
-        differences = sorted(
-            key for key, expected in expected_strategy.items() if strategy.get(key) != expected
-        )
-        raise ValueError(f"configuration deviates from {definition.version}: {differences}")
     if not definition.paper_approved:
         raise ValueError(f"strategy {definition.version} is not approved for paper")
 
