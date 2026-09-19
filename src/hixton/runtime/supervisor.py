@@ -11,7 +11,7 @@ from datetime import UTC, datetime, timedelta
 import websockets
 
 from hixton.backtest.engine import run_isolated_batch, run_single_backtest
-from hixton.backtest.models import BASELINE_COSTS, STRESS_COSTS, ExecutionRules
+from hixton.backtest.models import CURRENT_COSTS, ExecutionRules
 from hixton.backtest.portfolio import run_shared_portfolio_backtest
 from hixton.backtest.reporting import RunResult, write_report_bundle
 from hixton.config import ProjectConfig
@@ -408,57 +408,56 @@ class RuntimeSupervisor:
                     min_qty=stored.min_qty,
                     min_notional=stored.min_notional,
                 )
-        scenarios: dict[str, RunResult] = {}
         with PaperStore(self.config.database_path) as store:
             paper_settings = store.load_settings()
-        for costs in (BASELINE_COSTS, STRESS_COSTS):
-            if mode == "all":
-                scenarios[costs.name] = run_isolated_batch(
-                    candles_by_symbol=candles,
-                    report_start_utc=report_start,
-                    report_end_utc=report_end,
-                    costs=costs,
-                    execution_rules=rules,
-                    strategy_parameters=strategy.parameters,
-                    strategy_parameters_by_symbol=strategy.parameter_map(),
-                    trade_policies_by_symbol=strategy.policy_map(),
-                    strategy_semantics=strategy.semantics,
-                    strategy_version=strategy.version,
-                )
-            elif mode == "portfolio":
-                scenarios[costs.name] = run_shared_portfolio_backtest(
-                    candles_by_symbol=candles,
-                    report_start_utc=report_start,
-                    report_end_utc=report_end,
-                    starting_cash=self.config.paper_starting_cash_usdc,
-                    target_notional=paper_settings.target_notional_usdc,
-                    slot_count=paper_settings.slot_count,
-                    costs=costs,
-                    execution_rules=rules,
-                    strategy_parameters=strategy.parameters,
-                    strategy_parameters_by_symbol=strategy.parameter_map(),
-                    trade_policies_by_symbol=strategy.policy_map(),
-                    strategy_semantics=strategy.semantics,
-                    strategy_version=strategy.version,
-                    slot_allocation=strategy.slot_allocation,
-                )
-            else:
-                if symbol is None:
-                    raise RuntimeError("single backtest symbol disappeared")
-                scenarios[costs.name] = run_single_backtest(
-                    symbol=symbol,
-                    candles=candles[symbol],
-                    report_start_utc=report_start,
-                    report_end_utc=report_end,
-                    starting_cash=self.config.starting_usdc_per_symbol,
-                    target_notional=self.config.target_notional_usdc,
-                    costs=costs,
-                    execution_rules=rules[symbol],
-                    strategy_parameters=strategy.parameters_for(symbol),
-                    trade_policy=strategy.policy_for(symbol),
-                    strategy_semantics=strategy.semantics,
-                    strategy_version=strategy.version,
-                )
+        if mode == "all":
+            result: RunResult = run_isolated_batch(
+                candles_by_symbol=candles,
+                report_start_utc=report_start,
+                report_end_utc=report_end,
+                costs=CURRENT_COSTS,
+                execution_rules=rules,
+                strategy_parameters=strategy.parameters,
+                strategy_parameters_by_symbol=strategy.parameter_map(),
+                trade_policies_by_symbol=strategy.policy_map(),
+                strategy_semantics=strategy.semantics,
+                strategy_version=strategy.version,
+            )
+        elif mode == "portfolio":
+            result = run_shared_portfolio_backtest(
+                candles_by_symbol=candles,
+                report_start_utc=report_start,
+                report_end_utc=report_end,
+                starting_cash=self.config.paper_starting_cash_usdc,
+                target_notional=paper_settings.target_notional_usdc,
+                slot_count=paper_settings.slot_count,
+                costs=CURRENT_COSTS,
+                execution_rules=rules,
+                strategy_parameters=strategy.parameters,
+                strategy_parameters_by_symbol=strategy.parameter_map(),
+                trade_policies_by_symbol=strategy.policy_map(),
+                strategy_semantics=strategy.semantics,
+                strategy_version=strategy.version,
+                slot_allocation=strategy.slot_allocation,
+            )
+        else:
+            if symbol is None:
+                raise RuntimeError("single backtest symbol disappeared")
+            result = run_single_backtest(
+                symbol=symbol,
+                candles=candles[symbol],
+                report_start_utc=report_start,
+                report_end_utc=report_end,
+                starting_cash=self.config.starting_usdc_per_symbol,
+                target_notional=self.config.target_notional_usdc,
+                costs=CURRENT_COSTS,
+                execution_rules=rules[symbol],
+                strategy_parameters=strategy.parameters_for(symbol),
+                trade_policy=strategy.policy_for(symbol),
+                strategy_semantics=strategy.semantics,
+                strategy_version=strategy.version,
+            )
+        scenarios: dict[str, RunResult] = {"current": result}
         completed = subprocess.run(
             ["git", "rev-parse", "HEAD"],
             cwd=self.config.run_output_root.parents[2],
