@@ -78,7 +78,6 @@ def load_project_config(path: Path, *, project_root: Path) -> ProjectConfig:
             "starting_usdc_per_symbol",
             "target_notional_usdc",
             "primary_window_years",
-            "run_baseline_and_stress",
         },
         "backtest",
     )
@@ -102,7 +101,7 @@ def load_project_config(path: Path, *, project_root: Path) -> ProjectConfig:
     }
     _reject_unknown(paper, set(expected_paper), "paper")
     if paper != expected_paper:
-        raise ValueError("paper baseline must match the versioned starting cash with 3x80 USDC")
+        raise ValueError("paper settings must match the versioned starting cash with 3x80 USDC")
 
     ui = _required_mapping(root.get("ui"), "ui")
     expected_ui: dict[str, object] = {
@@ -113,7 +112,7 @@ def load_project_config(path: Path, *, project_root: Path) -> ProjectConfig:
     }
     _reject_unknown(ui, set(expected_ui), "ui")
     if ui != expected_ui:
-        raise ValueError("UI baseline must use the documented localhost settings")
+        raise ValueError("UI settings must use the documented localhost settings")
 
     runtime = _required_mapping(root.get("runtime"), "runtime")
     _reject_unknown(runtime, {"database_path", "run_output_root", "binance_base_url"}, "runtime")
@@ -131,7 +130,7 @@ def load_project_config(path: Path, *, project_root: Path) -> ProjectConfig:
         binance_base_url=str(runtime.get("binance_base_url", "https://api.binance.com")),
         starting_usdc_per_symbol=starting,
         target_notional_usdc=target,
-        run_baseline_and_stress=bool(backtest.get("run_baseline_and_stress", True)),
+        run_baseline_and_stress=False,
         paper_poll_seconds=int(paper["poll_seconds"]),
         paper_starting_cash_usdc=Decimal(str(paper["starting_cash_usdc"])),
         paper_slot_count=int(paper["slot_count"]),
