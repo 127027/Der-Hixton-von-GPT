@@ -2,7 +2,7 @@
 
 This directory defines the persistent eleven-agent engineering swarm for Der Hixton.
 
-The swarm is **cloud-first and laptop-independent**. Agents run on GitHub-hosted virtual machines through GitHub Actions and the official OpenAI Codex GitHub Action. Legacy laptop-bound engineering launchers and local agent runners are intentionally absent.
+The swarm is **cloud-first and laptop-independent**. The default A01-A11 verification path runs deterministically on GitHub-hosted virtual machines without OpenAI or Binance private API credentials. Legacy laptop-bound engineering launchers and local agent runners are intentionally absent.
 
 The trading application itself remains separate: `Startbot.bat` is still the human Windows starter for the actual bot installation. The cloud swarm never uses a local laptop login and never receives Binance credentials.
 
@@ -52,7 +52,7 @@ A patch is not successful because its own unit test passes. Success means the in
 
 ## Authentication and cost boundary
 
-GitHub-hosted runners cannot reuse the interactive ChatGPT/Codex login from a laptop. The cloud workflow therefore expects a GitHub repository secret named `OPENAI_API_KEY` for the official Codex Action. This secret is never committed to the repository and is not a Binance credential. API usage is separate from a ChatGPT subscription.
+The mandatory A01-A11 verification workflow is key-free and must not depend on an `OPENAI_API_KEY` or Binance credentials. Any future optional model-assisted workflow would require a separate explicit configuration and must never become a hidden dependency of the release gate.
 
 ## Safety
 
@@ -64,3 +64,6 @@ GitHub-hosted runners cannot reuse the interactive ChatGPT/Codex login from a la
 - Public Binance market data may be downloaded into ephemeral/ignored runner storage for analysis and backtests.
 
 See `registry.json`, `protocol.md`, `taskboard.json`, `agents/`, `scripts/swarm_core.py`, and `.github/workflows/hixton-cloud-swarm-reusable.yml` for the executable contracts.
+## Current strategy truth
+
+For active V6 engineering, `taskboard.json` and the current DMS contract are normative: one canonical ten-coin USDC strategy, 250-USDC shared main portfolio with baseline 3×80 `ranked_repeat`, no permanent portfolio drawdown halt, and 10×250 only as per-coin diagnostic/optimization laboratory. Historical backtest READMEs may contain superseded USDT, `one_per_symbol` or 20-percent-halt evidence and must never be interpreted as active runtime requirements.
