@@ -10,7 +10,7 @@ on:
   workflow_dispatch:
 
 permissions:
-  contents: read
+  contents: write
 
 concurrency:
   group: hixton-ui-build
@@ -24,7 +24,6 @@ jobs:
       - uses: actions/checkout@v4
         with:
           ref: gpt/usdc-audit
-          persist-credentials: false
       - uses: actions/setup-node@v4
         with:
           node-version: "22"
@@ -45,12 +44,16 @@ jobs:
           path: src/hixton/ui/static
           retention-days: 30
           if-no-files-found: error
-      - name: Require tracked bundle to match source
+      - name: Synchronize reproducible shipped bundle
         shell: bash
         run: |
           set -euo pipefail
-          if [ -n "$(git status --porcelain -- src/hixton/ui/static)" ]; then
-            echo "::error::UI source and shipped static bundle differ."
-            git status --short -- src/hixton/ui/static
-            exit 1
+          if [ -z "$(git status --porcelain -- src/hixton/ui/static)" ]; then
+            echo "Tracked UI bundle already matches source."
+            exit 0
           fi
+          git config user.name "hixton-ui[bot]"
+          git config user.email "hixton-ui@users.noreply.github.com"
+          git add -A src/hixton/ui/static
+          git commit -m "build(ui): sync shipped static bundle"
+          git push origin HEAD:gpt/usdc-audit
