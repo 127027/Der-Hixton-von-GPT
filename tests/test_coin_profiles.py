@@ -57,9 +57,9 @@ def test_profiles_are_complete_individual_and_strictly_configured(
     path.write_text(json.dumps(payload), encoding="utf-8")
     assert V6.paper_approved  # DEC-045: Paper experiment only.
     assert load_project_config(path, project_root=tmp_path).strategy_key == "v6"
-    payload["strategy"]["profiles"]["BTCUSDC"]["parameters"]["atr_length"] = 60
+    payload["strategy"] = {"key": "v6", "profiles": {}}
     path.write_text(json.dumps(payload), encoding="utf-8")
-    with pytest.raises(ValueError, match="deviates"):
+    with pytest.raises(ValueError, match="unknown strategy fields"):
         load_project_config(path, project_root=tmp_path)
     with pytest.raises(ValueError, match="all ten"):
         replace(V6, coin_profiles=V6.coin_profiles[:-1])
