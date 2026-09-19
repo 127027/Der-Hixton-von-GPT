@@ -21,7 +21,8 @@ def test_available_window_keeps_gaps_and_missing_tail_blocked():
     start = candles[400].open_time_utc
     end = candles[-1].open_time_utc + timedelta(hours=1)
     later = candles[100:]
-    assert available_report_start({SYMBOLS[0]: later}, start, end) == candles[500].open_time_utc
+    with pytest.raises(ValueError, match="exact three-year history"):
+        available_report_start({SYMBOLS[0]: later}, start, end)
     for broken in (later[:-1], later[:30] + later[31:], []):
         with pytest.raises(ValueError):
             available_report_start({SYMBOLS[0]: broken}, start, end)
@@ -91,9 +92,8 @@ def test_usdc_startup_uses_common_real_history_and_matching_backtest_window(tmp_
     assert all(p[-1].tradable for p in points.values())
     assert all(p[-1].strategy_version == V6_COIN_STRATEGY.version for p in points.values())
     snapshot = {s: [p.candle for p in series] for s, series in points.items()}
-    assert available_report_start(snapshot, first + timedelta(hours=400), end) == (
-        common + timedelta(hours=400)
-    )
+    with pytest.raises(ValueError, match="exact three-year history"):
+        available_report_start(snapshot, first + timedelta(hours=400), end)
 
 
 def test_default_usdc_database_keeps_original_credential_namespace(tmp_path):
