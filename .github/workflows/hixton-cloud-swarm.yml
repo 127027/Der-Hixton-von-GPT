@@ -1,3 +1,4 @@
+# 2026-09-19: rerun A10 exact-3Y repair after ephemeral-path filter fix.
 # 2026-09-19: rerun A10 safe repair after repair-agent lint fix.
 # 2026-09-19: run A10 known-safe exact-3Y self-repair path.
 # 2026-09-19: exact-three-year single-scenario release contract delegated to A01-A11.
