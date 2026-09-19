@@ -81,18 +81,40 @@ def candidate_catalog(symbol: str) -> tuple[Candidate, ...]:
 
     add("current")
 
-    for floor in (0.0, 0.1, 0.2, 0.3):
+    for floor in (0.0, 0.1, 0.2, 0.3, 0.4):
         add(f"cmo{int(floor * 100):02d}", policy=replace(base_policy, cmo_floor=floor))
-    for bars in (0, 24, 72):
+    for bars in (0, 12, 24, 48, 72):
         add(f"slope{bars}", policy=replace(base_policy, slope_bars=bars))
-    for stop in (0.0, 2.0, 4.0):
-        add(f"stop{int(stop)}", policy=replace(base_policy, stop_atr=stop))
-    for trail in (0.0, 2.0, 4.0):
-        add(f"trail{int(trail)}", policy=replace(base_policy, trail_atr=trail))
+    for stop in (0.0, 1.5, 2.0, 3.0, 4.0):
+        add(
+            f"stop{str(stop).replace('.', '_')}",
+            policy=replace(base_policy, stop_atr=stop),
+        )
+    for trail in (0.0, 1.5, 2.0, 3.0, 4.0):
+        add(
+            f"trail{str(trail).replace('.', '_')}",
+            policy=replace(base_policy, trail_atr=trail),
+        )
 
+    add(
+        "cmo20_slope24",
+        policy=replace(
+            base_policy,
+            cmo_floor=max(0.2, base_policy.cmo_floor),
+            slope_bars=24,
+        ),
+    )
     add(
         "cmo20_stop2",
         policy=replace(base_policy, cmo_floor=max(0.2, base_policy.cmo_floor), stop_atr=2.0),
+    )
+    add(
+        "cmo20_trail3",
+        policy=replace(base_policy, cmo_floor=max(0.2, base_policy.cmo_floor), trail_atr=3.0),
+    )
+    add(
+        "slope12_stop2",
+        policy=replace(base_policy, slope_bars=12, stop_atr=2.0),
     )
     add(
         "slope24_stop2",
@@ -103,27 +125,73 @@ def candidate_catalog(symbol: str) -> tuple[Candidate, ...]:
         policy=replace(base_policy, slope_bars=24, trail_atr=4.0),
     )
 
-    for length in (6, 10):
+    for length in (4, 6, 8, 10, 12):
         add(f"vidya{length}", parameters=replace(base_parameters, vidya_length=length))
-    for length in (8, 15):
+    for length in (14, 20, 28):
+        add(
+            f"momentum{length}",
+            parameters=replace(base_parameters, momentum_length=length),
+        )
+    for length in (6, 8, 12, 15, 20):
         add(
             f"smoothing{length}",
             parameters=replace(base_parameters, smoothing_length=length),
         )
-    for length in (60, 120):
+    for length in (30, 60, 90, 120, 180):
         add(f"atr{length}", parameters=replace(base_parameters, atr_length=length))
+
+    for suffix, offset in (
+        ("minus_06", -0.6),
+        ("minus_03", -0.3),
+        ("plus_03", 0.3),
+        ("plus_06", 0.6),
+    ):
+        add(
+            f"band_{suffix}",
+            parameters=replace(
+                base_parameters,
+                band_multiplier=max(0.5, round(base_parameters.band_multiplier + offset, 2)),
+            ),
+        )
+
     add(
-        "band_minus_06",
+        "vidya8_band_plus_03",
         parameters=replace(
             base_parameters,
-            band_multiplier=max(0.5, round(base_parameters.band_multiplier - 0.6, 2)),
+            vidya_length=8,
+            band_multiplier=round(base_parameters.band_multiplier + 0.3, 2),
         ),
     )
     add(
-        "band_plus_06",
+        "vidya10_band_plus_03",
         parameters=replace(
             base_parameters,
-            band_multiplier=round(base_parameters.band_multiplier + 0.6, 2),
+            vidya_length=10,
+            band_multiplier=round(base_parameters.band_multiplier + 0.3, 2),
+        ),
+    )
+    add(
+        "atr90_band_plus_03",
+        parameters=replace(
+            base_parameters,
+            atr_length=90,
+            band_multiplier=round(base_parameters.band_multiplier + 0.3, 2),
+        ),
+    )
+    add(
+        "atr120_band_plus_03",
+        parameters=replace(
+            base_parameters,
+            atr_length=120,
+            band_multiplier=round(base_parameters.band_multiplier + 0.3, 2),
+        ),
+    )
+    add(
+        "smoothing12_band_plus_03",
+        parameters=replace(
+            base_parameters,
+            smoothing_length=12,
+            band_multiplier=round(base_parameters.band_multiplier + 0.3, 2),
         ),
     )
     return tuple(candidates)
@@ -281,6 +349,48 @@ def _portfolio_summary(result: Any) -> dict[str, object]:
         ),
         "blocked_reasons": _blocked_reason_counts(result.blocked_signals),
         "per_symbol": dict(sorted(by_symbol.items())),
+    }
+
+
+def aggregate_promotion_gate(
+    batches: dict[str, dict[str, object]],
+    portfolios: dict[str, dict[str, object]],
+) -> dict[str, object]:
+    """Require the assembled candidate to preserve both canonical report models."""
+
+    checks = {
+        "isolated_baseline": (
+            D(str(batches["current_baseline"]["ending_equity"])),
+            D(str(batches["candidate_baseline"]["ending_equity"])),
+        ),
+        "isolated_stress": (
+            D(str(batches["current_stress"]["ending_equity"])),
+            D(str(batches["candidate_stress"]["ending_equity"])),
+        ),
+        "portfolio_baseline": (
+            D(str(portfolios["current_baseline"]["ending_equity"])),
+            D(str(portfolios["candidate_baseline"]["ending_equity"])),
+        ),
+        "portfolio_stress": (
+            D(str(portfolios["current_stress"]["ending_equity"])),
+            D(str(portfolios["candidate_stress"]["ending_equity"])),
+        ),
+    }
+    non_regressive = all(candidate >= current for current, candidate in checks.values())
+    improved = any(candidate > current for current, candidate in checks.values())
+    return {
+        "promotable": non_regressive and improved,
+        "non_regressive": non_regressive,
+        "improved": improved,
+        "checks": {
+            name: {
+                "current_ending_equity": str(current),
+                "candidate_ending_equity": str(candidate),
+                "delta": str(candidate - current),
+                "passes": candidate >= current,
+            }
+            for name, (current, candidate) in checks.items()
+        },
     }
 
 
@@ -549,8 +659,10 @@ def run_cycle(output: Path) -> dict[str, object]:
     if not parity["candidate_match"]:
         raise RuntimeError("candidate profile hashes diverged between 10x250 and 3x80")
 
+    promotion_gate = aggregate_promotion_gate(batches, portfolios)
+
     evidence: dict[str, object] = {
-        "schema_version": 1,
+        "schema_version": 2,
         "study": "coin-by-coin-v6-optimization",
         "research_only": True,
         "activation_performed": False,
@@ -575,6 +687,7 @@ def run_cycle(output: Path) -> dict[str, object]:
         "profile_parity": parity,
         "isolated_10x250": batches,
         "portfolio_3x80": portfolios,
+        "aggregate_promotion_gate": promotion_gate,
     }
     output.parent.mkdir(parents=True, exist_ok=True)
     output.write_text(json.dumps(evidence, indent=2, default=str) + "\n", encoding="utf-8")
