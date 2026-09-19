@@ -512,10 +512,9 @@ def create_app(
             raise HTTPException(status_code=400, detail="Einzeltest benoetigt ein DMS-Symbol")
         if normalized is not None and mode != "single":
             raise HTTPException(status_code=400, detail="Coinfilter gilt nur fuer Einzeltests")
-        try:
-            definition = strategy_definition(strategy)
-        except ValueError as error:
-            raise HTTPException(status_code=400, detail=str(error)) from error
+        if strategy.lower() != config.strategy_key:
+            raise HTTPException(status_code=400, detail="Nur die aktuell aktive V6 ist verfügbar")
+        definition = supervisor.strategy
         output_root = config.run_output_root.parents[1] / definition.backtest_version / "runs"
         try:
             with PaperStore(config.database_path) as store:
@@ -574,11 +573,14 @@ def create_app(
         payload: Any = await request.json()
         if not isinstance(payload, dict):
             raise HTTPException(status_code=400, detail="Ungueltige Backtest-Anfrage")
+        requested_strategy = str(payload.get("strategy", config.strategy_key)).lower()
+        if requested_strategy != config.strategy_key:
+            raise HTTPException(status_code=400, detail="Nur die aktuell aktive V6 ist verfügbar")
         try:
             started = supervisor.start_backtest(
                 mode=str(payload.get("mode", "")),
                 symbol=str(payload.get("symbol")) if payload.get("symbol") else None,
-                strategy_key=str(payload.get("strategy", config.strategy_key)),
+                strategy_key=config.strategy_key,
             )
         except ValueError as error:
             raise HTTPException(status_code=400, detail=str(error)) from error
