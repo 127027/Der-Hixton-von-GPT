@@ -24,7 +24,6 @@ from hixton.backtest.comparison import compare_run
 from hixton.backtest.reporting import source_fingerprint
 from hixton.config import ProjectConfig
 from hixton.constants import SYMBOLS
-from hixton.domain.versions import strategy_definition
 from hixton.live.credentials import Vault
 from hixton.paper.engine import load_paper_portfolio
 from hixton.paper.models import MAX_TRADING_SLOTS, PaperSettings
