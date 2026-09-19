@@ -21,6 +21,12 @@ def test_coin_optimization_catalog_is_bounded_and_contains_current() -> None:
         )
 
 
+def test_coin_optimization_catalog_contains_fine_neighbourhood() -> None:
+    names = {candidate.name for candidate in candidate_catalog("BTCUSDC")}
+    assert {"band_plus_01", "band_plus_02", "band_plus_04", "band_plus_05"} <= names
+    assert {"vidya7", "vidya9", "momentum18", "momentum22", "atr75", "atr105"} <= names
+
+
 def test_training_choice_prefers_current_on_exact_tie() -> None:
     scores = {
         "current": (Decimal("10"), Decimal("5"), Decimal("20")),
