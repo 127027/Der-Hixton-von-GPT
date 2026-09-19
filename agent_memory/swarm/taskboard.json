@@ -34,10 +34,10 @@
     "id": "SWARM-003",
     "title": "Continuous V6 product hardening and optimization",
     "objective": "Keep one clean current Hixton V6 product and continuously improve its ten USDC coin profiles. Product backtests expose exactly one current scenario. Every normal single, 10x250 and shared 3x80 backtest must cover exactly three calendar years from the chosen safe report_end_utc back to the same UTC timestamp three calendar years earlier; 400 one-hour warm-up bars are extra history before that window and never part of reported performance. If exact coverage is unavailable, fail closed instead of shortening. The fixed-window current-V6 regression reference for 2023-09-19T19:00:00Z..2026-09-19T19:00:00Z is 8217.00711069101365 USDC isolated 10x250 and 1217.9057596598351 USDC shared 3x80 using BTC VIDYA5, ADA band 4.4, AVAX band 4.6 and DOGE momentum18. Release only after exact-current E2E, full regression, QA and governance pass.",
-    "state": "IN_PROGRESS",
+    "state": "VERIFYING",
     "completion_mode": "continuous",
     "started_at_utc": "2026-09-16T10:30:00+00:00",
-    "last_transition_reason": "Owner instruction 2026-09-19: A01-A11 must implement and verify one current exact-three-calendar-year backtest contract, eliminate product-facing baseline/stress ambiguity, enforce fail-closed history coverage, pin the current V6 reference outputs, and produce a downloadable release only after fresh E2E/QA/governance on the exact release commit.",
+    "last_transition_reason": "A10 self-repair af1ca16316c144af4665f7d4f4e92e5325d526e3 applied the known-safe exact-three-year/current-only contract patch. Supervisor is now requesting fresh preflight, dashboard E2E, full A01-A11, QA and governance evidence on the repaired code before release.",
     "owner_instruction_date": "2026-09-19",
     "primary_agents": [
       "A01",
@@ -135,7 +135,8 @@
       }
     },
     "product_cleanup_requested_at_utc": "2026-09-19T19:00:00+00:00",
-    "optimization_cycle_requested_at_utc": "2026-09-19T09:14:00+00:00"
+    "optimization_cycle_requested_at_utc": "2026-09-19T09:14:00+00:00",
+    "latest_repair_commit": "af1ca16316c144af4665f7d4f4e92e5325d526e3"
   },
   "queued_missions": [],
   "agent_runtime": {
