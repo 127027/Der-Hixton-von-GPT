@@ -107,7 +107,7 @@ Die ursprüngliche Markdown-Analyse bleibt als unverändertes Eingangsmaterial e
 | `01_PRODUKTVISION_SCOPE.md` | Ziel, Grenzen und Nutzerrollen |
 | `02_VERBINDLICHE_ANFORDERUNGEN.md` | funktionale und nichtfunktionale Anforderungen |
 | `03_STRATEGIE_HIXTON.md` | normative Signal- und Zustandslogik |
-| `04_MARKT_KAPITAL_RISIKO.md` | zehn Märkte, 3×80-USDT-Modell und Schutzregeln |
+| `04_MARKT_KAPITAL_RISIKO.md` | zehn USDC-Märkte, 3×80-Baseline, `ranked_repeat`, Drawdown-Telemetrie und Schutzregeln |
 | `05_MARKTDATEN_UND_AKTUALISIERUNG.md` | Download, Lücken, Startup und Mitternachtsjob |
 | `06_BACKTEST_UND_VALIDIERUNG.md` | 3-Jahres-Test, Kosten, Metriken und Anti-Overfitting |
 | `07_AUSFUEHRUNG_ORDERS.md` | Signal-zu-Order-Lebenszyklus |
