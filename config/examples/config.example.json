@@ -3,7 +3,7 @@
   "strategy": {
     "key": "v6",
     "quote_asset": "USDC",
-    "version": "HIXTON-V6-COIN-PAPER-1-b9baa61cbc21",
+    "version": "HIXTON-V6-COIN-PAPER-1-60267e05d6a8",
     "timeframe": "1h",
     "source": "close",
     "slot_allocation": "ranked_repeat",
@@ -96,7 +96,7 @@
           "momentum_length": 20,
           "smoothing_length": 8,
           "atr_length": 60,
-          "band_multiplier": 3.8,
+          "band_multiplier": 4.4,
           "warmup_bars": 400
         },
         "trade_policy": {
@@ -128,7 +128,7 @@
           "momentum_length": 20,
           "smoothing_length": 8,
           "atr_length": 60,
-          "band_multiplier": 4.4,
+          "band_multiplier": 4.6,
           "warmup_bars": 400
         },
         "trade_policy": {
@@ -157,7 +157,7 @@
       "DOGEUSDC": {
         "parameters": {
           "vidya_length": 6,
-          "momentum_length": 20,
+          "momentum_length": 18,
           "smoothing_length": 15,
           "atr_length": 120,
           "band_multiplier": 4.4,
