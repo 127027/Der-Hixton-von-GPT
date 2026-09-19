@@ -212,7 +212,7 @@ def role_a02() -> list[dict[str, Any]]:
     result = require_command(command, timeout=1200)
     return [
         result,
-        coverage("same_window_comparison", "carried_vs_fresh", "quote_migration_diagnosis"),
+        coverage("current_v6_backtest", "topk_validation", "portfolio_gate"),
     ]
 
 
@@ -222,7 +222,7 @@ def role_a03() -> list[dict[str, Any]]:
         "test_paper*.py",
         "test_*parity*.py",
         "test_cloud_paper_cycle.py",
-        "test_backtest_usdt_usdc_migration_mission.py",
+        "test_current_v6_product_contract.py",
     )
     evidence: list[dict[str, Any]] = [{"paper_state": state}]
     if tests:
@@ -241,13 +241,13 @@ def role_a04() -> list[dict[str, Any]]:
         "test_ui*.py",
         "test_*api*.py",
         "test_chart*.py",
-        "test_backtest_usdt_usdc_migration_mission.py",
+        "test_current_v6_product_contract.py",
     )
     evidence: list[dict[str, Any]] = [{"static_file_count": len(files)}]
     if tests:
         command = [sys.executable, "-m", "pytest", "-q", *tests]
         evidence.append(require_command(command, timeout=900))
-    evidence.append(coverage("ui_quote_provenance", "shipped_ui_bundle"))
+    evidence.append(coverage("current_v6_ui", "shipped_ui_bundle"))
     return evidence
 
 
@@ -339,7 +339,7 @@ def role_a08() -> list[dict[str, Any]]:
         "test_coin_profiles.py",
         "test_strategy*.py",
         "test_trade_policy*.py",
-        "test_backtest_usdt_usdc_migration_mission.py",
+        "test_current_v6_product_contract.py",
     )
     if not tests:
         raise CheckFailure("no strategy/risk regression tests found")
@@ -362,7 +362,7 @@ def role_a08() -> list[dict[str, Any]]:
     result = require_command(command, timeout=1200)
     return [
         result,
-        coverage("strategy_risk_invariants", "early_loss_risk_path"),
+        coverage("strategy_risk_invariants", "loss_analysis"),
     ]
 
 
