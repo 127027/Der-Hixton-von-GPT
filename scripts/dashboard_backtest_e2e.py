@@ -76,10 +76,10 @@ def _initialize_paper(database_path: Path) -> None:
         store.require_strategy(strategy.key, strategy.version)
 
 
-def _baseline_summary(run: dict[str, Any], mode: str) -> dict[str, Any]:
-    baseline = run["metrics"]["baseline"]
+def _current_summary(run: dict[str, Any], mode: str) -> dict[str, Any]:
+    current = run["metrics"]["current"]
     if mode == "portfolio":
-        portfolio = baseline["portfolio"]
+        portfolio = current["portfolio"]
         metrics = portfolio["metrics"]
         cycles = metrics["completed_trades"]
         slot_trades = metrics.get("completed_slot_trades")
@@ -101,8 +101,8 @@ def _baseline_summary(run: dict[str, Any], mode: str) -> dict[str, Any]:
             "target_notional": portfolio["target_notional"],
             "blocked_reasons": portfolio.get("blocked_reasons", {}),
         }
-    batch = baseline["batch"]
-    per_symbol = baseline.get("per_symbol", {})
+    batch = current["batch"]
+    per_symbol = current.get("per_symbol", {})
     return {
         "ending_equity": batch["ending_equity"],
         "return_pct": batch["return_pct"],
@@ -174,7 +174,7 @@ async def _run_mode(
         "history_mode": data["history_mode"],
         "runtime_quote": data["runtime_quote"],
         "market_proxy_quote": data["market_proxy_quote"],
-        "summary": _baseline_summary(run, mode),
+        "summary": _current_summary(run, mode),
     }
 
 
@@ -200,7 +200,7 @@ def _portfolio_trade_breakdown(run_output_root: Path) -> dict[str, dict[str, obj
     breakdown: dict[str, dict[str, object]] = {}
     with trades_path.open("r", encoding="utf-8", newline="") as handle:
         for row in csv.DictReader(handle):
-            if row["scenario"] != "baseline":
+            if row["scenario"] != "current":
                 continue
             symbol = row["symbol"]
             item = breakdown.setdefault(
