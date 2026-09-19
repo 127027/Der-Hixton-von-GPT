@@ -239,22 +239,22 @@ def _list_backtests(
             continue
         if not isinstance(manifest, dict) or not isinstance(metrics, dict):
             continue
-        baseline = metrics.get("baseline", {})
-        if not isinstance(baseline, dict):
+        primary = metrics.get("current", metrics.get("baseline", {}))
+        if not isinstance(primary, dict):
             continue
         run_mode = manifest.get("run_mode") or (
-            "portfolio" if "portfolio" in baseline else "batch" if "batch" in baseline else "single"
+            "portfolio" if "portfolio" in primary else "batch" if "batch" in primary else "single"
         )
         if mode is not None and run_mode != ("batch" if mode == "all" else mode):
             continue
-        if symbol is not None and set(baseline.get("per_symbol", {})) != {symbol}:
+        if symbol is not None and set(primary.get("per_symbol", {})) != {symbol}:
             continue
         # Old reports are immutable USDT evidence, not USDC merely because the
         # active bot migrated. Infer only from actual symbol metadata, never UI defaults.
         data = manifest.get("data", {})
         hashes = data.get("snapshot_sha256_by_symbol", {}) if isinstance(data, dict) else {}
         names = set(hashes) if isinstance(hashes, dict) else set()
-        singles = baseline.get("per_symbol", {})
+        singles = primary.get("per_symbol", {})
         if isinstance(singles, dict):
             names.update(singles)
         detected = {q for q in ("USDT", "USDC") if any(str(n).endswith(q) for n in names)}
