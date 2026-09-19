@@ -167,6 +167,11 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: ${{ env.PYTHON_VERSION }}
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: npm
+          cache-dependency-path: ui/package-lock.json
       - name: Build supervisor environment
         shell: bash
         run: |
@@ -191,6 +196,29 @@ jobs:
           path: reports/A10.json
           retention-days: 14
           if-no-files-found: error
+      - name: A10 known-safe product-contract repair
+        if: failure()
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          .venv/bin/python -m scripts.swarm_safe_repair --reports-dir collected --output /tmp/A10-repair.json
+          cat /tmp/A10-repair.json
+          if git diff --quiet && [ -z "$(git status --porcelain --untracked-files=all)" ]; then
+            echo "No known-safe product repair was applicable."
+            exit 0
+          fi
+          git config user.name "hixton-swarm[bot]"
+          git config user.email "hixton-swarm@users.noreply.github.com"
+          git add --             src/hixton/runtime/analysis.py             src/hixton/runtime/continuity_supervisor.py             tests/test_cli_portfolio.py             tests/test_backtest_exact_three_year.py             src/hixton/ui/static
+          if git diff --cached --quiet; then
+            echo "No tracked known-safe repair changes to persist."
+            exit 0
+          fi
+          git commit -m "repair(swarm): enforce exact 3Y current backtest contract"
+          git remote set-url origin "https://x-access-token:${GH_TOKEN}@github.com/${GITHUB_REPOSITORY}.git"
+          git push origin "HEAD:${BASE_BRANCH}"
 
   qa-a09:
     needs: [specialists, supervisor-a10]
