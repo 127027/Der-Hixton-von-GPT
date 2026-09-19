@@ -1,5 +1,8 @@
 # V7 – USDC-Migrationsprüfung
 
+> **HISTORIEN-/FORSCHUNGSGRENZE.** Diese Datei bewahrt den damaligen Prüfstand und seine Ergebnisse. Enthaltene USDT-, `one_per_symbol`- oder permanente 20-%-Portfoliohalt-Aussagen sind historische Evidenz, sofern sie nicht ausdrücklich als aktueller V6-Vertrag gekennzeichnet sind. Maßgeblich für den heutigen Betrieb sind `README.md`, DMS 02/04/06 und `agent_memory/swarm/taskboard.json`: ein kanonisches USDC-Zehn-Coin-System, gemeinsames 250-USDC-Hauptportfolio mit Baseline 3×80 `ranked_repeat`, kein permanenter Portfolio-Drawdown-Halt und 10×250 nur zur Coin-für-Coin-Diagnose/Optimierung. Historische Gegenbelege werden nicht gelöscht oder umgeschrieben.
+
+
 Status: **Validierung, nicht aktiviert; keine Echtgeldfreigabe.** Die zehn V6-Coin-Profile werden ohne Optimierung auf echten USDC-Kerzen geprüft. V6-Paper bleibt USDT; historische Zahlen und Konten werden nicht umbenannt. V7 gehört zunächst nicht in die normale aktive UI-Strategieauswahl.
 
 ## Festgelegtes Verfahren
