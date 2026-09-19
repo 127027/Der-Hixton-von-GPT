@@ -436,7 +436,7 @@ def build_parser() -> argparse.ArgumentParser:
     audit.add_argument("--symbol", default="ALL", help="ALL oder ein DMS-Symbol")
     audit.add_argument("--end", type=parse_utc)
 
-    backtest = commands.add_parser("backtest", help="Backtest v1 aus lokalen Daten")
+    backtest = commands.add_parser("backtest", help="aktuelle V6 aus lokalen Daten testen")
     backtest_commands = backtest.add_subparsers(dest="backtest_command", required=True)
     usdc = backtest_commands.add_parser(
         "usdc-review",
@@ -452,17 +452,17 @@ def build_parser() -> argparse.ArgumentParser:
     single.add_argument("--symbol", required=True)
     single.add_argument("--end", type=parse_utc)
     single.add_argument("--cost", choices=("baseline", "stress", "both"), default="both")
-    single.add_argument("--strategy", choices=("v1", "v2", "v3", "v6"))
+    single.add_argument("--strategy", choices=("v6",))
     all_ten = backtest_commands.add_parser("all", help="10x250-USDC-Batch testen")
     all_ten.add_argument("--end", type=parse_utc)
     all_ten.add_argument("--cost", choices=("baseline", "stress", "both"), default="both")
-    all_ten.add_argument("--strategy", choices=("v1", "v2", "v3", "v6"))
+    all_ten.add_argument("--strategy", choices=("v6",))
     portfolio = backtest_commands.add_parser(
         "portfolio", help="gemeinsames Konto mit 3x80-USDC-Slots und Startcash laut Config testen"
     )
     portfolio.add_argument("--end", type=parse_utc)
     portfolio.add_argument("--cost", choices=("baseline", "stress", "both"), default="both")
-    portfolio.add_argument("--strategy", choices=("v1", "v2", "v3", "v6"))
+    portfolio.add_argument("--strategy", choices=("v6",))
     research = backtest_commands.add_parser(
         "research", help="versionierte Forschungspruefung ohne Paperwechsel"
     )
@@ -476,7 +476,7 @@ def build_parser() -> argparse.ArgumentParser:
         "paper-activate",
         help="versionierten Paper-Strategiewechsel kontrolliert ausfuehren",
     )
-    activate.add_argument("--strategy", choices=("v2", "v6"), required=True)
+    activate.add_argument("--strategy", choices=("v6",), required=True)
     activate.add_argument("--confirmation", required=True)
     fresh = commands.add_parser(
         "paper-fresh-start",
