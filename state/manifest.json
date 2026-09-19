@@ -1,0 +1,43 @@
+{
+  "schema_version": 2,
+  "mode": "PAPER_ONLY",
+  "market_data": "BINANCE_PUBLIC_USDC",
+  "source_branch": "gpt/usdc-audit",
+  "source_commit": "250dc3a99b06debc23f3994545a368fe847c4b33",
+  "workflow_run_id": "35431637580",
+  "lease_cycle": 10,
+  "saved_at_utc": "2026-09-19T10:41:11.295943+00:00",
+  "database_sha256": "c62f1ddd666b88f52c53c2568ef1e8ea9c91e8472ff0cae2cbaa27d255a34bb5",
+  "compressed_sha256": "91324c5faee78846a7021ccd64cba8f41bda07afa747e0a9cebb122d4eb79019",
+  "previous_workflow_run_id": "35431637580",
+  "previous_lease_cycle": 9,
+  "paper_summary": {
+    "cash_usdc": "10.7784289900000000",
+    "checkpoint_count": 10,
+    "emergency_stop": false,
+    "halt_reason": null,
+    "halted": false,
+    "high_water_equity_usdc": "267.5092012300000000",
+    "last_sync_utc": "2026-09-19T10:41:08.395728+00:00",
+    "latest_checkpoint_utc": "2026-09-19T09:59:59.999000+00:00",
+    "market_data": "BINANCE_PUBLIC_USDC",
+    "market_data_base_url": "https://data-api.binance.vision",
+    "mode": "PAPER_ONLY",
+    "open_positions": [
+      "ADAUSDC",
+      "BNBUSDC",
+      "SOLUSDC"
+    ],
+    "real_money_orders_allowed": false,
+    "recent_event_count": 8,
+    "slot_count": 3,
+    "soak_status": "RUNNING",
+    "starting_cash_usdc": "250.00",
+    "strategy_key": "v6",
+    "strategy_version": "HIXTON-V6-COIN-PAPER-1-d57f88ec2e5f",
+    "target_notional_usdc": "80.00",
+    "testnet_orders_allowed": false
+  },
+  "real_money_orders_allowed": false,
+  "testnet_orders_allowed": false
+}
