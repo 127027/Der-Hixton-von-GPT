@@ -26,18 +26,19 @@ def test_registry_contains_exactly_all_eleven_cloud_agents() -> None:
     assert registry["completion_contract"]["real_money_orders_allowed"] is False
 
 
-def test_active_cloud_mission_requires_all_agents_and_quote_regression() -> None:
+def test_active_cloud_mission_requires_all_agents_and_current_v6_regression() -> None:
     mission = load_mission(ROOT)
     assert mission["id"] == "SWARM-003"
     assert mission["state"] == "IN_PROGRESS"
     assert mission["completion_mode"] == "continuous"
     assert set(required_agents(mission)) == set(AGENT_IDS)
     cases = known_regression_requirements(mission)
-    assert "USDT_USDC_MIGRATION" in cases
-    assert "compare_exact_same_window" in cases["USDT_USDC_MIGRATION"]
-    assert "separate_running_account_path_from_fresh_start" in cases["USDT_USDC_MIGRATION"]
+    assert "CURRENT_V6_PRODUCT" in cases
+    assert "verify_current_v6_is_the_only_product_strategy" in cases["CURRENT_V6_PRODUCT"]
+    assert "verify_assembled_10x250_and_3x80_non_regression" in cases["CURRENT_V6_PRODUCT"]
     evidence = required_evidence_by_agent(mission)
-    assert "carried_vs_fresh" in evidence["A02"]
+    assert "topk_validation" in evidence["A02"]
+    assert "portfolio_gate" in evidence["A02"]
     assert "public_kline_sample" in evidence["A07"]
     assert "evidence_contract_audit" in evidence["A10"]
     assert "governance_audit" in evidence["A11"]
