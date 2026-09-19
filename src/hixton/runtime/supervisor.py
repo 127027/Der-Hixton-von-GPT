@@ -179,7 +179,8 @@ class RuntimeSupervisor:
         if mode == "single" and normalized not in SYMBOLS:
             raise ValueError("single backtest requires one DMS symbol")
         selected_strategy_key = strategy_key or self.strategy.key
-        strategy_definition(selected_strategy_key)
+        if selected_strategy_key != self.strategy.key:
+            raise ValueError("only the active V6 strategy may run from the product runtime")
         self.state.set_status(backtest_status="RUNNING")
         self._backtest_task_handle = asyncio.create_task(
             self._backtest_task(
