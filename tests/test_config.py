@@ -25,7 +25,6 @@ def _payload() -> dict[str, object]:
             "starting_usdc_per_symbol": "250.00",
             "target_notional_usdc": "250.00",
             "primary_window_years": 3,
-            "run_baseline_and_stress": True,
         },
         "paper": {
             "starting_cash_usdc": "250.00",
