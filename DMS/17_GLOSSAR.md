@@ -1,52 +1,18 @@
 # 17 – Glossar
-## Aktuelle Begriffe 18.09.2026
 
-- **Positionszyklus:** ein vollständiger Entry→Exit-Zyklus eines Coin-Signals. Eine aggregierte Position kann 1–3 Slots enthalten.
-- **Slot-Trade:** ein abgeschlossener 80-USDC-Kapitaltranche-Äquivalent. Ein Positionszyklus mit `slot_count=3` zählt als ein Positionszyklus und drei Slot-Trades.
-- **10×250:** zehn strikt isolierte USDC-Coin-Backtests mit jeweils 250 USDC Startkapital; Diagnose-/Forschungsmodell ohne Slotkonkurrenz.
-- **3×80:** gemeinsames 250-USDC-Portfolio mit drei 80-USDC-Slots und `ranked_repeat`; echte Slotkonkurrenz zwischen zehn Coins.
-- **Kanonische Profilmap:** die eine versionierte V6-Quelle aus zehn `CoinProfile`-Einträgen, die Einzeltest, Batch, Portfolio, Paper und UI identisch verwenden.
-- **Portfolio-Drawdown:** Rückgang vom High-Water-Mark; wird gemessen und berichtet, löst in der aktiven V6 aber keinen permanenten globalen Halt aus.
+Status: CURRENT · 19.09.2026
 
-
-
-| Begriff | Verbindliche Bedeutung |
-|---|---|
-| Bar/Kerze | OHLCV-Datensatz eines festen Timeframes |
-| geschlossene Kerze | vom Datenprovider finalisierte Kerze; darf Signalsbasis sein |
-| vorläufige Kerze | laufende Kerze; nur Anzeige, keine bestätigte Signalsbasis |
-| VIDYA | Variable Index Dynamic Average gemäß `HIXTON-SPEC-1.0` in DMS 03 |
-| ATR | Average True Range mit Wilder-RMA gemäß `HIXTON-SPEC-1.0` in DMS 03 |
-| Band | VIDYA plus/minus ATR × Multiplikator |
-| Trendzustand | persistenter Zustand `UP`, `DOWN` oder vor Initialisierung `UNINITIALIZED` |
-| Flip | echter Wechsel zwischen Trendzuständen, nicht jeder Bar im selben Trend |
-| Signal | deterministische Strategieausgabe zu einer geschlossenen Kerze |
-| Order-Intent | interner, noch prüfbarer Wunsch, eine Order zu erzeugen |
-| Order | an Paper-/Börsenadapter übermittelte Handelsanweisung |
-| Fill | tatsächliche vollständige oder teilweise Ausführung |
-| Position | aus Fills/Beständen abgeleitete offene Assetmenge |
-| Long-only | kaufen und später verkaufen; kein Leerverkauf |
-| Pyramiding | mehrfacher Einstieg/Vergrößerung im selben Trend; initial verboten |
-| isolierter Backtesttopf | 250-USDT-Simulationskonto eines Coins; wird im 10er-Batch nicht mit anderen Tests geteilt |
-| gemeinsamer Paper-Cashpool | 240-USDT-Modellkonto, aus dem anfänglich höchstens drei 80-USDT-Slots belegt werden |
-| Positionsslot | maximal eine gleichzeitig offene Coin-Position mit konfiguriertem Zielnotional |
-| Backtest | chronologische historische Simulation ohne echte Order |
-| Paper | laufende Simulation mit realen Marktdaten, aber ohne echte Order |
-| Live | Modus mit echten Börsenorders |
-| Warm-up | Bars vor dem Berichtsstart zur vollständigen Indikatorinitialisierung |
-| Look-ahead | unzulässige Nutzung zukünftiger Information |
-| Repainting | nachträgliche Änderung eines bereits bestätigten historischen Signals |
-| Slippage | Differenz zwischen Referenz-/erwartetem Preis und Fillpreis |
-| Spread | Differenz zwischen bestem Kauf- und Verkaufskurs |
-| Drawdown | Rückgang der Equity von einem vorherigen Hoch zum folgenden Tief |
-| PnL | Gewinn/Verlust; `netto` nach dokumentierten Gebühren/Slippage |
-| Mark-to-market | Bewertung einer offenen Position zum End-/Marktpreis ohne erfundenen Verkauf |
-| Reconciliation | Abgleich lokalen Zustands mit Börsenorders, Fills und Salden |
-| Idempotenz | Wiederholung desselben Events erzeugt keine zweite Wirkung/Order |
-| stale | veraltet; Frischegrenze überschritten |
-| Datenrevision | nachträgliche Änderung historischer Providerdaten |
-| Run-Manifest | vollständige Metadaten eines reproduzierbaren Backtestlaufs |
-| Golden-Daten | unabhängig berechnete Referenzwerte/-signale aus der normativen Spezifikation; optional ergänzt um rechtmäßig verfügbare externe Vergleichswerte |
-| Not-Aus | Sperre neuer Entries; Liquidation ist eine getrennte Aktion |
-| UTC | interne Standardzeitzone |
-| Today/Heute | 00:00 bis jetzt in der sichtbar gewählten UI-Zeitzone |
+- **V6:** einzige aktuelle Produktstrategie mit zehn Coin-Profilen.
+- **USDC:** operative Quote der zehn Binance-Spot-Märkte.
+- **3×80:** gemeinsames 250-USDC-Hauptportfolio mit drei Slots à Zielnotional 80 USDC.
+- **10×250:** zehn isolierte Diagnosekonten à 250 USDC.
+- **ranked_repeat:** Slotregel; freie Slots können nach Ranking erneut an einen bereits ausgewählten gültigen Kandidaten gehen.
+- **Positionszyklus:** ein Entry-bis-Exit-Lebenszyklus eines Coins; kann mehrere Slots tragen.
+- **Slot-Trade:** belegte Kapitaltranche; nicht mit einem zusätzlichen Signal gleichzusetzen.
+- **Baseline:** normales modelliertes Kostenprofil.
+- **Stress:** ungünstigeres modelliertes Kostenprofil.
+- **Top-K:** im Training eingefrorene Kandidatenliste.
+- **Validation:** getrenntes Ablehnungsfenster, nicht zur Nachoptimierung.
+- **Paper:** simuliertes Geld/Fills auf echten öffentlichen Marktpreisen.
+- **Strategy activation:** expliziter auditierter Wechsel der persistenten Paper-Strategieversion ohne stillen Kontoreset.
+- **QA_PASS / GOVERNANCE_PASS:** unabhängige A09-/A11-Freigaben für den geprüften Commit.

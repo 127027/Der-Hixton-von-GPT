@@ -1,68 +1,20 @@
-# Vorlage – Backtest-Run-Manifest
+# Vorlage – Backtest Run Manifest
 
-## Identität
+Status: CURRENT · 19.09.2026
 
-- Run-ID:
-- Erzeugt UTC:
-- Status: `VALID / INVALID / FAILED / STALE`
-- Verantwortlich:
+Jeder aktuelle Run muss dokumentieren:
+- Run-ID, Commit-SHA, Erstellzeit;
+- strategy_key: v6 und abgeleitete Strategieversion;
+- Profilhash je Symbol;
+- Quote/Marktdatenprovenienz und Proxykennzeichnung;
+- Report- und Warm-up-Fenster;
+- Modell: single / 10×250 / shared 3×80;
+- Startkapital: single/isoliert 250,00 USDC je Coin; shared 250,00 USDC;
+- shared slot_count 3, target 80,00 USDC, ranked_repeat;
+- Baseline-/Stresskosten;
+- Endkapital, PnL, Rendite, Positionszyklen, Slot-Trades, Max-DD;
+- Blockierungsgründe;
+- Source-/Config-/Daten-Fingerprints;
+- Status und Limitierungen.
 
-## Versionen und Hashes
-
-- Code/Build:
-- Strategieversion: `HIXTON-SPEC-1.0`
-- normative Strategiequelle: `DMS/03_STRATEGIE_HIXTON.md`
-- Eigentümer-Pine-SHA-256: für V2 verpflichtend, für historische V1-Runs `null`
-- Konfigurations-SHA-256:
-- Daten-Snapshot-SHA-256:
-- Dependency-Lock-SHA-256:
-- DMS-Version:
-
-## Daten
-
-- Börse/Provider:
-- Symbole:
-- Timeframe: `1h`
-- Warm-up Start UTC:
-- Bericht Start UTC:
-- Bericht Ende UTC:
-- Bars erwartet/vorhanden:
-- Lücken/Ausnahmen:
-- Datenqualitätsbericht:
-
-## Handelsannahmen
-
-- Startkapital je Symbol: 250,00 USDC
-- Zielnotional je isoliertem Einstieg: 250,00 USDT bzw. kleinerer verfügbarer Cashbetrag
-- Run-Modus: `all_ten_isolated / single_symbol / paper_live_mirror`
-- Einzeltest-Symbol (falls zutreffend):
-- Slotpolicy: `ranked_repeat`
-- Profilquelle/-hash: identisch für Einzel/Batch/Portfolio/Paper
-- Positionszyklen / Slot-Trades: getrennt ausweisen
-- Permanenter Portfolio-Drawdown-Halt: nein; Drawdown trotzdem vollständig messen
-- Spiegelportfolio: 250,00 USDT (historische 240,00-USDC-Läufe explizit kennzeichnen) / 3 Slots / 80,00 USDC Zielnotional
-- Positionsgröße:
-- Compounding: `false`
-- Fillmodell: `next_bar_open`
-- Ordertyp: simulierte Market-Order
-- Gebühren: Baseline/Stress jeweils 10 bp je Seite, kein BNB-/VIP-Rabatt
-- Slippage/Spread: Baseline 3/2 bp je Seite; Stress 20/10 bp je Seite
-- Tick-/Step-/Mindestnotional-Stand:
-- offene Position am Testende:
-
-## Validierung
-
-- Spezifikationsparität:
-- Replay = Batch:
-- Reproduktionslauf:
-- Holdout-/Optimierungsstatus:
-- bekannte Einschränkungen:
-
-## Artefakte
-
-- Einzelmetriken:
-- Portfoliometriken:
-- Trades:
-- Equity/Drawdown:
-- Benchmark:
-- Laufprotokoll:
+Ein Run darf nicht als Zukunfts- oder realer Binance-Fillnachweis bezeichnet werden.

@@ -54,40 +54,40 @@ def test_current_normative_contract_matches_active_v6() -> None:
     decisions = _read("16_ENTSCHEIDUNGSLOG_UND_OFFENE_PUNKTE.md")
     status = _read("18_BACKTEST_STATUS_UND_ERGEBNISFORMAT.md")
     runbook = _read("20_BETRIEBSRUNBOOK.md")
-    manifest = _read("VORLAGE_BACKTEST_RUN_MANIFEST.md")
+    structure = _read("23_ORDNERSTRUKTUR_UND_EINSTIEGSPUNKT.md")
 
-    assert "aktive Universum" in requirements
+    assert "aktives Universum" in requirements
     assert "USDC" in requirements
-    assert "`ranked_repeat`" in requirements
+    assert "ranked_repeat" in requirements
     assert "keinen permanenten Drawdown-Halt" in requirements
-    assert "kanonischen `StrategyDefinition`" in requirements
+    assert "kanonische StrategyDefinition" in requirements
 
-    assert "## Aktueller V6-Strategiestand 18.09.2026" in strategy
-    assert "`ranked_repeat`" in strategy
+    assert "Aktueller V6-Strategiestand 19.09.2026" in strategy
+    assert "| BTC | 5 |" in strategy
+    assert "| AVAX | 6 | 20 | 8 | 60 | 4,6 |" in strategy
 
     assert "kein permanenter Portfolio-Drawdown-Halt" in risk
     assert "10×250 USDC" in risk
-    assert "3×80" in risk
+    assert "3×80 USDC" in risk
 
-    assert "## Aktueller Validierungsvertrag 18.09.2026" in validation
+    assert "Aktueller Validierungsvertrag 19.09.2026" in validation
+    assert "Top-K" in validation
     assert "Parameter-/Policy-Hashes" in validation
 
+    assert "V1/V2/V3-Auswahl mehr" in ui
     assert "Positionszyklen" in ui
     assert "Slot-Trades" in ui
 
-    assert "## Aktueller Konfigurationsvertrag 18.09.2026" in schema
-    assert "`slot_allocation` ist `ranked_repeat`" in schema
-    assert "permanenter globaler Drawdown-Halt" in schema
-    assert "**kein** aktiver Konfigurationsparameter mehr" in schema
+    assert "strategy.key = v6" in schema
+    assert "einzige V6-Profil-/Digestquelle" in decisions
+    assert "DEC-061" in decisions
 
-    assert "## DEC-056 – 18.09.2026" in decisions
-    assert "## DEC-057 – 18.09.2026" in decisions
-
-    assert "111 Positionszyklen / 246 Slot-Trades" in status
-    assert "492 Positionszyklen" in status
+    assert "1.217,91" in status
+    assert "8.217,01" in status
+    assert "94 Positionszyklen / 210 Slot-Trades" in status
 
     assert "10×250-USDC-Batch" in runbook
     assert "3×80-USDC-Portfolio" in runbook
 
-    assert "250,00 USDC" in manifest
-    assert "`ranked_repeat`" in manifest
+    assert "backtests/v6" in structure
+    assert "V1–V5" not in structure
