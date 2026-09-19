@@ -1,34 +1,33 @@
 {
-  "mode": "ENGINEERING_READY",
+  "mode": "V6_PRODUCT_CONTINUOUS",
   "bootstrap_complete": true,
   "progress_percent": 100,
-  "current_focus": "SWARM-002 is active. The trading runtime is now verified as GitHub-hosted Paper-only operation using real public Binance USDC market data, simulated fills and a persistent Paper ledger restored across ephemeral runner cycles. A01-A11 must improve and supervise this Paper path without private Binance credentials, real/Testnet orders, silent account resets or automatic strategy activation.",
-  "last_indexed_commit": "5dc88ebf28d679984a6bc15c3a897e4ba90a5eef",
-  "last_learning_round": 5,
-  "areas": {
-    "inventory": 100,
-    "architecture": 100,
-    "dataflows": 100,
-    "ui_map": 100,
-    "storage": 100,
-    "tests": 100,
-    "security": 100,
-    "cross_check": 100
+  "current_focus": "SWARM-003 is active: maintain one clean current V6 USDC Paper/backtest product, keep A01-A11 key-free and continuously verifying it, and run evidence-led Top-K coin optimization with shared 3x80 as the authoritative acceptance model.",
+  "last_indexed_commit": "247ec4f3ed3fae547fbb486992bef820b05cb245",
+  "last_learning_round": 6,
+  "current_strategy": "V6 canonical coin profiles from src/hixton/domain/versions.py",
+  "current_reference": {
+    "source_run_id": "35463131378",
+    "isolated_10x250_baseline_usdc": "8217.00711069101365000000",
+    "isolated_10x250_stress_usdc": "7692.5144402748462000000",
+    "shared_3x80_baseline_usdc": "1217.90575965983510000000",
+    "shared_3x80_stress_usdc": "1133.4052326050468000000",
+    "report_start_utc": "2023-09-19T19:00:00+00:00",
+    "report_end_utc": "2026-09-19T19:00:00+00:00"
   },
-  "inventory_complete": true,
-  "architecture_complete": true,
-  "dataflows_complete": true,
-  "ui_map_complete": true,
-  "storage_complete": true,
-  "tests_complete": true,
-  "security_complete": true,
-  "cross_check_complete": true,
-  "unresolved_repository_questions": [],
+  "agent_runtime": {
+    "agent_count": 11,
+    "execution": "github_actions_cloud",
+    "deterministic_key_free": true,
+    "openai_api_key_required": false,
+    "binance_private_credentials_required": false,
+    "trading_mode": "paper_only",
+    "automatic_merge_allowed": false
+  },
   "external_runtime_unknowns": [
-    "The GitHub repository secret OPENAI_API_KEY is still absent, so A01-A11 model jobs remain safely idle until the owner configures it; the Paper runtime itself does not need this secret.",
-    "GitHub scheduled jobs are a best-effort scheduler and may start later than their nominal ten-minute cadence; persisted checkpoints allow the next successful cycle to catch up finalized native 1h candles.",
-    "Future availability, throttling or geographic policy of Binance's public market-data-only endpoint is an external runtime fact and must fail closed rather than trigger synthetic operational candles.",
-    "Future strategy profitability and market-regime robustness cannot be guaranteed by repository tests or historical results."
+    "GitHub scheduled workflows are best-effort and can start later than their nominal cadence; persisted Paper checkpoints must catch up finalized 1h bars.",
+    "Binance public market-data endpoint availability and policy are external facts and must fail closed rather than trigger synthetic operational candles.",
+    "Historical performance does not guarantee future profitability."
   ],
-  "notes": "Verified cloud Paper evidence is recorded in cloud_paper_runtime_2026-09-15.md. Successful initial cycle: GitHub run 35026894961. Successful persistent resume cycle: run 35027389418. Machine-managed state is on paper-runtime-state and protected against silent reset by tag paper-cloud-initialized. Current cloud data host is Binance's public market-data-only endpoint. Real/Testnet orders and Binance private credentials are out of scope and prohibited for the current project phase."
+  "notes": "Current A01-A11 roles live under agent_memory/swarm/. Legacy bootstrap memory was superseded by the current V6 product mission. Paper state must be preserved across strategy activation; Live/testnet orders remain prohibited."
 }
