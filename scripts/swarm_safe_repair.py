@@ -22,6 +22,7 @@ ALLOWED_PREFIXES = (
     "src/hixton/runtime/continuity_supervisor.py",
     "tests/test_cli_portfolio.py",
     "tests/test_backtest_exact_three_year.py",
+    "tests/test_usdc_runtime_migration.py",
     "src/hixton/ui/static/",
 )
 
@@ -92,6 +93,31 @@ def repair_single_scenario_test() -> bool:
         "    assert len(calls) == 2\n",
         "    assert len(calls) == 1\n",
     )
+
+
+def repair_legacy_shortened_window_tests() -> bool:
+    changed = False
+    changed |= _replace_once(
+        "tests/test_usdc_runtime_migration.py",
+        "    assert available_report_start({SYMBOLS[0]: later}, start, end) == candles[500].open_time_utc\n",
+        (
+            '    with pytest.raises(ValueError, match="exact three-year history"):\n'
+            "        available_report_start({SYMBOLS[0]: later}, start, end)\n"
+        ),
+    )
+    changed |= _replace_once(
+        "tests/test_usdc_runtime_migration.py",
+        (
+            '    assert available_report_start(snapshot, first + timedelta(hours=400), end) == (\n'
+            '        common + timedelta(hours=400)\n'
+            '    )\n'
+        ),
+        (
+            '    with pytest.raises(ValueError, match="exact three-year history"):\n'
+            '        available_report_start(snapshot, first + timedelta(hours=400), end)\n'
+        ),
+    )
+    return changed
 
 
 def ensure_exact_three_year_tests() -> bool:
@@ -235,6 +261,7 @@ def main() -> int:
     changed |= repair_current_only_continuity()
     changed |= repair_exact_history_gate()
     changed |= repair_single_scenario_test()
+    changed |= repair_legacy_shortened_window_tests()
     changed |= ensure_exact_three_year_tests()
     changed |= sync_ui_bundle()
 
@@ -248,6 +275,7 @@ def main() -> int:
             "src/hixton/runtime/continuity_supervisor.py",
             "tests/test_cli_portfolio.py",
             "tests/test_backtest_exact_three_year.py",
+            "tests/test_usdc_runtime_migration.py",
             "src/hixton/ui/static",
         ],
         cwd=ROOT,
