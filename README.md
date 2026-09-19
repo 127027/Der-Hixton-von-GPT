@@ -12,6 +12,10 @@ Der Hixton ist **ein einziges Zehn-Coin-System** mit einer kanonischen Strategie
 
 Spätere Einstellungen wie beispielsweise mehr Slots oder 250 USDC je Slot ändern nur die gemeinsame Kapazität des **gleichen Systems**. Sie erzeugen keinen zweiten Bot und keine zweite Strategie. Das Ziel der isolierten Tests ist deshalb, die einzelnen Signalquellen zu verbessern, damit der gemeinsame Hauptbot aus besseren Coin-Profilen auswählen kann.
 
+**Dokumentationsvorrang:** Für aktuelle Regeln gelten diese README sowie DMS 02, 04 und 06 und die aktive Schwarmmission. Die READMEs unter `backtests/v2` bis `backtests/v9` sind historische Forschungs-/Evidenzakten. Dort dokumentierte alte USDT-, `one_per_symbol`- oder 20-%-Halt-Regeln dürfen niemals als heutige Betriebsanforderung zurück in V6 übernommen werden.
+
+**Ehrlichkeitsregel:** Reale Binance-Marktdaten, historische USDT-Preisproxies, Modellannahmen für Kosten/Fills und synthetische Unit-Test-Fixtures müssen getrennt bezeichnet werden. Ein Ergebnis darf nicht als echter Markt-/Ausführungsnachweis dargestellt werden, wenn es nur Simulation, Proxy oder Fixture ist. Parameteränderungen benötigen einen dokumentierten Suchraum, Auswahlgrund und Reproduktionsnachweis; keine frei erfundenen Zahlen zur Ergebnisverbesserung.
+
 ## Aktuell: Anwendung 0.4.9 / DMS 1.14.0
 
 **Neuer Verbesserungsversuch [V9](backtests/v9/README.md):** Zehn gemeinsame
@@ -78,7 +82,7 @@ Ein normaler Doppelklick auf `Startbot.bat` setzt **nichts** zurück. Der nur au
 
 Der Hixton verwendet eine gemeinsame Strategieengine für Backtest und Paper. Der neue Code nutzt V6-USDC `HIXTON-V6-COIN-PAPER-1-d57f88ec2e5f`; die Parameter-/Policy-Sätze entsprechen dem historischen V6-USDT-Profil `9734f240e873`. Andere Handelspaare können andere Signale und Ergebnisse erzeugen. Echte Live-Orders bleiben technisch deaktiviert.
 
-Zentrale Projektablage: `https://github.com/127027/Der-Hixton`
+Zentrale Projektablage: `https://github.com/127027/Der-Hixton-von-GPT`, Engineering-Branch `gpt/usdc-audit`
 
 ## Schnellstart unter Windows
 
