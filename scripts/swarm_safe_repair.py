@@ -99,7 +99,10 @@ def repair_legacy_shortened_window_tests() -> bool:
     changed = False
     changed |= _replace_once(
         "tests/test_usdc_runtime_migration.py",
-        "    assert available_report_start({SYMBOLS[0]: later}, start, end) == candles[500].open_time_utc\n",
+        (
+            "    assert available_report_start({SYMBOLS[0]: later}, start, end) == "
+            "candles[500].open_time_utc\n"
+        ),
         (
             '    with pytest.raises(ValueError, match="exact three-year history"):\n'
             "        available_report_start({SYMBOLS[0]: later}, start, end)\n"
