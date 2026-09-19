@@ -1,15 +1,17 @@
 {
   "key": "v6",
-  "version": "HIXTON-V6-COIN-PAPER-1-9734f240e873",
+  "canonical_source": "src/hixton/domain/versions.py",
+  "quote_asset": "USDC",
   "timeframe": "1h",
   "source": "close",
-  "slot_allocation": "one_per_symbol",
+  "slot_allocation": "ranked_repeat",
   "long_only": true,
   "compounding": false,
+  "warmup_bars": 400,
   "profiles": {
-    "BTCUSDT": {
+    "BTCUSDC": {
       "parameters": {
-        "vidya_length": 6,
+        "vidya_length": 5,
         "momentum_length": 20,
         "smoothing_length": 8,
         "atr_length": 120,
@@ -23,7 +25,7 @@
         "trail_atr": 0
       }
     },
-    "ETHUSDT": {
+    "ETHUSDC": {
       "parameters": {
         "vidya_length": 6,
         "momentum_length": 20,
@@ -39,13 +41,13 @@
         "trail_atr": 0
       }
     },
-    "BNBUSDT": {
+    "BNBUSDC": {
       "parameters": {
         "vidya_length": 10,
         "momentum_length": 20,
         "smoothing_length": 8,
-        "atr_length": 60,
-        "band_multiplier": 4.4,
+        "atr_length": 120,
+        "band_multiplier": 5,
         "warmup_bars": 400
       },
       "trade_policy": {
@@ -55,7 +57,7 @@
         "trail_atr": 0
       }
     },
-    "SOLUSDT": {
+    "SOLUSDC": {
       "parameters": {
         "vidya_length": 6,
         "momentum_length": 20,
@@ -71,7 +73,7 @@
         "trail_atr": 0
       }
     },
-    "XRPUSDT": {
+    "XRPUSDC": {
       "parameters": {
         "vidya_length": 6,
         "momentum_length": 20,
@@ -87,39 +89,7 @@
         "trail_atr": 0
       }
     },
-    "ADAUSDT": {
-      "parameters": {
-        "vidya_length": 6,
-        "momentum_length": 20,
-        "smoothing_length": 8,
-        "atr_length": 60,
-        "band_multiplier": 3.8,
-        "warmup_bars": 400
-      },
-      "trade_policy": {
-        "cmo_floor": 0,
-        "slope_bars": 0,
-        "stop_atr": 0,
-        "trail_atr": 0
-      }
-    },
-    "LINKUSDT": {
-      "parameters": {
-        "vidya_length": 6,
-        "momentum_length": 20,
-        "smoothing_length": 8,
-        "atr_length": 60,
-        "band_multiplier": 3.8,
-        "warmup_bars": 400
-      },
-      "trade_policy": {
-        "cmo_floor": 0,
-        "slope_bars": 0,
-        "stop_atr": 0,
-        "trail_atr": 0
-      }
-    },
-    "AVAXUSDT": {
+    "ADAUSDC": {
       "parameters": {
         "vidya_length": 6,
         "momentum_length": 20,
@@ -135,7 +105,39 @@
         "trail_atr": 0
       }
     },
-    "DOTUSDT": {
+    "LINKUSDC": {
+      "parameters": {
+        "vidya_length": 6,
+        "momentum_length": 20,
+        "smoothing_length": 8,
+        "atr_length": 60,
+        "band_multiplier": 3.8,
+        "warmup_bars": 400
+      },
+      "trade_policy": {
+        "cmo_floor": 0,
+        "slope_bars": 24,
+        "stop_atr": 0,
+        "trail_atr": 0
+      }
+    },
+    "AVAXUSDC": {
+      "parameters": {
+        "vidya_length": 6,
+        "momentum_length": 20,
+        "smoothing_length": 8,
+        "atr_length": 60,
+        "band_multiplier": 4.6,
+        "warmup_bars": 400
+      },
+      "trade_policy": {
+        "cmo_floor": 0,
+        "slope_bars": 0,
+        "stop_atr": 0,
+        "trail_atr": 0
+      }
+    },
+    "DOTUSDC": {
       "parameters": {
         "vidya_length": 6,
         "momentum_length": 20,
@@ -151,10 +153,10 @@
         "trail_atr": 0
       }
     },
-    "DOGEUSDT": {
+    "DOGEUSDC": {
       "parameters": {
         "vidya_length": 6,
-        "momentum_length": 20,
+        "momentum_length": 18,
         "smoothing_length": 15,
         "atr_length": 120,
         "band_multiplier": 4.4,
