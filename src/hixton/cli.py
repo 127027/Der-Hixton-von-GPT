@@ -438,16 +438,6 @@ def build_parser() -> argparse.ArgumentParser:
 
     backtest = commands.add_parser("backtest", help="aktuelle V6 aus lokalen Daten testen")
     backtest_commands = backtest.add_subparsers(dest="backtest_command", required=True)
-    usdc = backtest_commands.add_parser(
-        "usdc-review",
-        help="USDC-Daten und eingefrorene Coin-Profile separat pruefen; kein Live",
-    )
-    usdc.add_argument("--end", type=parse_utc)
-    usdc.add_argument(
-        "--usdc-control-db",
-        type=Path,
-        help="Vorhandene USDC-Kerzen nur lesend im selben Zeitraum vergleichen",
-    )
     single = backtest_commands.add_parser("single", help="einen Coin mit 250 USDC testen")
     single.add_argument("--symbol", required=True)
     single.add_argument("--end", type=parse_utc)
@@ -463,13 +453,6 @@ def build_parser() -> argparse.ArgumentParser:
     portfolio.add_argument("--end", type=parse_utc)
     portfolio.add_argument("--cost", choices=("baseline", "stress", "both"), default="both")
     portfolio.add_argument("--strategy", choices=("v6",))
-    research = backtest_commands.add_parser(
-        "research", help="versionierte Forschungspruefung ohne Paperwechsel"
-    )
-    research.add_argument("--output", type=Path, required=True)
-    research.add_argument("--study", choices=("v4", "v5", "v6", "v8", "v9"), default="v4")
-    research.add_argument("--end", type=parse_utc)
-
     paper = commands.add_parser("paper", help="24/7-Paper-Bot mit lokaler UI starten")
     paper.add_argument("--no-browser", action="store_true")
     activate = commands.add_parser(
@@ -519,50 +502,10 @@ def main(argv: list[str] | None = None) -> int:
             return command_data_audit(args, config)
         if args.command == "backtest" and args.backtest_command == "single":
             return command_backtest_single(args, config)
-        if args.command == "backtest" and args.backtest_command == "usdc-review":
-            from hixton.backtest.usdc_review import run_usdc_review
-
-            output = run_usdc_review(
-                PROJECT_ROOT,
-                args.end or latest_safe_report_end(),
-                code_commit=_code_commit(),
-                usdc_control_database=args.usdc_control_db,
-            )
-            print(f"USDC review saved: {output}")
-            return 0
         if args.command == "backtest" and args.backtest_command == "all":
             return command_backtest_all(args, config)
         if args.command == "backtest" and args.backtest_command == "portfolio":
             return command_backtest_portfolio(args, config)
-        if args.command == "backtest" and args.backtest_command == "research":
-            if args.study == "v9":
-                from hixton.backtest.portfolio_review import run_portfolio_review
-
-                run_portfolio_review(
-                    config.database_path, args.output, args.end or latest_safe_report_end()
-                )
-                return 0
-            if args.study == "v8":
-                from hixton.backtest.weak_coin_review import run_weak_coin_review
-
-                run_weak_coin_review(
-                    config.database_path, args.output, args.end or latest_safe_report_end()
-                )
-                return 0
-            if args.study == "v6":
-                from hixton.backtest.coin_review import run_frozen_profile_review
-
-                run_frozen_profile_review(config.database_path, args.output)
-                return 0
-            if args.study == "v5":
-                from hixton.backtest.coin_review import run_coin_review
-
-                run_coin_review(config.database_path, args.output)
-                return 0
-            from hixton.backtest.research import run_review
-
-            run_review(config.database_path, args.output)
-            return 0
         if args.command == "live":
             return _not_ready(args.command.upper())
     except (BinanceApiError, OSError, ValueError, sqlite3.Error) as error:
