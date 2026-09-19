@@ -143,11 +143,20 @@ jobs:
                   'Paper strategy mismatch has no exact owner authorization: '
                   + json.dumps(mismatches, sort_keys=True)
               )
+          recovery_config = dict(config)
+          recovery_runtime = dict(config.get('runtime') or {})
+          recovery_runtime['binance_base_url'] = 'https://data-api.binance.vision'
+          recovery_config['runtime'] = recovery_runtime
+          recovery_config_path = Path('/tmp/paper-activation-config.json')
+          recovery_config_path.write_text(
+              json.dumps(recovery_config, indent=2) + '\n',
+              encoding='utf-8',
+          )
           subprocess.run(
               [
                   '.venv/bin/hixton',
                   '--config',
-                  'config/examples/config.example.json',
+                  str(recovery_config_path),
                   'data',
                   'sync',
                   '--symbol',
@@ -159,7 +168,7 @@ jobs:
               [
                   '.venv/bin/hixton',
                   '--config',
-                  'config/examples/config.example.json',
+                  str(recovery_config_path),
                   'paper-activate',
                   '--strategy',
                   target_key,
