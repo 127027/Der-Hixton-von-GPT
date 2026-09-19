@@ -37,7 +37,7 @@
     "state": "IN_PROGRESS",
     "completion_mode": "continuous",
     "started_at_utc": "2026-09-16T10:30:00+00:00",
-    "last_transition_reason": "Owner instruction 2026-09-19: prepare a clean downloadable build, audit every README/DMS for current-vs-historical consistency, and run all eleven agents as an honesty/reality audit. The owner explicitly requires that isolated 10x250 is only for finding per-coin weaknesses; every accepted change must affect the same canonical 3x80 system and all claims must distinguish real Binance data from proxies, simulation assumptions and synthetic test fixtures.",
+    "last_transition_reason": "Documentation cleanup completed 2026-09-19: historical READMEs now carry explicit history boundaries, current DMS 06 no longer contains active USDT/permanent-20%-halt instructions, swarm documentation is key-free, and the mission now requires evidence provenance/reproducibility. Revalidate this snapshot, then continue A01-A11 reality-integrity and per-coin optimization.",
     "owner_instruction_date": "2026-09-19",
     "primary_agents": [
       "A01",
@@ -160,7 +160,9 @@
       "The current root README and DMS 02/04/06 agree on USDC, shared 250 with baseline 3x80 ranked_repeat, no permanent portfolio drawdown halt, 10x250 diagnostic role, and per-coin-to-shared integration gating."
     ],
     "optimization_cycle_requested_at_utc": "2026-09-19T09:14:00+00:00",
-    "documentation_integrity_audit_requested_at_utc": "2026-09-19T09:26:00+00:00"
+    "documentation_integrity_audit_requested_at_utc": "2026-09-19T09:26:00+00:00",
+    "documentation_cleanup_completed_at_utc": "2026-09-19T09:38:00+00:00",
+    "download_snapshot_rule": "A download snapshot is current only when it contains the cleaned README/DMS contract, passes fresh preflight, and retains the last proven trading-code E2E invariants. The ongoing A01-A11 integrity/optimization mission continues after download without silently changing the user's local copy."
   },
   "queued_missions": [],
   "agent_runtime": {
