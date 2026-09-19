@@ -108,11 +108,11 @@
           <div class="section-heading"><div><p id="backtest-eyebrow" class="eyebrow">BACKTEST</p><h2 id="backtest-title">Aktive Strategie wird geladen</h2></div></div>
           <article class="action-card">
             <div><strong>Historischer Test</strong><p>Gewählte Handelsregeln rückwirkend simulieren: bis zu drei Jahre verfügbare Daten, 400 Warm-up-Bars, Baseline und Stress, Next-Bar-Open. Das tatsächliche Fenster steht beim Ergebnis. VALID bestätigt die Berechnung, nicht die Binance-Ausführung oder künftigen Gewinn.</p></div>
-            <select id="backtest-strategy" aria-label="Backteststrategie"><option value="v6">V6 · Paper-Experiment / Coin-Mix</option><option value="v2">V2 · vorherige Referenz</option><option value="v1">V1 · Historie</option><option value="v3">V3 · Mehrfachslot verworfen</option></select>
+            <select id="backtest-strategy" aria-label="Backteststrategie"><option value="v6">Aktuelle V6 · Coin-Profile</option></select>
             <select id="backtest-symbol" aria-label="Backtestart"><option value="PORTFOLIO">Gemeinsames Portfolio</option><option value="ALL">10×250 isoliert</option></select>
             <button id="backtest-button" class="button primary">Backtest starten</button>
           </article>
-          <p class="backtest-note">Historische Simulation, kein bisheriger Papergewinn. RISIKOHALT betrifft den jeweiligen Test. Die Auswahl ändert den laufenden Bot nicht.</p>
+          <p class="backtest-note">Historische Simulation der aktuell aktiven V6. Baseline und Stress werden getrennt ausgewiesen; die Ausführung ändert den laufenden Paperbot nicht.</p>
           <div id="backtest-runs" class="run-list"></div>
           <details id="backtest-history" class="backtest-history hidden">
             <summary id="backtest-history-label">Frühere Läufe dieser Auswahl</summary>
@@ -154,10 +154,10 @@
               </form>
               <p id="settings-saved">Einstellungen werden geladen …</p>
               <p id="settings-edit-state" role="status"></p>
-              <p>Gilt für neue Trades in Paper und später Live. Kontostand und laufende Positionen bleiben erhalten.</p>
+              <p>Gilt für neue Paper-Trades. Kontostand und laufende Positionen bleiben erhalten.</p>
             </article>
 
-            <article class="settings-card">
+            <article class="settings-card hidden" aria-hidden="true">
               <h2>2 · Binance verbinden</h2>
               <form id="live-auth-panel" class="settings-form">
                 <label>Lokales Hixton-Passwort<input id="live-password" type="password" minlength="12" maxlength="256" autocomplete="current-password" required /></label>
@@ -191,7 +191,7 @@
               </fieldset>
             </article>
 
-            <article class="settings-card settings-live-card">
+            <article class="settings-card settings-live-card hidden" aria-hidden="true">
               <h2>3 · Livehandel</h2>
               <strong id="live-state" class="warning">Status wird geladen …</strong>
               <p id="live-plan">Handelsgröße wird geladen …</p>
@@ -217,12 +217,12 @@
         <section id="documentation" class="page">
           <div class="section-heading"><div><p class="eyebrow">VERSIONEN & WAHRHEIT</p><h2>Dokumentation</h2></div></div>
           <div class="doc-grid">
-            <a href="https://github.com/127027/Der-Hixton/blob/codex/build-foundation-v1/DMS/00_DOKUMENTENLENKUNG_UND_START.md" target="_blank" rel="noopener"><strong>DMS Einstieg</strong><span>Aktueller Projektbranch · Dokumentenlenkung</span></a>
-            <a href="https://github.com/127027/Der-Hixton/blob/codex/build-foundation-v1/DMS/03_STRATEGIE_HIXTON.md" target="_blank" rel="noopener"><strong>Hixton-Strategie & Coin-Profile</strong><span>Aktueller Stand und versionierte Historie</span></a>
-            <a href="https://github.com/127027/Der-Hixton/blob/codex/build-foundation-v1/DMS/08_UI_UX_SPEZIFIKATION.md" target="_blank" rel="noopener"><strong>UI-Spezifikation</strong><span>Ansichten und Akzeptanz</span></a>
-            <a href="https://github.com/127027/Der-Hixton/blob/codex/build-foundation-v1/DMS/20_BETRIEBSRUNBOOK.md" target="_blank" rel="noopener"><strong>Betriebsrunbook</strong><span>Start, Recovery und Not-Aus</span></a>
+            <a href="https://github.com/127027/Der-Hixton-von-GPT/blob/gpt/usdc-audit/DMS/00_DOKUMENTENLENKUNG_UND_START.md" target="_blank" rel="noopener"><strong>DMS Einstieg</strong><span>Aktueller Projektbranch · Dokumentenlenkung</span></a>
+            <a href="https://github.com/127027/Der-Hixton-von-GPT/blob/gpt/usdc-audit/DMS/03_STRATEGIE_HIXTON.md" target="_blank" rel="noopener"><strong>Hixton-Strategie & Coin-Profile</strong><span>Aktueller Stand und versionierte Historie</span></a>
+            <a href="https://github.com/127027/Der-Hixton-von-GPT/blob/gpt/usdc-audit/DMS/08_UI_UX_SPEZIFIKATION.md" target="_blank" rel="noopener"><strong>UI-Spezifikation</strong><span>Ansichten und Akzeptanz</span></a>
+            <a href="https://github.com/127027/Der-Hixton-von-GPT/blob/gpt/usdc-audit/DMS/20_BETRIEBSRUNBOOK.md" target="_blank" rel="noopener"><strong>Betriebsrunbook</strong><span>Start, Recovery und Not-Aus</span></a>
           </div>
-          <article class="version-card"><span>Bot</span><strong id="doc-app-version">—</strong><span>Aktive Paperstrategie</span><strong id="doc-strategy-version">—</strong><span>Live</span><strong class="negative">DEAKTIVIERT</strong></article>
+          <article class="version-card"><span>Bot</span><strong id="doc-app-version">—</strong><span>Aktive Paperstrategie</span><strong id="doc-strategy-version">—</strong><span>Betrieb</span><strong>PAPER ONLY</strong></article>
         </section>
       </main>
     </div>
