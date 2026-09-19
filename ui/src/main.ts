@@ -428,7 +428,7 @@ async function refreshBacktests(): Promise<void> {
     const response = await api<{ runs: BacktestRun[]; status: string }>(`/api/backtests?${query}`);
     if (generation !== backtestLoadGeneration || required<HTMLSelectElement>("#backtest-strategy").value !== strategy || required<HTMLSelectElement>("#backtest-symbol").value !== selection) return;
     text("#backtest-eyebrow", `BACKTEST ${strategy.toUpperCase()}`);
-    text("#backtest-title", strategy === "v6" ? "V6 · Coin-Mix / Paper-Experiment" : strategy === "v2" ? "V2 · vorherige Referenz / 3×80 oder 10×250" : strategy === "v3" ? "3×80 · Mehrfachslot-Challenger (verworfen)" : "3×80, 10×250 oder Einzeltest");
+    text("#backtest-title", "Aktuelle V6 · 3×80, 10×250 oder Einzelcoin");
     const button = required<HTMLButtonElement>("#backtest-button");
     button.disabled = response.status === "RUNNING";
     button.textContent = response.status === "RUNNING" ? "Backtest läuft …" : "Backtest starten";
@@ -512,7 +512,7 @@ function initializeControls(): void {
     const symbol = required<HTMLSelectElement>("#backtest-symbol").value;
     const strategy = required<HTMLSelectElement>("#backtest-strategy").value;
     const mode = symbol === "PORTFOLIO" ? "portfolio" : symbol === "ALL" ? "all" : "single";
-    try { await api("/api/backtests/run", { method: "POST", body: JSON.stringify({ mode, symbol, strategy }) }); showToast(`${strategy.toUpperCase()}-Backtest wurde gestartet.`); await refreshBacktests(); }
+    try { await api("/api/backtests/run", { method: "POST", body: JSON.stringify({ mode, symbol, strategy }) }); showToast("V6-Backtest wurde gestartet."); await refreshBacktests(); }
     catch (error) { showToast(error instanceof Error ? error.message : String(error), true); }
   });
 }
