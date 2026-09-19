@@ -385,7 +385,7 @@ def command_paper_activate(args: argparse.Namespace, config: ProjectConfig) -> i
         start=warmup_start,
         end_exclusive=report_end,
         strategy=strategy,
-        starts_by_symbol={symbol: common_start for symbol in SYMBOLS},
+        starts_by_symbol=dict.fromkeys(SYMBOLS, common_start),
     )
     events = activate_paper_strategy(
         str(config.database_path),
