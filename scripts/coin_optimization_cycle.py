@@ -140,6 +140,35 @@ def candidate_catalog(symbol: str) -> tuple[Candidate, ...]:
     for length in (30, 60, 90, 120, 180):
         add(f"atr{length}", parameters=replace(base_parameters, atr_length=length))
 
+    # Evidence-led fine neighbourhood. These values deliberately sit between the
+    # established coarse candidates so promising isolated improvements can be
+    # tested for a portfolio-compatible compromise without weakening any gate.
+    for length in (5, 7, 9, 11):
+        add(f"vidya{length}", parameters=replace(base_parameters, vidya_length=length))
+    for length in (16, 18, 22, 24):
+        add(
+            f"momentum{length}",
+            parameters=replace(base_parameters, momentum_length=length),
+        )
+    for length in (45, 75, 105, 150):
+        add(f"atr{length}", parameters=replace(base_parameters, atr_length=length))
+
+    for suffix, offset in (
+        ("minus_02", -0.2),
+        ("minus_01", -0.1),
+        ("plus_01", 0.1),
+        ("plus_02", 0.2),
+        ("plus_04", 0.4),
+        ("plus_05", 0.5),
+    ):
+        add(
+            f"band_{suffix}",
+            parameters=replace(
+                base_parameters,
+                band_multiplier=max(0.5, round(base_parameters.band_multiplier + offset, 2)),
+            ),
+        )
+
     for suffix, offset in (
         ("minus_06", -0.6),
         ("minus_03", -0.3),
