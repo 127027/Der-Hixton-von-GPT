@@ -1,4 +1,5 @@
 # 2026-09-19: fresh launch for exact owner-authorized Paper V6 activation recovery.
+# 2026-09-19: relaunch after public-candle sync was added before controlled activation.
 name: Hixton Paper 24x7
 
 on:
