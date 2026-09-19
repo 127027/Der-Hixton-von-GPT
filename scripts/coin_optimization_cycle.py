@@ -1,8 +1,10 @@
 """Coin-by-coin V6 research cycle with mandatory shared-portfolio recheck.
 
 Research only: this module never mutates the active strategy, Paper account or
-runtime settings. Candidate selection uses training windows only. Validation
-may accept/reject the frozen training winner but never select a replacement.
+runtime settings. Candidate ranking uses training windows only. A bounded Top-K
+shortlist is frozen before validation; validation/full-window evidence may reject
+finalists but never introduce an unranked replacement. Robust finalists are then
+tested one-at-a-time in shared 3x80 before portfolio-compatible combinations.
 """
 
 from __future__ import annotations
@@ -226,12 +228,16 @@ def candidate_catalog(symbol: str) -> tuple[Candidate, ...]:
     return tuple(candidates)
 
 
-def choose_training_candidate(
+def rank_training_candidates(
     scores: dict[str, tuple[Decimal, Decimal, Decimal]],
-) -> str:
-    """Choose by stress-only train A/B evidence; current wins exact ties."""
+    *,
+    limit: int = 5,
+) -> tuple[str, ...]:
+    """Freeze an ordered Top-K from stress-only train A/B evidence."""
 
-    return max(
+    if limit <= 0:
+        raise ValueError("training shortlist limit must be positive")
+    ordered = sorted(
         scores,
         key=lambda name: (
             min(scores[name][0], scores[name][1]),
@@ -240,7 +246,124 @@ def choose_training_candidate(
             name == "current",
             name,
         ),
+        reverse=True,
     )
+    return tuple(ordered[:limit])
+
+
+def choose_training_candidate(
+    scores: dict[str, tuple[Decimal, Decimal, Decimal]],
+) -> str:
+    """Compatibility helper: return the first frozen training-ranked candidate."""
+
+    return rank_training_candidates(scores, limit=1)[0]
+
+
+def _passes_coin_gate(
+    *,
+    current_base: BacktestResult,
+    current_stress: BacktestResult,
+    challenger_base: BacktestResult,
+    challenger_stress: BacktestResult,
+    full_current: BacktestResult,
+    full_current_stress: BacktestResult,
+    full_challenger: BacktestResult,
+    full_challenger_stress: BacktestResult,
+) -> bool:
+    cb = current_base.metrics
+    cs = current_stress.metrics
+    xb = challenger_base.metrics
+    xs = challenger_stress.metrics
+    fcb = full_current.metrics
+    fcs = full_current_stress.metrics
+    fxb = full_challenger.metrics
+    fxs = full_challenger_stress.metrics
+    return (
+        xb.return_pct >= cb.return_pct
+        and xs.return_pct >= cs.return_pct
+        and (xb.return_pct > cb.return_pct or xs.return_pct > cs.return_pct)
+        and xb.max_drawdown_pct <= cb.max_drawdown_pct + D("5")
+        and xs.max_drawdown_pct <= cs.max_drawdown_pct + D("5")
+        and fxb.return_pct >= fcb.return_pct
+        and fxs.return_pct >= fcs.return_pct
+        and (fxb.return_pct > fcb.return_pct or fxs.return_pct > fcs.return_pct)
+    )
+
+
+def _loss_signal_clusters(result: BacktestResult) -> dict[str, object]:
+    """Summarize losing-entry conditions from immutable signal/trade evidence."""
+
+    signal_by_id = {signal.signal_id: signal for signal in result.signals}
+    volatility = {"ATR_LT_1PCT": 0, "ATR_1_TO_2PCT": 0, "ATR_GE_2PCT": 0}
+    breakout = {"LT_0_5": 0, "0_5_TO_1": 0, "GE_1": 0, "MISSING": 0}
+    holding = {"LE_24H": 0, "25_TO_72H": 0, "GT_72H": 0}
+    examples: list[dict[str, object]] = []
+    losses = [trade for trade in result.trades if trade.realized_pnl < 0]
+    for trade in losses:
+        signal = signal_by_id.get(trade.entry_signal_id)
+        if signal is not None and signal.close > 0:
+            atr_pct = D(str(signal.atr)) / D(str(signal.close)) * D("100")
+            if atr_pct < D("1"):
+                volatility["ATR_LT_1PCT"] += 1
+            elif atr_pct < D("2"):
+                volatility["ATR_1_TO_2PCT"] += 1
+            else:
+                volatility["ATR_GE_2PCT"] += 1
+            strength = signal.breakout_strength
+            if strength is None:
+                breakout["MISSING"] += 1
+            elif strength < 0.5:
+                breakout["LT_0_5"] += 1
+            elif strength < 1.0:
+                breakout["0_5_TO_1"] += 1
+            else:
+                breakout["GE_1"] += 1
+        hours = trade.holding_hours
+        if hours <= D("24"):
+            holding["LE_24H"] += 1
+        elif hours <= D("72"):
+            holding["25_TO_72H"] += 1
+        else:
+            holding["GT_72H"] += 1
+    for trade in sorted(losses, key=lambda item: item.realized_pnl)[:10]:
+        signal = signal_by_id.get(trade.entry_signal_id)
+        examples.append(
+            {
+                "entry_utc": trade.entry_time_utc.isoformat(),
+                "exit_utc": trade.exit_time_utc.isoformat(),
+                "pnl": str(trade.realized_pnl),
+                "return_pct": str(trade.realized_return_pct),
+                "holding_hours": str(trade.holding_hours),
+                "entry_signal": (
+                    None
+                    if signal is None
+                    else {
+                        "close": signal.close,
+                        "atr": signal.atr,
+                        "atr_pct_of_close": (
+                            None
+                            if signal.close <= 0
+                            else str(D(str(signal.atr)) / D(str(signal.close)) * D("100"))
+                        ),
+                        "upper": signal.upper,
+                        "lower": signal.lower,
+                        "breakout_strength": signal.breakout_strength,
+                        "point_index": signal.point_index,
+                    }
+                ),
+            }
+        )
+    return {
+        "losing_trades": len(losses),
+        "volatility_regime_proxy": volatility,
+        "breakout_strength_proxy": breakout,
+        "holding_time_clusters": holding,
+        "worst_loss_examples": examples,
+        "limitations": (
+            "Signal evidence exposes ATR/bands/breakout strength but not CMO/VIDYA snapshots; "
+            "those require deterministic point reconstruction for a deeper follow-up."
+        ),
+    }
 
 
 def _rules() -> dict[str, ExecutionRules]:
@@ -462,154 +585,6 @@ def run_cycle(output: Path) -> dict[str, object]:
     ).hexdigest()
     research_version = f"HIXTON-V6-COIN-OPT-{catalog_digest[:12]}"
 
-    per_coin: dict[str, object] = {}
-    assembled: dict[str, Candidate] = {}
-
-    for symbol in definition.symbols:
-        catalog = catalog_by_symbol[symbol]
-        training: dict[str, dict[str, object]] = {}
-        scores: dict[str, tuple[Decimal, Decimal, Decimal]] = {}
-        for name, candidate in catalog.items():
-            train_results = []
-            for window_name in ("train_a", "train_b"):
-                low, high = windows[window_name]
-                result = _run_single(
-                    symbol=symbol,
-                    candles=candles[symbol],
-                    rules=rules[symbol],
-                    start=low,
-                    end=high,
-                    candidate=candidate,
-                    costs=STRESS_COSTS,
-                    version=research_version,
-                )
-                train_results.append(result)
-            scores[name] = (
-                train_results[0].metrics.return_pct,
-                train_results[1].metrics.return_pct,
-                max(
-                    train_results[0].metrics.max_drawdown_pct,
-                    train_results[1].metrics.max_drawdown_pct,
-                ),
-            )
-            training[name] = {
-                "train_a_stress": _result_summary(train_results[0]),
-                "train_b_stress": _result_summary(train_results[1]),
-            }
-
-        selected_name = choose_training_candidate(scores)
-        selected = catalog[selected_name]
-        current = catalog["current"]
-        validation: dict[str, object] = {}
-        validation_results: dict[tuple[str, str], BacktestResult] = {}
-        for label, candidate in (("current", current), ("selected", selected)):
-            for costs in (BASELINE_COSTS, STRESS_COSTS):
-                low, high = windows["validation"]
-                result = _run_single(
-                    symbol=symbol,
-                    candles=candles[symbol],
-                    rules=rules[symbol],
-                    start=low,
-                    end=high,
-                    candidate=candidate,
-                    costs=costs,
-                    version=research_version,
-                )
-                validation_results[(label, costs.name)] = result
-                validation[f"{label}_{costs.name}"] = _result_summary(result)
-
-        selected_base = validation_results[("selected", "baseline")].metrics
-        selected_stress = validation_results[("selected", "stress")].metrics
-        current_base = validation_results[("current", "baseline")].metrics
-        current_stress = validation_results[("current", "stress")].metrics
-
-        full_current = _run_single(
-            symbol=symbol,
-            candles=candles[symbol],
-            rules=rules[symbol],
-            start=report_start,
-            end=report_end,
-            candidate=current,
-            costs=BASELINE_COSTS,
-            version=research_version,
-        )
-        full_selected = _run_single(
-            symbol=symbol,
-            candles=candles[symbol],
-            rules=rules[symbol],
-            start=report_start,
-            end=report_end,
-            candidate=selected,
-            costs=BASELINE_COSTS,
-            version=research_version,
-        )
-        full_current_stress = _run_single(
-            symbol=symbol,
-            candles=candles[symbol],
-            rules=rules[symbol],
-            start=report_start,
-            end=report_end,
-            candidate=current,
-            costs=STRESS_COSTS,
-            version=research_version,
-        )
-        full_selected_stress = _run_single(
-            symbol=symbol,
-            candles=candles[symbol],
-            rules=rules[symbol],
-            start=report_start,
-            end=report_end,
-            candidate=selected,
-            costs=STRESS_COSTS,
-            version=research_version,
-        )
-
-        # Owner rule: every coin keeps its own incumbent unless its own frozen
-        # challenger is at least as good over the complete 3-year 10x250 run.
-        # Validation remains mandatory, but it can no longer approve a profile
-        # that makes the coin materially worse over the owner's full test.
-        accepted = (
-            selected_name != "current"
-            and selected_base.return_pct >= current_base.return_pct
-            and selected_stress.return_pct >= current_stress.return_pct
-            and (
-                selected_base.return_pct > current_base.return_pct
-                or selected_stress.return_pct > current_stress.return_pct
-            )
-            and selected_base.max_drawdown_pct <= current_base.max_drawdown_pct + D("5")
-            and selected_stress.max_drawdown_pct <= current_stress.max_drawdown_pct + D("5")
-            and full_selected.metrics.return_pct >= full_current.metrics.return_pct
-            and full_selected_stress.metrics.return_pct >= full_current_stress.metrics.return_pct
-            and (
-                full_selected.metrics.return_pct > full_current.metrics.return_pct
-                or full_selected_stress.metrics.return_pct
-                > full_current_stress.metrics.return_pct
-            )
-        )
-        accepted_candidate = selected if accepted else current
-        assembled[symbol] = accepted_candidate
-        full_candidate = full_selected if accepted else full_current
-        per_coin[symbol] = {
-            "current_profile": _payload(current),
-            "training_candidates": training,
-            "training_selected": selected_name,
-            "training_selected_profile": _payload(selected),
-            "validation": validation,
-            "accepted": accepted,
-            "accepted_profile": _payload(accepted_candidate),
-            "full_current_baseline": _result_summary(full_current),
-            "full_selected_baseline": _result_summary(full_selected),
-            "full_current_stress": _result_summary(full_current_stress),
-            "full_selected_stress": _result_summary(full_selected_stress),
-            "full_accepted_baseline": _result_summary(full_candidate),
-        }
-        print(
-            f"{symbol}: training={selected_name}; accepted={accepted}; "
-            f"full {full_current.metrics.ending_equity:.2f} -> "
-            f"{full_candidate.metrics.ending_equity:.2f}",
-            flush=True,
-        )
-
     current_profiles = {
         symbol: Candidate(
             "current",
@@ -618,8 +593,6 @@ def run_cycle(output: Path) -> dict[str, object]:
         )
         for symbol in definition.symbols
     }
-    current_hashes = _profile_hashes(current_profiles)
-    candidate_hashes = _profile_hashes(assembled)
 
     def run_batch(profiles: dict[str, Candidate], costs: CostModel) -> Any:
         return run_isolated_batch(
@@ -664,6 +637,307 @@ def run_cycle(output: Path) -> dict[str, object]:
             symbols=definition.symbols,
         )
 
+    current_portfolio_baseline_raw = run_portfolio(current_profiles, BASELINE_COSTS)
+    current_portfolio_stress_raw = run_portfolio(current_profiles, STRESS_COSTS)
+    current_portfolio_baseline = _portfolio_summary(current_portfolio_baseline_raw)
+    current_portfolio_stress = _portfolio_summary(current_portfolio_stress_raw)
+    current_portfolio_baseline_equity = current_portfolio_baseline_raw.metrics.ending_equity
+    current_portfolio_stress_equity = current_portfolio_stress_raw.metrics.ending_equity
+
+    per_coin: dict[str, dict[str, object]] = {}
+    robust_by_symbol: dict[str, list[tuple[str, Candidate]]] = {}
+    result_lookup: dict[str, dict[str, dict[str, BacktestResult]]] = {}
+
+    for symbol in definition.symbols:
+        catalog = catalog_by_symbol[symbol]
+        training: dict[str, dict[str, object]] = {}
+        scores: dict[str, tuple[Decimal, Decimal, Decimal]] = {}
+        for name, candidate in catalog.items():
+            train_results = []
+            for window_name in ("train_a", "train_b"):
+                low, high = windows[window_name]
+                result = _run_single(
+                    symbol=symbol,
+                    candles=candles[symbol],
+                    rules=rules[symbol],
+                    start=low,
+                    end=high,
+                    candidate=candidate,
+                    costs=STRESS_COSTS,
+                    version=research_version,
+                )
+                train_results.append(result)
+            scores[name] = (
+                train_results[0].metrics.return_pct,
+                train_results[1].metrics.return_pct,
+                max(
+                    train_results[0].metrics.max_drawdown_pct,
+                    train_results[1].metrics.max_drawdown_pct,
+                ),
+            )
+            training[name] = {
+                "train_a_stress": _result_summary(train_results[0]),
+                "train_b_stress": _result_summary(train_results[1]),
+            }
+
+        ordered = rank_training_candidates(scores, limit=len(scores))
+        shortlist_names = tuple(name for name in ordered if name != "current")[:5]
+        current = catalog["current"]
+        low, high = windows["validation"]
+        current_validation_base = _run_single(
+            symbol=symbol,
+            candles=candles[symbol],
+            rules=rules[symbol],
+            start=low,
+            end=high,
+            candidate=current,
+            costs=BASELINE_COSTS,
+            version=research_version,
+        )
+        current_validation_stress = _run_single(
+            symbol=symbol,
+            candles=candles[symbol],
+            rules=rules[symbol],
+            start=low,
+            end=high,
+            candidate=current,
+            costs=STRESS_COSTS,
+            version=research_version,
+        )
+        full_current = _run_single(
+            symbol=symbol,
+            candles=candles[symbol],
+            rules=rules[symbol],
+            start=report_start,
+            end=report_end,
+            candidate=current,
+            costs=BASELINE_COSTS,
+            version=research_version,
+        )
+        full_current_stress = _run_single(
+            symbol=symbol,
+            candles=candles[symbol],
+            rules=rules[symbol],
+            start=report_start,
+            end=report_end,
+            candidate=current,
+            costs=STRESS_COSTS,
+            version=research_version,
+        )
+
+        finalists: dict[str, object] = {}
+        robust: list[tuple[str, Candidate]] = []
+        result_lookup[symbol] = {}
+        for name in shortlist_names:
+            candidate = catalog[name]
+            validation_base = _run_single(
+                symbol=symbol,
+                candles=candles[symbol],
+                rules=rules[symbol],
+                start=low,
+                end=high,
+                candidate=candidate,
+                costs=BASELINE_COSTS,
+                version=research_version,
+            )
+            validation_stress = _run_single(
+                symbol=symbol,
+                candles=candles[symbol],
+                rules=rules[symbol],
+                start=low,
+                end=high,
+                candidate=candidate,
+                costs=STRESS_COSTS,
+                version=research_version,
+            )
+            full_base = _run_single(
+                symbol=symbol,
+                candles=candles[symbol],
+                rules=rules[symbol],
+                start=report_start,
+                end=report_end,
+                candidate=candidate,
+                costs=BASELINE_COSTS,
+                version=research_version,
+            )
+            full_stress = _run_single(
+                symbol=symbol,
+                candles=candles[symbol],
+                rules=rules[symbol],
+                start=report_start,
+                end=report_end,
+                candidate=candidate,
+                costs=STRESS_COSTS,
+                version=research_version,
+            )
+            coin_gate = _passes_coin_gate(
+                current_base=current_validation_base,
+                current_stress=current_validation_stress,
+                challenger_base=validation_base,
+                challenger_stress=validation_stress,
+                full_current=full_current,
+                full_current_stress=full_current_stress,
+                full_challenger=full_base,
+                full_challenger_stress=full_stress,
+            )
+            result_lookup[symbol][name] = {
+                "validation_baseline": validation_base,
+                "validation_stress": validation_stress,
+                "full_baseline": full_base,
+                "full_stress": full_stress,
+            }
+            finalists[name] = {
+                "profile": _payload(candidate),
+                "validation_baseline": _result_summary(validation_base),
+                "validation_stress": _result_summary(validation_stress),
+                "full_baseline": _result_summary(full_base),
+                "full_stress": _result_summary(full_stress),
+                "coin_gate_passed": coin_gate,
+            }
+            if coin_gate:
+                robust.append((name, candidate))
+
+        robust_by_symbol[symbol] = robust
+        per_coin[symbol] = {
+            "current_profile": _payload(current),
+            "training_candidates": training,
+            "training_ranked": list(ordered),
+            "training_top_k_challengers": list(shortlist_names),
+            "validation_current_baseline": _result_summary(current_validation_base),
+            "validation_current_stress": _result_summary(current_validation_stress),
+            "full_current_baseline": _result_summary(full_current),
+            "full_current_stress": _result_summary(full_current_stress),
+            "finalists": finalists,
+            "robust_finalists": [name for name, _candidate in robust],
+            "accepted": False,
+            "accepted_profile": _payload(current),
+            "full_accepted_baseline": _result_summary(full_current),
+        }
+        if symbol == "XRPUSDC":
+            per_coin[symbol]["loss_cluster_analysis"] = _loss_signal_clusters(full_current)
+        print(
+            f"{symbol}: top5={','.join(shortlist_names)}; robust={','.join(name for name, _ in robust) or 'none'}",
+            flush=True,
+        )
+
+    marginal: dict[str, dict[str, object]] = {}
+    portfolio_winner_by_symbol: dict[str, tuple[str, Candidate, Decimal, Decimal]] = {}
+    for symbol in definition.symbols:
+        symbol_trials: dict[str, object] = {}
+        compatible: list[tuple[str, Candidate, Decimal, Decimal]] = []
+        for name, candidate in robust_by_symbol[symbol]:
+            trial_profiles = dict(current_profiles)
+            trial_profiles[symbol] = candidate
+            baseline_raw = run_portfolio(trial_profiles, BASELINE_COSTS)
+            stress_raw = run_portfolio(trial_profiles, STRESS_COSTS)
+            baseline_delta = baseline_raw.metrics.ending_equity - current_portfolio_baseline_equity
+            stress_delta = stress_raw.metrics.ending_equity - current_portfolio_stress_equity
+            portfolio_compatible = (
+                baseline_delta >= D("0")
+                and stress_delta >= D("0")
+                and (baseline_delta > D("0") or stress_delta > D("0"))
+            )
+            symbol_trials[name] = {
+                "profile": _payload(candidate),
+                "baseline": _portfolio_summary(baseline_raw),
+                "stress": _portfolio_summary(stress_raw),
+                "baseline_delta_usdc": str(baseline_delta),
+                "stress_delta_usdc": str(stress_delta),
+                "portfolio_compatible": portfolio_compatible,
+            }
+            if portfolio_compatible:
+                compatible.append((name, candidate, baseline_delta, stress_delta))
+        if compatible:
+            winner = max(
+                compatible,
+                key=lambda item: (
+                    min(item[2], item[3]),
+                    item[2],
+                    item[3],
+                    item[0],
+                ),
+            )
+            portfolio_winner_by_symbol[symbol] = winner
+            selected_name = winner[0]
+        else:
+            selected_name = "current"
+        marginal[symbol] = {
+            "trials": symbol_trials,
+            "selected_for_combination": selected_name,
+        }
+        per_coin[symbol]["marginal_3x80"] = marginal[symbol]
+
+    winner_order = sorted(
+        portfolio_winner_by_symbol,
+        key=lambda symbol: (
+            portfolio_winner_by_symbol[symbol][2],
+            portfolio_winner_by_symbol[symbol][3],
+            symbol,
+        ),
+        reverse=True,
+    )
+    assembled = dict(current_profiles)
+    combined_baseline_raw = current_portfolio_baseline_raw
+    combined_stress_raw = current_portfolio_stress_raw
+    combination_steps: list[dict[str, object]] = []
+    for symbol in winner_order:
+        name, candidate, marginal_baseline_delta, marginal_stress_delta = (
+            portfolio_winner_by_symbol[symbol]
+        )
+        trial_profiles = dict(assembled)
+        trial_profiles[symbol] = candidate
+        trial_baseline_raw = run_portfolio(trial_profiles, BASELINE_COSTS)
+        trial_stress_raw = run_portfolio(trial_profiles, STRESS_COSTS)
+        baseline_delta_from_combo = (
+            trial_baseline_raw.metrics.ending_equity - combined_baseline_raw.metrics.ending_equity
+        )
+        stress_delta_from_combo = (
+            trial_stress_raw.metrics.ending_equity - combined_stress_raw.metrics.ending_equity
+        )
+        accepted_step = (
+            baseline_delta_from_combo >= D("0")
+            and stress_delta_from_combo >= D("0")
+            and (baseline_delta_from_combo > D("0") or stress_delta_from_combo > D("0"))
+        )
+        combination_steps.append(
+            {
+                "symbol": symbol,
+                "candidate": name,
+                "marginal_baseline_delta_usdc": str(marginal_baseline_delta),
+                "marginal_stress_delta_usdc": str(marginal_stress_delta),
+                "combination_baseline_delta_usdc": str(baseline_delta_from_combo),
+                "combination_stress_delta_usdc": str(stress_delta_from_combo),
+                "accepted_step": accepted_step,
+                "trial_baseline": _portfolio_summary(trial_baseline_raw),
+                "trial_stress": _portfolio_summary(trial_stress_raw),
+            }
+        )
+        if accepted_step:
+            assembled = trial_profiles
+            combined_baseline_raw = trial_baseline_raw
+            combined_stress_raw = trial_stress_raw
+
+    for symbol in definition.symbols:
+        accepted_candidate = assembled[symbol]
+        accepted = accepted_candidate != current_profiles[symbol]
+        per_coin[symbol]["accepted"] = accepted
+        per_coin[symbol]["accepted_profile"] = _payload(accepted_candidate)
+        if accepted:
+            accepted_name = next(
+                name
+                for name, candidate in robust_by_symbol[symbol]
+                if candidate == accepted_candidate
+            )
+            per_coin[symbol]["accepted_candidate_name"] = accepted_name
+            per_coin[symbol]["full_accepted_baseline"] = _result_summary(
+                result_lookup[symbol][accepted_name]["full_baseline"]
+            )
+        else:
+            per_coin[symbol]["accepted_candidate_name"] = "current"
+
+    current_hashes = _profile_hashes(current_profiles)
+    candidate_hashes = _profile_hashes(assembled)
+
     batches = {
         "current_baseline": _batch_summary(run_batch(current_profiles, BASELINE_COSTS)),
         "candidate_baseline": _batch_summary(run_batch(assembled, BASELINE_COSTS)),
@@ -671,10 +945,10 @@ def run_cycle(output: Path) -> dict[str, object]:
         "candidate_stress": _batch_summary(run_batch(assembled, STRESS_COSTS)),
     }
     portfolios = {
-        "current_baseline": _portfolio_summary(run_portfolio(current_profiles, BASELINE_COSTS)),
-        "candidate_baseline": _portfolio_summary(run_portfolio(assembled, BASELINE_COSTS)),
-        "current_stress": _portfolio_summary(run_portfolio(current_profiles, STRESS_COSTS)),
-        "candidate_stress": _portfolio_summary(run_portfolio(assembled, STRESS_COSTS)),
+        "current_baseline": current_portfolio_baseline,
+        "candidate_baseline": _portfolio_summary(combined_baseline_raw),
+        "current_stress": current_portfolio_stress,
+        "candidate_stress": _portfolio_summary(combined_stress_raw),
     }
 
     parity = {
@@ -691,8 +965,8 @@ def run_cycle(output: Path) -> dict[str, object]:
     promotion_gate = aggregate_promotion_gate(batches, portfolios)
 
     evidence: dict[str, object] = {
-        "schema_version": 2,
-        "study": "coin-by-coin-v6-optimization",
+        "schema_version": 3,
+        "study": "coin-by-coin-v6-topk-marginal-optimization",
         "research_only": True,
         "activation_performed": False,
         "active_strategy_version": definition.version,
@@ -704,14 +978,27 @@ def run_cycle(output: Path) -> dict[str, object]:
             for name, (low, high) in windows.items()
         },
         "selection_rule": (
-            "training stress only: maximize worst of train A/B returns, then sum, "
-            "then lower worst drawdown; current wins exact ties"
+            "training stress only freezes the ordered Top-5 challengers per coin; "
+            "validation/full-3y baseline+stress may reject finalists but cannot introduce "
+            "an unranked replacement"
         ),
         "validation_gate": (
-            "frozen training winner must be >= current return under validation baseline "
-            "and stress, improve at least one, and add no more than 5pp drawdown"
+            "each frozen finalist must be >= current return under validation baseline/stress, "
+            "improve at least one, add no more than 5pp validation drawdown, and remain "
+            "non-regressive on full-3y baseline/stress"
+        ),
+        "marginal_portfolio_gate": (
+            "every robust finalist is tested alone in shared 3x80; baseline and stress must "
+            "both be >= incumbent before it may enter the combination stage"
+        ),
+        "combination_rule": (
+            "portfolio-compatible per-coin winners are added greedily by marginal baseline/stress "
+            "value; each addition must be non-regressive versus the already assembled 3x80 "
+            "baseline and stress"
         ),
         "per_coin": per_coin,
+        "marginal_3x80": marginal,
+        "combination_steps": combination_steps,
         "assembled_candidate_profile_hash_by_symbol": candidate_hashes,
         "profile_parity": parity,
         "isolated_10x250": batches,
