@@ -1,3 +1,4 @@
+# 2026-09-19: rerun final V6-only cleanup after obsolete migration/UI tests removal and shipped bundle sync.
 # 2026-09-19: final product-cleanup A01-A11 validation for current V6-only Paper/backtest release surface.
 # 2026-09-19: validate promoted ADA band+0.6, AVAX band+0.2 and DOGE momentum18 after Top-K marginal portfolio gate.
 # 2026-09-19: rerun after V6 version-pin regression repair for BNB ATR120 profile.
