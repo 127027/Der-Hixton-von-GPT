@@ -33,11 +33,11 @@
   "active_mission": {
     "id": "SWARM-003",
     "title": "Continuous Hixton optimization and reality-integrity guard",
-    "objective": "Continuously improve the single canonical Hixton ten-coin strategy while independently proving that documentation, data provenance, parameters, backtest results and runtime behavior are real and internally consistent. The shared portfolio is the target/main bot: currently 250 USDC with 3x80 USDC ranked_repeat capacity. The 10x250 isolated batch is diagnostic only and is used to inspect every coin independently, explain losing trades and test bounded per-coin improvements. Any accepted coin change must propagate through the one canonical profile map and be rerun unchanged in both 10x250 and shared 3x80. The 3x80 integration result is decisive. No permanent portfolio drawdown halt. No fabricated signals, market data, parameters, fills, performance claims or undocumented selection.",
+    "objective": "Optimize the active V6 system coin-by-coin across all ten USDC markets while preserving one canonical strategy shared by isolated 10x250 diagnostics and the real shared 3x80 portfolio. Baseline checkpoint: the verified BNB-ATR120 active profile produces 864.32339131529085 USDC in the 3x80 portfolio on the 2023-09-19T10:00Z..2026-09-19T10:00Z window, and the same-window optimization baseline is 7752.3660799984835 USDC across isolated 10x250. Expand the bounded candidate neighbourhood rather than weakening validation. Only promote evidence-backed profile changes that pass train A/B, frozen validation baseline+stress and full-window coin gates, and whose assembled candidate does not reduce either the aggregate isolated 10x250 baseline/stress or the shared 3x80 baseline/stress versus the incumbent. Re-run both models and A01-A11 after any promotion.",
     "state": "IN_PROGRESS",
     "completion_mode": "continuous",
     "started_at_utc": "2026-09-16T10:30:00+00:00",
-    "last_transition_reason": "Owner instruction 2026-09-19: continue the ten-coin 10x250 diagnostic optimization cycle, preserve one canonical profile map into shared 3x80, maintain a central backtest learning journal, and document a future autonomous 24x7 laptop roadmap with staged updates, rollback, recovery and optional external notifications without reintroducing a permanent drawdown halt.",
+    "last_transition_reason": "Owner instruction 2026-09-19: inspect all ten coins for further optimization after the verified 864.323391 3x80 checkpoint; improvements must remain one system and must be reflected in both 10x250 and 3x80. Do not manufacture a higher number by weakening validation.",
     "owner_instruction_date": "2026-09-19",
     "primary_agents": [
       "A01",
@@ -112,7 +112,10 @@
       "Future operations automation must not reintroduce a permanent portfolio drawdown halt or any other performance gate that silently freezes the trading strategy. Technical safety halts remain separate and evidence-based.",
       "Automatic software updates must be staged, verified, backed up and rollback-capable; strategy/profile changes must never be silently activated by the software updater and must still pass 10x250, shared 3x80 and A01-A11 gates.",
       "The central backtests/README.md is the persistent learning journal. After every material optimization cycle, preserve prior findings and append per-coin baseline, loss patterns, hypotheses, candidate diffs, train/validation/stress results, accept/reject rationale, shared-3x80 impact and immutable evidence references.",
-      "Do not erase rejected candidates from the central backtest journal; failed experiments are required negative evidence and must remain available to prevent repeated bad searches."
+      "Do not erase rejected candidates from the central backtest journal; failed experiments are required negative evidence and must remain available to prevent repeated bad searches.",
+      "Do not weaken train/validation/stress gates merely to exceed the current 864.323391 3x80 checkpoint.",
+      "Use one canonical V6 profile map for Paper, 10x250 isolated diagnostics and 3x80 shared portfolio; no separate optimized strategy for one report mode.",
+      "Any assembled promotion must be non-regressive versus the incumbent in aggregate isolated baseline/stress AND shared-portfolio baseline/stress."
     ],
     "acceptance": [
       "All eleven roles participate in every material guard run and emit fresh role-specific evidence for their assigned layer.",
@@ -168,7 +171,10 @@
       "Every material 10x250 optimization run updates the central backtest journal for all ten coins, including unchanged incumbents and rejected challengers rather than only winners.",
       "A03 verifies every accepted per-coin profile propagates through the same canonical profile map into both 10x250 and shared 3x80; any mismatch is a defect.",
       "A05 reviews future 24x7 roadmap requirements for restart, reconciliation, backup/restore and watchdog observability without claiming them implemented before tests exist.",
-      "A09 and A11 reject any optimization or future-operations claim that lacks reproducible evidence, hides a rejected candidate, or confuses roadmap with current functionality."
+      "A09 and A11 reject any optimization or future-operations claim that lacks reproducible evidence, hides a rejected candidate, or confuses roadmap with current functionality.",
+      "Optimization evidence covers all ten USDC coins and records training winner, validation outcome, full-window incumbent/challenger metrics and whether each profile was accepted.",
+      "Before promotion, the assembled candidate must pass an aggregate gate: 10x250 baseline/stress and 3x80 baseline/stress are each >= incumbent, with at least one material improvement.",
+      "After any promotion, a fresh real dashboard E2E and A01-A11 swarm must pass on the exact active profile/config version before download."
     ],
     "optimization_cycle_requested_at_utc": "2026-09-19T09:14:00+00:00",
     "documentation_integrity_audit_requested_at_utc": "2026-09-19T09:26:00+00:00",
