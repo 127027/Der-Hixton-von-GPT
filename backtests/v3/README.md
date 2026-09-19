@@ -1,5 +1,8 @@
 # HIXTON V3 – Mehrfachslot-Versuch verworfen
 
+> **HISTORISCHER FORSCHUNGSNACHWEIS – KEINE AKTUELLE BETRIEBSREGEL.** Die folgenden Ergebnisse und damaligen Regeln bleiben unverändert als Evidenz erhalten und können USDT, `one_per_symbol` oder den früheren permanenten 20-%-Portfoliohalt enthalten. Für den heutigen V6-Stand gelten ausschließlich `README.md`, DMS 02/04/06 und `agent_memory/swarm/taskboard.json`: USDC, gemeinsames 250-USDC-Hauptportfolio mit Baseline 3×80 `ranked_repeat`, kein permanenter Portfolio-Drawdown-Halt und 10×250 nur als Coin-Diagnose-/Optimierungslabor. Alte Regeln aus diesem Dokument dürfen nicht in den aktiven Bot zurückkopiert werden.
+
+
 Status: `REJECTED`, weder Paper noch Live. V3 verändert keine Hixton-Signalparameter gegenüber V2. Untersucht wurde ausschließlich der Eigentümerwunsch, bei wenigen gleichzeitigen Kaufsignalen mehrere der drei 80-USDT-Slots demselben Coin zu geben.
 
 ## Deterministische Regel
