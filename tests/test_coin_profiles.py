@@ -51,7 +51,7 @@ def test_profiles_are_complete_individual_and_strictly_configured(
     assert V6.policy_for("ETHUSDC").slope_bars == 24
     assert V6.policy_for("XRPUSDC").stop_atr == 4
     payload = _payload()
-    payload["strategy"] = V6.config_payload()
+    payload["strategy"] = {"key": "v6"}
     payload["paper"]["starting_cash_usdc"] = "250.00"
     path = tmp_path / "config.json"
     path.write_text(json.dumps(payload), encoding="utf-8")
