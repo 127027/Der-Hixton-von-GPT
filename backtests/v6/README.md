@@ -1,5 +1,8 @@
 # Backtest V6 – eingefrorene Coin-Profile
 
+> **HISTORIEN-/FORSCHUNGSGRENZE.** Diese Datei bewahrt den damaligen Prüfstand und seine Ergebnisse. Enthaltene USDT-, `one_per_symbol`- oder permanente 20-%-Portfoliohalt-Aussagen sind historische Evidenz, sofern sie nicht ausdrücklich als aktueller V6-Vertrag gekennzeichnet sind. Maßgeblich für den heutigen Betrieb sind `README.md`, DMS 02/04/06 und `agent_memory/swarm/taskboard.json`: ein kanonisches USDC-Zehn-Coin-System, gemeinsames 250-USDC-Hauptportfolio mit Baseline 3×80 `ranked_repeat`, kein permanenter Portfolio-Drawdown-Halt und 10×250 nur zur Coin-für-Coin-Diagnose/Optimierung. Historische Gegenbelege werden nicht gelöscht oder umgeschrieben.
+
+
 ## Aktuelle Verwendung seit 19.09.2026
 
 Die untenstehenden Tabellen vom 06.09.2026 bleiben **historische V6-Evidenz**. Ihre damaligen USDT-Konten, Ein-Slot-pro-Coin-Annahme und der frühere permanente 20-%-Portfoliohalt werden nicht nachträglich umgeschrieben.
