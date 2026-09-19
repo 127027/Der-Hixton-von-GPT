@@ -20,8 +20,8 @@ from hixton.data.binance import BinancePublicClient, parse_websocket_kline
 from hixton.data.quality import DataQualityReport
 from hixton.data.storage import CandleStore
 from hixton.data.sync import synchronize_symbol
-from hixton.domain.versions import strategy_definition
 from hixton.domain.models import Candle, IndicatorPoint
+from hixton.domain.versions import strategy_definition
 from hixton.live.runtime import TrialRuntime
 from hixton.paper.engine import initialize_paper_at_latest, process_new_closed_points
 from hixton.paper.storage import PaperStore
