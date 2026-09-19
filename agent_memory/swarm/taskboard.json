@@ -37,8 +37,8 @@
     "state": "IN_PROGRESS",
     "completion_mode": "continuous",
     "started_at_utc": "2026-09-16T10:30:00+00:00",
-    "last_transition_reason": "Owner instruction on 2026-09-18: next optimization cycle is coin-by-coin across all ten 250-USDC isolated backtests, with mandatory shared 3x80 recomputation from the same canonical strategy definition, plus a complete DMS consistency audit.",
-    "owner_instruction_date": "2026-09-18",
+    "last_transition_reason": "Owner instruction 2026-09-19: start the full ten-coin isolated 10x250 optimization cycle now. Diagnose every coin's losing trades and drawdown, select candidates only on training windows, validate separately under baseline/stress costs, assemble one canonical profile map, and recompute the same unchanged profile map in the shared 3x80 portfolio. Any accepted coin improvement must propagate to Paper, isolated batch and shared portfolio through the same V6 strategy definition.",
+    "owner_instruction_date": "2026-09-19",
     "primary_agents": [
       "A01",
       "A02",
@@ -124,7 +124,8 @@
       "If the 3x80 result is unchanged after a profile change, evidence must show whether the modified coin produced an identical shared-portfolio signal/fill path because of slot competition; otherwise treat the unchanged result as a parity defect.",
       "All 27 DMS files are scanned; every current contradictory normative statement is repaired, while historical dated sections remain explicitly historical.",
       "After code/profile/DMS changes, rerun the real 10x250, real 3x80, full Python/UI regression and A01-A11 with A09 QA_PASS and A11 GOVERNANCE_PASS."
-    ]
+    ],
+    "optimization_cycle_requested_at_utc": "2026-09-19T08:23:00+00:00"
   },
   "queued_missions": [],
   "agent_runtime": {
