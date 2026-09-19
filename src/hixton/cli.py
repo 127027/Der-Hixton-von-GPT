@@ -366,16 +366,27 @@ def command_paper_activate(args: argparse.Namespace, config: ProjectConfig) -> i
     if strategy.key != config.strategy_key:
         raise ValueError("activation target must equal the strategy selected in configuration")
     warmup_start, _, report_end = _window(None)
+    rules_by_symbol: dict[str, ExecutionRules] = {}
+    with CandleStore(config.database_path) as store:
+        starts_by_symbol: dict[str, datetime] = {}
+        for symbol in SYMBOLS:
+            available = store.load_candles(
+                symbol,
+                start=warmup_start,
+                end_exclusive=report_end,
+            )
+            if not available:
+                raise ValueError(f"{symbol}: no stored candles available for Paper activation")
+            starts_by_symbol[symbol] = available[0].open_time_utc
+            rules_by_symbol[symbol] = _execution_rules(store, symbol)
+    common_start = max(warmup_start, max(starts_by_symbol.values()))
     points, _ = rebuild_analysis(
         config.database_path,
         start=warmup_start,
         end_exclusive=report_end,
         strategy=strategy,
+        starts_by_symbol={symbol: common_start for symbol in SYMBOLS},
     )
-    rules_by_symbol: dict[str, ExecutionRules] = {}
-    with CandleStore(config.database_path) as store:
-        for symbol in SYMBOLS:
-            rules_by_symbol[symbol] = _execution_rules(store, symbol)
     events = activate_paper_strategy(
         str(config.database_path),
         points,
