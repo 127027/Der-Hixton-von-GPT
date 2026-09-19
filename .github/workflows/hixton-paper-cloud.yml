@@ -1,6 +1,7 @@
 # 2026-09-19: fresh launch for exact owner-authorized Paper V6 activation recovery.
 # 2026-09-19: relaunch after public-candle sync was added before controlled activation.
 # 2026-09-19: relaunch recovery via data-api.binance.vision public endpoint.
+# 2026-09-19: relaunch after common-listing-start Paper activation repair.
 name: Hixton Paper 24x7
 
 on:
