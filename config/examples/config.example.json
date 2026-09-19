@@ -18,8 +18,7 @@
   "backtest": {
     "starting_usdc_per_symbol": "250.00",
     "target_notional_usdc": "250.00",
-    "primary_window_years": 3,
-    "run_baseline_and_stress": true
+    "primary_window_years": 3
   },
   "paper": {
     "starting_cash_usdc": "250.00",
