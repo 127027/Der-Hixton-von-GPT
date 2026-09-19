@@ -78,7 +78,7 @@ def test_current_normative_contract_matches_active_v6() -> None:
     assert "Positionszyklen" in ui
     assert "Slot-Trades" in ui
 
-    assert "strategy.key = v6" in schema
+    assert '"strategy": { "key": "v6" }' in schema
     assert "einzige V6-Profil-/Digestquelle" in decisions
     assert "DEC-061" in decisions
 
