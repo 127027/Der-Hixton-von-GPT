@@ -211,7 +211,13 @@ jobs:
           fi
           git config user.name "hixton-swarm[bot]"
           git config user.email "hixton-swarm@users.noreply.github.com"
-          git add --             src/hixton/runtime/analysis.py             src/hixton/runtime/continuity_supervisor.py             tests/test_cli_portfolio.py             tests/test_backtest_exact_three_year.py             src/hixton/ui/static
+          git add -- \
+            src/hixton/runtime/analysis.py \
+            src/hixton/runtime/continuity_supervisor.py \
+            tests/test_cli_portfolio.py \
+            tests/test_backtest_exact_three_year.py \
+            tests/test_usdc_runtime_migration.py \
+            src/hixton/ui/static
           if git diff --cached --quiet; then
             echo "No tracked known-safe repair changes to persist."
             exit 0
