@@ -76,9 +76,9 @@ Für regelmäßige Neubewertung wird ein rollierendes 3-Jahres-Fenster verwendet
 
 1. kapitalunabhängiger Golden-/Replay-Test der Indikatorwerte und Signale;
 2. Standard-Batch mit zehn isolierten Einzeltests à 250 USDC;
-3. Einzelmodus für ein frei gewähltes Paar, zum Beispiel nur ETH/USDT, mit 250 USDT;
-4. Vergleichsaggregation der zehn isolierten Ergebnisse (2.500 USDT rechnerisches Simulationskapital, kein gemeinsamer Cashpool);
-5. Paper-/Live-Spiegellauf mit gemeinsam 250 USDT und höchstens drei 80-USDT-Slots;
+3. Einzelmodus für ein frei gewähltes aktives Paar, zum Beispiel ETH/USDC, mit 250 USDC;
+4. Vergleichsaggregation der zehn isolierten Ergebnisse (2.500 USDC rechnerisches Diagnosekapital, kein gemeinsamer Cashpool);
+5. Paper-Spiegellauf mit gemeinsam 250 USDC und standardmäßig drei 80-USDC-Slots;
 6. Buy-and-Hold-Benchmark je Coin;
 7. Sensitivität gegenüber Kosten und Slippage;
 8. Walk-forward-/Out-of-sample-Prüfung, falls Parameter überhaupt abgestimmt werden;
@@ -110,9 +110,9 @@ Regeln:
 
 - Kein BNB-Rabatt und keine VIP-Vergünstigung werden in der Baseline vorausgesetzt.
 - Kauf-Fill = Next-Bar-Open × `(1 + (Spread + Slippage)/10.000)`; Verkaufs-Fill entsprechend mit Minus.
-- Ein Kauf verwendet höchstens das Ziel-Quote-Budget (initial 80 bzw. 250 USDT): `gross_base = quote_spend / Kauf-Fillpreis`; Kaufgebühr wird im Basissasset abgezogen, `net_base = gross_base × (1-fee_rate)`, Cash sinkt exakt um `quote_spend`.
+- Ein Kauf verwendet höchstens das Ziel-Quote-Budget (initial 80 bzw. 250 USDC): `gross_base = quote_spend / Kauf-Fillpreis`; Kaufgebühr wird im Basissasset abgezogen, `net_base = gross_base × (1-fee_rate)`, Cash sinkt exakt um `quote_spend`.
 - Beim Verkauf wird die gesamte regelkonform handelbare Basismenge zum adversen Fillpreis bewertet; Verkaufsgebühr wird vom Quote-Erlös abgezogen, `net_quote = gross_quote × (1-fee_rate)`.
-- Damit können drei 80-USDT-Kaufbudgets aus 240 USDT belegt werden, ohne einen negativen Cashbestand zu erfinden. Tatsächliche Live-Gebührenassets werden aus Börsenfills übernommen und im Papervergleich separat ausgewiesen.
+- Damit können drei 80-USDC-Kaufbudgets aus 250 USDC inklusive Reserve belegt werden, ohne einen negativen Cashbestand zu erfinden. Tatsächliche Live-Gebührenassets werden aus Börsenfills übernommen und im Papervergleich separat ausgewiesen.
 - Tick Size, Step Size und Mindestnotional werden mit dem zum Lauf gespeicherten Binance-Filterstand simuliert.
 - Wird später die echte kontospezifische Binance-Gebühr automatisch abgefragt, erscheint sie als zusätzliches Account-Szenario; Baseline und Stress bleiben für Vergleichbarkeit erhalten.
 - Reports zeigen Brutto-PnL, Gebühr, Spread, Slippage und Netto-PnL getrennt.
@@ -120,9 +120,9 @@ Regeln:
 ## Metriken je Coin
 
 - Start- und Endkapital;
-- Netto-PnL in USDT und Nettorendite in Prozent;
+- Netto-PnL in USDC und Nettorendite in Prozent;
 - annualisierte Rendite, nur mit sauber dokumentierter Formel;
-- maximaler Drawdown in USDT und Prozent samt Zeitraum;
+- maximaler Drawdown in USDC und Prozent samt Zeitraum;
 - Anzahl abgeschlossener Trades;
 - Gewinnquote;
 - durchschnittlicher Gewinn/Verlust und Payoff-Ratio;
@@ -140,17 +140,17 @@ Bei zu wenigen Trades werden instabile Kennzahlen sichtbar als „nicht aussagek
 
 ## Batch-, Einzel- und Portfolioauswertung
 
-- Batch: zehn Resultate mit je 250 USDT werden einzeln gezeigt und nur zum Vergleich summiert;
+- Batch: zehn Resultate mit je 250 USDC werden einzeln gezeigt und nur zum Vergleich summiert;
 - Einzelmodus: Coin-Auswahl, zum Beispiel ETH, darf ohne die übrigen neun ausgeführt werden;
-- Spiegelportfolio: gemeinsamer Cashpool 250 USDT, drei 80-USDT-Slots und dokumentierte Slotpriorisierung;
+- Spiegelportfolio: gemeinsamer Cashpool 250 USDC, standardmäßig drei 80-USDC-Slots und dokumentierte Slotpriorisierung;
 - Im Spiegelportfolio werden Ausstiege am nächsten Bar-Open vor Einstiegen verarbeitet. Gleichzeitige Einstiege werden nach normalisierter Ausbruchsstärke und danach in der festen DMS-Coinreihenfolge sortiert. Blockierte Signale werden nicht später künstlich nachgeholt;
-- Der echte Paper-/Live-Spiegel wendet zusätzlich dieselbe 5-%-UTC-Tagesverlustpause und denselben persistenten 20-%-High-Water-Drawdown-Halt wie die Paperengine an. Ein Lauf ohne diese Gates heißt ausdrücklich `strategy-only` und darf nicht als Paper-/Live-Ergebnis bezeichnet werden;
+- Der aktuelle Paper-Spiegel wendet dieselbe 5-%-UTC-Tagesverlustpause wie die Paperengine an. Portfolio-Drawdown wird vollständig gemessen, erzeugt aber keinen permanenten globalen Halt; `MAX_DRAWDOWN_20_PERCENT` darf im aktiven V6-Modell keine neuen Entries blockieren;
 - keine Verwechslung zwischen rechnerischer Batchsumme und realistischem gemeinsamen Cashbestand;
 - Equity nach gemeinsamer UTC-Zeitachse;
 - Korrelationen der Tagesrenditen;
 - Beitrag jedes Coins zu PnL und Drawdown;
 - maximale gleichzeitig investierte Summe;
-- separate Darstellung von Brutto-, Nettoergebnis und Tradezahl; 250→500 USDT je Coin darf als Beispiel ausgewiesen werden, aber nie als Garantie oder Grund zum Verbergen schlechter Ergebnisse.
+- separate Darstellung von Brutto-, Nettoergebnis und Tradezahl; 250→500 USDC je Coin darf als Beispiel ausgewiesen werden, aber nie als Garantie oder Grund zum Verbergen schlechter Ergebnisse.
 
 ## Validierungsdesign und Anti-Overfitting
 
@@ -163,8 +163,8 @@ Bei zu wenigen Trades werden instabile Kennzahlen sichtbar als „nicht aussagek
 - Monte-Carlo/Trade-Reordering kann als Robustheitsanalyse dienen, ersetzt aber keine Marktzeitsimulation.
 - Die Strategie wird nicht so lange verändert, bis ein gewünschter Gewinnwert erscheint.
 - Jede Verbesserung erhält `backtests/v2`, `v3` usw.; der aktive Paperstand wird nur nach explizitem, auditierbarem Wechsel vorwärtsgerichtet ersetzt.
-- Ein gemeinsamer Parametersatz für alle zehn Coins wird vor Coin-spezifischen Sonderwerten bevorzugt, solange kein sauberer Out-of-sample-Nachweis die zusätzliche Komplexität rechtfertigt.
-- Höhere Tradezahl ist nur ein Sekundärkriterium, wenn Baseline, Kosten-Stress, ältere Marktphasen und Nachbarparameter mindestens gleich robust bleiben.
+- Jeder Coin wird gegen sein eigenes aktuelles Profil bewertet. Coin-spezifische Änderungen sind nur zulässig, wenn ihre Ursache und Wirkung mit reproduzierbarer Evidenz belegt sind; kein globaler Parametersatz darf aus Bequemlichkeit über alle zehn Märkte gezwungen werden.
+- Mehr nutzbare Trades ist ein ausdrückliches Optimierungsziel, aber keine Freikarte für Overfitting: höhere Tradezahl muss zusammen mit Nettoergebnis, Kosten-Stress, Validierungsfenstern, Drawdown und anschließendem 3×80-Integrationslauf bewertet werden. Es werden keine Trades oder Parameter erfunden, nur um eine Zielzahl zu erreichen.
 
 ## Mindest-Gates für fachliche Freigabe
 
