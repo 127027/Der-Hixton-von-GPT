@@ -815,8 +815,9 @@ def run_cycle(output: Path) -> dict[str, object]:
         }
         if symbol == "XRPUSDC":
             per_coin[symbol]["loss_cluster_analysis"] = _loss_signal_clusters(full_current)
+        robust_names = ",".join(name for name, _candidate in robust) or "none"
         print(
-            f"{symbol}: top5={','.join(shortlist_names)}; robust={','.join(name for name, _ in robust) or 'none'}",
+            f"{symbol}: top5={','.join(shortlist_names)}; robust={robust_names}",
             flush=True,
         )
 
