@@ -435,34 +435,46 @@ async function refreshBacktests(): Promise<void> {
     const cards = response.runs.map((run) => {
       const manifest = run.manifest;
       const baseline = run.metrics.baseline;
-      const firstMetric = baseline ? Object.values(baseline.per_symbol ?? {})[0] : undefined;
-      const summary = baseline?.portfolio?.metrics ?? baseline?.batch ?? firstMetric;
+      const stress = run.metrics.stress;
+      const firstBaselineMetric = baseline ? Object.values(baseline.per_symbol ?? {})[0] : undefined;
+      const firstStressMetric = stress ? Object.values(stress.per_symbol ?? {})[0] : undefined;
+      const baselineSummary = baseline?.portfolio?.metrics ?? baseline?.batch ?? firstBaselineMetric;
+      const stressSummary = stress?.portfolio?.metrics ?? stress?.batch ?? firstStressMetric;
       const quote = manifest.quote_asset === "USDC" || manifest.quote_asset === "USDT" ? manifest.quote_asset : "Quote ungeklärt";
-      const result = summary
-        ? `${formatNumber(summary.ending_equity as string)} ${quote} · ${formatNumber(summary.return_pct as string)} %`
-        : "Kennzahlen nicht verfügbar";
+      const resultText = (label: string, summary: Record<string, unknown> | undefined) =>
+        summary
+          ? `${label}: ${formatNumber(summary.ending_equity as string)} ${quote} · ${formatNumber(summary.return_pct as string)} %`
+          : `${label}: nicht verfügbar`;
       const version = (manifest.strategy as Record<string, unknown> | undefined)?.version ?? strategy.toUpperCase();
       const runMode = baseline?.portfolio ? "Portfolio" : baseline?.batch ? "10×250 isoliert" : `Einzeltest ${Object.keys(baseline?.per_symbol ?? {}).join(", ")}`;
       const riskHalt = baseline?.portfolio?.risk_halted_at_utc;
       const riskLabel = riskHalt ? `<strong class="negative">RISIKOHALT im Test · ${formatDate(String(riskHalt), true)}</strong>` : "";
       const window = manifest.data as Record<string, unknown> | undefined;
       const runId = String(manifest.run_id ?? "—");
-      return `<article class="run-card"><div><strong title="${escapeHtml(runId)}">${escapeHtml(runMode)} · Run ${escapeHtml(runId.slice(0, 8))}</strong><small>${escapeHtml(version)}</small><small>Testfenster: ${formatDate(window?.report_start_utc ? String(window.report_start_utc) : null)} – ${formatDate(window?.report_end_utc ? String(window.report_end_utc) : null)} (Ende exklusiv)</small><small>Erstellt: ${formatDate(manifest.created_at_utc ? String(manifest.created_at_utc) : null, true)} · ${escapeHtml(manifest.status)}</small></div><span>Baseline: ${result}${riskLabel}<small>${Array.isArray(manifest.scenarios) ? escapeHtml(manifest.scenarios.join(" + ")) : ""}</small></span></article>`;
+      return `<article class="run-card"><div><strong title="${escapeHtml(runId)}">${escapeHtml(runMode)} · Run ${escapeHtml(runId.slice(0, 8))}</strong><small>${escapeHtml(version)}</small><small>Testfenster: ${formatDate(window?.report_start_utc ? String(window.report_start_utc) : null)} – ${formatDate(window?.report_end_utc ? String(window.report_end_utc) : null)} (Ende exklusiv)</small><small>Erstellt: ${formatDate(manifest.created_at_utc ? String(manifest.created_at_utc) : null, true)} · ${escapeHtml(manifest.status)}</small></div><span>${resultText("Baseline", baselineSummary)}<br>${resultText("Stress", stressSummary)}${riskLabel}</span></article>`;
     });
     required("#backtest-runs").innerHTML = cards[0] ?? `<article class="run-card"><div><strong>Noch kein Backtest für diese Auswahl</strong><small>Version und Testart sind getrennt. Einen passenden Lauf hier starten.</small></div></article>`;
-    required("#backtest-history-runs").innerHTML = cards.slice(1).join("");
-    text("#backtest-history-label", `${Math.max(0, cards.length - 1)} frühere Läufe dieser Auswahl anzeigen (maximal 25 insgesamt)`);
-    history.classList.toggle("hidden", cards.length < 2);
+    required("#backtest-history-runs").innerHTML = "";
+    text("#backtest-history-label", "Frühere Läufe sind im aktuellen Produkt ausgeblendet");
+    history.classList.add("hidden");
     const latestRun = response.runs[0];
     text("#backtest-comparison", comparisonText(latestRun?.comparison));
     text("#backtest-blocks", portfolioBlocksText(latestRun?.metrics.baseline?.portfolio));
-    const perSymbol = latestRun?.metrics.baseline?.per_symbol ?? {};
-    const portfolioMetric = latestRun?.metrics.baseline?.portfolio?.metrics;
-    text("#backtest-detail-title", portfolioMetric ? "Letzter gespeicherter Lauf · Portfolio" : "Letzter gespeicherter Lauf · isolierte Coin-Diagnose");
-    required("#backtest-detail-body").innerHTML = portfolioMetric
-      ? `<tr><td class="mono">PORTFOLIO${latestRun?.metrics.baseline?.portfolio?.risk_halted_at_utc ? " · HALTED" : ""}</td><td>${formatNumber(portfolioMetric.starting_equity as string)}</td><td>${formatNumber(portfolioMetric.ending_equity as string)}</td><td class="${Number(portfolioMetric.return_pct) >= 0 ? "good" : "negative"}">${formatNumber(portfolioMetric.return_pct as string)} %</td><td>${String(portfolioMetric.completed_trades ?? "—")}</td><td>${formatNumber(portfolioMetric.max_drawdown_pct as string)} %</td><td>${formatNumber(portfolioMetric.buy_and_hold_ending_equity as string)}</td></tr>`
-      : Object.keys(perSymbol).length
-      ? Object.entries(perSymbol).map(([symbol, metric]) => `<tr><td class="mono">${symbol}</td><td>${formatNumber(metric.starting_equity as string)}</td><td>${formatNumber(metric.ending_equity as string)}</td><td class="${Number(metric.return_pct) >= 0 ? "good" : "negative"}">${formatNumber(metric.return_pct as string)} %</td><td>${String(metric.completed_trades ?? "—")}</td><td>${formatNumber(metric.max_drawdown_pct as string)} %</td><td>${formatNumber(metric.buy_and_hold_ending_equity as string)}</td></tr>`).join("")
+    const baselinePerSymbol = latestRun?.metrics.baseline?.per_symbol ?? {};
+    const stressPerSymbol = latestRun?.metrics.stress?.per_symbol ?? {};
+    const baselinePortfolioMetric = latestRun?.metrics.baseline?.portfolio?.metrics;
+    const stressPortfolioMetric = latestRun?.metrics.stress?.portfolio?.metrics;
+    text("#backtest-detail-title", baselinePortfolioMetric ? "Aktueller V6-Lauf · Baseline und Stress" : "Aktueller V6-Lauf · isolierte Coin-Diagnose · Baseline und Stress");
+    const metricRow = (label: string, metric: Record<string, unknown>, halted = false) =>
+      `<tr><td class="mono">${label}${halted ? " · HALTED" : ""}</td><td>${formatNumber(metric.starting_equity as string)}</td><td>${formatNumber(metric.ending_equity as string)}</td><td class="${Number(metric.return_pct) >= 0 ? "good" : "negative"}">${formatNumber(metric.return_pct as string)} %</td><td>${String(metric.completed_trades ?? "—")}</td><td>${formatNumber(metric.max_drawdown_pct as string)} %</td><td>${formatNumber(metric.buy_and_hold_ending_equity as string)}</td></tr>`;
+    required("#backtest-detail-body").innerHTML = baselinePortfolioMetric
+      ? metricRow("PORTFOLIO · BASELINE", baselinePortfolioMetric, Boolean(latestRun?.metrics.baseline?.portfolio?.risk_halted_at_utc))
+        + (stressPortfolioMetric ? metricRow("PORTFOLIO · STRESS", stressPortfolioMetric, Boolean(latestRun?.metrics.stress?.portfolio?.risk_halted_at_utc)) : "")
+      : Object.keys(baselinePerSymbol).length
+      ? Object.entries(baselinePerSymbol).map(([symbol, metric]) =>
+          metricRow(`${symbol} · BASELINE`, metric)
+          + (stressPerSymbol[symbol] ? metricRow(`${symbol} · STRESS`, stressPerSymbol[symbol]) : "")
+        ).join("")
       : `<tr><td colspan="7">Noch kein auswertbarer Run vorhanden.</td></tr>`;
   } catch {
     if (generation === backtestLoadGeneration) {
