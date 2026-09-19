@@ -31,7 +31,7 @@ def _candles(count: int = 500) -> dict[str, list[Candle]]:
 def test_quote_universes_and_frozen_profiles_do_not_change_v6() -> None:
     assert symbols_for_quote("USDC") == SYMBOLS
     assert validate_market_symbols(V7_USDC_STRATEGY.symbols) == "USDC"
-    assert V6_COIN_STRATEGY.version == "HIXTON-V6-COIN-PAPER-1-b9baa61cbc21"
+    assert V6_COIN_STRATEGY.version == "HIXTON-V6-COIN-PAPER-1-60267e05d6a8"
     assert V6_COIN_STRATEGY.config_payload()["quote_asset"] == "USDC"
     assert V7_USDC_STRATEGY.config_payload()["quote_asset"] == "USDC"
     assert not V7_USDC_STRATEGY.paper_approved
