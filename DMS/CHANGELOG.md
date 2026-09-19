@@ -1,5 +1,14 @@
 # CHANGELOG
 
+## 19.09.2026 – Dokumentationsbereinigung und Reality-Integrity-Gate
+
+- Root-README, Schwarm-README und aktuelle DMS-Regeln auf ein einziges kanonisches Betriebsmodell ausgerichtet: USDC, gemeinsames 250-USDC-Hauptportfolio mit Baseline 3×80 `ranked_repeat`, kein permanenter Portfolio-Drawdown-Halt; 10×250 bleibt Diagnose-/Optimierungslabor.
+- Backtest-READMEs V2–V9 mit expliziter Historien-/Forschungsgrenze versehen. Alte USDT-, `one_per_symbol`- und 20-%-Halt-Ergebnisse bleiben als Gegenbelege erhalten, dürfen aber keine aktuelle Regel mehr überschreiben.
+- Veraltete aktuelle Aussagen in DMS 06 zu USDT und permanentem 20-%-Halt korrigiert; Dokumentenkarte in DMS 00 auf USDC aktualisiert.
+- A01–A11 erhalten einen zusätzlichen Reality-Integrity-Auftrag: Datenherkunft, Parameterprovenienz, Rohtrade-/Metrik-Reproduzierbarkeit, Dokumentationskonsistenz und 10×250→3×80-Profilparität unabhängig prüfen.
+- Keine erfundenen Parameter, Signale, Marktdaten oder Performancewerte. Historischer Proxy, Simulationsannahme und synthetische Testfixture müssen explizit als solche gekennzeichnet bleiben.
+
+
 ## 18.09.2026 – Slotkapazität, Drawdown-Halt entfernt und Coin-Optimierungszyklus gestartet
 
 - Aktive V6-Slotvergabe auf `ranked_repeat`: 3×80 ist reale Kapital-/Slotkapazität; Positionszyklen und Slot-Trades getrennt ausgewiesen.
