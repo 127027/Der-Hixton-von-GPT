@@ -33,11 +33,11 @@
   "active_mission": {
     "id": "SWARM-003",
     "title": "Continuous closed-loop Paper bot engineering guard",
-    "objective": "Continuously keep the Hixton Paper-only system internally consistent. Current owner priority: optimize and diagnose all ten active V6 coin profiles individually with the real 10x250 isolated three-year backtest, then recompute the same strategy definition in the shared 3x80 portfolio. Every accepted per-coin profile change must propagate through the single canonical strategy definition used by Paper, isolated batch, shared portfolio and UI. Diagnose losing trades and candidate filters/stops per coin using train/validation separation and cost stress; do not cherry-pick on validation. Preserve ranked_repeat 3x80 slot semantics, no permanent portfolio drawdown halt, and the 5-percent UTC-day pause. In parallel audit and repair all DMS documents so current normative statements match the active USDC V6 implementation; historical sections must remain clearly labelled as historical.",
+    "objective": "Continuously improve the single canonical Hixton ten-coin strategy. The shared portfolio is the target system and main bot: currently 250 USDC with 3x80 USDC ranked_repeat capacity across BTC, ETH, BNB, SOL, XRP, ADA, LINK, AVAX, DOT and DOGE. The 10x250 isolated batch is the diagnostic laboratory for that same strategy: exactly one 250-USDC diagnostic account per coin, used to identify weak coins, losing trades, drawdown, holding-time patterns and candidate improvements without slot competition. Optimize every symbol against its own incumbent profile because coin behavior differs; never force one global parameter set. Candidate selection uses training windows only, then frozen validation and baseline/stress checks. Accepted per-coin profiles are assembled into one versioned canonical ten-coin profile map and must be rerun unchanged in both 10x250 and the shared 3x80 portfolio. The 3x80 result is the decisive integration gate; an isolated winner that harms the shared main bot remains research-only. Future slot/size settings (for example more slots or 250 USDC per slot) scale the same shared system rather than creating another strategy. Preserve no permanent portfolio drawdown halt, the 5-percent UTC-day pause, Paper-only operation and all technical safety gates.",
     "state": "IN_PROGRESS",
     "completion_mode": "continuous",
     "started_at_utc": "2026-09-16T10:30:00+00:00",
-    "last_transition_reason": "Owner correction 2026-09-19: the 750.58 -> 594.60 shared-portfolio research candidate is rejected. Optimization must be strictly per coin against that coin's incumbent profile. A coin challenger that loses to its incumbent on the full three-year 10x250 baseline or stress run must not be assembled. After per-coin selection, the exact mixed profile map must be integrated into 3x80; if shared 3x80 regresses, the patch is not accepted and the conflicting coin changes must be isolated/reverted until the integrated candidate is non-regressive.",
+    "last_transition_reason": "Owner architecture clarification 2026-09-19: 3x80 is the main bot and target system; 10x250 is the per-coin diagnostic/optimization laboratory for the same canonical strategy. Every coin may use different optimized parameters. Any accepted per-coin change must propagate into the same shared portfolio strategy and be revalidated there.",
     "owner_instruction_date": "2026-09-19",
     "primary_agents": [
       "A01",
@@ -96,7 +96,10 @@
       "Never select one global candidate variant for all ten coins. Each symbol compares its own bounded candidate catalog against its own current incumbent profile.",
       "A per-coin challenger must not replace the incumbent if the full three-year 10x250 result is worse under baseline costs or stress costs, even if a shorter validation slice looked better.",
       "The assembled active-patch candidate must pass a shared 3x80 non-regression gate. If 3x80 ending equity falls versus the current profile map under baseline or stress costs, do not activate the assembled set; isolate the conflicting coin changes, revert them to incumbent as needed, and rerun.",
-      "Keep rejected isolated winners visible as research evidence. The active canonical map contains only portfolio-compatible per-coin improvements."
+      "Keep rejected isolated winners visible as research evidence. The active canonical map contains only portfolio-compatible per-coin improvements.",
+      "The shared portfolio is the authoritative main-bot acceptance model; currently 250 USDC with 3x80 USDC, but later user-selected slot counts and per-slot notionals must reuse the same canonical profile map and allocation engine.",
+      "The 10x250 batch is diagnostic only: ten isolated 250-USDC accounts, one per symbol, never a claim that the main bot owns 2,500 USDC.",
+      "Per-coin optimization must explain why losing trades occur and test bounded causal hypotheses for that symbol; BTC parameters must not be assumed suitable for ETH or any other market."
     ],
     "acceptance": [
       "All eleven roles participate in every material guard run and emit fresh role-specific evidence for their assigned layer.",
@@ -131,9 +134,13 @@
       "SOL regression is guarded: a candidate that changes the full isolated baseline from about 1521.88 USDC to about 1007.40 USDC must be rejected in favor of the incumbent.",
       "For every symbol, evidence records incumbent full-3y baseline/stress versus challenger full-3y baseline/stress and the final per-symbol decision.",
       "The final integrated mixed profile map must have 3x80 baseline and stress ending equity greater than or equal to the current canonical map before any activation/version promotion is allowed.",
-      "If an individually improved coin harms shared 3x80 because of slot competition or signal timing, its isolated winner remains research-only and the active integrated profile for that coin stays at the incumbent unless another compatible candidate is found."
+      "If an individually improved coin harms shared 3x80 because of slot competition or signal timing, its isolated winner remains research-only and the active integrated profile for that coin stays at the incumbent unless another compatible candidate is found.",
+      "Evidence explicitly labels 3x80 as the main shared target system and 10x250 as the per-coin diagnostic laboratory for the same strategy.",
+      "For every symbol, the cycle reports incumbent versus challenger trade count, wins/losses, return, max drawdown, worst-loss examples and final accept/reject rationale.",
+      "After assembling accepted per-coin profiles, exactly the same profile hashes must be used in a fresh 10x250 batch and shared 3x80 portfolio run; no backtest-only profile override is permitted.",
+      "The integrated shared 3x80 baseline and stress results are the final strategy gate; isolated improvements that damage the main bot are retained only as research evidence."
     ],
-    "optimization_cycle_requested_at_utc": "2026-09-19T08:23:00+00:00"
+    "optimization_cycle_requested_at_utc": "2026-09-19T09:14:00+00:00"
   },
   "queued_missions": [],
   "agent_runtime": {
