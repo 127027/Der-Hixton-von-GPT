@@ -239,7 +239,17 @@ def main() -> int:
     changed |= sync_ui_bundle()
 
     status = subprocess.run(
-        ["git", "status", "--porcelain"],
+        [
+            "git",
+            "status",
+            "--porcelain",
+            "--",
+            "src/hixton/runtime/analysis.py",
+            "src/hixton/runtime/continuity_supervisor.py",
+            "tests/test_cli_portfolio.py",
+            "tests/test_backtest_exact_three_year.py",
+            "src/hixton/ui/static",
+        ],
         cwd=ROOT,
         capture_output=True,
         text=True,
