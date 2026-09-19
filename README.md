@@ -1,5 +1,17 @@
 # Der Hixton Trading Bot
 
+## Betriebsmodell und Optimierungslogik – verbindlich seit 19.09.2026
+
+Der Hixton ist **ein einziges Zehn-Coin-System** mit einer kanonischen Strategieversion und individuellen Coin-Profilen. BTC, ETH, BNB, SOL, XRP, ADA, LINK, AVAX, DOT und DOGE dürfen unterschiedliche Parameter und Trade-Policies besitzen, weil sie unterschiedliche Marktcharakteristika haben. Paper, gemeinsamer Portfolio-Backtest, isolierte Einzeltests und UI lesen dieselbe Profilmap; es gibt keine zweite „Backtest-Strategie“.
+
+**Hauptbot:** Der maßgebliche Betriebs- und Abnahmetest ist das gemeinsame Portfolio. Aktuell startet es mit 250 USDC und drei 80-USDC-Slots. Alle zehn Coins konkurrieren um dieselbe Kapazität. Mit `ranked_repeat` erhalten gültige Kandidaten zunächst je einen Slot; freie Restslots dürfen zusätzlich an den stärksten gültigen Kandidaten gehen. Ein permanenter 20-%-Portfolio-Drawdown-Halt existiert nicht mehr; Drawdown wird gemessen, die 5-%-UTC-Tagespause und technische Sicherheitsgates bleiben bestehen.
+
+**10×250-Diagnose:** Dieser Lauf besteht aus zehn isolierten Konten mit jeweils 250 USDC – genau ein Coin pro Konto. Er ist das Labor, um jedes Coin-Profil einzeln zu bewerten: Tradezahl, Gewinn-/Verlusttrades, PnL, Drawdown, Haltedauer und Verlustmuster. Die 2.500 USDC sind nur rechnerisches Diagnosekapital und **nicht** der Kapitalbestand des Hauptbots.
+
+**Optimierungszyklus:** Jeder Coin wird gegen sein eigenes aktuelles Profil verbessert, nicht gegen einen globalen Parametersatz. Kandidaten werden auf Trainingsfenstern ausgewählt und erst danach auf getrennten Validierungsfenstern sowie Baseline-/Stresskosten geprüft. Ein isolierter Gewinner wird nicht automatisch aktiv. Die akzeptierten Coin-Profile werden zu genau **einer** neuen kanonischen Zehn-Coin-Profilmap zusammengesetzt und anschließend unverändert sowohl im 10×250-Lauf als auch im gemeinsamen 3×80-Hauptbot neu gerechnet. Verschlechtert die integrierte Änderung das gemeinsame 3×80-Portfolio, bleibt der betreffende isolierte Gewinner Forschung und wird nicht aktiviert.
+
+Spätere Einstellungen wie beispielsweise mehr Slots oder 250 USDC je Slot ändern nur die gemeinsame Kapazität des **gleichen Systems**. Sie erzeugen keinen zweiten Bot und keine zweite Strategie. Das Ziel der isolierten Tests ist deshalb, die einzelnen Signalquellen zu verbessern, damit der gemeinsame Hauptbot aus besseren Coin-Profilen auswählen kann.
+
 ## Aktuell: Anwendung 0.4.9 / DMS 1.14.0
 
 **Neuer Verbesserungsversuch [V9](backtests/v9/README.md):** Zehn gemeinsame
@@ -9,12 +21,11 @@ und im späteren Prüfzeitraum. Auch ohne Risikohalt keine Erholung auf 700.
 Deshalb keine Aktivierung; V6-Paper unverändert. 335 Python-Tests / ein Skip,
 Ruff und mypy bestanden. V9 ist ein Forschungsbericht, kein neuer UI-Handelsmodus.
 
-**Slot-Nachprüfung:** 3×80 verarbeitet alle zehn Märkte; 431 von 473
-Kaufkandidaten scheitern am historischen Risikohalt, nur vier an vollen Slots.
-Auch 6×80 und 9×80 getestet. Ein Diagnoselauf ohne Halt liefert zwar 197 Trades,
-aber Verlust und 54,28 % Drawdown: keine Aktivierung. Echter Paper-Replay mit
-Restart ergibt exakt dieselben 28 Fills und 203,72 USDC wie der Portfolio-Test.
-UI zeigt jetzt Slotbelegung und Blockiergründe. [Details in DMS 18](DMS/18_BACKTEST_STATUS_UND_ERGEBNISFORMAT.md).
+**Historische Slot-Nachprüfung vor Entfernung des permanenten Drawdown-Halts:** In älteren
+Läufen wurden Hunderte Kaufkandidaten durch den damaligen 20-%-Portfoliohalt blockiert.
+Diese Evidenz bleibt als Historie erhalten, beschreibt aber **nicht** mehr das aktive V6-Modell.
+Im aktuellen Modell nutzt 3×80 `ranked_repeat` ohne permanenten Portfolio-Drawdown-Halt;
+Positionszyklen und 80-USDC-Slot-Trades werden getrennt ausgewiesen. [Details in DMS 18](DMS/18_BACKTEST_STATUS_UND_ERGEBNISFORMAT.md).
 
 **Prüfung 15.09.2026:** Eine zentrale Regelbasis für alle Prüfsichten in
 [DMS 06](DMS/06_BACKTEST_UND_VALIDIERUNG.md) präzisiert. Gespeicherte Backtests
@@ -88,14 +99,14 @@ Der erste Start lädt bis zu drei Jahre verfügbare `1h`-Historie plus 400 Warm-
 - Binance Spot für BTC, ETH, BNB, SOL, XRP, ADA, LINK, AVAX, DOT und DOGE gegen USDC; USDT-Archive bleiben getrennt.
 - Versionierte V1- und V2-Strategien: VIDYA/CMO, SMA-Nachglättung, Wilder-ATR, Bänder und ausschließlich geschlossene `1h`-Bars.
 - Vom Eigentümer bereitgestellte Pine-v6-Referenz mit eigenem Hash und Golden-Test; der kontrollierte V1→V2-Wechsel bewahrt das alte Ledger und startet einen neuen V2-Soak.
-- Paper-Ledger mit 250 USDC für neue Konten (10 USDC Anfangsreserve), drei Slots à 80 USDC, Kostenmodell, Einstiegspause, Tagesverlustpause, Drawdown-Halt und restartfestem Soak. Bestehende USDT-Ledger bleiben unverändert.
+- Paper-Ledger mit 250 USDC für neue Konten (10 USDC Anfangsreserve), standardmäßig drei Slots à 80 USDC, Kostenmodell, Einstiegspause, 5-%-UTC-Tagesverlustpause, Drawdown-Messung ohne permanenten Portfoliohalt und restartfestem Soak. Bestehende USDT-Ledger bleiben unverändert.
 - WebSocket-Livestream mit REST-Gap-Recovery, Startup-Prüfung und täglichem Audit um 00:05 UTC.
 - Verpasste geschlossene Bars werden nach einem Neustart exakt einmal nachverarbeitet; Soak-Tage, Bars je Coin und abgeschlossene Trades werden dauerhaft in SQLite gezählt und in der bestehenden Systemkarte angezeigt.
 - Lokale deutsche UI mit zehn Marktkarten, Positionen, Datenqualität und Candlestick-Charts für Heute, 1 Woche, 1 Monat, 1 Jahr und 3 Jahre.
 - Kauf-/Verkaufsmarker aus der nativen `1h`-Strategie; 1 Jahr wird nur zur Anzeige auf `4h`, 3 Jahre auf `1d` aggregiert.
-- Neue Backtests: gemeinsames 250-USDC-Spiegelportfolio mit gespeicherten Paper-Slots (Standard 3×80) und denselben 5-%-/20-%-Risikogates wie Paper; zehn isolierte Konten à 250 USDC oder ein einzelner Coin à 250 USDC, jeweils Baseline und Stress. Ältere USDT-Berichte behalten ihre Quote. Läufe ohne Portfolio-Gates heißen `strategy-only`.
+- Neue Backtests: gemeinsames 250-USDC-Spiegelportfolio mit gespeicherten Paper-Slots (Standard 3×80), `ranked_repeat`, 5-%-UTC-Tagespause und **ohne** permanenten Portfolio-Drawdown-Halt; daneben zehn isolierte Konten à 250 USDC beziehungsweise ein einzelner Coin à 250 USDC für die per-Coin-Diagnose, jeweils Baseline und Stress. Ältere USDT-Berichte behalten ihre Quote.
 - Backtest v2: dokumentierte Parametersuche, ältere Marktsegmente, Kosten-Stress und Nachbarprüfung; V2 ist für Paper freigegeben, wegen früher Risikohalts aber ausdrücklich nicht für Live.
-- Backtest v3: der gewünschte Versuch, mehrere 80-USDC-Slots demselben Coin zu geben, ist getrennt dokumentiert und verworfen; die aktive V6 verteilt höchstens einen Slot je Coin.
+- Historischer Backtest v3 dokumentiert den damaligen Mehrfachslot-Versuch. Die aktuelle V6-Betreiberentscheidung supersediert dessen alte Ablehnung: freie Slots dürfen mit `ranked_repeat` mehrfach demselben gültigen Coin-Signal zugeteilt werden.
 - Backtest v4/v5: begrenzte Coin-Parametersuche, Verlustdiagnose, getrennte Trainings-/Prüffenster, Original-Pine-Kontrolle und explizit versionierte Forschungsregeln; keine automatische Paperumschaltung.
 - V6: zehn explizite Coin-Profile, deterministische Zusatzfilter/Schlusskurs-Stops und Paper-/Backtest-/Restart-Parität; ausdrückliche Paper-Experimentfreigabe trotz dokumentierter Mehrfenster-Portfoliorückschritte.
 - Ziel sind gute Signalquellen und effiziente Nutzung der eingestellten Slots innerhalb des gewählten Budgets und vorhandenen Cashs. 250→500 USDT und genannte Tradezahlen sind Beispiele, keine Optimierungsquoten; kein Overfitting und keine erzwungenen Trades.
