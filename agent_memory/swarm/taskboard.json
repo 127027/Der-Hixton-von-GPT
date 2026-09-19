@@ -37,7 +37,7 @@
     "state": "IN_PROGRESS",
     "completion_mode": "continuous",
     "started_at_utc": "2026-09-16T10:30:00+00:00",
-    "last_transition_reason": "Owner instruction 2026-09-19: inspect all ten coins for further optimization after the verified 864.323391 3x80 checkpoint; improvements must remain one system and must be reflected in both 10x250 and 3x80. Do not manufacture a higher number by weakening validation.",
+    "last_transition_reason": "Owner instruction 2026-09-19: enforce evidence-led Top-K coin optimization. Repair stale Paper runtime first through the existing controlled strategy-activation path without resetting the account. Then improve 10x250 coin-by-coin, carry multiple training finalists into validation/full-3y/stress, measure each robust coin change alone in shared 3x80, and only combine changes that remain portfolio-compatible. Target is a validated 3x80 baseline above the current 864.81890017149085 USDC checkpoint without weakening validation.",
     "owner_instruction_date": "2026-09-19",
     "primary_agents": [
       "A01",
@@ -115,7 +115,13 @@
       "Do not erase rejected candidates from the central backtest journal; failed experiments are required negative evidence and must remain available to prevent repeated bad searches.",
       "Do not weaken train/validation/stress gates merely to exceed the current 864.323391 3x80 checkpoint.",
       "Use one canonical V6 profile map for Paper, 10x250 isolated diagnostics and 3x80 shared portfolio; no separate optimized strategy for one report mode.",
-      "Any assembled promotion must be non-regressive versus the incumbent in aggregate isolated baseline/stress AND shared-portfolio baseline/stress."
+      "Any assembled promotion must be non-regressive versus the incumbent in aggregate isolated baseline/stress AND shared-portfolio baseline/stress.",
+      "Training selection must preserve a bounded Top-K shortlist per coin; failure of rank 1 in validation/full-3y must not automatically discard robust rank 2+ candidates.",
+      "Validation and holdout results may eliminate a candidate but may never be used to silently choose a different candidate without that reselection being explicitly modelled and revalidated.",
+      "Every robust per-coin challenger must be tested alone against the incumbent nine-coin map in shared 3x80 baseline and stress before multi-coin assembly.",
+      "Portfolio-compatible combinations must be built only from marginal 3x80 non-regressive candidates; record interaction deltas when combined effects differ from individual effects.",
+      "Current shared-portfolio checkpoint to beat is 864.81890017149085 USDC baseline on the latest verified three-year window; any promoted profile must also preserve or improve shared-portfolio stress versus 771.2683414347478 USDC on the same window/cost model.",
+      "Repair the current Paper strategy-version mismatch only with the explicit audited activation path that preserves history; no automatic fresh-start reset is allowed."
     ],
     "acceptance": [
       "All eleven roles participate in every material guard run and emit fresh role-specific evidence for their assigned layer.",
@@ -174,14 +180,42 @@
       "A09 and A11 reject any optimization or future-operations claim that lacks reproducible evidence, hides a rejected candidate, or confuses roadmap with current functionality.",
       "Optimization evidence covers all ten USDC coins and records training winner, validation outcome, full-window incumbent/challenger metrics and whether each profile was accepted.",
       "Before promotion, the assembled candidate must pass an aggregate gate: 10x250 baseline/stress and 3x80 baseline/stress are each >= incumbent, with at least one material improvement.",
-      "After any promotion, a fresh real dashboard E2E and A01-A11 swarm must pass on the exact active profile/config version before download."
+      "After any promotion, a fresh real dashboard E2E and A01-A11 swarm must pass on the exact active profile/config version before download.",
+      "A03/A05 provide fresh evidence that the Paper ledger strategy version equals the active canonical V6 version after controlled activation, with prior history retained and no silent fresh-account reset.",
+      "For each coin, optimization evidence records the ordered Top-K training shortlist and validation/full-3y baseline+stress outcome for each finalist.",
+      "For each robust finalist, evidence records a single-coin marginal shared-3x80 baseline/stress delta versus the incumbent map.",
+      "The final combination search uses only individually portfolio-compatible finalists and records interaction effects before any promotion.",
+      "A promoted final map must exceed 864.81890017149085 USDC shared-3x80 baseline and be non-regressive versus 771.2683414347478 USDC shared-3x80 stress on the exact same report window, while aggregate isolated 10x250 baseline/stress remain non-regressive.",
+      "XRP evidence includes loss-cluster/regime analysis explaining the dominant losing-trade patterns rather than only another blind parameter sweep.",
+      "SOL incumbent is retained unless a challenger passes training, validation, full-3y, stress and marginal shared-3x80 gates.",
+      "BTC evidence explicitly tests whether smaller parameter shifts can retain isolated improvement without the previously observed shared-slot timing regression."
     ],
     "optimization_cycle_requested_at_utc": "2026-09-19T09:14:00+00:00",
     "documentation_integrity_audit_requested_at_utc": "2026-09-19T09:26:00+00:00",
     "documentation_cleanup_completed_at_utc": "2026-09-19T09:38:00+00:00",
     "download_snapshot_rule": "A download snapshot is current only when it contains the cleaned README/DMS contract, passes fresh preflight, and retains the last proven trading-code E2E invariants. The ongoing A01-A11 integrity/optimization mission continues after download without silently changing the user's local copy.",
     "future_24x7_roadmap_requested_at_utc": "2026-09-19T10:08:00+00:00",
-    "central_backtest_journal_requested_at_utc": "2026-09-19T10:08:00+00:00"
+    "central_backtest_journal_requested_at_utc": "2026-09-19T10:08:00+00:00",
+    "optimization_execution_plan": {
+      "paper_repair_first": [
+        "A03/A05 must resolve the current Paper strategy-version mismatch through the explicit audited activation mechanism; no silent reset, no fresh 250-USDC account, no real/testnet orders.",
+        "A05 must become fresh and ledger-integrity clean before final QA/Governance."
+      ],
+      "research_sequence": [
+        "For every symbol rank more than one training candidate; retain a bounded Top-K shortlist rather than discarding rank 2+ when the top candidate later fails.",
+        "Run frozen validation baseline/stress and full-three-year baseline/stress for every shortlisted candidate without reselection from validation.",
+        "For every robust shortlisted coin candidate, run a marginal shared-3x80 test changing only that symbol while the other nine remain incumbent.",
+        "Reject any coin candidate that improves isolated 10x250 but reduces shared-3x80 baseline or stress.",
+        "Combine only individually portfolio-compatible coin changes, then rerun aggregate 10x250 baseline/stress and shared-3x80 baseline/stress with identical profile hashes.",
+        "Prioritize ADA, AVAX, BNB and DOGE fine-neighbour searches; perform explicit loss-cluster/regime analysis for XRP; preserve SOL incumbent unless a challenger passes all gates; use BTC as a slot-timing conflict case and search smaller compatible changes."
+      ],
+      "current_reference": {
+        "three_year_10x250_baseline_usdc": "7781.8512414008835",
+        "three_year_3x80_baseline_usdc": "864.81890017149085",
+        "three_year_3x80_stress_usdc": "771.2683414347478",
+        "reference_window": "2023-09-19T12:00:00Z..2026-09-19T12:00:00Z approximately; each run must record exact UTC boundaries"
+      }
+    }
   },
   "queued_missions": [],
   "agent_runtime": {
