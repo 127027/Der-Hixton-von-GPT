@@ -33,11 +33,11 @@
   "active_mission": {
     "id": "SWARM-003",
     "title": "Continuous V6 product hardening and optimization",
-    "objective": "Keep one clean current Hixton V6 product and continuously improve its ten USDC coin profiles. The shared 250-USDC 3x80 ranked_repeat portfolio is the authoritative acceptance model; isolated 10x250 is the per-coin research laboratory. Current validated research checkpoint from run 35463131378 is 8217.00711069101365 USDC isolated baseline, 7692.5144402748462 USDC isolated stress, 1217.9057596598351 USDC shared 3x80 baseline and 1133.4052326050468 USDC shared 3x80 stress on 2023-09-19T19:00:00Z..2026-09-19T19:00:00Z. Keep documentation, UI, configuration, Paper state and agent memory aligned with the exact canonical V6 map.",
+    "objective": "Keep one clean current Hixton V6 product and continuously improve its ten USDC coin profiles. Product backtests expose exactly one current scenario. Every normal single, 10x250 and shared 3x80 backtest must cover exactly three calendar years from the chosen safe report_end_utc back to the same UTC timestamp three calendar years earlier; 400 one-hour warm-up bars are extra history before that window and never part of reported performance. If exact coverage is unavailable, fail closed instead of shortening. The fixed-window current-V6 regression reference for 2023-09-19T19:00:00Z..2026-09-19T19:00:00Z is 8217.00711069101365 USDC isolated 10x250 and 1217.9057596598351 USDC shared 3x80 using BTC VIDYA5, ADA band 4.4, AVAX band 4.6 and DOGE momentum18. Release only after exact-current E2E, full regression, QA and governance pass.",
     "state": "IN_PROGRESS",
     "completion_mode": "continuous",
     "started_at_utc": "2026-09-16T10:30:00+00:00",
-    "last_transition_reason": "Owner instruction 2026-09-19: clean the repository into one current V6 product, remove obsolete selectable backtests and stale documentation/memory, permanently eliminate duplicated V6 version/profile configuration, keep the eleven agents working autonomously on verification and research, and continue evidence-led optimization.",
+    "last_transition_reason": "Owner instruction 2026-09-19: A01-A11 must implement and verify one current exact-three-calendar-year backtest contract, eliminate product-facing baseline/stress ambiguity, enforce fail-closed history coverage, pin the current V6 reference outputs, and produce a downloadable release only after fresh E2E/QA/governance on the exact release commit.",
     "owner_instruction_date": "2026-09-19",
     "primary_agents": [
       "A01",
@@ -85,7 +85,13 @@
       "Current DMS and README describe only current normative behavior. Historical decisions live in CHANGELOG/decision history and must not read like active instructions.",
       "The eleven-agent cloud path is deterministic and key-free. No OPENAI_API_KEY or Binance private credential may be required for A01-A11 release verification.",
       "Scheduled research may run autonomously, but automatic merge, automatic live activation and unreviewed strategy promotion remain prohibited.",
-      "After every material code/profile/documentation change, invalidate downstream evidence and rerun fresh preflight, affected E2E/regression checks and A01-A11 before claiming a downloadable release."
+      "After every material code/profile/documentation change, invalidate downstream evidence and rerun fresh preflight, affected E2E/regression checks and A01-A11 before claiming a downloadable release.",
+      "Normal product backtests have exactly one scenario named current. Baseline/stress variants are not user-facing product results.",
+      "For single, isolated 10x250 and shared 3x80, report_start_utc equals report_end_utc shifted exactly three calendar years backwards. The 400 one-hour warm-up bars precede report_start_utc and are excluded from the reported performance window.",
+      "If any required market lacks exact three-year coverage plus warm-up, fail closed with an explicit insufficient-history error. Never move report_start_utc forward silently.",
+      "The product backtest canonical V6 map includes BTCUSDC vidya_length=5, ADAUSDC band_multiplier=4.4, AVAXUSDC band_multiplier=4.6 and DOGEUSDC momentum_length=18.",
+      "The fixed-window regression oracle 2023-09-19T19:00:00Z..2026-09-19T19:00:00Z reproduces approximately 8217.00711069101365 USDC isolated 10x250 and 1217.9057596598351 USDC shared 3x80 using the current scenario.",
+      "No downloadable release is approved until the exact release commit has green preflight, dashboard E2E, full regression, A09 QA_PASS and A11 GOVERNANCE_PASS."
     ],
     "acceptance": [
       "A01 confirms README, every DMS file and current agent memory agree on current V6, USDC, Paper-only operation, ranked_repeat 3x80 semantics, 10x250 diagnostic role and no permanent portfolio drawdown halt.",
@@ -103,7 +109,12 @@
       "The runtime config contains no duplicated V6 version digest or profile snapshot; changing the canonical map cannot create another config/profile mismatch.",
       "Repository backtests retain only the current V6 product evidence plus the central learning journal; obsolete version folders are removed from the current branch.",
       "A fresh real dashboard E2E, cloud preflight and full A01-A11 run all pass after the final cleanup commit.",
-      "Release wording may call the package distribution-ready for Paper/backtest use only; it must not claim live-trading readiness while real order execution remains disabled."
+      "Release wording may call the package distribution-ready for Paper/backtest use only; it must not claim live-trading readiness while real order execution remains disabled.",
+      "A02 proves exact three-calendar-year windows for single, 10x250 and 3x80 and demonstrates fail-closed insufficient-history behavior.",
+      "A04 proves the shipped UI displays one current backtest scenario and the exact report_start/report_end without Baseline/Stress alternatives.",
+      "A06 pins and passes fixed-window regression values near 8217.00711069101365 USDC (10x250) and 1217.9057596598351 USDC (3x80) with the current canonical V6 map.",
+      "A09 refuses QA_PASS without current dashboard E2E and exact-three-year fail-closed regression evidence on the exact release commit.",
+      "A11 refuses GOVERNANCE_PASS unless release commit, evidence commit and downloadable package commit are identical."
     ],
     "current_reference": {
       "source_run_id": "35463131378",
