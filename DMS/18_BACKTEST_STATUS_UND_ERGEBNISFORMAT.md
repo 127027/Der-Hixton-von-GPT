@@ -1,6 +1,9 @@
 # 18 – Backteststatus und Ergebnisnachweis
 ## Aktueller Referenzstand 18.09.2026 – nach Entfernung des permanenten Drawdown-Halts
 
+Zentraler fortlaufender Forschungsindex für alle zehn Coins: [backtests/README.md](../backtests/README.md). Dort werden Baselines, Verlustmuster, Hypothesen, akzeptierte und verworfene Kandidaten sowie die zwingende 10×250→3×80-Integrationsprüfung fortgeschrieben. DMS 18 bleibt der formale Ergebnisnachweis; das Backtest-README ist das Lernjournal.
+
+
 Echter Dashboard-E2E, Drei-Jahresfenster **18.09.2023 18:00 UTC bis 18.09.2026 18:00 UTC**, aktive V6-USDC-Profile, historische gleiche-Basisasset-USDT-Preiswege nur dort als klar gekennzeichneter Preisproxy, wo echte gleichlange USDC-Historie fehlt:
 
 - **Gemeinsames 3×80-USDC-Portfolio:** Start 250,00 USDC; Ende **750,7926241238353 USDC**; Rendite **+200,3170 %**; **111 Positionszyklen / 246 Slot-Trades**; maximaler Drawdown **31,9709 %**; kein permanenter Risikohalt; null `MAX_DRAWDOWN_20_PERCENT`-Blocks. Blockiert wurden 390 Kandidaten wegen `NO_FREE_SLOT`, 26 wegen VIDYA-Slope und 4 wegen CMO.
