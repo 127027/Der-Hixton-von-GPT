@@ -148,6 +148,18 @@ jobs:
                   '.venv/bin/hixton',
                   '--config',
                   'config/examples/config.example.json',
+                  'data',
+                  'sync',
+                  '--symbol',
+                  'ALL',
+              ],
+              check=True,
+          )
+          subprocess.run(
+              [
+                  '.venv/bin/hixton',
+                  '--config',
+                  'config/examples/config.example.json',
                   'paper-activate',
                   '--strategy',
                   target_key,
