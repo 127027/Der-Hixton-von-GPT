@@ -1,0 +1,15 @@
+{
+  "schema_version": 1,
+  "scope": "PAPER_ONLY_CONTROLLED_STRATEGY_ACTIVATION",
+  "strategy_key": "v6",
+  "authorized_from_strategy_version": "HIXTON-V6-COIN-PAPER-1-d57f88ec2e5f",
+  "authorized_to_strategy_version": "HIXTON-V6-COIN-PAPER-1-b9baa61cbc21",
+  "confirmation": "AKTIVIEREN",
+  "owner_instruction_date": "2026-09-19",
+  "preserve_history": true,
+  "fresh_start_allowed": false,
+  "close_open_simulated_positions_on_switch": true,
+  "real_money_orders_allowed": false,
+  "testnet_orders_allowed": false,
+  "note": "Single exact-version authorization to recover the stale Paper runtime after the already-promoted canonical V6 profile change. Any other from/to pair must fail closed."
+}
