@@ -1,5 +1,15 @@
 # Backtest V6 – eingefrorene Coin-Profile
 
+## Aktuelle Verwendung seit 19.09.2026
+
+Die untenstehenden Tabellen vom 06.09.2026 bleiben **historische V6-Evidenz**. Ihre damaligen USDT-Konten, Ein-Slot-pro-Coin-Annahme und der frühere permanente 20-%-Portfoliohalt werden nicht nachträglich umgeschrieben.
+
+Für die aktuelle USDC-V6 gilt: Der **gemeinsame Portfolio-Bot ist das Zielsystem**, standardmäßig 250 USDC mit 3×80 USDC. Alle zehn Märkte verwenden eine gemeinsame versionierte Strategie mit **individuellen Coin-Profilen**. Die aktive Slotvergabe ist `ranked_repeat`; mehrere freie Slots dürfen auf dasselbe gültige Coin-Signal entfallen. Drawdown wird gemessen, löst aber keinen permanenten Portfoliohalt mehr aus.
+
+Der Lauf **10×250 isoliert** ist die Entwicklungs- und Diagnoseebene derselben Strategie: BTC, ETH, BNB, SOL, XRP, ADA, LINK, AVAX, DOT und DOGE werden jeweils mit einem eigenen 250-USDC-Diagnosekonto geprüft. Dadurch werden schwache Coins und Verlustmuster sichtbar, ohne dass Slotkonkurrenz anderer Coins die Analyse verdeckt. Jeder Coin darf deshalb ein eigenes optimiertes Parameter-/Policy-Profil erhalten.
+
+Ein per Coin gefundener Kandidat darf nur nach vorab definierter Trainingsauswahl, getrennter Validierung und Kostenstress weiterkommen. Danach werden die akzeptierten zehn Coin-Profile **einmal gemeinsam versioniert** und unverändert zurück in den 3×80-Portfoliotest gegeben. Erst wenn das integrierte Hauptportfolio nicht regressiert, ist die Mischung aktivierungsfähig. Ein isolierter Gewinner, der im gemeinsamen Portfolio durch Timing/Slotkonkurrenz schadet, bleibt Forschungsbefund und ersetzt das aktive Profil nicht.
+
 Stand: 06.09.2026. **Aktives Paper-Experiment gemäß DEC-045. Keine Robustheits-/Livefreigabe. V2 bleibt Vergleichsreferenz.**
 
 ## Zweck und faire Einordnung
