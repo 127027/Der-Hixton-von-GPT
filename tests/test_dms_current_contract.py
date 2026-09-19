@@ -56,7 +56,7 @@ def test_current_normative_contract_matches_active_v6() -> None:
     runbook = _read("20_BETRIEBSRUNBOOK.md")
     structure = _read("23_ORDNERSTRUKTUR_UND_EINSTIEGSPUNKT.md")
 
-    assert "aktives Universum" in requirements
+    assert "aktive Universum" in requirements
     assert "USDC" in requirements
     assert "ranked_repeat" in requirements
     assert "keinen permanenten Drawdown-Halt" in requirements
