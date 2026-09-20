@@ -237,6 +237,19 @@ def role_a04() -> list[dict[str, Any]]:
     files = [path for path in static.rglob("*") if path.is_file()]
     if not files:
         raise CheckFailure("tracked UI static bundle is empty")
+    source_html = (ROOT / "ui" / "index.html").read_text(encoding="utf-8")
+    source_ts = (ROOT / "ui" / "src" / "main.ts").read_text(encoding="utf-8")
+    visible_source = source_html + "\n" + source_ts
+    ambiguous_labels = {
+        "Buy & Hold Ende": (
+            "Buy & Hold must be labeled as alternative ending capital from the same "
+            "starting cash, not as an additive amount."
+        ),
+    }
+    found = [label for label in ambiguous_labels if label in visible_source]
+    if found:
+        detail = "; ".join(f"{label}: {ambiguous_labels[label]}" for label in found)
+        raise CheckFailure(f"ambiguous financial UI semantics: {detail}")
     tests = existing_tests(
         "test_ui*.py",
         "test_*api*.py",
@@ -247,7 +260,7 @@ def role_a04() -> list[dict[str, Any]]:
     if tests:
         command = [sys.executable, "-m", "pytest", "-q", *tests]
         evidence.append(require_command(command, timeout=900))
-    evidence.append(coverage("current_v6_ui", "shipped_ui_bundle"))
+    evidence.append(coverage("current_v6_ui", "shipped_ui_bundle", "ui_metric_semantics"))
     return evidence
 
 
