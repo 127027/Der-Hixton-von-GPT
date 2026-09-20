@@ -27,6 +27,7 @@ ALLOWED_PREFIXES = (
     "tests/test_usdc_runtime_migration.py",
     "ui/index.html",
     "ui/src/main.ts",
+    "ui/tests/backtest-context.test.mjs",
     "README.md",
     "DMS/18_BACKTEST_STATUS_UND_ERGEBNISFORMAT.md",
     "src/hixton/ui/static/",
@@ -240,24 +241,24 @@ def repair_operator_result_surface() -> bool:
         'import { comparisonText, portfolioBlocksText, type RunComparison } from "./backtest-context";',
         'import { portfolioBlocksText } from "./backtest-context";',
     )
-    new_ts = new_ts.replace("  comparison?: RunComparison;\\n", "")
+    new_ts = new_ts.replace("  comparison?: RunComparison;", "")
     new_ts = new_ts.replace(
         '      required("#backtest-detail-body").innerHTML = `<tr><td colspan="7">Auswahl wird geladen …</td></tr>`;\\n',
         '      required("#backtest-detail-body").innerHTML = `<tr><td colspan="6">Auswahl wird geladen …</td></tr>`;\\n',
     )
     new_ts = new_ts.replace(
-        '      text("#backtest-comparison", "Abgleich für diese Auswahl wird geladen …");\\n',
+        '      text("#backtest-comparison", "Abgleich für diese Auswahl wird geladen …");',
         "",
     )
     new_ts = new_ts.replace(
-        '    text("#backtest-comparison", comparisonText(latestRun?.comparison));\\n',
+        '    text("#backtest-comparison", comparisonText(latestRun?.comparison));',
         "",
     )
     old_metric = '${formatNumber(metric.max_drawdown_pct as string)} %</td><td>${formatNumber(metric.buy_and_hold_ending_equity as string)}</td></tr>`;'
     new_metric = '${formatNumber(metric.max_drawdown_pct as string)} %</td></tr>`;'
     new_ts = new_ts.replace(old_metric, new_metric)
     new_ts = new_ts.replace(
-        '      text("#backtest-comparison", "Abgleich derzeit nicht verfügbar; keine aktuelle Bestätigung.");\\n',
+        '      text("#backtest-comparison", "Abgleich derzeit nicht verfügbar; keine aktuelle Bestätigung.");',
         "",
     )
     new_ts = new_ts.replace(
@@ -268,6 +269,28 @@ def repair_operator_result_surface() -> bool:
         _write(ts_path, new_ts)
         changed = True
 
+    ui_test_path = "ui/tests/backtest-context.test.mjs"
+    ui_test = _read(ui_test_path)
+    old_ui_test = """test("comparison has a visible mount point and text-only rendering", () => {
+  const html = readFileSync(new URL("../index.html", import.meta.url), "utf8");
+  const main = readFileSync(new URL("../src/main.ts", import.meta.url), "utf8");
+  assert.match(html, /id="backtest-comparison"/);
+  assert.match(main, /text\\("#backtest-comparison", comparisonText/);
+  assert.match(main, /text\\("#backtest-comparison", "Abgleich für diese Auswahl wird geladen/);
+  assert.match(main, /text\\("#backtest-comparison", "Abgleich derzeit nicht verfügbar/);
+});
+"""
+    new_ui_test = """test("research comparison stays internal and has no current UI mount", () => {
+  const html = readFileSync(new URL("../index.html", import.meta.url), "utf8");
+  const main = readFileSync(new URL("../src/main.ts", import.meta.url), "utf8");
+  assert.doesNotMatch(html, /id="backtest-comparison"/);
+  assert.doesNotMatch(main, /#backtest-comparison/);
+  assert.doesNotMatch(html, /Buy & Hold Ende/);
+});
+"""
+    if old_ui_test in ui_test:
+        _write(ui_test_path, ui_test.replace(old_ui_test, new_ui_test))
+        changed = True
     readme_path = "README.md"
     readme = _read(readme_path)
     old_readme = """| Modell | Endkapital |
@@ -400,6 +423,7 @@ def main() -> int:
             "tests/test_usdc_runtime_migration.py",
             "ui/index.html",
             "ui/src/main.ts",
+            "ui/tests/backtest-context.test.mjs",
             "README.md",
             "DMS/18_BACKTEST_STATUS_UND_ERGEBNISFORMAT.md",
             "src/hixton/ui/static",
