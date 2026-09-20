@@ -192,6 +192,26 @@ def role_a01() -> list[dict[str, Any]]:
     for path in documents:
         if not (ROOT / path).is_file():
             raise CheckFailure(f"required documentation missing: {path}")
+    product_docs = (
+        (ROOT / "README.md").read_text(encoding="utf-8")
+        + "\n"
+        + (ROOT / "DMS" / "18_BACKTEST_STATUS_UND_ERGEBNISFORMAT.md").read_text(
+            encoding="utf-8"
+        )
+    )
+    stale_product_terms = (
+        "10×250 Baseline",
+        "10×250 Stress",
+        "3×80 Baseline",
+        "3×80 Stress",
+        "Buy & Hold Ende",
+    )
+    found_stale = [term for term in stale_product_terms if term in product_docs]
+    if found_stale:
+        raise CheckFailure(
+            "current product documentation still exposes research alternatives: "
+            + ", ".join(found_stale)
+        )
     return [
         {"cloud_ready": ready},
         {"paper_contract": contract},
@@ -242,8 +262,13 @@ def role_a04() -> list[dict[str, Any]]:
     visible_source = source_html + "\n" + source_ts
     ambiguous_labels = {
         "Buy & Hold Ende": (
-            "Buy & Hold must be labeled as alternative ending capital from the same "
-            "starting cash, not as an additive amount."
+            "Buy & Hold is research-only and must not appear as a parallel product result."
+        ),
+        "backtest-comparison": (
+            "The current V6 product must not render a separate historical comparison banner."
+        ),
+        "Historischer Vergleich:": (
+            "Historical comparison prose belongs in research evidence, not the current result."
         ),
     }
     found = [label for label in ambiguous_labels if label in visible_source]
