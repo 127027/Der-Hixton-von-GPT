@@ -2,7 +2,7 @@
   "schema_version": 1,
   "scope": "PAPER_ONLY_CONTROLLED_STRATEGY_ACTIVATION",
   "strategy_key": "v6",
-  "authorized_from_strategy_version": "HIXTON-V6-COIN-PAPER-1-d57f88ec2e5f",
+  "authorized_from_strategy_version": "HIXTON-V6-COIN-PAPER-1-b9baa61cbc21",
   "authorized_to_strategy_version": "HIXTON-V6-COIN-PAPER-1-6da9687bb531",
   "confirmation": "AKTIVIEREN",
   "owner_instruction_date": "2026-09-20",
@@ -11,5 +11,5 @@
   "close_open_simulated_positions_on_switch": true,
   "real_money_orders_allowed": false,
   "testnet_orders_allowed": false,
-  "note": "Owner-authorized Paper-only activation from the preserved ledger strategy to the current canonical V6 after exact-3Y/current-only cleanup and BTC VIDYA5 promotion. Preserve ledger history, allow no fresh reset, and fail closed for any other from/to pair."
+  "note": "Owner-authorized Paper-only activation from the actual preserved ledger strategy to the current canonical V6 after exact-3Y/current-only cleanup and BTC VIDYA5 promotion. Preserve ledger history, allow no fresh reset, and fail closed for any other from/to pair."
 }
