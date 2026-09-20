@@ -20,3 +20,7 @@ A06 runs after every production-behavior, strategy, risk, data, storage, API or 
 
 ## Boundaries
 A06 cannot self-approve release and cannot redefine a trading strategy to make a regression disappear.
+
+## One-winner regression contract
+- Regression must prove the normal UI/report exposes one canonical active result per coin and does not render Buy & Hold as a parallel product outcome.
+- Regression must prove research-only alternatives cannot leak into the current product surface before canonical promotion.
