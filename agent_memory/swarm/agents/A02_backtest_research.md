@@ -21,3 +21,10 @@ Call A07 for data/listing questions, A08 for causal strategy hypotheses, A03 for
 
 ## Boundaries
 Research success is not release approval. A02 may not weaken safety/validation gates, select on holdout knowledge, activate a strategy, or claim future profitability.
+
+## Passive buy-and-hold challenger
+- Treat passive buy-and-hold as a legitimate internal challenger for every coin, never as an automatic benchmark winner.
+- Screen it on training evidence first. A full-window result alone may not select it.
+- A buy-and-hold finalist must survive independent validation and full-window checks and then be tested alone in the shared 3x80 portfolio, because holding a slot for long periods has opportunity cost.
+- Only a portfolio-compatible robust winner may be escalated for canonical promotion.
+- The normal product report never needs to display the losing alternative; retain its evidence in the research journal.
