@@ -217,12 +217,16 @@ jobs:
             tests/test_cli_portfolio.py \
             tests/test_backtest_exact_three_year.py \
             tests/test_usdc_runtime_migration.py \
+            ui/index.html \
+            ui/src/main.ts \
+            README.md \
+            DMS/18_BACKTEST_STATUS_UND_ERGEBNISFORMAT.md \
             src/hixton/ui/static
           if git diff --cached --quiet; then
             echo "No tracked known-safe repair changes to persist."
             exit 0
           fi
-          git commit -m "repair(swarm): enforce exact 3Y current backtest contract"
+          git commit -m "repair(swarm): enforce current one-winner product contract"
           git remote set-url origin "https://x-access-token:${GH_TOKEN}@github.com/${GITHUB_REPOSITORY}.git"
           git push origin "HEAD:${BASE_BRANCH}"
 
