@@ -19,3 +19,8 @@ Ensure the visible interface always represents current backend/runtime truth and
 
 ## Boundaries
 A04 does not change trading semantics to satisfy presentation. It escalates backend inconsistencies to the owning agent and A06.
+
+## Current result simplicity
+- The normal Backtests page shows only the active canonical V6 result.
+- Do not show a separate Buy & Hold column/result or an irrelevant current-vs-historical-comparison banner beside the active result.
+- Internal research comparisons belong in research evidence, not the operator-facing current result table.
