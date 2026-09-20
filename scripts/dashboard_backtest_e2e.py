@@ -15,6 +15,7 @@ from dataclasses import replace
 from datetime import UTC, datetime
 from decimal import Decimal
 from pathlib import Path
+from statistics import median
 from typing import Any
 
 import httpx
@@ -179,7 +180,11 @@ async def _run_mode(
 
 
 
-def _portfolio_trade_breakdown(run_output_root: Path) -> dict[str, dict[str, object]]:
+def _portfolio_trade_breakdown(
+    run_output_root: Path,
+    report_start_utc: str,
+    report_end_utc: str,
+) -> tuple[dict[str, dict[str, object]], dict[str, object]]:
     candidates: list[tuple[datetime, Path]] = []
     for directory in run_output_root.iterdir():
         if not directory.is_dir():
@@ -198,10 +203,12 @@ def _portfolio_trade_breakdown(run_output_root: Path) -> dict[str, dict[str, obj
 
     trades_path = max(candidates, key=lambda item: item[0])[1]
     breakdown: dict[str, dict[str, object]] = {}
+    trade_rows: list[dict[str, str]] = []
     with trades_path.open("r", encoding="utf-8", newline="") as handle:
         for row in csv.DictReader(handle):
             if row["scenario"] != "current":
                 continue
+            trade_rows.append(row)
             symbol = row["symbol"]
             item = breakdown.setdefault(
                 symbol,
@@ -235,7 +242,54 @@ def _portfolio_trade_breakdown(run_output_root: Path) -> dict[str, dict[str, obj
             item["exit_quote_receive"] = str(
                 Decimal(str(item["exit_quote_receive"])) + Decimal(row["exit_quote_receive"])
             )
-    return dict(sorted(breakdown.items()))
+    ordered = dict(sorted(breakdown.items()))
+    start = datetime.fromisoformat(report_start_utc).astimezone(UTC)
+    end = datetime.fromisoformat(report_end_utc).astimezone(UTC)
+    entries = sorted(datetime.fromisoformat(row["entry_time_utc"]).astimezone(UTC) for row in trade_rows)
+    gaps = [
+        (right - left).total_seconds() / 3600
+        for left, right in zip([start, *entries], [*entries, end], strict=True)
+    ]
+    events: dict[datetime, int] = {}
+    for row in trade_rows:
+        entry = datetime.fromisoformat(row["entry_time_utc"]).astimezone(UTC)
+        exit_at = datetime.fromisoformat(row["exit_time_utc"]).astimezone(UTC)
+        slots = int(row["slot_count"])
+        events[entry] = events.get(entry, 0) + slots
+        events[exit_at] = events.get(exit_at, 0) - slots
+    occupancy_hours = {str(value): 0.0 for value in range(4)}
+    occupancy = 0
+    previous = start
+    max_occupancy = 0
+    for at in sorted(events):
+        clipped = min(max(at, start), end)
+        if clipped > previous:
+            if occupancy not in range(4):
+                raise RuntimeError(f"portfolio slot occupancy escaped 0..3: {occupancy}")
+            occupancy_hours[str(occupancy)] += (clipped - previous).total_seconds() / 3600
+            previous = clipped
+        occupancy += events[at]
+        max_occupancy = max(max_occupancy, occupancy)
+    if previous < end:
+        if occupancy not in range(4):
+            raise RuntimeError(f"portfolio slot occupancy escaped 0..3: {occupancy}")
+        occupancy_hours[str(occupancy)] += (end - previous).total_seconds() / 3600
+    if max_occupancy > 3:
+        raise RuntimeError(f"historical portfolio exceeded three slots: {max_occupancy}")
+    entries_by_year: dict[str, int] = {}
+    for value in entries:
+        key = str(value.year)
+        entries_by_year[key] = entries_by_year.get(key, 0) + 1
+    timing = {
+        "position_cycles": len(entries),
+        "average_gap_hours_including_window_edges": (sum(gaps) / len(gaps)) if gaps else None,
+        "median_gap_hours_including_window_edges": median(gaps) if gaps else None,
+        "longest_gap_hours_including_window_edges": max(gaps) if gaps else None,
+        "entries_by_year": entries_by_year,
+        "max_slot_occupancy": max_occupancy,
+        "occupancy_hours_by_slots": occupancy_hours,
+    }
+    return ordered, timing
 
 
 async def main() -> None:
@@ -260,7 +314,13 @@ async def main() -> None:
             timeout=30.0,
         ) as client:
             portfolio = await _run_mode(client, supervisor, "portfolio")
-            portfolio["per_symbol_trades"] = _portfolio_trade_breakdown(run_output_root)
+            breakdown, timing = _portfolio_trade_breakdown(
+                run_output_root,
+                str(portfolio["report_start_utc"]),
+                str(portfolio["report_end_utc"]),
+            )
+            portfolio["per_symbol_trades"] = breakdown
+            portfolio["trade_timing"] = timing
             isolated = await _run_mode(client, supervisor, "all")
 
         evidence = {

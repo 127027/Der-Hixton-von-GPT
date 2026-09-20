@@ -43,6 +43,15 @@ KNOWN_REGRESSION_CASES: dict[str, tuple[str, ...]] = {
         "verify_current_ui_and_documentation_surface",
         "verify_full_regression_and_release_governance",
     ),
+    "LIVE_READINESS_AUDIT": (
+        "verify_backtest_execution_realism_without_claiming_historical_binance_fills",
+        "verify_current_no_trade_state_against_strategy_activation_and_historical_frequency",
+        "verify_live_surface_is_fail_closed_until_a_separate_release",
+        "verify_duplicate_retry_restart_and_runaway_order_protection",
+        "verify_binance_spot_filters_and_usdc_only_constraints",
+        "verify_live_risk_and_capital_limits_are_not_inferred_from_10x250_research",
+        "verify_all_eleven_agents_audit_the_live_readiness_result",
+    ),
 }
 
 REGRESSION_EVIDENCE_CONTRACTS: dict[str, dict[str, tuple[str, ...]]] = {
@@ -58,6 +67,19 @@ REGRESSION_EVIDENCE_CONTRACTS: dict[str, dict[str, tuple[str, ...]]] = {
         "A09": ("independent_full_qa", "independent_ui_qa"),
         "A10": ("evidence_contract_audit", "repair_routing"),
         "A11": ("governance_audit",),
+    },
+    "LIVE_READINESS_AUDIT": {
+        "A01": ("live_documentation_contract", "live_release_scope"),
+        "A02": ("backtest_execution_realism", "trade_frequency_analysis"),
+        "A03": ("paper_live_signal_parity", "slot_reuse_contract"),
+        "A04": ("live_ui_fail_closed", "live_capital_semantics"),
+        "A05": ("current_no_trade_diagnosis", "live_runtime_blockers"),
+        "A06": ("live_failure_regression", "runaway_order_guard"),
+        "A07": ("live_exchange_filters", "live_binance_constraints"),
+        "A08": ("live_strategy_risk_limits", "live_slot_competition"),
+        "A09": ("live_audit_qa",),
+        "A10": ("live_audit_evidence_contract",),
+        "A11": ("live_audit_governance",),
     },
 }
 
