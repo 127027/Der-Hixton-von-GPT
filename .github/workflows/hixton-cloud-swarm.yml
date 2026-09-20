@@ -1,3 +1,4 @@
+# 2026-09-20: release-candidate validation for exact-3Y current-only V6.
 # 2026-09-19: rerun A10 shortened-window repair after repair-agent lint cleanup.
 # 2026-09-19: run A10 repair for legacy shortened-window regression tests.
 # 2026-09-19: verify A10 exact-3Y repair commit af1ca163 via branch verification head.
