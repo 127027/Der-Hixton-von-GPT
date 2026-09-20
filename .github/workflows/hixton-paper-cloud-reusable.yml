@@ -101,6 +101,8 @@ jobs:
           import subprocess
           from pathlib import Path
 
+          from hixton.domain.versions import strategy_definition
+
           auth = json.loads(
               Path('agent_memory/swarm/paper_activation_authorization.json').read_text(
                   encoding='utf-8'
@@ -118,7 +120,7 @@ jobs:
               raise SystemExit('Paper strategy state missing; activation refused')
           current_key, current_version = str(row[0]), str(row[1])
           target_key = str(config['strategy']['key'])
-          target_version = str(config['strategy']['version'])
+          target_version = strategy_definition(target_key).version
           if current_key == target_key and current_version == target_version:
               print(f'Paper strategy already current: {target_key}/{target_version}')
               raise SystemExit(0)
