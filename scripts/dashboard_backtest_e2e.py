@@ -245,7 +245,10 @@ def _portfolio_trade_breakdown(
     ordered = dict(sorted(breakdown.items()))
     start = datetime.fromisoformat(report_start_utc).astimezone(UTC)
     end = datetime.fromisoformat(report_end_utc).astimezone(UTC)
-    entries = sorted(datetime.fromisoformat(row["entry_time_utc"]).astimezone(UTC) for row in trade_rows)
+    entries = sorted(
+        datetime.fromisoformat(row["entry_time_utc"]).astimezone(UTC)
+        for row in trade_rows
+    )
     gaps = [
         (right - left).total_seconds() / 3600
         for left, right in zip([start, *entries], [*entries, end], strict=True)

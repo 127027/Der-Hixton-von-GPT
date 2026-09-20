@@ -203,7 +203,9 @@ def _current_strategy_activity() -> dict[str, Any]:
         if strategy is None:
             raise CheckFailure("Paper strategy state missing")
         activated_at = str(strategy["activated_at_utc"])
-        open_positions = int(connection.execute("SELECT COUNT(*) FROM paper_positions").fetchone()[0])
+        open_positions = int(
+            connection.execute("SELECT COUNT(*) FROM paper_positions").fetchone()[0]
+        )
         filled_entries = int(
             connection.execute(
                 "SELECT COUNT(*) FROM paper_events "
