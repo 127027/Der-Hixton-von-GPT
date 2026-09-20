@@ -152,7 +152,10 @@
         "FULL_A01_A11_PASS",
         "QA_PASS",
         "GOVERNANCE_PASS"
-      ]
+      ],
+      "finalized_at_utc": "2026-09-20T07:22:00+00:00",
+      "paper_state_checkpoint": "1a1a39bdc8a9770142143a2879b310e629b3a01f",
+      "status": "FINAL_VALIDATION"
     }
   },
   "queued_missions": [],
