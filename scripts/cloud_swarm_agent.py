@@ -4,6 +4,8 @@ These roles inspect and test the Paper-only system. They never read Binance
 credentials, never submit orders and never import the unreleased live adapter.
 """
 
+# ruff: noqa: RUF001
+
 from __future__ import annotations
 
 import argparse
