@@ -50,7 +50,7 @@ REGRESSION_EVIDENCE_CONTRACTS: dict[str, dict[str, tuple[str, ...]]] = {
         "A01": ("requirements_contract", "paper_only_contract", "mission_lifecycle"),
         "A02": ("current_v6_backtest", "topk_validation", "portfolio_gate"),
         "A03": ("paper_shared_parity", "persistent_paper_state"),
-        "A04": ("current_v6_ui", "shipped_ui_bundle"),
+        "A04": ("current_v6_ui", "shipped_ui_bundle", "ui_metric_semantics"),
         "A05": ("runtime_freshness", "ledger_integrity"),
         "A06": ("integration_compile", "full_regression"),
         "A07": ("binance_usdc_universe", "public_kline_sample"),
