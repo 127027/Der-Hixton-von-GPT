@@ -138,10 +138,21 @@
     "optimization_cycle_requested_at_utc": "2026-09-19T09:14:00+00:00",
     "latest_repair_commit": "af1ca16316c144af4665f7d4f4e92e5325d526e3",
     "release_candidate": {
-      "base_repair_commit": "c2b7c93329e6c823f336e62c9f01a512f9efd85a",
-      "clean_swarm_run_id": "35470258396",
-      "status": "GATES_PENDING",
-      "code_changes_after_base": false
+      "requested_at_utc": "2026-09-20T07:15:00+00:00",
+      "contract": "EXACT_3Y_CURRENT_ONLY_V6",
+      "fixed_reference_window": {
+        "report_start_utc": "2023-09-19T19:00:00+00:00",
+        "report_end_utc": "2026-09-19T19:00:00+00:00",
+        "isolated_10x250_usdc": "8217.00711069101365000000",
+        "shared_3x80_usdc": "1217.90575965983510000000"
+      },
+      "required_gates": [
+        "PREFLIGHT_PASS",
+        "DASHBOARD_E2E_PASS",
+        "FULL_A01_A11_PASS",
+        "QA_PASS",
+        "GOVERNANCE_PASS"
+      ]
     }
   },
   "queued_missions": [],
