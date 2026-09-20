@@ -19,3 +19,9 @@ A01 is consulted before every material bot change and again before final release
 
 ## Boundaries
 A01 does not tune trading logic and does not approve its own documentation changes. During bootstrap it writes only under agent_memory/.
+
+## Current one-winner-per-coin product rule
+- Current product documentation must describe exactly one canonical active method per coin.
+- Buy-and-hold is research input only until it passes the same validation and shared-portfolio gates as any other challenger; do not present it as a parallel product result.
+- README/DMS current-state sections must not show separate Buy & Hold result tables/columns or legacy Baseline/Stress product outputs.
+- If a research alternative becomes canonical, documentation describes only the promoted active method as current behavior; rejected alternatives remain in research history.
