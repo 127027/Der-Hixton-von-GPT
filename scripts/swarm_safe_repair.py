@@ -23,6 +23,10 @@ ALLOWED_PREFIXES = (
     "tests/test_cli_portfolio.py",
     "tests/test_backtest_exact_three_year.py",
     "tests/test_usdc_runtime_migration.py",
+    "ui/index.html",
+    "ui/src/main.ts",
+    "README.md",
+    "DMS/18_BACKTEST_STATUS_UND_ERGEBNISFORMAT.md",
     "src/hixton/ui/static/",
 )
 
@@ -211,6 +215,118 @@ def test_available_report_start_keeps_requested_start_when_full_warmup_exists(
     return True
 
 
+def repair_operator_result_surface() -> bool:
+    changed = False
+
+    html_path = "ui/index.html"
+    html = _read(html_path)
+    new_html = html.replace(
+        '            <p id="backtest-comparison" class="backtest-note">Abgleich mit aktivem Bot wird geladen.</p>\\n',
+        "",
+    )
+    new_html = new_html.replace(
+        "<th>Trades</th><th>Max. Drawdown</th><th>Buy & Hold Ende</th>",
+        "<th>Trades</th><th>Max. Drawdown</th>",
+    )
+    if new_html != html:
+        _write(html_path, new_html)
+        changed = True
+
+    ts_path = "ui/src/main.ts"
+    main_ts = _read(ts_path)
+    new_ts = main_ts.replace(
+        'import { comparisonText, portfolioBlocksText, type RunComparison } from "./backtest-context";',
+        'import { portfolioBlocksText } from "./backtest-context";',
+    )
+    new_ts = new_ts.replace("  comparison?: RunComparison;\\n", "")
+    new_ts = new_ts.replace(
+        '      required("#backtest-detail-body").innerHTML = `<tr><td colspan="7">Auswahl wird geladen …</td></tr>`;\\n',
+        '      required("#backtest-detail-body").innerHTML = `<tr><td colspan="6">Auswahl wird geladen …</td></tr>`;\\n',
+    )
+    new_ts = new_ts.replace(
+        '      text("#backtest-comparison", "Abgleich für diese Auswahl wird geladen …");\\n',
+        "",
+    )
+    new_ts = new_ts.replace(
+        '    text("#backtest-comparison", comparisonText(latestRun?.comparison));\\n',
+        "",
+    )
+    old_metric = '${formatNumber(metric.max_drawdown_pct as string)} %</td><td>${formatNumber(metric.buy_and_hold_ending_equity as string)}</td></tr>`;'
+    new_metric = '${formatNumber(metric.max_drawdown_pct as string)} %</td></tr>`;'
+    new_ts = new_ts.replace(old_metric, new_metric)
+    new_ts = new_ts.replace(
+        '      text("#backtest-comparison", "Abgleich derzeit nicht verfügbar; keine aktuelle Bestätigung.");\\n',
+        "",
+    )
+    new_ts = new_ts.replace(
+        '      required("#backtest-detail-body").innerHTML = `<tr><td colspan="7">Keine aktuelle Antwort für diese Auswahl.</td></tr>`;\\n',
+        '      required("#backtest-detail-body").innerHTML = `<tr><td colspan="6">Keine aktuelle Antwort für diese Auswahl.</td></tr>`;\\n',
+    )
+    if new_ts != main_ts:
+        _write(ts_path, new_ts)
+        changed = True
+
+    readme_path = "README.md"
+    readme = _read(readme_path)
+    old_readme = """| Modell | Endkapital |
+|---|---:|
+| 10×250 Baseline | **8.217,01 USDC** |
+| 10×250 Stress | **7.692,51 USDC** |
+| 3×80 Baseline | **1.217,91 USDC** |
+| 3×80 Stress | **1.133,41 USDC** |
+
+3×80 Baseline: 94 Positionszyklen, 210 Slot-Trades, 24,10 % Max-Drawdown. Der Run erfüllte den vollständigen Promotion-Gate. Das sind historische Simulationen, keine Gewinnprognose.
+
+## Optimierungsprozess
+
+Der geplante Dauerzyklus ist: bounded Kandidaten -> Training A/B -> eingefrorene Top-K -> Validation -> vollständige Drei-Jahres-Baseline und Stress -> jeder robuste Kandidat einzeln im 3×80 -> schrittweise Kombination -> finaler 10×250- und 3×80-Gate.
+"""
+    new_readme = """| Modell | Aktuelles Endkapital |
+|---|---:|
+| 10×250 isoliert | **8.217,01 USDC** |
+| 3×80 Portfolio | **1.217,91 USDC** |
+
+3×80 aktuell: 94 Positionszyklen, 210 Slot-Trades, 24,10 % Max-Drawdown. Das sind historische Simulationen, keine Gewinnprognose. Interne Forschungsvarianten und Robustheitsprüfungen bleiben im Forschungsjournal und werden nicht als parallele Produktresultate dargestellt.
+
+## Optimierungsprozess
+
+Der Dauerzyklus sucht pro Coin die robust beste Methode. Aktive V6-Varianten und auch Buy-and-Hold dürfen intern als Kandidaten antreten. Auswahl erfolgt auf Training, danach folgen unabhängige Validierung, vollständiger Drei-Jahres-Test und der entscheidende gemeinsame 3×80-Portfolio-Gate. Pro Coin wird nur der robuste Gewinner kanonisch; die normale UI zeigt nur diesen aktiven Stand.
+"""
+    if old_readme in readme:
+        _write(readme_path, readme.replace(old_readme, new_readme))
+        changed = True
+
+    dms_path = "DMS/18_BACKTEST_STATUS_UND_ERGEBNISFORMAT.md"
+    dms = _read(dms_path)
+    old_dms = """| Modell | Incumbent | Kandidat | Delta |
+|---|---:|---:|---:|
+| 10×250 Baseline | 8.187,22 | **8.217,01** | +29,79 |
+| 10×250 Stress | 7.659,23 | **7.692,51** | +33,28 |
+| 3×80 Baseline | 1.212,98 | **1.217,91** | +4,92 |
+| 3×80 Stress | 1.128,65 | **1.133,41** | +4,75 |
+
+Kandidat 3×80 Baseline: 94 Positionszyklen / 210 Slot-Trades / 24,10 % Max-DD.
+Kandidat 3×80 Stress: 94 Positionszyklen / 210 Slot-Trades / 28,62 % Max-DD.
+Promotion-Gate: promotable=true.
+
+Finaler Schritt dieses Runs: BTC VIDYA 6 -> 5. Bereits im Incumbent enthalten waren ADA Band 4,4, AVAX Band 4,6 und DOGE Momentum 18.
+"""
+    new_dms = """| Modell | Aktueller kanonischer Lauf |
+|---|---:|
+| 10×250 isoliert | **8.217,01 USDC** |
+| 3×80 Portfolio | **1.217,91 USDC** |
+
+3×80 aktuell: 94 Positionszyklen / 210 Slot-Trades / 24,10 % Max-DD.
+Der aktuelle kanonische Coin-Mix enthält BTC VIDYA 5, ADA Band 4,4, AVAX Band 4,6 und DOGE Momentum 18.
+
+Forschungsalternativen einschließlich Buy-and-Hold, Stress-/Robustheitsvarianten und verworfener Kandidaten bleiben im Forschungsjournal. Im Produkt gibt es pro Coin nur eine kanonische aktive Methode und in der normalen UI nur deren Ergebnis.
+"""
+    if old_dms in dms:
+        _write(dms_path, dms.replace(old_dms, new_dms))
+        changed = True
+
+    return changed
+
 def sync_ui_bundle() -> bool:
     before = subprocess.run(
         ["git", "status", "--porcelain", "--", "src/hixton/ui/static"],
@@ -266,6 +382,7 @@ def main() -> int:
     changed |= repair_single_scenario_test()
     changed |= repair_legacy_shortened_window_tests()
     changed |= ensure_exact_three_year_tests()
+    changed |= repair_operator_result_surface()
     changed |= sync_ui_bundle()
 
     status = subprocess.run(
@@ -279,6 +396,10 @@ def main() -> int:
             "tests/test_cli_portfolio.py",
             "tests/test_backtest_exact_three_year.py",
             "tests/test_usdc_runtime_migration.py",
+            "ui/index.html",
+            "ui/src/main.ts",
+            "README.md",
+            "DMS/18_BACKTEST_STATUS_UND_ERGEBNISFORMAT.md",
             "src/hixton/ui/static",
         ],
         cwd=ROOT,
