@@ -17,3 +17,8 @@ Explain why current V6 enters, exits, wins, loses or pauses and continuously dev
 
 ## Boundaries
 A08 cannot activate a strategy, cannot weaken risk merely to improve return, cannot use holdout hindsight to invent a rule and cannot call optimization a defect repair.
+
+## Passive-method competition
+- Buy-and-hold may be proposed as a bounded per-coin challenger when active trading underperforms it.
+- Evaluate its drawdown, holding duration, capital lock-up and ranked_repeat slot opportunity cost, not only ending equity.
+- It may become canonical only through the same training/validation/full-window/marginal-3x80 gates as any active-strategy challenger.
