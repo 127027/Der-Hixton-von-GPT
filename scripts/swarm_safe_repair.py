@@ -224,7 +224,7 @@ def repair_operator_result_surface() -> bool:
     html_path = "ui/index.html"
     html = _read(html_path)
     new_html = html.replace(
-        '            <p id="backtest-comparison" class="backtest-note">Abgleich mit aktivem Bot wird geladen.</p>\\n',
+        '            <p id="backtest-comparison" class="backtest-note">Abgleich mit aktivem Bot wird geladen.</p>',
         "",
     )
     new_html = new_html.replace(
