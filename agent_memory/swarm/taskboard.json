@@ -33,11 +33,11 @@
   "active_mission": {
     "id": "SWARM-003",
     "title": "Continuous V6 product hardening and optimization",
-    "objective": "Keep one clean current Hixton V6 product and continuously improve its ten USDC coin profiles. Product backtests expose exactly one current scenario. Every normal single, 10x250 and shared 3x80 backtest must cover exactly three calendar years from the chosen safe report_end_utc back to the same UTC timestamp three calendar years earlier; 400 one-hour warm-up bars are extra history before that window and never part of reported performance. If exact coverage is unavailable, fail closed instead of shortening. The fixed-window current-V6 regression reference for 2023-09-19T19:00:00Z..2026-09-19T19:00:00Z is 8217.00711069101365 USDC isolated 10x250 and 1217.9057596598351 USDC shared 3x80 using BTC VIDYA5, ADA band 4.4, AVAX band 4.6 and DOGE momentum18. Release only after exact-current E2E, full regression, QA and governance pass.",
+    "objective": "Keep one clean current Hixton V6 product and continuously improve its ten USDC coin methods. Each coin has exactly one canonical active method at a time. Active V6 trading logic and passive buy-and-hold are research candidates, not parallel product outputs: the robust winner for a coin may become that coin's canonical method only after training-only selection, independent validation/full-window checks and the authoritative shared 3x80 portfolio gate. Product UI/reports show only the currently active canonical result, never a separate Buy & Hold comparison column. Every normal single, 10x250 and shared 3x80 product backtest covers exactly three calendar years with 400 warm-up bars before the report window and one current scenario only.",
     "state": "IN_PROGRESS",
     "completion_mode": "continuous",
     "started_at_utc": "2026-09-16T10:30:00+00:00",
-    "last_transition_reason": "A10 exact-three-year/current-only repairs are complete. Full A01-A11 run 35470258396 passed on repair head c2b7c93329e6c823f336e62c9f01a512f9efd85a. This metadata-only commit is the final release candidate trigger for exact-SHA preflight/dashboard E2E before one final A01-A11 confirmation.",
+    "last_transition_reason": "Owner instruction 2026-09-20: one truth per coin. Buy-and-hold may compete internally as a candidate, but only the robust portfolio-compatible winner becomes canonical. Remove separate Buy & Hold and irrelevant historical-comparison clutter from UI/reports and align README/DMS. Delegate implementation to A01/A02/A04/A06/A08 with A10 supervision, A09 QA and A11 governance.",
     "owner_instruction_date": "2026-09-19",
     "primary_agents": [
       "A01",
@@ -91,7 +91,11 @@
       "If any required market lacks exact three-year coverage plus warm-up, fail closed with an explicit insufficient-history error. Never move report_start_utc forward silently.",
       "The product backtest canonical V6 map includes BTCUSDC vidya_length=5, ADAUSDC band_multiplier=4.4, AVAXUSDC band_multiplier=4.6 and DOGEUSDC momentum_length=18.",
       "The fixed-window regression oracle 2023-09-19T19:00:00Z..2026-09-19T19:00:00Z reproduces approximately 8217.00711069101365 USDC isolated 10x250 and 1217.9057596598351 USDC shared 3x80 using the current scenario.",
-      "No downloadable release is approved until the exact release commit has green preflight, dashboard E2E, full regression, A09 QA_PASS and A11 GOVERNANCE_PASS."
+      "No downloadable release is approved until the exact release commit has green preflight, dashboard E2E, full regression, A09 QA_PASS and A11 GOVERNANCE_PASS.",
+      "Buy-and-hold is an internal per-coin research candidate, not a user-facing benchmark. It must not appear as a separate Buy & Hold result/column in the normal UI or current product report.",
+      "A passive buy-and-hold candidate may replace an active trading method for a coin only if it wins under the same anti-overfitting selection discipline and remains compatible with the authoritative shared 3x80 portfolio gate. Isolated outperformance alone is insufficient because a passive position can consume slot capacity for long periods.",
+      "For each coin there is exactly one canonical active method. The product never presents two competing truths for the same coin; research alternatives remain internal until promoted.",
+      "Current README and DMS must describe the one-winner-per-coin rule and must not present legacy Baseline/Stress or Buy-and-Hold benchmark tables as current product outputs."
     ],
     "acceptance": [
       "A01 confirms README, every DMS file and current agent memory agree on current V6, USDC, Paper-only operation, ranked_repeat 3x80 semantics, 10x250 diagnostic role and no permanent portfolio drawdown halt.",
@@ -114,7 +118,13 @@
       "A04 proves the shipped UI displays one current backtest scenario and the exact report_start/report_end without Baseline/Stress alternatives.",
       "A06 pins and passes fixed-window regression values near 8217.00711069101365 USDC (10x250) and 1217.9057596598351 USDC (3x80) with the current canonical V6 map.",
       "A09 refuses QA_PASS without current dashboard E2E and exact-three-year fail-closed regression evidence on the exact release commit.",
-      "A11 refuses GOVERNANCE_PASS unless release commit, evidence commit and downloadable package commit are identical."
+      "A11 refuses GOVERNANCE_PASS unless release commit, evidence commit and downloadable package commit are identical.",
+      "A02 evaluates passive buy-and-hold as an internal candidate for every coin alongside bounded active-strategy candidates, with training-only ranking and independent validation/full-window evidence; it never auto-promotes from a single full-window comparison.",
+      "A08 explains any buy-and-hold finalist in terms of opportunity cost, drawdown, holding duration and shared-slot impact before promotion.",
+      "A04 proves the shipped UI contains no Buy & Hold result column and no irrelevant historical comparison banner in the current V6 result view.",
+      "A01 proves README and DMS state one canonical active method per coin and do not expose Buy & Hold as a parallel product result.",
+      "A06 adds regression coverage for the one-winner-per-coin contract and the absence of Buy & Hold/current-vs-historical-comparison UI clutter.",
+      "A09 and A11 refuse release if a noncanonical research alternative is presented beside the active result as though both were product choices."
     ],
     "current_reference": {
       "source_run_id": "35463131378",
