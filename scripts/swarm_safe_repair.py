@@ -293,10 +293,12 @@ def main() -> int:
             raw = raw.split(" -> ", 1)[1]
         paths.append(raw)
     normalized = validate_cloud_patch_paths(paths)
+    ignored_runtime_paths = ("collected/", "reports/")
     unexpected = [
         path
         for path in normalized
-        if not any(path == prefix or path.startswith(prefix) for prefix in ALLOWED_PREFIXES)
+        if not any(path.startswith(prefix) for prefix in ignored_runtime_paths)
+        and not any(path == prefix or path.startswith(prefix) for prefix in ALLOWED_PREFIXES)
     ]
     if unexpected:
         raise RepairError(f"known-safe A10 repair touched unexpected paths: {unexpected}")
