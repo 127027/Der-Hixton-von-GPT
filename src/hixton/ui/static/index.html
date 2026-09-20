@@ -5,8 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="color-scheme" content="dark" />
     <title>Der Hixton</title>
-    <script type="module" crossorigin src="/assets/index-4lwTMZgf.js"></script>
-    <link rel="stylesheet" crossorigin href="/assets/index-B5XEI3_N.css">
+    <script type="module" crossorigin src="/assets/index-CWwZgYWA.js"></script>
+    <link rel="stylesheet" crossorigin href="/assets/index-oRzAbv-Z.css">
   </head>
   <body>
     <div id="app-shell">
@@ -159,33 +159,43 @@
               <p>Gilt für neue Paper-Trades. Kontostand und laufende Positionen bleiben erhalten.</p>
             </article>
 
-            <article class="settings-card hidden" aria-hidden="true">
-              <h2>2 · Binance verbinden</h2>
+            <article class="settings-card">
+              <h2>2 · Binance-Zugang & Sicherheit</h2>
+              <p>Hier hinterlegst du ausschließlich die Zugangsschlüssel für dein Binance-Spot-Konto. Die Daten bleiben lokal auf diesem Windows-PC und werden weder in Projektdateien noch zu GitHub geschrieben.</p>
               <form id="live-auth-panel" class="settings-form">
                 <label>Lokales Hixton-Passwort<input id="live-password" type="password" minlength="12" maxlength="256" autocomplete="current-password" required /></label>
                 <label id="live-password-repeat-label">Passwort wiederholen<input id="live-password-repeat" type="password" maxlength="256" autocomplete="new-password" /></label>
-                <p id="live-auth-help">Nicht dein Binance-Passwort. Mindestens 12 Zeichen.</p>
-                <button id="live-unlock" type="submit" class="button secondary">Entsperren</button>
+                <p id="live-auth-help">Einmalig ein lokales Passwort mit mindestens 12 Zeichen wählen. Das ist nicht dein Binance-Passwort.</p>
+                <button id="live-unlock" type="submit" class="button secondary">Schlüsselbereich entsperren</button>
               </form>
               <p id="live-auth-result" role="alert"></p>
               <fieldset id="live-protected" class="live-controls" disabled>
-                <legend>API-Zugang</legend>
+                <legend>Binance API-Zugang</legend>
                 <form id="live-key-form" class="settings-form">
                   <label>Binance API-Key<input id="live-api-key" type="password" autocomplete="off" minlength="32" maxlength="256" spellcheck="false" required /></label>
-                  <label>Binance Secret<input id="live-api-secret" type="password" autocomplete="off" minlength="32" maxlength="256" spellcheck="false" required /></label>
-                  <button id="live-save-key" type="submit" class="button secondary">Schlüssel speichern</button>
+                  <label>Binance Secret Key<input id="live-api-secret" type="password" autocomplete="off" minlength="32" maxlength="256" spellcheck="false" required /></label>
+                  <button id="live-save-key" type="submit" class="button secondary">Zugangsschlüssel lokal speichern</button>
                 </form>
                 <p id="live-key-result" role="alert"></p>
                 <p id="live-credentials-status">Schlüsselstatus wird geladen …</p>
-                <button id="live-check" type="button" class="button secondary">Verbindung prüfen</button>
+                <button id="live-check" type="button" class="button primary">Binance-Verbindung prüfen</button>
                 <p id="live-check-result" role="status"></p>
+                <div class="live-security-box">
+                  <strong>Empfohlene Binance-Rechte</strong>
+                  <ul>
+                    <li>Lesen: EIN</li>
+                    <li>Spot-Handel: EIN</li>
+                    <li>IP-Beschränkung: EIN, wenn möglich</li>
+                    <li>Auszahlungen, Transfers, Margin, Futures und Optionen: AUS</li>
+                  </ul>
+                </div>
                 <details>
                   <summary>Sicherheit & Schlüsselverwaltung</summary>
-                  <p>HMAC-Key mit Lesen/Spot und IP-Beschränkung; keine Auszahlungen, Transfers, Margin oder Futures. Eigener Bot-Account ohne fremde Positionen. Speicherung im Windows-Anmeldedatenspeicher, nicht in Projektdateien oder GitHub. Kein Schutz gegen Schadsoftware unter deinem Windows-Konto.</p>
-                  <button id="live-lock" type="button" class="button secondary">Zugang sperren</button>
-                  <button id="live-delete-key" type="button" class="button secondary">Schlüssel entfernen</button>
+                  <p>Der Schlüssel wird im Windows-Anmeldedatenspeicher abgelegt. Die UI speichert API-Key oder Secret nicht im Browser. Ein gespeicherter Key allein aktiviert keine echten Orders.</p>
+                  <button id="live-lock" type="button" class="button secondary">Schlüsselbereich sperren</button>
+                  <button id="live-delete-key" type="button" class="button secondary">Lokalen Schlüssel entfernen</button>
                   <div id="live-delete-panel" class="hidden">
-                    <p>Nur lokal entfernen? Bei Binance bleibt der Key gültig.</p>
+                    <p>Nur lokal entfernen? Bei Binance bleibt der Key gültig, bis du ihn dort widerrufst.</p>
                     <button id="live-delete-confirm" type="button" class="button secondary">Ja, lokal entfernen</button>
                     <button id="live-delete-cancel" type="button" class="button secondary">Abbrechen</button>
                   </div>
@@ -193,15 +203,15 @@
               </fieldset>
             </article>
 
-            <article class="settings-card settings-live-card hidden" aria-hidden="true">
-              <h2>3 · Livehandel</h2>
+            <article class="settings-card settings-live-card">
+              <h2>3 · Livehandel & Freigabe</h2>
               <strong id="live-state" class="warning">Status wird geladen …</strong>
               <p id="live-plan">Handelsgröße wird geladen …</p>
               <div class="settings-fields">
                 <button id="live-request" type="button" class="button secondary" aria-pressed="false" disabled>Live an</button>
                 <button id="live-off" type="button" class="button secondary" aria-pressed="false" disabled>Live aus</button>
               </div>
-              <p id="live-result" role="alert">Echte Orders sind noch nicht verfügbar. Paper läuft weiter.</p>
+              <p id="live-result" role="alert">Echte Orders sind noch nicht verfügbar. Der Zugang kann bereits geprüft werden; Paper läuft weiter.</p>
               <p>Live aus stoppt neue Echtgeld-Trades. Offene Positionen laufen regulär aus; der Bot muss dafür eingeschaltet bleiben. Paper nutzt echte Marktdaten und Echtzeit, aber simuliertes Geld.</p>
               <details>
                 <summary>Einmaliger 50-USDC-Test · Vorbereitung</summary>
