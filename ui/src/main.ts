@@ -19,7 +19,7 @@ import { initializeTradingSettings } from "./trading-settings";
 import { initializeLivePreparation } from "./live-preparation";
 import { marketSignalText } from "./market-signal";
 import { initializeSessionLifetime } from "./session-lifetime";
-import { comparisonText, portfolioBlocksText, type RunComparison } from "./backtest-context";
+import { portfolioBlocksText } from "./backtest-context";
 
 const symbols = ["BTCUSDC", "ETHUSDC", "BNBUSDC", "SOLUSDC", "XRPUSDC", "ADAUSDC", "LINKUSDC", "AVAXUSDC", "DOTUSDC", "DOGEUSDC"] as const;
 type SymbolName = (typeof symbols)[number];
@@ -136,7 +136,7 @@ interface BacktestScenario {
 interface BacktestRun {
   manifest: Record<string, unknown>;
   metrics: Record<string, BacktestScenario>;
-  comparison?: RunComparison;
+
 }
 interface RuntimeLogEntry {
   time_utc: string;
@@ -418,7 +418,7 @@ async function refreshBacktests(): Promise<void> {
       required("#backtest-runs").textContent = "Passende Läufe werden geladen …";
       required("#backtest-detail-body").innerHTML = `<tr><td colspan="7">Auswahl wird geladen …</td></tr>`;
       text("#backtest-detail-title", "Ausgewählter Test · Ergebnis");
-      text("#backtest-comparison", "Abgleich für diese Auswahl wird geladen …");
+
       text("#backtest-blocks", "");
       history.open = false;
       history.classList.add("hidden");
@@ -454,14 +454,14 @@ async function refreshBacktests(): Promise<void> {
     text("#backtest-history-label", "Frühere Läufe sind im aktuellen Produkt ausgeblendet");
     history.classList.add("hidden");
     const latestRun = response.runs[0];
-    text("#backtest-comparison", comparisonText(latestRun?.comparison));
+
     const latestScenario = latestRun?.metrics.current ?? latestRun?.metrics.baseline;
     text("#backtest-blocks", portfolioBlocksText(latestScenario?.portfolio));
     const perSymbol = latestScenario?.per_symbol ?? {};
     const portfolioMetric = latestScenario?.portfolio?.metrics;
     text("#backtest-detail-title", portfolioMetric ? "Aktueller V6-Lauf · Portfolio" : "Aktueller V6-Lauf · isolierte Coin-Diagnose");
     const metricRow = (label: string, metric: Record<string, unknown>, halted = false) =>
-      `<tr><td class="mono">${label}${halted ? " · HALTED" : ""}</td><td>${formatNumber(metric.starting_equity as string)}</td><td>${formatNumber(metric.ending_equity as string)}</td><td class="${Number(metric.return_pct) >= 0 ? "good" : "negative"}">${formatNumber(metric.return_pct as string)} %</td><td>${String(metric.completed_trades ?? "—")}</td><td>${formatNumber(metric.max_drawdown_pct as string)} %</td><td>${formatNumber(metric.buy_and_hold_ending_equity as string)}</td></tr>`;
+      `<tr><td class="mono">${label}${halted ? " · HALTED" : ""}</td><td>${formatNumber(metric.starting_equity as string)}</td><td>${formatNumber(metric.ending_equity as string)}</td><td class="${Number(metric.return_pct) >= 0 ? "good" : "negative"}">${formatNumber(metric.return_pct as string)} %</td><td>${String(metric.completed_trades ?? "—")}</td><td>${formatNumber(metric.max_drawdown_pct as string)} %</td></tr>`;
     required("#backtest-detail-body").innerHTML = portfolioMetric
       ? metricRow("PORTFOLIO", portfolioMetric, Boolean(latestScenario?.portfolio?.risk_halted_at_utc))
       : Object.keys(perSymbol).length
@@ -470,7 +470,7 @@ async function refreshBacktests(): Promise<void> {
   } catch {
     if (generation === backtestLoadGeneration) {
       required("#backtest-runs").textContent = "Backtestliste derzeit nicht erreichbar. Anzeige wird erneut geladen.";
-      text("#backtest-comparison", "Abgleich derzeit nicht verfügbar; keine aktuelle Bestätigung.");
+
       text("#backtest-blocks", "");
       required("#backtest-history").classList.add("hidden");
       required("#backtest-detail-body").innerHTML = `<tr><td colspan="7">Keine aktuelle Antwort für diese Auswahl.</td></tr>`;

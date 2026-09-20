@@ -35,18 +35,16 @@ Alle Profile verwenden 400 Warm-up-Bars.
 
 Quelle: Coin-Optimization Run 35463131378, Artifact 10590881515, Fenster 19.09.2023 19:00 UTC bis 19.09.2026 19:00 UTC.
 
-| Modell | Endkapital |
+| Modell | Aktuelles Endkapital |
 |---|---:|
-| 10×250 Baseline | **8.217,01 USDC** |
-| 10×250 Stress | **7.692,51 USDC** |
-| 3×80 Baseline | **1.217,91 USDC** |
-| 3×80 Stress | **1.133,41 USDC** |
+| 10×250 isoliert | **8.217,01 USDC** |
+| 3×80 Portfolio | **1.217,91 USDC** |
 
-3×80 Baseline: 94 Positionszyklen, 210 Slot-Trades, 24,10 % Max-Drawdown. Der Run erfüllte den vollständigen Promotion-Gate. Das sind historische Simulationen, keine Gewinnprognose.
+3×80 aktuell: 94 Positionszyklen, 210 Slot-Trades, 24,10 % Max-Drawdown. Das sind historische Simulationen, keine Gewinnprognose. Interne Forschungsvarianten und Robustheitsprüfungen bleiben im Forschungsjournal und werden nicht als parallele Produktresultate dargestellt.
 
 ## Optimierungsprozess
 
-Der geplante Dauerzyklus ist: bounded Kandidaten -> Training A/B -> eingefrorene Top-K -> Validation -> vollständige Drei-Jahres-Baseline und Stress -> jeder robuste Kandidat einzeln im 3×80 -> schrittweise Kombination -> finaler 10×250- und 3×80-Gate.
+Der Dauerzyklus sucht pro Coin die robust beste Methode. Aktive V6-Varianten und auch Buy-and-Hold dürfen intern als Kandidaten antreten. Auswahl erfolgt auf Training, danach folgen unabhängige Validierung, vollständiger Drei-Jahres-Test und der entscheidende gemeinsame 3×80-Portfolio-Gate. Pro Coin wird nur der robuste Gewinner kanonisch; die normale UI zeigt nur diesen aktiven Stand.
 
 Der Workflow Hixton Coin Optimization Cycle läuft zusätzlich planmäßig alle sechs Stunden. Er darf neue Forschungsergebnisse erzeugen, aber weder automatisch mergen noch Paper oder Echtgeld aktivieren. A01–A11 prüfen die aktuelle Mission unabhängig und key-free.
 
