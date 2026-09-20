@@ -219,6 +219,7 @@ jobs:
             tests/test_usdc_runtime_migration.py \
             ui/index.html \
             ui/src/main.ts \
+            ui/tests/backtest-context.test.mjs \
             README.md \
             DMS/18_BACKTEST_STATUS_UND_ERGEBNISFORMAT.md \
             src/hixton/ui/static
