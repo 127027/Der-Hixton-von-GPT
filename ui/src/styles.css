@@ -189,3 +189,13 @@ td.mono { font-family: var(--mono); }
   .position-grid, .details-grid, .doc-grid { grid-template-columns: 1fr; }.action-card { align-items: stretch; flex-direction: column; }.chart-heading { align-items: flex-start; flex-direction: column; }
 }
 @media (max-width: 520px) { .market-grid, .metric-grid { grid-template-columns: 1fr; }.runtime-banner { align-items: flex-start; flex-direction: column; }.topbar { align-items: flex-start; flex-direction: column; padding: 18px 0; }.range-bar span { width: 100%; margin-left: 0; } }
+
+.live-security-box {
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 14px 16px;
+  background: rgba(45, 212, 168, .05);
+}
+.live-security-box strong { display: block; margin-bottom: 8px; }
+.live-security-box ul { margin: 0; padding-left: 20px; color: var(--muted); font-size: .8rem; }
+.live-security-box li { margin: 5px 0; }

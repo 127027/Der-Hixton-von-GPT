@@ -13,6 +13,6 @@ Die lokale deutsche UI zeigt:
 
 Backtests besitzen keine V1/V2/V3-Auswahl mehr. Nur aktuelle V6 ist auswählbar. Die Anzeige unterscheidet Positionszyklen und Slot-Trades.
 
-Nicht freigegebene Binance-Key-/Live-Bedienelemente sind aus der normalen Produktsicht ausgeblendet; das Backend bleibt fail-closed.
+Der Einstellungsbereich zeigt den lokalen Binance-Zugang sichtbar an: lokales Hixton-Passwort, API-Key/Secret, lokales Speichern im Windows-Anmeldedatenspeicher und eine read-only Kontovorprüfung. Produktiver Livehandel und der 50-USDC-Test bleiben über Serverflags deaktiviert, solange die jeweilige Freigabe fehlt. Ein gespeicherter Schlüssel allein kann keine Orderfreigabe erzeugen; das Backend bleibt fail-closed.
 
 Dokumentationslinks zeigen auf 127027/Der-Hixton-von-GPT und den aktuellen Engineering-Branch.

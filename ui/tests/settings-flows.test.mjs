@@ -32,8 +32,8 @@ test("password failure is beside the input; successful submit unlocks actual key
     assert.match(ui.node("live-key-result").textContent,/gespeichert/);
     await ui.node("live-check").fire("click");
     assert.match(ui.node("live-check-result").textContent,/bestanden/);
-    await ui.node("live-request").fire("click");
-    assert.match(ui.node("live-result").textContent,/Noch nicht startbereit/);
+    assert.equal(ui.node("live-request").disabled,true);
+    assert.equal(ui.node("live-trial-start").disabled,true);
     assert.equal(mock.state.state,"LIVE_DISABLED");
     await ui.node("live-off").fire("click");
     assert.match(ui.node("live-result").textContent,/Kein Sofortverkauf/);
@@ -81,16 +81,15 @@ test("unlock does not claim success when cookie/session verification fails",asyn
   } finally {live.dispose();ui.restore();}
 });
 
-test("one explicit click requests exactly one fifty-USDC test, never continuous trading",async()=>{
+test("unreleased server keeps trial and continuous live controls disabled",async()=>{
   const mock=mockLive();mock.state.credentials.configured=true;
   const ui=harness(mock.fetcher),live=initializeLivePreparation(()=>null);
   try {
     await live.refresh();await unlockUI(ui);
-    await ui.node("live-trial-start").fire("click");
-    assert.equal(mock.calls.filter(c=>c.url.endsWith("/trial/start")).length,1);
+    assert.equal(ui.node("live-trial-start").disabled,true);
+    assert.equal(ui.node("live-request").disabled,true);
+    assert.equal(mock.calls.filter(c=>c.url.endsWith("/trial/start")).length,0);
     assert.equal(mock.calls.filter(c=>c.url.endsWith("/enable")).length,0);
-    assert.deepEqual(mock.calls.find(c=>c.url.endsWith("/trial/start")).body,{confirmation:"TEST 50 USDC",quote_asset:"USDC",notional_quote:"50.00"});
-    assert.match(ui.node("live-trial-result").textContent,/Noch nicht startbereit/);
   } finally {live.dispose();ui.restore();}
 });
 
@@ -103,9 +102,11 @@ test("live state selection follows server acknowledgement, rejects false green a
   try {
     await live.refresh();await unlockUI(ui);
     assert.equal(selected("live-off"),"true");assert.equal(selected("live-request"),"false");
-    await ui.node("live-request").fire("click"); // Real missing-adapter 409 is not an activation.
-    assert.equal(selected("live-request"),"false");
-    mock.state.state="LIVE_ENABLED";await live.refresh(); // Hypothetical confirmed server state, no exchange.
+    assert.equal(ui.node("live-request").disabled,true);
+    mock.state.state="LIVE_ENABLED";
+    mock.state.ready=true;
+    mock.state.order_dispatch_available=true;
+    await live.refresh(); // Hypothetical confirmed server state, no exchange.
     assert.equal(selected("live-request"),"true");assert.match(ui.node("live-state").textContent,/Live an/);
     await ui.node("live-off").fire("click");
     assert.equal(selected("live-off"),"true");assert.equal(selected("live-request"),"false");
@@ -205,6 +206,9 @@ test("double login cannot create competing sessions and status failure locks key
 
 test("unsaved settings block both trading start controls without sending requests",async()=>{
   const mock=mockLive();mock.state.credentials.configured=true;
+  mock.state.ready=true;
+  mock.state.order_dispatch_available=true;
+  mock.state.trial_dispatch_available=true;
   const ui=harness(mock.fetcher),live=initializeLivePreparation(()=>"Zuerst Übernehmen");
   try {
     await live.refresh();await unlockUI(ui);
@@ -214,4 +218,14 @@ test("unsaved settings block both trading start controls without sending request
     assert.match(ui.node("live-result").textContent,/Übernehmen/);
     assert.match(ui.node("live-trial-result").textContent,/Übernehmen/);
   } finally {live.dispose();ui.restore();}
+});
+
+test("Binance credential and live readiness cards are visible in settings source",async()=>{
+  const source = (await import("node:fs")).readFileSync(new URL("../index.html", import.meta.url), "utf8");
+  const binanceCard = source.slice(source.indexOf("<h2>2 · Binance-Zugang"), source.indexOf("<h2>3 · Livehandel"));
+  const liveCard = source.slice(source.indexOf("<h2>3 · Livehandel"), source.indexOf("</section>", source.indexOf("<h2>3 · Livehandel")));
+  assert.doesNotMatch(binanceCard, /settings-card hidden/);
+  assert.doesNotMatch(liveCard, /settings-live-card hidden/);
+  assert.match(binanceCard, /Windows-Anmeldedatenspeicher/);
+  assert.match(binanceCard, /Auszahlungen, Transfers, Margin, Futures und Optionen: AUS/);
 });

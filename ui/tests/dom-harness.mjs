@@ -50,8 +50,18 @@ export function harness(fetcher) {
 }
 
 export function mockLive() {
-  const state = {state:"LIVE_DISABLED",authenticated:false,password_configured:true,
-    credentials:{configured:false},blockers:["Produktive Orderanbindung fehlt"],account_check:null,trial:{state:"NOT_STARTED"}};
+  const state = {
+    state:"LIVE_DISABLED",
+    authenticated:false,
+    password_configured:true,
+    credentials:{configured:false},
+    blockers:["Produktive Orderanbindung fehlt"],
+    account_check:null,
+    ready:false,
+    order_dispatch_available:false,
+    trial_dispatch_available:false,
+    trial:{state:"NOT_STARTED"},
+  };
   const calls=[];
   let acceptCookie=true;
   const fetcher = async (url, options={}) => {

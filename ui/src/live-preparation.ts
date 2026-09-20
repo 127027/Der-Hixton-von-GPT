@@ -5,7 +5,18 @@ interface LiveStatus {
   password_configured: boolean;
   credentials: { configured: boolean };
   blockers: string[];
-  account_check: { blockers: string[] } | null;
+  ready: boolean;
+  order_dispatch_available: boolean;
+  trial_dispatch_available: boolean;
+  account_check: {
+    blockers: string[];
+    account_checks_passed?: boolean;
+    quote_asset?: string;
+    free_quote?: string;
+    free_usdc?: string | null;
+    free_bnb?: string;
+    open_order_count?: number;
+  } | null;
   trial?: {state: string; symbol?: string};
 }
 
@@ -20,7 +31,15 @@ export function initializeLivePreparation(sharedSettingsBlocker: () => string | 
   let generation = 0;
   let busy = false;
   let focusAfter: string | null = null;
-  const privateButtons = ["live-save-key", "live-delete-key", "live-delete-confirm", "live-delete-cancel", "live-check", "live-request", "live-off", "live-lock", "live-trial-start"];
+  const credentialButtons = [
+    "live-save-key",
+    "live-delete-key",
+    "live-delete-confirm",
+    "live-delete-cancel",
+    "live-check",
+    "live-off",
+    "live-lock",
+  ];
   const message = (id: string, value: string): void => { element(id).textContent = value; };
   const clearSecrets = (): void => {
     for (const id of ["live-password", "live-password-repeat", "live-api-key", "live-api-secret"])
@@ -30,7 +49,13 @@ export function initializeLivePreparation(sharedSettingsBlocker: () => string | 
   const updateControls = (): void => {
     element<HTMLButtonElement>("live-unlock").disabled = busy;
     element<HTMLFieldSetElement>("live-protected").disabled = busy || !last?.authenticated;
-    for (const id of privateButtons) element<HTMLButtonElement>(id).disabled = busy || !last?.authenticated;
+    for (const id of credentialButtons) {
+      element<HTMLButtonElement>(id).disabled = busy || !last?.authenticated;
+    }
+    element<HTMLButtonElement>("live-request").disabled =
+      busy || !last?.authenticated || !last.ready || !last.order_dispatch_available;
+    element<HTMLButtonElement>("live-trial-start").disabled =
+      busy || !last?.authenticated || !last.trial_dispatch_available;
     // State comes only from the server, never from clicking an action button.
     const enabled = last?.state === "LIVE_ENABLED";
     const disabled = last?.state === "LIVE_DISABLED" || last?.state === "EXIT_ONLY";
@@ -59,7 +84,12 @@ export function initializeLivePreparation(sharedSettingsBlocker: () => string | 
     message("live-auth-help", status.password_configured
       ? "Passwort ist bereits eingerichtet. Verwende das damals gewählte Hixton-Passwort, nicht dein Binance-Passwort. Entsperrung gilt 15 Minuten."
       : "Eigenes lokales Passwort mit mindestens 12 Zeichen wählen und wiederholen. Nicht dein Binance-Passwort.");
-    message("live-credentials-status", status.credentials.configured ? "Binance-Schlüssel gespeichert." : "Noch kein Binance-Schlüssel gespeichert.");
+    message(
+      "live-credentials-status",
+      status.credentials.configured
+        ? "Binance-Zugangsschlüssel lokal gespeichert."
+        : "Noch kein Binance-Zugangsschlüssel gespeichert.",
+    );
     message("live-trial-status", status.trial?.state && status.trial.state !== "NOT_STARTED" ? `Test: ${status.trial.state}${status.trial.symbol ? " · " + status.trial.symbol : ""}` : "Nicht gestartet. Echtgeldanbindung noch gesperrt.");
     const list = element("live-blockers");
     list.replaceChildren();
@@ -143,7 +173,15 @@ export function initializeLivePreparation(sharedSettingsBlocker: () => string | 
   bind("live-check", "click", "live-check-result", async () => {
     requireAuth();
     const result = await request("check", {});
-    message("live-check-result", result.account_checks_passed ? "Kontovorprüfung bestanden. Echtgeld-Freigabe bleibt separat." : "Kontovorprüfung blockiert: " + ((result.blockers as string[] | undefined)?.join(" · ") || "Details unter technische Freigabe."));
+    const freeUsdc = typeof result.free_usdc === "string" ? ` · frei: ${result.free_usdc} USDC` : "";
+    message(
+      "live-check-result",
+      result.account_checks_passed
+        ? `Binance-Verbindung und Kontovorprüfung bestanden${freeUsdc}. Echtgeld-Freigabe bleibt separat.`
+        : "Kontovorprüfung blockiert: "
+          + ((result.blockers as string[] | undefined)?.join(" · ")
+            || "Details unter technische Freigabe."),
+    );
   });
   bind("live-lock", "click", "live-auth-result", async () => {
     requireAuth(); await request("lock", {}); last = null; clearSecrets();
@@ -158,8 +196,13 @@ export function initializeLivePreparation(sharedSettingsBlocker: () => string | 
   });
   bind("live-request", "click", "live-result", async () => {
     requireAuth();
+    if (!last?.ready || !last.order_dispatch_available) {
+      throw new Error("Produktiver Livehandel ist serverseitig noch nicht freigegeben.");
+    }
     const blocker = sharedSettingsBlocker(); if (blocker) throw new Error(blocker);
-    if (!last?.credentials.configured) throw new Error("Zuerst API-Key und Secret speichern und Verbindung prüfen.");
+    if (!last.credentials.configured) {
+      throw new Error("Zuerst API-Key und Secret speichern und Verbindung prüfen.");
+    }
     await request("enable", {});
   });
   bind("live-off", "click", "live-result", async () => {
@@ -169,9 +212,18 @@ export function initializeLivePreparation(sharedSettingsBlocker: () => string | 
   });
   bind("live-trial-start", "click", "live-trial-result", async () => {
     requireAuth();
+    if (!last?.trial_dispatch_available) {
+      throw new Error("Der 50-USDC-Testtrade ist serverseitig noch nicht freigegeben.");
+    }
     const blocker = sharedSettingsBlocker(); if (blocker) throw new Error(blocker);
-    if (!last?.credentials.configured) throw new Error("Zuerst API-Key und Secret speichern und Verbindung prüfen.");
-    await request("trial/start", {confirmation:"TEST 50 USDC", quote_asset:"USDC", notional_quote:"50.00"});
+    if (!last.credentials.configured) {
+      throw new Error("Zuerst API-Key und Secret speichern und Verbindung prüfen.");
+    }
+    await request("trial/start", {
+      confirmation:"TEST 50 USDC",
+      quote_asset:"USDC",
+      notional_quote:"50.00",
+    });
   });
   window.addEventListener("pagehide", clearSecrets);
   void refresh();
