@@ -6,6 +6,8 @@ continuity scenario, and the reproducible shipped UI bundle. It must never
 change strategy parameters, Paper account state, Live code, or swarm governance.
 """
 
+# ruff: noqa: E501, RUF001
+
 from __future__ import annotations
 
 import argparse
