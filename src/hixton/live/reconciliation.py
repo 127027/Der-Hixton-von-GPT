@@ -103,7 +103,13 @@ class TrialReconciler:
             )
             self.journal._audit(connection, "ACCOUNT", "BASELINE_CAPTURED")
 
-    def check(self, snapshot: AccountSnapshot, *, now: datetime) -> dict[str, object]:
+    def check(
+        self,
+        snapshot: AccountSnapshot,
+        *,
+        now: datetime,
+        ignore_intent_id: str | None = None,
+    ) -> dict[str, object]:
         snapshot.validate(now)
         with self.journal._connect() as connection:
             baseline = connection.execute("SELECT * FROM trial_account_baseline").fetchone()
@@ -137,7 +143,11 @@ class TrialReconciler:
             for asset in expected.keys() | snapshot.balances.keys()
             if expected.get(asset, ZERO) != sum(snapshot.balances.get(asset, (ZERO, ZERO)))
         )
-        unresolved = [row["intent_id"] for row in intents if row["state"] not in FINAL]
+        unresolved = [
+            row["intent_id"]
+            for row in intents
+            if row["state"] not in FINAL and row["intent_id"] != ignore_intent_id
+        ]
         locked = any(amount != 0 for _, amount in snapshot.balances.values())
         passed = not (mismatches or unresolved or locked or snapshot.open_orders)
         with self.journal._connect() as connection:

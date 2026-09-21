@@ -23,6 +23,20 @@ from hixton.live.binance import _NoRedirect
 from hixton.live.credentials import BinanceCredentials
 from hixton.live.orders import ExchangeFill, ExchangeOrder, TrialIntent
 
+
+class SpotOrderIntent(Protocol):
+    intent_id: str
+    account_fingerprint: str
+    symbol: str
+    side: str
+    strategy_version: str
+    reference_price: Decimal
+    quote_budget: Decimal
+    base_quantity: Decimal
+
+    @property
+    def client_order_id(self) -> str: ...
+
 _BASES = {"https://api.binance.com", "https://testnet.binance.vision"}
 _ALLOWLIST = {
     ("GET", "/api/v3/time"),
@@ -167,14 +181,14 @@ class BinanceSpotExchange:
         self.account_fingerprint = account_fingerprint
         self.symbols = symbols_for_quote(quote_asset)
 
-    def _check(self, intent: TrialIntent) -> None:
+    def _check(self, intent: SpotOrderIntent) -> None:
         if (
             intent.account_fingerprint != self.account_fingerprint
             or intent.symbol not in self.symbols
         ):
             raise ValueError("Order account/market differs from the bound exchange")
 
-    def _identity(self, intent: TrialIntent, data: Any) -> str:
+    def _identity(self, intent: SpotOrderIntent, data: Any) -> str:
         if (
             not isinstance(data, dict)
             or data.get("symbol") != intent.symbol
@@ -183,7 +197,7 @@ class BinanceSpotExchange:
             raise ValueError("Exchange acknowledgement identity mismatch")
         return _id(data.get("orderId"))
 
-    def submit(self, intent: TrialIntent) -> ExchangeOrder:
+    def submit(self, intent: SpotOrderIntent) -> ExchangeOrder:
         self._check(intent)
         params = {
             "symbol": intent.symbol,
@@ -193,7 +207,9 @@ class BinanceSpotExchange:
             "newOrderRespType": "ACK",
         }
         if intent.side == "BUY":
-            params["quoteOrderQty"] = "50.00"
+            if not intent.quote_budget.is_finite() or intent.quote_budget <= 0:
+                raise ValueError("BUY quote budget must be finite and positive")
+            params["quoteOrderQty"] = f"{intent.quote_budget:.2f}"
         else:
             params["quantity"] = format(intent.base_quantity, "f")
         ack = self.transport.request("POST", "/api/v3/order", params)
@@ -205,7 +221,7 @@ class BinanceSpotExchange:
             raise ExchangeRequestError()
         return order
 
-    def query(self, intent: TrialIntent) -> ExchangeOrder | None:
+    def query(self, intent: SpotOrderIntent) -> ExchangeOrder | None:
         self._check(intent)
         try:
             data = self.transport.request(
@@ -234,7 +250,7 @@ class BinanceSpotExchange:
             fills,
         )
 
-    def _fills(self, intent: TrialIntent, order_id: str) -> tuple[ExchangeFill, ...]:
+    def _fills(self, intent: SpotOrderIntent, order_id: str) -> tuple[ExchangeFill, ...]:
         params = {"symbol": intent.symbol, "orderId": order_id, "limit": "1000"}
         result: list[ExchangeFill] = []
         previous = -1
