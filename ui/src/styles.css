@@ -42,7 +42,8 @@ h1 { font-size: clamp(1.4rem, 2vw, 2rem); }
 h2 { font-size: 1.25rem; }
 .eyebrow { margin-bottom: 6px; color: var(--green); font: 600 .68rem var(--mono); letter-spacing: .11em; }
 .status-cluster { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; justify-content: flex-end; }
-.mode-pill, .health-pill { font: 600 .68rem var(--mono); letter-spacing: .05em; border: 1px solid; padding: 7px 10px; border-radius: 999px; }
+.version-pill, .mode-pill, .health-pill { font: 600 .68rem var(--mono); letter-spacing: .05em; border: 1px solid; padding: 7px 10px; border-radius: 999px; }
+.version-pill { color: var(--green); border-color: rgba(45, 212, 168, .38); background: rgba(45, 212, 168, .08); }
 .mode-pill.paper { color: var(--blue); border-color: rgba(110, 168, 254, .38); background: rgba(110, 168, 254, .08); }
 .mode-pill.disabled { color: var(--muted); border-color: var(--border); }
 .health-pill.starting, .health-pill.degraded { color: var(--amber); border-color: rgba(247, 185, 85, .4); background: rgba(247, 185, 85, .08); }
