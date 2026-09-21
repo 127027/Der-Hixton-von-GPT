@@ -15,6 +15,6 @@ Backtests besitzen keine V1/V2/V3-Auswahl mehr. Nur aktuelle V6 ist auswählbar.
 
 Der Einstellungsbereich zeigt den lokalen Binance-Zugang sichtbar an: lokales Hixton-Passwort, API-Key/Secret, lokales Speichern im Windows-Anmeldedatenspeicher und eine private Kontovorprüfung. Ein gespeicherter Schlüssel allein erzeugt keine Orderfreigabe.
 
-Der kontrollierte 1×50-USDC-Testbutton wird nur aktiv, wenn Schlüssel, frische Kontoprüfung, gesunde Runtime und exakt 1×50-Einstellungen vorliegen. Seine Betätigung sendet nicht sofort eine Order; der Bot wartet auf das nächste neue gültige Signal. Der 3×80-Livebutton wird erst nach abgeschlossenem/reconciliertem Test, Paper-Soak, frischer Kontoprüfung, mindestens 250 freien USDC und exakt 3×80 freigegeben. Beide Zustände stammen ausschließlich vom Server.
+Der kontrollierte 1×50-USDC-Testbutton wird nur aktiv, wenn Schlüssel, frische Kontoprüfung und exakt 1×50-Einstellungen vorliegen. Seine Betätigung sendet nicht sofort eine Order; der Bot wartet auf das nächste neue gültige Signal. Die Runtime muss spätestens beim tatsächlichen Signal HEALTHY sein, andernfalls bleibt die Order gesperrt. Der 3×80-Livebutton wird erst nach abgeschlossenem/reconciliertem Test, Paper-Soak, frischer Kontoprüfung, mindestens 250 freien USDC und exakt 3×80 freigegeben. Beide Zustände stammen ausschließlich vom Server.
 
 Dokumentationslinks zeigen auf 127027/Der-Hixton-von-GPT und den aktuellen Engineering-Branch.

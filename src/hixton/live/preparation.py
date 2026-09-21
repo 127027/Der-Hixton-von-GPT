@@ -268,8 +268,8 @@ class LivePreparation:
         with self.lock:
             if self.trial is None or self.trial_reconciler is None:
                 raise BinanceCheckError("Einmaltest-Runtime fehlt")
-            if not healthy:
-                raise BinanceCheckError("Marktdaten/Bot sind nicht gesund")
+            # Arming itself sends no order. Runtime health is enforced again on every
+            # execution tick before a future signal can reach the order adapter.
             if slot_count != 1 or target_notional != Decimal("50") or emergency_stop:
                 raise BinanceCheckError("Erster Echtgeldtest benötigt Einstellungen 1 x 50 USDC")
             fresh = self._fresh_check()
@@ -371,7 +371,6 @@ class LivePreparation:
             trial_available = bool(
                 credential_status["configured"]
                 and account_ok
-                and healthy
                 and trial_settings_ok
                 and trial.get("state") == "NOT_STARTED"
                 and live.get("state") == "LIVE_DISABLED"
@@ -396,7 +395,11 @@ class LivePreparation:
             if not credential_status["configured"]:
                 blockers.append("Binance API-Schlüssel fehlt.")
             if not healthy:
-                blockers.append("Marktdaten/Bot derzeit nicht vollständig gesund.")
+                blockers.append(
+                    "Marktdaten/Bot derzeit nicht vollständig gesund. "
+                    "Scharfschalten des 1x50-Tests ist möglich, aber eine Order bleibt "
+                    "bis zum HEALTHY-Zustand gesperrt."
+                )
             if fresh is None:
                 blockers.append("Keine frische Binance-Kontoprüfung (höchstens 60 Sekunden alt).")
             elif fresh.get("account_checks_passed") is not True:

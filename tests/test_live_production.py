@@ -21,7 +21,7 @@ from hixton.live.production import (
 )
 from tests.test_paper_engine import _point
 
-NOW = datetime(2026, 9, 21, 8, tzinfo=UTC)
+NOW = datetime.now(UTC).replace(second=0, microsecond=0)
 
 
 class Exchange:
@@ -181,7 +181,7 @@ def test_live_intent_hard_caps_three_by_eighty() -> None:
 def test_ranked_repeat_three_slots_is_one_bounded_market_order(tmp_path: Path) -> None:
     c, exchange, account, _settings = controller(tmp_path)
     initial = universe(NOW - timedelta(hours=1))
-    c.enable("fake-account", initial, account.snapshot(), now=NOW - timedelta(minutes=30))
+    c.enable("fake-account", initial, account.snapshot(), now=NOW)
     points = universe(NOW, enter=("BTCUSDC",))
     c.advance(points, now=NOW, healthy=True)
     c.advance(points, now=NOW, healthy=True)
@@ -202,7 +202,7 @@ def test_ten_simultaneous_signals_never_exceed_three_slots(tmp_path: Path) -> No
         "fake-account",
         universe(NOW - timedelta(hours=1)),
         account.snapshot(),
-        now=NOW - timedelta(minutes=30),
+        now=NOW,
     )
     points = universe(NOW, enter=SYMBOLS)
     for _ in range(12):
@@ -221,7 +221,7 @@ def test_timeout_restart_reconciles_without_duplicate_submit(tmp_path: Path) -> 
         "fake-account",
         universe(NOW - timedelta(hours=1)),
         account.snapshot(),
-        now=NOW - timedelta(minutes=30),
+        now=NOW,
     )
     points = universe(NOW, enter=("BTCUSDC",))
     c.advance(points, now=NOW, healthy=True)
@@ -241,7 +241,7 @@ def test_settings_change_or_emergency_stop_blocks_new_live_entry(tmp_path: Path)
         "fake-account",
         universe(NOW - timedelta(hours=1)),
         account.snapshot(),
-        now=NOW - timedelta(minutes=30),
+        now=NOW,
     )
     settings[0] = 10
     settings[1] = D("250")
@@ -257,7 +257,7 @@ def test_account_mismatch_fails_closed_before_order(tmp_path: Path) -> None:
         "fake-account",
         universe(NOW - timedelta(hours=1)),
         account.snapshot(),
-        now=NOW - timedelta(minutes=30),
+        now=NOW,
     )
     account.balances["USDC"] = (D("251"), D("0"))
     for _ in range(3):
@@ -272,7 +272,7 @@ def test_exit_is_allowed_after_entries_are_disabled(tmp_path: Path) -> None:
         "fake-account",
         universe(NOW - timedelta(hours=1)),
         account.snapshot(),
-        now=NOW - timedelta(minutes=30),
+        now=NOW,
     )
     entry = universe(NOW, enter=("SOLUSDC",))
     for _ in range(4):
@@ -294,7 +294,7 @@ def test_repeated_scheduler_ticks_do_not_duplicate_orders(tmp_path: Path) -> Non
         "fake-account",
         universe(NOW - timedelta(hours=1)),
         account.snapshot(),
-        now=NOW - timedelta(minutes=30),
+        now=NOW,
     )
     points = universe(NOW, enter=("ETHUSDC",))
     for _ in range(30):

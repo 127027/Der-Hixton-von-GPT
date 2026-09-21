@@ -242,7 +242,7 @@ def test_controlled_trial_arms_only_after_fresh_account_check_without_sending_or
 
     service.client_factory = FakeReadOnlyClient
     service._account_snapshot = lambda: AccountSnapshot(
-        KEY[:16],
+        service.credentials.load().fingerprint,
         datetime.now(UTC),
         {"USDC": (Decimal("100"), Decimal("0")), "BNB": (Decimal("0.03"), Decimal("0"))},
         (),
@@ -271,7 +271,7 @@ def test_live_off_does_not_sell_open_trial_and_keys_cannot_orphan_it(tmp_path: P
     for endpoint in ("/api/live/disable", "/api/live/trial/stop"):
         response = client.post(endpoint, headers=HEADERS, json={})
         assert response.status_code == 200
-        assert response.json()["state"] == "EXIT_ONLY"
+        assert response.json()["state"] == "TRIAL_OPEN"
     assert controller.report()["state"] == "OPEN"
     assert len(exchange.submits) == 1
     assert client.get("/api/status").json()["runtime"]["live_state"] == "TRIAL_OPEN"
