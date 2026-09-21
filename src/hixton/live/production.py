@@ -18,7 +18,7 @@ from datetime import UTC, datetime
 from decimal import ROUND_DOWN, Decimal
 from pathlib import Path
 from threading import Event, RLock
-from typing import Any, Protocol
+from typing import Any, Protocol, cast
 
 from hixton.backtest.models import ExecutionRules
 from hixton.constants import SYMBOLS
@@ -629,7 +629,10 @@ class LivePortfolioController:
 
     def _control(self) -> sqlite3.Row | None:
         with self.journal._connect() as connection:
-            return connection.execute("SELECT * FROM live_control WHERE singleton=1").fetchone()
+            return cast(
+                sqlite3.Row | None,
+                connection.execute("SELECT * FROM live_control WHERE singleton=1").fetchone(),
+            )
 
     def _positions(self) -> dict[str, sqlite3.Row]:
         with self.journal._connect() as connection:
@@ -646,16 +649,23 @@ class LivePortfolioController:
 
     def _event(self, signal_id: str) -> sqlite3.Row | None:
         with self.journal._connect() as connection:
-            return connection.execute(
-                "SELECT * FROM live_events WHERE signal_id=?", (signal_id,)
-            ).fetchone()
+            return cast(
+                sqlite3.Row | None,
+                connection.execute(
+                    "SELECT * FROM live_events WHERE signal_id=?", (signal_id,)
+                ).fetchone(),
+            )
 
     def _pending(self) -> sqlite3.Row | None:
         with self.journal._connect() as connection:
-            return connection.execute(
-                "SELECT * FROM live_events WHERE status IN ('ORDER_PENDING','RECONCILING') "
-                "ORDER BY occurred_at_utc LIMIT 1"
-            ).fetchone()
+            return cast(
+                sqlite3.Row | None,
+                connection.execute(
+                    "SELECT * FROM live_events "
+                    "WHERE status IN ('ORDER_PENDING','RECONCILING') "
+                    "ORDER BY occurred_at_utc LIMIT 1"
+                ).fetchone(),
+            )
 
     def enable(
         self,
@@ -904,9 +914,13 @@ class LivePortfolioController:
         action = str(pending["action"])
         buy = action == "ENTER_LONG"
         slot_count = int(payload["slot_count"])
+        control = self._control()
+        if control is None:
+            self.fail_closed("LIVE_CONTROL_MISSING")
+            return
         intent = LiveIntent(
             str(pending["intent_id"]),
-            str(self._control()["account"]),
+            str(control["account"]),
             str(pending["symbol"]),
             "BUY" if buy else "SELL",
             self.strategy.version,
@@ -932,7 +946,7 @@ class LivePortfolioController:
         if state == "BLOCKED" or state not in FINAL_ORDER:
             return
         summary = self.journal.fill_summary(intent.intent_id)
-        if int(summary["fill_count"]) == 0:
+        if int(str(summary["fill_count"])) == 0:
             with self.journal._connect() as connection:
                 connection.execute(
                     "UPDATE live_events SET status='BLOCKED',reason=? WHERE signal_id=?",
@@ -1035,10 +1049,13 @@ class LivePortfolioController:
         positions: Mapping[str, sqlite3.Row],
         group: Mapping[str, IndicatorPoint],
     ) -> Decimal:
-        quote = sum(snapshot.balances.get("USDC", (ZERO, ZERO)))
+        quote = sum(snapshot.balances.get("USDC", (ZERO, ZERO)), ZERO)
         position_value = sum(
-            Decimal(row["quantity"]) * Decimal(str(group[symbol].candle.close))
-            for symbol, row in positions.items()
+            (
+                Decimal(row["quantity"]) * Decimal(str(group[symbol].candle.close))
+                for symbol, row in positions.items()
+            ),
+            ZERO,
         )
         return quote + position_value
 

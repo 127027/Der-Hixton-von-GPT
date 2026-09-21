@@ -115,7 +115,7 @@ def install_live_routes(
                 shared = {**preview, "emergency_stop": settings.emergency_stop}
         except (RuntimeError, sqlite3.DatabaseError, KeyError):
             pass
-        slot_count = int(shared["slot_count"]) if shared is not None else None
+        slot_count = int(str(shared["slot_count"])) if shared is not None else None
         target_notional = (
             Decimal(str(shared["target_notional_usdc"])) if shared is not None else None
         )

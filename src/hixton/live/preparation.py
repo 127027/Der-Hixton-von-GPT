@@ -134,7 +134,8 @@ class LivePreparation:
             trial_journal,
             TrialOrderExecutor(trial_journal, DeferredExchange(), self._trial_pre_submit),
             strategy,
-            lambda: self._trial_authorized and self.credentials.status()["configured"],
+            lambda: self._trial_authorized
+            and bool(self.credentials.status()["configured"]),
         )
         self.runtime = TrialRuntime(self.trial, self.trial_reconciler, self._account_snapshot)
         self._trial_authorized = bool(self.trial.report().get("has_unsettled"))
@@ -156,7 +157,7 @@ class LivePreparation:
             settings_provider,
             rules_provider,
             strategy,
-            lambda: self.credentials.status()["configured"],
+            lambda: bool(self.credentials.status()["configured"]),
         )
         holder["controller"] = self.live
         self.live_runtime = LivePortfolioRuntime(self.live)
@@ -376,7 +377,11 @@ class LivePreparation:
                 and live.get("state") == "LIVE_DISABLED"
             )
             trial_completed = trial.get("state") == "COMPLETED"
-            free_usdc = Decimal(str(fresh.get("free_usdc", "0"))) if account_ok else Decimal(0)
+            free_usdc = (
+                Decimal(str(fresh.get("free_usdc", "0")))
+                if account_ok and fresh is not None
+                else Decimal(0)
+            )
             production_ready = bool(
                 credential_status["configured"]
                 and account_ok
