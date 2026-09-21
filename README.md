@@ -1,6 +1,6 @@
 # Der Hixton
 
-Der Hixton ist aktuell ein lokaler, deutschsprachiger **Paper- und Backtest-Trading-Bot** für zehn Binance-Spot-Märkte gegen USDC. Der produktive Stand besitzt **eine** auswählbare Strategie: die aktuelle V6 mit coinindividuellen Profilen.
+Der Hixton ist ein lokaler, deutschsprachiger **Paper-, Backtest- und gestuft freigebbarer Binance-Spot-Trading-Bot** für zehn Märkte gegen USDC. Der produktive Stand besitzt **eine** auswählbare Strategie: die aktuelle V6 mit coinindividuellen Profilen. Echtgeld ist beim Start niemals automatisch aktiv.
 
 ## Aktueller Produktvertrag
 
@@ -12,7 +12,9 @@ Der Hixton ist aktuell ein lokaler, deutschsprachiger **Paper- und Backtest-Trad
 - Diagnose-/Optimierungslabor: zehn getrennte Konten à 250 USDC (10×250).
 - Drawdown wird gemessen; der frühere permanente 20-%-Portfolio-Drawdown-Halt ist nicht Teil der aktiven V6.
 - Die 5-%-UTC-Tagesverlustpause, Not-Aus, Cash-, Daten- und Exchange-Filter bleiben Sicherheitsgates.
-- Paper nutzt echte öffentliche Binance-Marktdaten und simulierte Ausführung. Echtgeld- und Testnet-Orders sind nicht freigegeben.
+- Paper nutzt echte öffentliche Binance-Marktdaten und simulierte Ausführung.
+- Der lokale Echtgeldpfad ist gestuft: zuerst ein ausdrücklich freigegebener 1×50-USDC-Roundtrip; dauerhafter Livebetrieb erst danach mit exakt 3×80 USDC, erfolgreichem Kontoabgleich und allen Runtime-Gates.
+- Cloud-/CI-/Agentenläufe bleiben key-free und dürfen weder Echtgeld- noch Testnet-Orders senden.
 
 ## Aktuelle V6-Profile
 
@@ -77,6 +79,6 @@ Die lokale Oberfläche läuft standardmäßig auf http://127.0.0.1:8765/. Normal
     npm.cmd run check
     npm.cmd run build
 
-Ein Download ist als Paper-/Backtest-Produkt gedacht. **Live-Trading ist nicht Teil der Freigabe.** Eine releasefähige Version benötigt auf dem exakten Commit grünen Preflight, Dashboard-E2E, vollständige Regression, A09 QA_PASS und A11 GOVERNANCE_PASS.
+Eine releasefähige Version benötigt auf dem exakten Commit grünen Preflight, Dashboard-E2E, vollständige Regression, A09 QA_PASS und A11 GOVERNANCE_PASS. Die Codefreigabe des Livepfads ersetzt keinen echten Kontonachweis: der erste 1×50-USDC-Roundtrip muss lokal mit dem eigenen Binance-Konto durchgeführt und vollständig reconciled werden, bevor 3×80 überhaupt freigeschaltet werden kann.
 
 Zentrale Dokumentation: DMS/00_DOKUMENTENLENKUNG_UND_START.md. Forschungsjournal: backtests/README.md.
