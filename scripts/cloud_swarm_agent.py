@@ -1,7 +1,8 @@
 """Key-free deterministic roles for the GitHub-hosted Hixton swarm.
 
-These roles inspect and test the Paper-only system. They never read Binance
-credentials, never submit orders and never import the unreleased live adapter.
+These roles inspect and test the key-free engineering system. They never read
+Binance credentials and never submit real or testnet orders. Live execution is
+verified only through source inspection, fake exchanges and offline regressions.
 """
 
 # ruff: noqa: RUF001
@@ -261,15 +262,16 @@ def _live_audit_a01() -> list[dict[str, Any]]:
         "02_VERBINDLICHE_ANFORDERUNGEN.md": (
             "250 USDC",
             "drei 80-USDC-Slots",
-            "Echtgeld/Testnet bleiben gesperrt",
+            "erster Test ausschließlich 1×50 USDC",
         ),
         "06_BACKTEST_UND_VALIDIERUNG.md": (
             "portfolio: 250 USDC gemeinsam, 3×80, ranked_repeat",
             "10×250 USDC isoliert",
         ),
         "07_AUSFUEHRUNG_ORDERS.md": (
-            "Paper ist die einzige freigegebene Ausführung",
-            "Real- und Testnet-Orderpfade bleiben technisch/organisatorisch gesperrt",
+            "1 × 50 USDC",
+            "3 × 80 USDC",
+            "nicht blind erneut gesendet",
         ),
         "18_BACKTEST_STATUS_UND_ERGEBNISFORMAT.md": (
             "3×80 aktuell",
@@ -298,7 +300,7 @@ def _live_audit_a01() -> list[dict[str, Any]]:
                 "dms_files_scanned": len(dms_files),
                 "portfolio_contract": "250 USDC shared / max 3 x 80 USDC / 10 symbols",
                 "diagnostic_only": "10x250",
-                "documented_release_state": "PAPER_ONLY_LIVE_BLOCKED",
+                "documented_release_state": "STAGED_LOCAL_LIVE_CLOUD_KEY_FREE",
             }
         },
         coverage("live_documentation_contract", "live_release_scope"),
@@ -380,15 +382,17 @@ def _live_audit_a04() -> list[dict[str, Any]]:
         encoding="utf-8"
     )
     routes = (ROOT / "src" / "hixton" / "ui" / "live.py").read_text(encoding="utf-8")
+    ui = (ROOT / "ui" / "src" / "live-preparation.ts").read_text(encoding="utf-8")
     required = (
-        '"order_dispatch_available": False',
-        '"ready": False',
-        '"trial_dispatch_available": False',
-        '"slot_count": 1',
-        '"target_notional_quote": "50.00"',
+        '"trial_dispatch_available": trial_available',
+        '"order_dispatch_available": production_ready',
+        '"minimum_free_usdc_at_enable": "250.00"',
+        'confirmation:"TEST 50 USDC"',
+        'confirmation:"LIVE 3X80 AKTIVIEREN"',
     )
-    if any(value not in preparation for value in required) or "status_code=409" not in routes:
-        raise CheckFailure("Live UI/preparation no longer fails closed")
+    combined = preparation + "\n" + routes + "\n" + ui
+    if any(value not in combined for value in required):
+        raise CheckFailure("staged Live UI/server readiness contract incomplete")
     tests = require_command(
         [sys.executable, "-m", "pytest", "-q", "tests/test_live_preparation.py"],
         timeout=1200,
@@ -396,10 +400,11 @@ def _live_audit_a04() -> list[dict[str, Any]]:
     return [
         tests,
         {
-            "live_release_ready": False,
-            "live_order_dispatch_available": False,
-            "current_live_surface": "BLOCKED_PREPARATION_AND_SINGLE_50_USDC_TRIAL_ONLY",
-            "main_3x80_live_controls_available": False,
+            "controlled_trial_code_ready": True,
+            "production_live_code_ready": True,
+            "actual_live_activation_approved": False,
+            "cloud_order_submission": False,
+            "current_live_surface": "EXPLICIT_1X50_THEN_RUNTIME_GATED_3X80",
         },
         coverage("live_ui_fail_closed", "live_capital_semantics"),
     ]
@@ -434,6 +439,7 @@ def _live_audit_a06() -> list[dict[str, Any]]:
     sources = {
         "orders": (ROOT / "tests" / "test_live_orders.py").read_text(encoding="utf-8"),
         "trial": (ROOT / "tests" / "test_live_trial.py").read_text(encoding="utf-8"),
+        "production": (ROOT / "tests" / "test_live_production.py").read_text(encoding="utf-8"),
         "preparation": (ROOT / "tests" / "test_live_preparation.py").read_text(
             encoding="utf-8"
         ),
@@ -441,12 +447,18 @@ def _live_audit_a06() -> list[dict[str, Any]]:
     required_tests = {
         "orders": ("test_concurrent_submit_claim_has_one_winner",),
         "trial": (
-            "test_ten_simultaneous_signals_reserve_one_entry_in_dms_rank_order",
             "test_reserved_entry_restart_and_timeout_cannot_rebuy",
             "test_global_trial_budget_rejects_every_other_amount",
         ),
+        "production": (
+            "test_live_intent_hard_caps_three_by_eighty",
+            "test_ten_simultaneous_signals_never_exceed_three_slots",
+            "test_timeout_restart_reconciles_without_duplicate_submit",
+            "test_repeated_scheduler_ticks_do_not_duplicate_orders",
+            "test_account_mismatch_fails_closed_before_order",
+        ),
         "preparation": (
-            "test_clean_account_is_not_live_approval",
+            "test_controlled_trial_arms_only_after_fresh_account_check_without_sending_order",
             "test_common_settings_reject_unapproved_limits_without_silent_fallback",
         ),
     }
@@ -468,15 +480,19 @@ def _live_audit_a06() -> list[dict[str, Any]]:
             "tests/test_live_preparation.py",
             "tests/test_live_reconciliation_runtime.py",
             "tests/test_live_trial.py",
+            "tests/test_live_production.py",
         ],
         timeout=1800,
     )
     return [
         tests,
         {
-            "runaway_order_guard": "FAIL_CLOSED_BEFORE_PRODUCTION_RELEASE",
-            "production_3x80_live_implemented": False,
-            "live_release_ready": False,
+            "runaway_order_guard": "PERSIST_BEFORE_SUBMIT_QUERY_DONT_RESUBMIT",
+            "production_3x80_live_implemented": True,
+            "controlled_trial_code_ready": True,
+            "production_live_code_ready": True,
+            "actual_live_activation_approved": False,
+            "cloud_order_submission": False,
             "covered_failure_classes": [
                 "concurrent_submit",
                 "duplicate_delivery",
@@ -484,7 +500,8 @@ def _live_audit_a06() -> list[dict[str, Any]]:
                 "restart_reserved_entry",
                 "ten_simultaneous_signals",
                 "invalid_or_huge_notional",
-                "clean_account_does_not_enable_live",
+                "account_reconciliation_mismatch",
+                "repeated_scheduler_ticks",
             ],
         },
         coverage("live_failure_regression", "runaway_order_guard"),
@@ -559,22 +576,24 @@ def _live_audit_a08() -> list[dict[str, Any]]:
             "tests/test_strategy_slot_capacity.py",
             "tests/test_trade_policy.py",
             "tests/test_owner_slot_capacity_semantics.py",
+            "tests/test_live_production.py",
         ],
         timeout=1200,
     )
     preparation = (ROOT / "src" / "hixton" / "live" / "preparation.py").read_text(
         encoding="utf-8"
     )
-    if "production_submission_accepted\": False" not in preparation:
-        raise CheckFailure("production submission gate is not explicitly closed")
+    if '"production_submission_accepted": True' not in preparation:
+        raise CheckFailure("guarded production submission code is not declared implemented")
     return [
         tests,
         {
             "live_strategy_risk": {
                 "main_portfolio": "250 USDC / max 3 x 80 USDC",
                 "research_10x250_is_live_capital": False,
-                "production_submission_accepted": False,
-                "live_release_ready": False,
+                "production_submission_implemented": True,
+                "actual_live_activation_approved": False,
+                "cloud_order_submission": False,
             }
         },
         coverage("live_strategy_risk_limits", "live_slot_competition"),
@@ -588,16 +607,23 @@ def _live_audit_a10(reports_dir: Path | None) -> list[dict[str, Any]]:
     a04 = reports.get("A04", {})
     a06 = reports.get("A06", {})
     if (
-        evidence_flag(a04, "live_release_ready") is not False
-        or evidence_flag(a06, "live_release_ready") is not False
-        or evidence_flag(a06, "production_3x80_live_implemented") is not False
+        evidence_flag(a04, "controlled_trial_code_ready") is not True
+        or evidence_flag(a04, "production_live_code_ready") is not True
+        or evidence_flag(a06, "production_3x80_live_implemented") is not True
+        or evidence_flag(a06, "actual_live_activation_approved") is not False
+        or evidence_flag(a06, "cloud_order_submission") is not False
     ):
-        raise CheckFailure("live audit did not preserve explicit not-ready state")
+        raise CheckFailure("staged Live evidence is incomplete or overclaims activation")
     return [
         {
-            "live_release_ready": False,
-            "audit_result": "LIVE_NOT_READY",
-            "reason": "Production 3x80 live dispatcher is intentionally not implemented/released.",
+            "controlled_trial_code_ready": True,
+            "production_live_code_ready": True,
+            "actual_live_activation_approved": False,
+            "audit_result": "CONTROLLED_TRIAL_CODE_READY",
+            "reason": (
+                "Offline safety gates pass. A real local 1x50 round-trip is still required "
+                "before continuous 3x80 can become operationally eligible."
+            ),
         },
         coverage("live_audit_evidence_contract"),
     ]
@@ -609,14 +635,18 @@ def _live_audit_a09(reports_dir: Path | None) -> list[dict[str, Any]]:
     reports = load_reports(reports_dir)
     a10 = reports.get("A10", {})
     if (
-        evidence_flag(a10, "live_release_ready") is not False
-        or evidence_flag(a10, "audit_result") != "LIVE_NOT_READY"
+        evidence_flag(a10, "controlled_trial_code_ready") is not True
+        or evidence_flag(a10, "production_live_code_ready") is not True
+        or evidence_flag(a10, "actual_live_activation_approved") is not False
+        or evidence_flag(a10, "audit_result") != "CONTROLLED_TRIAL_CODE_READY"
     ):
-        raise CheckFailure("QA must not turn an incomplete Live path into a release")
+        raise CheckFailure("QA refuses incomplete or overclaimed Live readiness")
     return [
         {
-            "live_release_ready": False,
-            "qa_live_decision": "AUDIT_PASS_LIVE_NOT_READY",
+            "controlled_trial_code_ready": True,
+            "production_live_code_ready": True,
+            "actual_live_activation_approved": False,
+            "qa_live_decision": "AUDIT_PASS_CONTROLLED_TRIAL_CODE_READY",
         },
         coverage("live_audit_qa"),
     ]
@@ -629,14 +659,18 @@ def _live_audit_a11(reports_dir: Path | None) -> list[dict[str, Any]]:
     a09 = reports.get("A09", {})
     a10 = reports.get("A10", {})
     if (
-        evidence_flag(a09, "live_release_ready") is not False
-        or evidence_flag(a10, "live_release_ready") is not False
+        evidence_flag(a09, "controlled_trial_code_ready") is not True
+        or evidence_flag(a09, "production_live_code_ready") is not True
+        or evidence_flag(a09, "actual_live_activation_approved") is not False
+        or evidence_flag(a10, "actual_live_activation_approved") is not False
     ):
-        raise CheckFailure("governance refuses any implicit Live approval")
+        raise CheckFailure("governance refuses implicit operational Live approval")
     return [
         {
-            "live_release_ready": False,
-            "governance_live_decision": "AUDIT_GOVERNANCE_PASS_LIVE_NOT_READY",
+            "controlled_trial_code_ready": True,
+            "production_live_code_ready": True,
+            "actual_live_activation_approved": False,
+            "governance_live_decision": "CONTROLLED_TRIAL_CODE_READY",
         },
         coverage("live_audit_governance"),
     ]
