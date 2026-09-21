@@ -95,7 +95,14 @@ class ApplyingExchange(Exchange):
         self.account = account
 
     def submit(self, intent: LiveIntent) -> ExchangeOrder:
-        order = super().submit(intent)
+        try:
+            order = super().submit(intent)
+        except TimeoutError:
+            # Model the dangerous real-world ambiguity: Binance accepted and
+            # filled the order, but the HTTP response was lost. The account
+            # therefore moved even though the caller saw an exception.
+            self.account.apply(self.orders[intent.client_order_id])
+            raise
         self.account.apply(order)
         return order
 
