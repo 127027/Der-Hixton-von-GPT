@@ -22,6 +22,7 @@ from hixton.data.storage import CandleStore
 from hixton.data.sync import synchronize_symbol
 from hixton.domain.models import Candle, IndicatorPoint
 from hixton.domain.versions import strategy_definition
+from hixton.live.production import LivePortfolioRuntime
 from hixton.live.runtime import TrialRuntime
 from hixton.paper.engine import initialize_paper_at_latest, process_new_closed_points
 from hixton.paper.storage import PaperStore
@@ -68,8 +69,10 @@ class RuntimeSupervisor:
         self._backtest_task_handle: asyncio.Task[None] | None = None
         self._available_starts: dict[str, datetime] = {}
         self.trial_runtime: TrialRuntime | None = None
+        self.live_runtime: LivePortfolioRuntime | None = None
         self._trial_task: asyncio.Task[None] | None = None
         self._last_trial_error: str | None = None
+        self._last_live_error: str | None = None
 
     def _process_paper(
         self, points: dict[str, tuple[IndicatorPoint, ...]], rules: dict[str, ExecutionRules]
@@ -98,22 +101,28 @@ class RuntimeSupervisor:
     def start(self) -> None:
         if self._task is None or self._task.done():
             self._task = asyncio.create_task(self._run(), name="hixton-runtime")
-            if (
-                self.trial_runtime is not None
-                and not self.trial_runtime.stopped.is_set()
-                and (self._trial_task is None or self._trial_task.done())
-            ):
-                self._trial_task = asyncio.create_task(self._trial_loop(), name="hixton-one-shot")
+            execution_ready = (
+                self.trial_runtime is not None and not self.trial_runtime.stopped.is_set()
+            ) or (
+                self.live_runtime is not None and not self.live_runtime.stopped.is_set()
+            )
+            if execution_ready and (self._trial_task is None or self._trial_task.done()):
+                self._trial_task = asyncio.create_task(
+                    self._trial_loop(), name="hixton-private-execution"
+                )
 
     async def _trial_loop(self) -> None:
         while not self._stop.is_set():
-            if self.trial_runtime is None:
+            if self.trial_runtime is None and self.live_runtime is None:
                 return
             try:
                 await asyncio.to_thread(self._trial_cycle)
             except Exception:
-                self.trial_runtime.last_error = "TRIAL_RUNTIME_FAILED"
-                self._record_trial_error("TRIAL_RUNTIME_FAILED")
+                if self.trial_runtime is not None:
+                    self.trial_runtime.last_error = "TRIAL_RUNTIME_FAILED"
+                if self.live_runtime is not None:
+                    self.live_runtime.last_error = "LIVE_RUNTIME_FAILED"
+                self._record_trial_error("PRIVATE_EXECUTION_RUNTIME_FAILED")
             await asyncio.sleep(2)
 
     def _record_trial_error(self, error: str | None) -> None:
@@ -122,32 +131,48 @@ class RuntimeSupervisor:
                 level="ERROR",
                 component="live",
                 event_code=error,
-                message="Einmaltest benötigt Klärung; keine ungeprüfte Wiederholung.",
+                message="Private Ausführung benötigt Klärung; keine ungeprüfte Wiederholung.",
             )
         self._last_trial_error = error
 
     def _trial_cycle(self) -> None:
-        if self._stop.is_set() or self.trial_runtime is None:
+        if self._stop.is_set():
             return
+        healthy = self.state.snapshot().health == "HEALTHY"
         try:
             with PaperStore(self.config.database_path) as store:
                 settings = store.load_settings()
             entries_allowed = not settings.emergency_stop
         except Exception:
             entries_allowed = False
-        report = self.trial_runtime.tick(
-            self.state.points(),
-            now=datetime.now(UTC),
-            healthy=self.state.snapshot().health == "HEALTHY",
-            entries_allowed=entries_allowed,
-        )
-        self._record_trial_error("TRIAL_REVIEW_REQUIRED" if report.get("runtime_error") else None)
+        trial_error = None
+        live_error = None
+        if self.trial_runtime is not None:
+            report = self.trial_runtime.tick(
+                self.state.points(),
+                now=datetime.now(UTC),
+                healthy=healthy,
+                entries_allowed=entries_allowed,
+            )
+            if report.get("runtime_error"):
+                trial_error = "TRIAL_REVIEW_REQUIRED"
+        if self.live_runtime is not None:
+            live = self.live_runtime.tick(
+                self.state.points(),
+                now=datetime.now(UTC),
+                healthy=healthy,
+            )
+            if live.get("runtime_error"):
+                live_error = "LIVE_REVIEW_REQUIRED"
+        self._record_trial_error(live_error or trial_error)
 
     async def stop(self) -> None:
         self.state.set_status(health="STOPPING", message="Geordnetes Herunterfahren")
         self._stop.set()
         if self.trial_runtime is not None:
             self.trial_runtime.stop()
+        if self.live_runtime is not None:
+            self.live_runtime.stop()
         if self._trial_task is not None:
             self._trial_task.cancel()
             with suppress(asyncio.CancelledError):
