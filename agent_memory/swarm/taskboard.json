@@ -37,8 +37,8 @@
     "state": "IN_PROGRESS",
     "completion_mode": "continuous",
     "started_at_utc": "2026-09-16T10:30:00+00:00",
-    "last_transition_reason": "Owner instruction 2026-09-20: run a complete A01-A11 Live-readiness audit before any real-money release. Revalidate the >400% 3x80 historical simulation, diagnose current no-trade behavior, and prove fail-closed protection against duplicate, oversized or runaway orders. Audit only; real/testnet orders remain forbidden.",
-    "owner_instruction_date": "2026-09-20",
+    "last_transition_reason": "Owner instruction 2026-09-21: implement the guarded local Live execution path. Code must support a controlled first 1x50 USDC round-trip and only afterwards gated continuous 3x80 Spot/USDC. Cloud A01-A11 remains key-free and must never submit orders.",
+    "owner_instruction_date": "2026-09-21",
     "primary_agents": [
       "A01",
       "A02",
@@ -72,7 +72,7 @@
     "constraints": [
       "Product surfaces expose one current strategy only: V6. Legacy strategy implementations may remain only where required for archived compatibility tests and must not be selectable through the normal UI, API or CLI.",
       "The only runtime strategy/profile source of truth is src/hixton/domain/versions.py. Product configuration stores only strategy key v6 and must not duplicate the V6 digest or per-coin profile map.",
-      "Trading mode remains Paper-only. Never send real or testnet exchange orders, never request Binance private credentials, and never present disabled Live preparation as a released product feature.",
+      "Cloud/CI/A01-A11 trading mode remains Paper-only and key-free. The local product may expose staged Live execution only through explicit authenticated runtime gates; cloud agents never request credentials or send real/testnet orders.",
       "Operational market data is real public Binance USDC. Same-base USDT history may be used only as explicitly labelled research proxy where USDC listing history is shorter; it is never presented as historical USDC liquidity or fills.",
       "The shared main model starts with 250 USDC and baseline capacity is three 80-USDC slots using ranked_repeat. Multiple slots on one valid signal are capacity tranches of one position cycle, not additional strategy signals.",
       "The permanent portfolio 20-percent drawdown entry halt remains removed. Drawdown is measured and reported. The 5-percent UTC-day loss pause, emergency stop, cash, stale-data and exchange-filter safety gates remain.",
@@ -97,7 +97,7 @@
       "A passive buy-and-hold candidate may replace an active trading method for a coin only if it wins under the same anti-overfitting selection discipline and remains compatible with the authoritative shared 3x80 portfolio gate. Isolated outperformance alone is insufficient because a passive position can consume slot capacity for long periods.",
       "For each coin there is exactly one canonical active method. The product never presents two competing truths for the same coin; research alternatives remain internal until promoted.",
       "Current README and DMS must describe the one-winner-per-coin rule and must not present legacy Baseline/Stress or Buy-and-Hold benchmark tables as current product outputs.",
-      "Live-readiness work is audit-only. No real or testnet order may be sent, and the existing production Live gate must remain closed.",
+      "Live implementation/audit work sends no real or testnet order. The local controlled 1x50 and continuous 3x80 gates may be implemented, but actual activation requires the owner locally and cannot be performed by cloud agents.",
       "The 250-USDC shared 3x80 model is the only candidate production capital model; isolated 10x250 is research/diagnostic only and must never become a Live sizing source.",
       "A historical backtest using same-base USDT continuity history may support strategy-path plausibility but may not be described as proof of historical USDC liquidity or actual Binance fills.",
       "Live readiness requires explicit fail-closed evidence for duplicate delivery, retries, restart ambiguity, simultaneous signals, invalid/huge notionals and unavailable reconciliation."
@@ -118,7 +118,7 @@
       "The runtime config contains no duplicated V6 version digest or profile snapshot; changing the canonical map cannot create another config/profile mismatch.",
       "Repository backtests retain only the current V6 product evidence plus the central learning journal; obsolete version folders are removed from the current branch.",
       "A fresh real dashboard E2E, cloud preflight and full A01-A11 run all pass after the final cleanup commit.",
-      "Release wording may call the package distribution-ready for Paper/backtest use only; it must not claim live-trading readiness while real order execution remains disabled.",
+      "Release wording distinguishes code readiness from operational Live approval: offline-safe code may be ready for the controlled local 1x50 trial, while continuous 3x80 remains runtime-gated until the real round-trip is reconciled.",
       "A02 proves exact three-calendar-year windows for single, 10x250 and 3x80 and demonstrates fail-closed insufficient-history behavior.",
       "A04 proves the shipped UI displays one current backtest scenario and the exact report_start/report_end without Baseline/Stress alternatives.",
       "A06 pins and passes fixed-window regression values near 8217.00711069101365 USDC (10x250) and 1217.9057596598351 USDC (3x80) with the current canonical V6 map.",
@@ -132,10 +132,13 @@
       "A09 and A11 refuse release if a noncanonical research alternative is presented beside the active result as though both were product choices.",
       "A02 produces a fresh real dashboard 3x80 E2E on public Binance continuity history and reports position-cycle timing, per-symbol contribution and maximum historical no-entry gap.",
       "A03/A05 report the active Paper strategy activation time, events since activation, open positions, checkpoint freshness and any technical blocker that could explain no new trade.",
-      "A04 proves the current product still blocks production Live enable/submit and does not expose 10x250 as a real-money capital model.",
+      "A04 proves the shipped UI exposes staged 1x50 then 3x80 controls only through server readiness flags, never exposes 10x250 as live capital, and never stores secrets in browser/project files.",
       "A06 runs the explicit Live failure matrix covering concurrent/duplicate submit, retry/timeout, restart, simultaneous signals and invalid/oversized notionals.",
       "A07 reports current Binance Spot execution filters for all ten USDC symbols without using private credentials.",
-      "A09/A11 may pass the audit while still requiring live_release_ready=false; they must never convert audit completeness into Live approval."
+      "A09/A11 may approve the code for a controlled local 1x50 trial only when all offline safety evidence passes; they must not claim an actual Binance round-trip or continuous 3x80 operational approval before that real local trial is reconciled.",
+      "A06 proves the production Live controller hard-caps BUY exposure at three 80-USDC slots, rejects oversized/invalid budgets, and never duplicates an ambiguous submit across retry/restart/repeated scheduler ticks.",
+      "A06/A04 prove the first 1x50 activation itself sends no order and only arms a future-signal entitlement; continuous 3x80 activation itself also sends no order or backfills old signals.",
+      "A09/A11 require actual_live_activation_approved=false in cloud evidence even when controlled_trial_code_ready=true and production_live_code_ready=true."
     ],
     "current_reference": {
       "source_run_id": "35463131378",
@@ -194,6 +197,15 @@
       "real_money_orders_allowed": false,
       "testnet_orders_allowed": false,
       "production_activation_allowed": false
+    },
+    "live_execution_implementation": {
+      "requested_at_utc": "2026-09-21T06:39:00+00:00",
+      "scope": "IMPLEMENT_AND_OFFLINE_VERIFY_NO_REAL_OR_TESTNET_ORDER",
+      "first_real_stage": "EXPLICIT_1X50_FUTURE_SIGNAL_ONLY",
+      "continuous_stage": "EXPLICIT_3X80_AFTER_RECONCILED_TRIAL_AND_RUNTIME_GATES",
+      "cloud_orders_allowed": false,
+      "cloud_private_credentials_allowed": false,
+      "actual_binance_roundtrip_required_before_continuous_live": true
     }
   },
   "queued_missions": [],
