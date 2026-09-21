@@ -40,7 +40,7 @@ class SignalTrial:
     """One irreversible entry entitlement per ledger, independently of Paper settings.
 
     release_check and executor.pre_submit are mandatory injected safety gates.
-    Actual account reconciliation, market filters and 24/7 Live remain outside.
+    Account reconciliation and 24/7 production Live are separate guarded layers.
     """
 
     def __init__(

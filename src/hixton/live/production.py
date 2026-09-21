@@ -715,6 +715,14 @@ class LivePortfolioController:
             proof = self.reconciler.check(snapshot, now=now)
             if proof["passed"] is not True:
                 raise RuntimeError("Live account does not reconcile")
+            if row["state"] == "LIVE_DISABLED":
+                # A deliberate off/on cycle must never backfill entry signals that
+                # happened while entries were disabled. Re-anchor to the newest
+                # synchronized closed bar before enabling new entries again.
+                connection.executemany(
+                    "UPDATE live_checkpoints SET last_close_utc=? WHERE symbol=?",
+                    [(latest[symbol].isoformat(), symbol) for symbol in SYMBOLS],
+                )
             connection.execute(
                 "UPDATE live_control SET state='LIVE_ENABLED',entries_enabled=1,"
                 "updated_at=?,reason=NULL WHERE singleton=1",

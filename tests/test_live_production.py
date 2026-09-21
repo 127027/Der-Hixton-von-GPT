@@ -288,6 +288,24 @@ def test_exit_is_allowed_after_entries_are_disabled(tmp_path: Path) -> None:
     assert c.report()["state"] == "EXIT_ONLY"
 
 
+def test_reenable_reanchors_checkpoints_and_does_not_backfill_disabled_interval(
+    tmp_path: Path,
+) -> None:
+    c, _exchange, account, _settings = controller(tmp_path)
+    first = NOW - timedelta(hours=2)
+    c.enable("fake-account", universe(first), account.snapshot(), now=NOW)
+    c.disable_entries()
+    assert c.report()["state"] == "LIVE_DISABLED"
+    c.enable("fake-account", universe(NOW), account.snapshot(), now=NOW)
+    with c.journal._connect() as connection:
+        checkpoints = {
+            row["symbol"]: datetime.fromisoformat(row["last_close_utc"])
+            for row in connection.execute("SELECT * FROM live_checkpoints")
+        }
+    assert set(checkpoints) == set(SYMBOLS)
+    assert set(checkpoints.values()) == {NOW}
+
+
 def test_repeated_scheduler_ticks_do_not_duplicate_orders(tmp_path: Path) -> None:
     c, exchange, account, _settings = controller(tmp_path)
     c.enable(
