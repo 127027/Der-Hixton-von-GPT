@@ -12,7 +12,10 @@ from fastapi import FastAPI, HTTPException, Request
 from fastapi.responses import JSONResponse
 from starlette.concurrency import run_in_threadpool
 
+from hixton.backtest.models import ExecutionRules
 from hixton.config import ProjectConfig
+from hixton.constants import SYMBOLS
+from hixton.data.storage import CandleStore
 from hixton.live.binance import BinanceCheckError
 from hixton.live.credentials import BinanceCredentials, Vault, VaultError, WindowsVault
 from hixton.live.preparation import LivePreparation
@@ -34,7 +37,37 @@ def install_live_routes(
         vault if vault is not None else WindowsVault(config.database_path),
     )
     app.state.live_preparation = service
-    supervisor.trial_runtime = service.connect_runtime(supervisor.strategy)
+
+    def trading_settings() -> tuple[int, Decimal, bool]:
+        with PaperStore(config.database_path) as store:
+            settings = store.load_settings()
+        return (
+            settings.slot_count,
+            settings.target_notional_usdc,
+            settings.emergency_stop,
+        )
+
+    def execution_rules() -> dict[str, ExecutionRules]:
+        result: dict[str, ExecutionRules] = {}
+        with CandleStore(config.database_path) as store:
+            for symbol in SYMBOLS:
+                stored = store.load_symbol_rules(symbol)
+                if stored is None:
+                    raise RuntimeError(f"Binance-Orderfilter fehlen für {symbol}")
+                result[symbol] = ExecutionRules(
+                    tick_size=stored.tick_size,
+                    step_size=stored.step_size,
+                    min_qty=stored.min_qty,
+                    min_notional=stored.min_notional,
+                )
+        return result
+
+    supervisor.trial_runtime = service.connect_runtime(
+        supervisor.strategy,
+        settings_provider=trading_settings,
+        rules_provider=execution_rules,
+    )
+    supervisor.live_runtime = service.live_runtime
 
     def require_local(request: Request) -> None:
         # Unlike legacy read/Paper endpoints, private actions require an exact origin.
@@ -82,10 +115,18 @@ def install_live_routes(
                 shared = {**preview, "emergency_stop": settings.emergency_stop}
         except (RuntimeError, sqlite3.DatabaseError, KeyError):
             pass
+        slot_count = int(shared["slot_count"]) if shared is not None else None
+        target_notional = (
+            Decimal(str(shared["target_notional_usdc"])) if shared is not None else None
+        )
+        emergency_stop = bool(shared["emergency_stop"]) if shared is not None else True
         result = service.status(
             authenticated=authenticated,
             soak_ready=soak_ready,
             healthy=supervisor.state.snapshot().health == "HEALTHY",
+            slot_count=slot_count,
+            target_notional=target_notional,
+            emergency_stop=emergency_stop,
         )
         result["paper_settings_preview"] = preview
         # One existing persistent record, not a second editable Live configuration.
@@ -185,12 +226,34 @@ def install_live_routes(
         return await run_in_threadpool(service.check)
 
     @app.post("/api/live/enable")
-    async def enable(request: Request) -> JSONResponse:
+    async def enable(request: Request) -> dict[str, object]:
         require_session(request)
-        # This endpoint must NEVER toggle RuntimeState.mode merely for a green UI badge.
-        result = await run_in_threadpool(get_status, True)
-        await run_in_threadpool(service.audit, "LIVE_REQUEST_BLOCKED")
-        return JSONResponse(result, status_code=409)
+        data = await payload(request)
+        if set(data) != {"confirmation"} or data.get("confirmation") != "LIVE 3X80 AKTIVIEREN":
+            raise HTTPException(400, "3×80-Livebetrieb ausdrücklich bestätigen.")
+        try:
+            with PaperStore(config.database_path) as store:
+                settings = store.load_settings()
+                soak_ready = store.load_soak_progress().ready
+            await run_in_threadpool(
+                service.enable_live,
+                supervisor.state.points(),
+                healthy=supervisor.state.snapshot().health == "HEALTHY",
+                soak_ready=soak_ready,
+                slot_count=settings.slot_count,
+                target_notional=settings.target_notional_usdc,
+                emergency_stop=settings.emergency_stop,
+            )
+        except BinanceCheckError:
+            raise
+        except (RuntimeError, ValueError, sqlite3.DatabaseError):
+            await run_in_threadpool(service.audit, "PRODUCTION_LIVE_ENABLE_FAILED")
+            raise HTTPException(
+                409,
+                "Live-Freigabe fehlgeschlagen. Konto-/Ledger-Abgleich und technische "
+                "Freigaben prüfen; es wurde dadurch keine neue Order ausgelöst.",
+            ) from None
+        return get_status(True)
 
     @app.post("/api/live/disable")
     async def disable(request: Request) -> dict[str, object]:
@@ -214,11 +277,26 @@ def install_live_routes(
                 raise ValueError
         except (InvalidOperation, ValueError):
             raise HTTPException(400, "Einmaltest: ausschließlich 50 USDC Kaufbudget.") from None
-        # No URL parameter, key presence or green preflight bypasses incomplete implementation.
-        # Runtime wiring and balance checks do not release the pre-submit gates.
-        result = await run_in_threadpool(get_status, True)
-        await run_in_threadpool(service.audit, "TRIAL_REQUEST_BLOCKED")
-        return JSONResponse(result, status_code=409)
+        try:
+            with PaperStore(config.database_path) as store:
+                settings = store.load_settings()
+            await run_in_threadpool(
+                service.start_trial,
+                healthy=supervisor.state.snapshot().health == "HEALTHY",
+                slot_count=settings.slot_count,
+                target_notional=settings.target_notional_usdc,
+                emergency_stop=settings.emergency_stop,
+            )
+        except BinanceCheckError:
+            raise
+        except (RuntimeError, ValueError, sqlite3.DatabaseError):
+            await run_in_threadpool(service.audit, "CONTROLLED_TRIAL_START_FAILED")
+            raise HTTPException(
+                409,
+                "Der kontrollierte 50-USDC-Test konnte nicht sicher vorbereitet werden. "
+                "Es wurde dadurch keine neue Order ausgelöst.",
+            ) from None
+        return JSONResponse(get_status(True))
 
     @app.post("/api/live/trial/stop")
     async def stop_trial(request: Request) -> dict[str, object]:
