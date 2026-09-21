@@ -46,6 +46,7 @@ def test_local_ui_status_and_ten_market_placeholders(tmp_path: Path) -> None:
     )
     status = client.get("/api/status")
     assert status.status_code == 200
+    assert status.json()["application_version"] == "0.4.10"
     assert status.json()["runtime"]["live_state"] == "LIVE_DISABLED"
     assert status.headers["x-frame-options"] == "DENY"
     markets = client.get("/api/markets")
@@ -211,6 +212,7 @@ def test_ui_documentation_uses_runtime_strategy_and_current_branch(tmp_path: Pat
         base_url="http://127.0.0.1:8765",
     )
     html = client.get("/").text
+    assert 'id="app-version-badge"' in html
     assert 'id="doc-strategy-version"' in html
     assert 'id="backtest-history"' in html
     assert 'aria-label="Backtestart"' in html
