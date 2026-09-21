@@ -90,7 +90,14 @@ export function initializeLivePreparation(sharedSettingsBlocker: () => string | 
         ? "Binance-Zugangsschlüssel lokal gespeichert."
         : "Noch kein Binance-Zugangsschlüssel gespeichert.",
     );
-    message("live-trial-status", status.trial?.state && status.trial.state !== "NOT_STARTED" ? `Test: ${status.trial.state}${status.trial.symbol ? " · " + status.trial.symbol : ""}` : "Nicht gestartet. Echtgeldanbindung noch gesperrt.");
+    message(
+      "live-trial-status",
+      status.trial?.state && status.trial.state !== "NOT_STARTED"
+        ? `Test: ${status.trial.state}${status.trial.symbol ? " · " + status.trial.symbol : ""}`
+        : status.trial_dispatch_available
+          ? "Bereit: wartet nach Freigabe auf ein neues gültiges Signal."
+          : "Nicht gestartet. Voraussetzungen siehe technische Freigabe.",
+    );
     const list = element("live-blockers");
     list.replaceChildren();
     for (const reason of new Set([...status.blockers, ...(status.account_check?.blockers ?? [])])) {
@@ -124,8 +131,12 @@ export function initializeLivePreparation(sharedSettingsBlocker: () => string | 
     });
     const result = await response.json() as Record<string, unknown>;
     if (response.status === 409 && (path === "enable" || path === "trial/start")) {
-      render(result as unknown as LiveStatus);
-      throw new Error("Noch nicht startbereit: Echtgeld-Runtime-Anschluss, Kontoabgleich und Ausführungsabnahme fehlen. Kein Echtgeldauftrag gesendet. Details unter „Technische Freigabe prüfen“.");
+      if ("state" in result && "blockers" in result) render(result as unknown as LiveStatus);
+      throw new Error(
+        typeof result.detail === "string"
+          ? result.detail
+          : "Freigabe sicher abgelehnt. Es wurde keine neue Order ausgelöst.",
+      );
     }
     if (!response.ok) throw new Error(typeof result.detail === "string" ? result.detail : `Aktion fehlgeschlagen (${response.status}).`);
     return result;
@@ -203,7 +214,11 @@ export function initializeLivePreparation(sharedSettingsBlocker: () => string | 
     if (!last.credentials.configured) {
       throw new Error("Zuerst API-Key und Secret speichern und Verbindung prüfen.");
     }
-    await request("enable", {});
+    await request("enable", {confirmation:"LIVE 3X80 AKTIVIEREN"});
+    message(
+      "live-result",
+      "3×80-Livebetrieb aktiviert. Es wird keine Order nachgeholt; der Bot wartet auf neue gültige Signale.",
+    );
   });
   bind("live-off", "click", "live-result", async () => {
     requireAuth();
@@ -224,6 +239,10 @@ export function initializeLivePreparation(sharedSettingsBlocker: () => string | 
       quote_asset:"USDC",
       notional_quote:"50.00",
     });
+    message(
+      "live-trial-result",
+      "1×50-Test scharf. Noch keine Order wurde sofort gesendet; der Bot wartet auf ein neues gültiges Signal.",
+    );
   });
   window.addEventListener("pagehide", clearSecrets);
   void refresh();

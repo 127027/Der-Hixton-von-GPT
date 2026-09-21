@@ -78,7 +78,24 @@ export function mockLive() {
     else if(url.endsWith("/credentials/delete")) {state.credentials.configured=false;data={removed:true};}
     else if(url.endsWith("/lock")) {state.authenticated=false;data={authenticated:false};}
     else if(url.endsWith("/check")) data={account_checks_passed:true};
-    else if(url.endsWith("/enable") || url.endsWith("/trial/start")) {status=409;data=structuredClone(state);}
+    else if(url.endsWith("/trial/start")) {
+      if(!state.trial_dispatch_available || body.confirmation!=="TEST 50 USDC") {
+        status=409;data={detail:"Testfreigabe sicher abgelehnt."};
+      } else {
+        state.state="TRIAL_WAITING_SIGNAL";
+        state.trial={state:"WAITING_SIGNAL"};
+        state.trial_dispatch_available=false;
+        data=structuredClone(state);
+      }
+    }
+    else if(url.endsWith("/enable")) {
+      if(!state.ready || !state.order_dispatch_available || body.confirmation!=="LIVE 3X80 AKTIVIEREN") {
+        status=409;data={detail:"Livefreigabe sicher abgelehnt."};
+      } else {
+        state.state="LIVE_ENABLED";
+        data=structuredClone(state);
+      }
+    }
     else if(url.endsWith("/disable")) {state.state="LIVE_DISABLED";data={state:"LIVE_DISABLED"};}
     else throw Error(`Unexpected request ${url}`);
     return {ok:status<400,status,json:async()=>data};

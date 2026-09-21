@@ -81,7 +81,7 @@ test("unlock does not claim success when cookie/session verification fails",asyn
   } finally {live.dispose();ui.restore();}
 });
 
-test("unreleased server keeps trial and continuous live controls disabled",async()=>{
+test("server gates keep trial and continuous live controls disabled until explicit readiness",async()=>{
   const mock=mockLive();mock.state.credentials.configured=true;
   const ui=harness(mock.fetcher),live=initializeLivePreparation(()=>null);
   try {
@@ -90,6 +90,30 @@ test("unreleased server keeps trial and continuous live controls disabled",async
     assert.equal(ui.node("live-request").disabled,true);
     assert.equal(mock.calls.filter(c=>c.url.endsWith("/trial/start")).length,0);
     assert.equal(mock.calls.filter(c=>c.url.endsWith("/enable")).length,0);
+  } finally {live.dispose();ui.restore();}
+});
+
+test("controlled 1x50 and continuous 3x80 send exact explicit confirmations",async()=>{
+  const mock=mockLive();mock.state.credentials.configured=true;
+  const ui=harness(mock.fetcher),live=initializeLivePreparation(()=>null);
+  try {
+    await live.refresh();await unlockUI(ui);
+    mock.state.trial_dispatch_available=true;await live.refresh();
+    assert.equal(ui.node("live-trial-start").disabled,false);
+    await ui.node("live-trial-start").fire("click");
+    const trial=mock.calls.find(c=>c.url.endsWith("/trial/start"));
+    assert.deepEqual(trial.body,{confirmation:"TEST 50 USDC",quote_asset:"USDC",notional_quote:"50.00"});
+    assert.match(ui.node("live-trial-result").textContent,/wartet auf ein neues gültiges Signal/);
+
+    mock.state.state="LIVE_DISABLED";
+    mock.state.ready=true;
+    mock.state.order_dispatch_available=true;
+    await live.refresh();
+    assert.equal(ui.node("live-request").disabled,false);
+    await ui.node("live-request").fire("click");
+    const enable=mock.calls.find(c=>c.url.endsWith("/enable"));
+    assert.deepEqual(enable.body,{confirmation:"LIVE 3X80 AKTIVIEREN"});
+    assert.equal(mock.state.state,"LIVE_ENABLED");
   } finally {live.dispose();ui.restore();}
 });
 
