@@ -27,6 +27,7 @@ from hixton.live.credentials import (
     WindowsVault,
 )
 from hixton.live.preparation import LivePreparation
+from hixton.live.reconciliation import AccountSnapshot
 from hixton.paper.storage import PaperStore
 from hixton.runtime.supervisor import RuntimeSupervisor
 from hixton.ui.api import create_app
@@ -171,7 +172,7 @@ def test_trial_endpoint_rejects_non_fifty_budget(tmp_path: Path, amount: str) ->
     assert response.status_code == 400
 
 
-def test_trial_route_is_authenticated_and_fail_closed_without_runtime_adapter(
+def test_trial_route_requires_explicit_one_by_fifty_settings_and_never_bypasses(
     tmp_path: Path,
 ) -> None:
     client, config, service = client_for(tmp_path)
@@ -181,16 +182,17 @@ def test_trial_route_is_authenticated_and_fail_closed_without_runtime_adapter(
     unlock(client)
     save_key(client)
     response = client.post("/api/live/trial/start", headers=HEADERS, json=body)
-    assert response.status_code == 409
-    assert response.json()["trial_dispatch_available"] is False
-    assert response.json()["paper_settings_preview"] == {
+    assert response.status_code == 400
+    status = client.get("/api/live/status").json()
+    assert status["trial_dispatch_available"] is False
+    assert status["paper_settings_preview"] == {
         "slot_count": 3,
         "target_notional_usdc": "80.00",
     }
-    assert response.json()["trial"]["state"] == "NOT_STARTED"
+    assert status["trial"]["state"] == "NOT_STARTED"
     assert service.trial is not None and service.runtime is not None
-    assert response.json()["trial_readiness"]["runtime_connected"] is True
-    assert response.json()["trial_readiness"]["production_submission_accepted"] is False
+    assert status["trial_readiness"]["runtime_connected"] is True
+    assert status["trial_readiness"]["production_submission_accepted"] is True
     assert (
         client.post(
             "/api/live/trial/start", headers=HEADERS, json={**body, "force_live": True}
@@ -206,6 +208,54 @@ def test_trial_route_is_authenticated_and_fail_closed_without_runtime_adapter(
             ).fetchall()
             == []
         )
+
+
+def test_controlled_trial_arms_only_after_fresh_account_check_without_sending_order(
+    tmp_path: Path,
+) -> None:
+    client, config, service = client_for(tmp_path)
+    unlock(client)
+    save_key(client)
+    assert client.post(
+        "/api/trading/settings",
+        headers=HEADERS,
+        json={
+            "slot_count": 1,
+            "target_notional_usdc": "50.00",
+            "emergency_stop": False,
+            "confirmation": "ANWENDEN",
+        },
+    ).status_code == 200
+
+    class FakeReadOnlyClient:
+        def __init__(self, credentials: BinanceCredentials) -> None:
+            assert credentials.api_key == KEY
+
+        def inspect(self, notional: Decimal) -> dict[str, object]:
+            assert notional == Decimal("50")
+            return {
+                "account_checks_passed": True,
+                "blockers": [],
+                "free_usdc": "100",
+                "free_bnb": "0.03",
+            }
+
+    service.client_factory = FakeReadOnlyClient
+    service._account_snapshot = lambda: AccountSnapshot(
+        KEY[:16],
+        datetime.now(UTC),
+        {"USDC": (Decimal("100"), Decimal("0")), "BNB": (Decimal("0.03"), Decimal("0"))},
+        (),
+    )
+    assert client.post("/api/live/check", headers=HEADERS, json={}).status_code == 200
+    assert client.get("/api/live/status").json()["trial_dispatch_available"] is True
+    body = {"confirmation": "TEST 50 USDC", "quote_asset": "USDC", "notional_quote": "50.00"}
+    response = client.post("/api/live/trial/start", headers=HEADERS, json=body)
+    assert response.status_code == 200
+    assert response.json()["trial"]["state"] == "WAITING_SIGNAL"
+    with sqlite3.connect(config.database_path.with_name("live-preparation.sqlite3")) as connection:
+        assert connection.execute("SELECT COUNT(*) FROM signal_trial").fetchone()[0] == 1
+        assert connection.execute("SELECT COUNT(*) FROM trial_intents").fetchone()[0] == 0
 
 
 def test_live_off_does_not_sell_open_trial_and_keys_cannot_orphan_it(tmp_path: Path) -> None:
@@ -370,7 +420,7 @@ def test_existing_password_unlock_to_key_and_account_check_is_a_complete_local_f
     check = client.post("/api/live/check", headers=HEADERS, json={})
     assert check.status_code == 200
     assert check.json()["account_checks_passed"] is True
-    assert client.post("/api/live/enable", headers=HEADERS, json={}).status_code == 409
+    assert client.post("/api/live/enable", headers=HEADERS, json={}).status_code == 400
     assert client.get("/api/status").json()["runtime"]["live_state"] == "LIVE_DISABLED"
 
 
@@ -555,8 +605,7 @@ def test_clean_account_is_not_live_approval(tmp_path: Path) -> None:
     # Even simulated completed soak + healthy runtime MUST NOT enable an absent dispatcher.
     assert service.status(authenticated=True, soak_ready=True, healthy=True)["ready"] is False
     result = client.post("/api/live/enable", headers=HEADERS, json={})
-    assert result.status_code == 409
-    assert result.json()["state"] == "LIVE_DISABLED"
+    assert result.status_code == 400
     status = client.get("/api/status").json()
     assert status["runtime"]["mode"] == "PAPER"
     assert status["paper"]["cash_usdc"] == "250"

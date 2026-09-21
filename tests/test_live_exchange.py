@@ -20,6 +20,7 @@ from hixton.live.exchange import (
     ExchangeRequestError,
 )
 from hixton.live.orders import OrderJournal, TrialIntent, TrialOrderExecutor
+from hixton.live.production import LiveIntent
 
 KEY = "TESTONLY" * 8
 SECRET = "NOTAREAL" * 8
@@ -81,6 +82,28 @@ class ScriptedTransport:
 
 def exchange(transport):
     return BinanceSpotExchange(transport, account_fingerprint="account-fixture", quote_asset="USDC")
+
+
+def test_production_market_buy_uses_exact_persisted_240_quote_budget() -> None:
+    live = LiveIntent(
+        "production-three-slots",
+        "account-fixture",
+        "SOLUSDC",
+        "BUY",
+        "test-profile",
+        D("100"),
+        3,
+        quote_budget=D("240"),
+    )
+    transport = ScriptedTransport(live)
+    transport.fill_rows[0]["qty"] = "2.4"
+    transport.fill_rows[0]["quoteQty"] = "240"
+    adapter = exchange(transport)
+    result = adapter.submit(live)
+    sent = transport.calls[0]
+    assert sent[2]["quoteOrderQty"] == "240.00"
+    assert result.symbol == "SOLUSDC"
+    assert sum(call[0] == "POST" for call in transport.calls) == 1
 
 
 def test_quote_budget_is_exact_not_base_quantity_and_fills_are_not_invented(tmp_path):
