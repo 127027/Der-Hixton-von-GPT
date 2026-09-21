@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="color-scheme" content="dark" />
     <title>Der Hixton</title>
-    <script type="module" crossorigin src="/assets/index-CWwZgYWA.js"></script>
+    <script type="module" crossorigin src="/assets/index-B_g79N70.js"></script>
     <link rel="stylesheet" crossorigin href="/assets/index-oRzAbv-Z.css">
   </head>
   <body>
@@ -211,13 +211,13 @@
                 <button id="live-request" type="button" class="button secondary" aria-pressed="false" disabled>Live an</button>
                 <button id="live-off" type="button" class="button secondary" aria-pressed="false" disabled>Live aus</button>
               </div>
-              <p id="live-result" role="alert">Echte Orders sind noch nicht verfügbar. Der Zugang kann bereits geprüft werden; Paper läuft weiter.</p>
-              <p>Live aus stoppt neue Echtgeld-Trades. Offene Positionen laufen regulär aus; der Bot muss dafür eingeschaltet bleiben. Paper nutzt echte Marktdaten und Echtzeit, aber simuliertes Geld.</p>
-              <details>
-                <summary>Einmaliger 50-USDC-Test · Vorbereitung</summary>
-                <p>Ziel: ein neues Signal aus zehn USDC-Märkten abwarten, genau einen Trade mit 50 USDC Kaufbudget ausführen und regulär aussteigen. Gebühren separat. Danach keine weiteren Einstiege.</p>
-                <p>Die Echtgeld-Anbindung ist noch nicht freigegeben. Dieser Button prüft die fehlenden Voraussetzungen und startet momentan keinen Trade. Paper läuft unabhängig weiter.</p>
-                <button id="live-trial-start" type="button" class="button secondary" disabled>1 × 50 USDC · Startvoraussetzungen prüfen</button>
+              <p id="live-result" role="alert">Dauer-Live wird erst nach erfolgreichem 1×50-Roundtrip und allen Sicherheitsgates freigegeben.</p>
+              <p>Live aus stoppt neue Echtgeld-Einstiege. Bereits gesendete oder unklare Orders werden nur abgeglichen; offene Positionen dürfen regulär aussteigen. Paper läuft unabhängig weiter.</p>
+              <details open>
+                <summary>Kontrollierter erster Echtgeldtest · 1 × 50 USDC</summary>
+                <p>Nach deiner ausdrücklichen Freigabe wird nicht sofort gekauft. Der Bot wartet auf ein neues gültiges Signal aus den zehn USDC-Märkten, sendet dann höchstens einen 50-USDC-Market-Kauf, verwaltet den regulären Ausstieg und gleicht anschließend Konto und Orders ab.</p>
+                <p>Vor dem Test müssen die Handelseinstellungen auf genau 1 offenen Trade und 50 USDC pro Trade stehen. Danach kann der dauerhafte Betrieb nur mit exakt 3 × 80 USDC aktiviert werden.</p>
+                <button id="live-trial-start" type="button" class="button primary" disabled>1 × 50 USDC · Test freigeben</button>
                 <p id="live-trial-status" role="status">Nicht gestartet.</p>
                 <p id="live-trial-result" role="alert"></p>
               </details>
