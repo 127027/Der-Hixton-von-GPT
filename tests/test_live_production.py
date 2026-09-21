@@ -119,6 +119,20 @@ def universe(at: datetime, *, enter: tuple[str, ...] = (), exit_symbol: str | No
     return result
 
 
+def enable_now(
+    controller: LivePortfolioController,
+    account: Account,
+    points,
+) -> None:
+    snapshot = account.snapshot()
+    controller.enable(
+        "fake-account",
+        points,
+        snapshot,
+        now=snapshot.observed_at,
+    )
+
+
 def controller(tmp_path: Path):
     database = tmp_path / "live.sqlite3"
     account = Account()
@@ -181,7 +195,7 @@ def test_live_intent_hard_caps_three_by_eighty() -> None:
 def test_ranked_repeat_three_slots_is_one_bounded_market_order(tmp_path: Path) -> None:
     c, exchange, account, _settings = controller(tmp_path)
     initial = universe(NOW - timedelta(hours=1))
-    c.enable("fake-account", initial, account.snapshot(), now=NOW)
+    enable_now(c, account, initial)
     points = universe(NOW, enter=("BTCUSDC",))
     c.advance(points, now=NOW, healthy=True)
     c.advance(points, now=NOW, healthy=True)
@@ -198,12 +212,7 @@ def test_ranked_repeat_three_slots_is_one_bounded_market_order(tmp_path: Path) -
 
 def test_ten_simultaneous_signals_never_exceed_three_slots(tmp_path: Path) -> None:
     c, exchange, account, _settings = controller(tmp_path)
-    c.enable(
-        "fake-account",
-        universe(NOW - timedelta(hours=1)),
-        account.snapshot(),
-        now=NOW,
-    )
+    enable_now(c, account, universe(NOW - timedelta(hours=1)))
     points = universe(NOW, enter=SYMBOLS)
     for _ in range(12):
         c.advance(points, now=NOW, healthy=True)
@@ -217,12 +226,7 @@ def test_ten_simultaneous_signals_never_exceed_three_slots(tmp_path: Path) -> No
 
 def test_timeout_restart_reconciles_without_duplicate_submit(tmp_path: Path) -> None:
     c, exchange, account, _settings = controller(tmp_path)
-    c.enable(
-        "fake-account",
-        universe(NOW - timedelta(hours=1)),
-        account.snapshot(),
-        now=NOW,
-    )
+    enable_now(c, account, universe(NOW - timedelta(hours=1)))
     points = universe(NOW, enter=("BTCUSDC",))
     c.advance(points, now=NOW, healthy=True)
     exchange.timeout = True
@@ -237,12 +241,7 @@ def test_timeout_restart_reconciles_without_duplicate_submit(tmp_path: Path) -> 
 
 def test_settings_change_or_emergency_stop_blocks_new_live_entry(tmp_path: Path) -> None:
     c, exchange, account, settings = controller(tmp_path)
-    c.enable(
-        "fake-account",
-        universe(NOW - timedelta(hours=1)),
-        account.snapshot(),
-        now=NOW,
-    )
+    enable_now(c, account, universe(NOW - timedelta(hours=1)))
     settings[0] = 10
     settings[1] = D("250")
     for _ in range(3):
@@ -253,12 +252,7 @@ def test_settings_change_or_emergency_stop_blocks_new_live_entry(tmp_path: Path)
 
 def test_account_mismatch_fails_closed_before_order(tmp_path: Path) -> None:
     c, exchange, account, _settings = controller(tmp_path)
-    c.enable(
-        "fake-account",
-        universe(NOW - timedelta(hours=1)),
-        account.snapshot(),
-        now=NOW,
-    )
+    enable_now(c, account, universe(NOW - timedelta(hours=1)))
     account.balances["USDC"] = (D("251"), D("0"))
     for _ in range(3):
         c.advance(universe(NOW, enter=("BTCUSDC",)), now=NOW, healthy=True)
@@ -268,12 +262,7 @@ def test_account_mismatch_fails_closed_before_order(tmp_path: Path) -> None:
 
 def test_exit_is_allowed_after_entries_are_disabled(tmp_path: Path) -> None:
     c, exchange, account, _settings = controller(tmp_path)
-    c.enable(
-        "fake-account",
-        universe(NOW - timedelta(hours=1)),
-        account.snapshot(),
-        now=NOW,
-    )
+    enable_now(c, account, universe(NOW - timedelta(hours=1)))
     entry = universe(NOW, enter=("SOLUSDC",))
     for _ in range(4):
         c.advance(entry, now=NOW, healthy=True)
@@ -293,10 +282,10 @@ def test_reenable_reanchors_checkpoints_and_does_not_backfill_disabled_interval(
 ) -> None:
     c, _exchange, account, _settings = controller(tmp_path)
     first = NOW - timedelta(hours=2)
-    c.enable("fake-account", universe(first), account.snapshot(), now=NOW)
+    enable_now(c, account, universe(first))
     c.disable_entries()
     assert c.report()["state"] == "LIVE_DISABLED"
-    c.enable("fake-account", universe(NOW), account.snapshot(), now=NOW)
+    enable_now(c, account, universe(NOW))
     with c.journal._connect() as connection:
         checkpoints = {
             row["symbol"]: datetime.fromisoformat(row["last_close_utc"])
@@ -308,12 +297,7 @@ def test_reenable_reanchors_checkpoints_and_does_not_backfill_disabled_interval(
 
 def test_repeated_scheduler_ticks_do_not_duplicate_orders(tmp_path: Path) -> None:
     c, exchange, account, _settings = controller(tmp_path)
-    c.enable(
-        "fake-account",
-        universe(NOW - timedelta(hours=1)),
-        account.snapshot(),
-        now=NOW,
-    )
+    enable_now(c, account, universe(NOW - timedelta(hours=1)))
     points = universe(NOW, enter=("ETHUSDC",))
     for _ in range(30):
         c.advance(points, now=NOW, healthy=True)
