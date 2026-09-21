@@ -802,7 +802,11 @@ class LivePortfolioController:
     ) -> Any:
         gate = TradePolicyGate(self.strategy.policy_for(point.symbol))
         index = next(
-            (i for i, candidate in enumerate(series) if candidate.candle.close_time_utc == point.candle.close_time_utc),
+            (
+                i
+                for i, candidate in enumerate(series)
+                if candidate.candle.close_time_utc == point.candle.close_time_utc
+            ),
             -1,
         )
         if index < 0:
@@ -1063,7 +1067,10 @@ class LivePortfolioController:
         with self.journal._connect() as connection:
             connection.execute("BEGIN IMMEDIATE")
             for symbol, row in positions.items():
-                latest = max(Decimal(row["highest_close"]), Decimal(str(group[symbol].candle.close)))
+                latest = max(
+                    Decimal(row["highest_close"]),
+                    Decimal(str(group[symbol].candle.close)),
+                )
                 connection.execute(
                     "UPDATE live_positions SET highest_close=? WHERE symbol=?",
                     (str(latest), symbol),

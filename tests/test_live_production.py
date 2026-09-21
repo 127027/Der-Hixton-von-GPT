@@ -208,7 +208,10 @@ def test_ten_simultaneous_signals_never_exceed_three_slots(tmp_path: Path) -> No
     for _ in range(12):
         c.advance(points, now=NOW, healthy=True)
     assert sum(intent.slot_count for intent in exchange.submits if intent.side == "BUY") == 3
-    assert sum(intent.quote_budget for intent in exchange.submits if intent.side == "BUY") == D("240")
+    assert (
+        sum(intent.quote_budget for intent in exchange.submits if intent.side == "BUY")
+        == D("240")
+    )
     assert c.report()["used_slots"] == 3
 
 

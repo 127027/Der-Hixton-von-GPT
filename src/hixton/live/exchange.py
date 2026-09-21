@@ -21,7 +21,7 @@ from urllib.request import ProxyHandler, Request, build_opener
 from hixton.domain.markets import symbols_for_quote
 from hixton.live.binance import _NoRedirect
 from hixton.live.credentials import BinanceCredentials
-from hixton.live.orders import ExchangeFill, ExchangeOrder, TrialIntent
+from hixton.live.orders import ExchangeFill, ExchangeOrder
 
 
 class SpotOrderIntent(Protocol):

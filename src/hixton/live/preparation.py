@@ -233,7 +233,9 @@ class LivePreparation:
                 )
             credentials = self.credentials.load()
             if credentials is None:
-                raise BinanceCheckError("Binance API-Schlüssel fehlt. Bitte lokal sicher eintragen.")
+                raise BinanceCheckError(
+                    "Binance API-Schlüssel fehlt. Bitte lokal sicher eintragen."
+                )
             self.invalidate_check()
             self._next_check = time.monotonic() + 30
             self.audit("BINANCE_READ_ONLY_CHECK_REQUESTED")
@@ -268,7 +270,7 @@ class LivePreparation:
             if not healthy:
                 raise BinanceCheckError("Marktdaten/Bot sind nicht gesund")
             if slot_count != 1 or target_notional != Decimal("50") or emergency_stop:
-                raise BinanceCheckError("Erster Echtgeldtest benötigt Einstellungen 1 × 50 USDC")
+                raise BinanceCheckError("Erster Echtgeldtest benötigt Einstellungen 1 x 50 USDC")
             fresh = self._fresh_check()
             if fresh is None or fresh.get("account_checks_passed") is not True:
                 raise BinanceCheckError("Zuerst eine frische Binance-Kontoprüfung durchführen")
@@ -309,14 +311,16 @@ class LivePreparation:
             if not soak_ready:
                 raise BinanceCheckError("Paper-Dauertest ist noch nicht freigegeben")
             if slot_count != 3 or target_notional != Decimal("80") or emergency_stop:
-                raise BinanceCheckError("24/7-Livebetrieb benötigt exakt 3 × 80 USDC")
+                raise BinanceCheckError("24/7-Livebetrieb benötigt exakt 3 x 80 USDC")
             if self.trial is None or self.trial.report()["state"] != "COMPLETED":
-                raise BinanceCheckError("Zuerst muss der kontrollierte 50-USDC-Roundtrip fertig sein")
+                raise BinanceCheckError(
+                    "Zuerst muss der kontrollierte 50-USDC-Roundtrip fertig sein"
+                )
             fresh = self._fresh_check()
             if fresh is None or fresh.get("account_checks_passed") is not True:
                 raise BinanceCheckError("Zuerst eine frische Binance-Kontoprüfung durchführen")
             if Decimal(str(fresh.get("free_usdc", "0"))) < Decimal("250"):
-                raise BinanceCheckError("Für 3 × 80 werden mindestens 250 freie USDC verlangt")
+                raise BinanceCheckError("Für 3 x 80 werden mindestens 250 freie USDC verlangt")
             credentials = self.credentials.load()
             if credentials is None:
                 raise BinanceCheckError("Binance-Schlüssel fehlt")
@@ -394,14 +398,16 @@ class LivePreparation:
                 blockers.append("Binance-Kontoprüfung enthält Blockierungen.")
             if not trial_completed:
                 blockers.append(
-                    "Vor dauerhaftem 3×80-Livebetrieb ist ein kontrollierter 1×50-Roundtrip nötig."
+                    "Vor dauerhaftem 3x80-Livebetrieb ist ein kontrollierter 1x50-Roundtrip nötig."
                 )
             if not soak_ready:
                 blockers.append("Paper-Dauertest noch nicht bestanden (30 Tage / 20 Trades).")
             if not production_settings_ok:
-                blockers.append("Dauer-Liveprofil ist ausschließlich 3 × 80 USDC.")
+                blockers.append("Dauer-Liveprofil ist ausschließlich 3 x 80 USDC.")
             if live.get("state") == "NEEDS_REVIEW":
-                blockers.append("Live-Ledger benötigt manuellen Abgleich; neue Orders sind gesperrt.")
+                blockers.append(
+                    "Live-Ledger benötigt manuellen Abgleich; neue Orders sind gesperrt."
+                )
             return {
                 "state": self.execution_state(),
                 "order_dispatch_available": production_ready,

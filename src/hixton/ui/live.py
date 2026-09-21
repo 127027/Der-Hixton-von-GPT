@@ -230,7 +230,7 @@ def install_live_routes(
         require_session(request)
         data = await payload(request)
         if set(data) != {"confirmation"} or data.get("confirmation") != "LIVE 3X80 AKTIVIEREN":
-            raise HTTPException(400, "3×80-Livebetrieb ausdrücklich bestätigen.")
+            raise HTTPException(400, "3x80-Livebetrieb ausdrücklich bestätigen.")
         try:
             with PaperStore(config.database_path) as store:
                 settings = store.load_settings()
