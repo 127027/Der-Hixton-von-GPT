@@ -229,6 +229,7 @@ function renderStatus(status: StatusResponse): void {
   dot.className = `status-dot ${status.runtime.health === "HEALTHY" ? "online" : status.runtime.health === "HALTED" ? "error" : ""}`;
   text("#connection-label", status.runtime.stream_connected ? "Binance Stream" : status.runtime.feed_mode);
   text("#active-strategy-label", `BINANCE SPOT · 1H · ${status.strategy_version}`);
+  text("#app-version-badge", `HIXTON v${status.application_version}`);
   text("#doc-app-version", status.application_version);
   text("#doc-strategy-version", status.strategy_version);
   if (!status.paper) { tradingSettings.render(null, status.trading_limits); return; }
