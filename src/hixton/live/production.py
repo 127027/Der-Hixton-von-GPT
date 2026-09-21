@@ -11,13 +11,14 @@ from __future__ import annotations
 import hashlib
 import json
 import sqlite3
-from collections.abc import Callable, Mapping, Sequence
+from collections.abc import Callable, Iterator, Mapping, Sequence
+from contextlib import contextmanager
 from dataclasses import dataclass
 from datetime import UTC, datetime
 from decimal import ROUND_DOWN, Decimal
 from pathlib import Path
 from threading import Event, RLock
-from typing import Any
+from typing import Any, Protocol
 
 from hixton.backtest.models import ExecutionRules
 from hixton.constants import SYMBOLS
@@ -26,7 +27,7 @@ from hixton.domain.models import IndicatorPoint, SignalAction
 from hixton.domain.strategy import entry_priority
 from hixton.domain.trade_policy import TradePolicyGate
 from hixton.domain.versions import StrategyDefinition
-from hixton.live.orders import ExchangeOrder, OrderExchange
+from hixton.live.orders import ExchangeOrder
 
 ZERO = Decimal("0")
 SLOT_NOTIONAL = Decimal("80")
@@ -92,6 +93,11 @@ class LiveIntent:
         return "hxlive_" + digest[:29]
 
 
+class LiveOrderExchange(Protocol):
+    def submit(self, intent: LiveIntent) -> ExchangeOrder: ...
+    def query(self, intent: LiveIntent) -> ExchangeOrder | None: ...
+
+
 class LiveOrderJournal:
     def __init__(self, path: Path) -> None:
         self.path = path
@@ -138,12 +144,17 @@ class LiveOrderJournal:
                 """
             )
 
-    def _connect(self) -> sqlite3.Connection:
+    @contextmanager
+    def _connect(self) -> Iterator[sqlite3.Connection]:
         connection = sqlite3.connect(self.path, timeout=10)
         connection.row_factory = sqlite3.Row
         connection.execute("PRAGMA foreign_keys=ON")
         connection.execute("PRAGMA synchronous=FULL")
-        return connection
+        try:
+            with connection:
+                yield connection
+        finally:
+            connection.close()
 
     @staticmethod
     def _audit(connection: sqlite3.Connection, intent_id: str, action: str) -> None:
@@ -395,7 +406,7 @@ class LiveOrderExecutor:
     def __init__(
         self,
         journal: LiveOrderJournal,
-        exchange: OrderExchange,
+        exchange: LiveOrderExchange,
         pre_submit: Callable[[LiveIntent], bool],
     ) -> None:
         self.journal = journal
@@ -1189,6 +1200,7 @@ class LivePortfolioController:
         positions = self._positions()
         used = sum(int(row["slot_count"]) for row in positions.values())
         return {
+            "initialized": control is not None,
             "state": "LIVE_DISABLED" if control is None else str(control["state"]),
             "entries_enabled": bool(control["entries_enabled"]) if control is not None else False,
             "reason": control["reason"] if control is not None else None,
