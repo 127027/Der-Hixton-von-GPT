@@ -14,7 +14,9 @@ permissions:
 
 concurrency:
   group: hixton-key-free-swarm
-  cancel-in-progress: false
+  # A newer validation targets a newer engineering head. Keeping an obsolete
+  # multi-minute backtest alive only delays the exact release candidate.
+  cancel-in-progress: true
 
 env:
   BASE_BRANCH: gpt/usdc-audit
