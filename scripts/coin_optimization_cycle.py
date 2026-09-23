@@ -229,7 +229,12 @@ def candidate_catalog(symbol: str) -> tuple[Candidate, ...]:
     # Structured two-parameter neighbourhood around the active coin profile.
     # These are still generated solely from the isolated coin profile; the shared
     # 3x80 portfolio is used only later as a compatibility check.
-    vidya_near = sorted({max(2, base_parameters.vidya_length - 2), base_parameters.vidya_length + 2})
+    vidya_near = sorted(
+        {
+            max(2, base_parameters.vidya_length - 2),
+            base_parameters.vidya_length + 2,
+        }
+    )
     momentum_near = sorted({
         max(4, base_parameters.momentum_length - 2),
         base_parameters.momentum_length + 2,
@@ -1063,7 +1068,10 @@ def run_cycle(output: Path) -> dict[str, object]:
         BASELINE_COSTS,
         trace_label="candidate",
     )
-    if candidate_portfolio_baseline_raw.metrics.ending_equity != combined_baseline_raw.metrics.ending_equity:
+    if (
+        candidate_portfolio_baseline_raw.metrics.ending_equity
+        != combined_baseline_raw.metrics.ending_equity
+    ):
         raise RuntimeError("candidate portfolio rerun is not deterministic")
 
     batches = {
