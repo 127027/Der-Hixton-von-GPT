@@ -52,6 +52,16 @@ KNOWN_REGRESSION_CASES: dict[str, tuple[str, ...]] = {
         "verify_live_risk_and_capital_limits_are_not_inferred_from_10x250_research",
         "verify_all_eleven_agents_audit_the_live_readiness_result",
     ),
+    "COIN_IMPROVEMENT_AUDIT": (
+        "verify_all_ten_coins_use_one_canonical_profile_map",
+        "verify_isolated_10x250_is_the_only_parameter_search_surface",
+        "verify_shared_3x80_is_followup_compatibility_not_search_objective",
+        "verify_training_only_topk_and_holdout_validation_are_preserved",
+        "verify_loss_cluster_and_stress_evidence_for_all_ten_coins",
+        "verify_candidate_profile_hashes_match_between_10x250_and_3x80",
+        "verify_no_automatic_strategy_or_live_promotion",
+        "collect_improvement_suggestions_from_all_eleven_agents",
+    ),
 }
 
 REGRESSION_EVIDENCE_CONTRACTS: dict[str, dict[str, tuple[str, ...]]] = {
@@ -80,6 +90,19 @@ REGRESSION_EVIDENCE_CONTRACTS: dict[str, dict[str, tuple[str, ...]]] = {
         "A09": ("live_audit_qa",),
         "A10": ("live_audit_evidence_contract",),
         "A11": ("live_audit_governance",),
+    },
+    "COIN_IMPROVEMENT_AUDIT": {
+        "A01": ("optimization_methodology", "optimization_scope"),
+        "A02": ("optimization_fresh_run", "per_coin_improvement_evidence"),
+        "A03": ("optimization_profile_parity", "single_bot_contract"),
+        "A04": ("optimization_product_semantics",),
+        "A05": ("optimization_loss_clusters",),
+        "A06": ("optimization_overfit_regression", "optimization_search_bounds"),
+        "A07": ("optimization_binance_execution_rules",),
+        "A08": ("optimization_portfolio_followup", "optimization_slot_effect"),
+        "A09": ("optimization_qa",),
+        "A10": ("optimization_synthesis",),
+        "A11": ("optimization_governance",),
     },
 }
 
