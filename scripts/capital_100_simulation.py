@@ -335,8 +335,10 @@ def run(output: Path) -> dict[str, object]:
         },
         "limitations": [
             "Historical simulation, not a forecast or guaranteed live result.",
-            "10x100 isolated has ten independent 100-USDC ledgers; shared variants have one 1,000-USDC ledger.",
-            "ranked_repeat may allocate multiple 100-USDC slots to the strongest simultaneous signal.",
+            "10x100 isolated has ten independent 100-USDC ledgers; shared variants "
+            "have one 1,000-USDC ledger.",
+            "ranked_repeat may allocate multiple 100-USDC slots to the strongest "
+            "simultaneous signal.",
             "Research candidate is not automatically promoted into canonical V6 or Live.",
         ],
     }
