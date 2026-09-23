@@ -98,7 +98,7 @@ jobs:
       matrix:
         role: [A01, A02, A03, A04, A05, A06, A07, A08]
     runs-on: ubuntu-latest
-    timeout-minutes: 45
+    timeout-minutes: 90
     steps:
       - uses: actions/checkout@v4
         with:
