@@ -202,6 +202,15 @@ def optimization_audit_enabled() -> bool:
     return OPTIMIZATION_AUDIT_CASE in cases
 
 
+CAPITAL_100_AUDIT_CASE = "CAPITAL_100_AUDIT"
+
+
+def capital100_audit_enabled() -> bool:
+    mission = load_mission(ROOT)
+    cases = mission.get("regression_cases") or []
+    return CAPITAL_100_AUDIT_CASE in cases
+
+
 def _current_strategy_activity() -> dict[str, Any]:
     state = check_state_db()
     with sqlite3.connect(STATE_DB) as connection:
@@ -1013,6 +1022,259 @@ def optimization_audit_evidence(
     return handlers[role]()
 
 
+
+def _capital100_audit_a01() -> list[dict[str, Any]]:
+    source = (ROOT / "scripts" / "capital_100_simulation.py").read_text(encoding="utf-8")
+    required = (
+        'starting_cash=D("100")',
+        'target_notional=D("100")',
+        'starting_cash=D("1000")',
+        'slot_count=10',
+        '"research_only": True',
+        '"activation_performed": False',
+    )
+    missing = [item for item in required if item not in source]
+    if missing:
+        raise CheckFailure(f"100-USDC methodology incomplete: {missing}")
+    return [
+        {
+            "capital100_assessment": [
+                "Compare all layouts on exactly 1,000 USDC total starting capital.",
+                "Treat isolated 10x100 and shared 10x100 as different capital mechanics, "
+                "not different strategies.",
+            ]
+        },
+        coverage("capital100_methodology", "capital100_scope"),
+    ]
+
+
+def _capital100_audit_a02() -> list[dict[str, Any]]:
+    output = ROOT / "evidence" / "capital-100-simulation.json"
+    if output.exists():
+        output.unlink()
+    command = require_command(
+        [sys.executable, "scripts/capital_100_simulation.py"],
+        timeout=3600,
+    )
+    if not output.is_file():
+        raise CheckFailure("fresh 100-USDC simulation evidence missing")
+    payload = json.loads(output.read_text(encoding="utf-8"))
+    if payload.get("research_only") is not True or payload.get("activation_performed") is not False:
+        raise CheckFailure("100-USDC simulation is not research-only")
+    variants = payload.get("variants", {})
+    for label in ("current", "research_candidate"):
+        item = variants.get(label, {})
+        if item.get("profile_match_across_models") is not True:
+            raise CheckFailure(f"{label}: profile maps diverge across capital layouts")
+    return [
+        command,
+        {"capital100_result": payload},
+        coverage("capital100_fresh_simulation"),
+    ]
+
+
+def _capital100_audit_a03() -> list[dict[str, Any]]:
+    source = (ROOT / "scripts" / "capital_100_simulation.py").read_text(encoding="utf-8")
+    if "profile_match_across_models" not in source:
+        raise CheckFailure("capital model profile-consistency gate missing")
+    return [
+        {
+            "capital100_profile_contract": (
+                "ONE_PROFILE_MAP_REUSED_ACROSS_ISOLATED_ONE_PER_SYMBOL_AND_RANKED_REPEAT"
+            )
+        },
+        coverage("capital100_profile_consistency"),
+    ]
+
+
+def _capital100_audit_a04() -> list[dict[str, Any]]:
+    source = (ROOT / "scripts" / "capital_100_simulation.py").read_text(encoding="utf-8")
+    forbidden = ("versions.py", "PaperStore(", "enable_live(", "start_trial(")
+    present = [item for item in forbidden if item in source]
+    if present:
+        raise CheckFailure(f"100-USDC research script crosses product boundary: {present}")
+    return [
+        {
+            "capital100_product_state": "RESEARCH_ONLY_NO_CANONICAL_OR_LIVE_MUTATION",
+        },
+        coverage("capital100_product_separation"),
+    ]
+
+
+def _capital100_audit_a05() -> list[dict[str, Any]]:
+    output = ROOT / "evidence" / "capital-100-simulation.json"
+    if not output.is_file():
+        payload = _capital100_audit_a02()[1]["capital100_result"]
+    else:
+        payload = json.loads(output.read_text(encoding="utf-8"))
+    current = payload["variants"]["current"]["baseline"]["isolated_10x100"]
+    research = payload["variants"]["research_candidate"]["baseline"]["isolated_10x100"]
+    summary = {
+        symbol: {
+            "current_ending_equity": current["per_symbol"][symbol]["ending_equity"],
+            "research_ending_equity": research["per_symbol"][symbol]["ending_equity"],
+            "current_blocked_reasons": current["per_symbol"][symbol]["blocked_reasons"],
+            "research_blocked_reasons": research["per_symbol"][symbol]["blocked_reasons"],
+        }
+        for symbol in current["per_symbol"]
+    }
+    return [
+        {"capital100_per_coin": summary},
+        coverage("capital100_per_coin_distribution"),
+    ]
+
+
+def _capital100_audit_a06() -> list[dict[str, Any]]:
+    output = ROOT / "evidence" / "capital-100-simulation.json"
+    if not output.is_file():
+        payload = _capital100_audit_a02()[1]["capital100_result"]
+    else:
+        payload = json.loads(output.read_text(encoding="utf-8"))
+    baseline_best = payload["baseline_best_by_ending_equity"]
+    stress_best = payload["stress_best_by_ending_equity"]
+    return [
+        {
+            "capital100_stress_assessment": {
+                "baseline_best": baseline_best,
+                "stress_best": stress_best,
+                "same_leader_under_stress": baseline_best == stress_best,
+                "baseline_models": payload["baseline_ending_equity_by_model"],
+                "stress_models": payload["stress_ending_equity_by_model"],
+            }
+        },
+        coverage("capital100_stress_comparison"),
+    ]
+
+
+def _capital100_audit_a07() -> list[dict[str, Any]]:
+    exchange = _json_url("/api/v3/exchangeInfo")
+    symbols = {str(item.get("symbol")): item for item in exchange.get("symbols", [])}
+    from hixton.constants import SYMBOLS
+
+    invalid = [
+        symbol
+        for symbol in SYMBOLS
+        if symbol not in symbols
+        or symbols[symbol].get("status") != "TRADING"
+        or symbols[symbol].get("quoteAsset") != "USDC"
+    ]
+    if invalid:
+        raise CheckFailure(f"100-USDC Binance universe invalid: {invalid}")
+    return [
+        {"capital100_binance_symbols": list(SYMBOLS)},
+        coverage("capital100_binance_rules"),
+    ]
+
+
+def _capital100_audit_a08() -> list[dict[str, Any]]:
+    output = ROOT / "evidence" / "capital-100-simulation.json"
+    if not output.is_file():
+        payload = _capital100_audit_a02()[1]["capital100_result"]
+    else:
+        payload = json.loads(output.read_text(encoding="utf-8"))
+    comparison: dict[str, object] = {}
+    for profile in ("current", "research_candidate"):
+        baseline = payload["variants"][profile]["baseline"]
+        comparison[profile] = {
+            model: {
+                "ending_equity": baseline[model]["ending_equity"],
+                "max_drawdown_pct": baseline[model]["max_drawdown_pct"],
+                "slot_trades": baseline[model].get("slot_trades"),
+                "blocked_reasons": baseline[model].get("blocked_reasons", {}),
+            }
+            for model in (
+                "isolated_10x100",
+                "shared_10x100_one_per_symbol",
+                "shared_10x100_ranked_repeat",
+            )
+        }
+    return [
+        {"capital100_allocation_comparison": comparison},
+        coverage("capital100_allocation_comparison"),
+    ]
+
+
+def _capital100_audit_a10(reports_dir: Path | None) -> list[dict[str, Any]]:
+    if reports_dir is None:
+        raise CheckFailure("capital100 A10 requires reports")
+    reports = load_reports(reports_dir)
+    result = evidence_flag(reports.get("A02", {}), "capital100_result")
+    stress = evidence_flag(reports.get("A06", {}), "capital100_stress_assessment")
+    allocation = evidence_flag(reports.get("A08", {}), "capital100_allocation_comparison")
+    if not isinstance(result, dict) or not isinstance(stress, dict) or not isinstance(allocation, dict):
+        raise CheckFailure("capital100 specialist evidence incomplete")
+    return [
+        {
+            "capital100_synthesis": {
+                "report_start_utc": result.get("report_start_utc"),
+                "report_end_utc": result.get("report_end_utc"),
+                "baseline_best": result.get("baseline_best_by_ending_equity"),
+                "stress_best": result.get("stress_best_by_ending_equity"),
+                "baseline_models": result.get("baseline_ending_equity_by_model"),
+                "stress_models": result.get("stress_ending_equity_by_model"),
+                "allocation_detail": allocation,
+                "research_only": True,
+                "automatic_live_change": False,
+            }
+        },
+        coverage("capital100_synthesis"),
+    ]
+
+
+def _capital100_audit_a09(reports_dir: Path | None) -> list[dict[str, Any]]:
+    if reports_dir is None:
+        raise CheckFailure("capital100 A09 requires reports")
+    reports = load_reports(reports_dir)
+    synthesis = evidence_flag(reports.get("A10", {}), "capital100_synthesis")
+    if not isinstance(synthesis, dict) or synthesis.get("research_only") is not True:
+        raise CheckFailure("capital100 QA rejects non-research synthesis")
+    return [
+        {"capital100_qa_decision": "PASS_RESEARCH_COMPARISON_ONLY"},
+        coverage("capital100_qa"),
+    ]
+
+
+def _capital100_audit_a11(reports_dir: Path | None) -> list[dict[str, Any]]:
+    if reports_dir is None:
+        raise CheckFailure("capital100 A11 requires reports")
+    reports = load_reports(reports_dir)
+    synthesis = evidence_flag(reports.get("A10", {}), "capital100_synthesis")
+    if (
+        not isinstance(synthesis, dict)
+        or synthesis.get("research_only") is not True
+        or synthesis.get("automatic_live_change") is not False
+    ):
+        raise CheckFailure("capital100 governance denied")
+    return [
+        {
+            "capital100_governance": (
+                "PASS_RESEARCH_ONLY_NO_AUTOMATIC_LIVE_CONFIGURATION"
+            )
+        },
+        coverage("capital100_governance"),
+    ]
+
+
+def capital100_audit_evidence(
+    role: str,
+    reports_dir: Path | None,
+) -> list[dict[str, Any]]:
+    handlers = {
+        "A01": lambda: _capital100_audit_a01(),
+        "A02": lambda: _capital100_audit_a02(),
+        "A03": lambda: _capital100_audit_a03(),
+        "A04": lambda: _capital100_audit_a04(),
+        "A05": lambda: _capital100_audit_a05(),
+        "A06": lambda: _capital100_audit_a06(),
+        "A07": lambda: _capital100_audit_a07(),
+        "A08": lambda: _capital100_audit_a08(),
+        "A09": lambda: _capital100_audit_a09(reports_dir),
+        "A10": lambda: _capital100_audit_a10(reports_dir),
+        "A11": lambda: _capital100_audit_a11(reports_dir),
+    }
+    return handlers[role]()
+
+
 def role_a01() -> list[dict[str, Any]]:
     ready = validate_cloud_ready(ROOT)
     contract = paper_runtime_contract()
@@ -1409,6 +1671,8 @@ def execute(role: str, reports_dir: Path | None) -> dict[str, Any]:
             evidence.extend(live_audit_evidence(role, reports_dir))
         if optimization_audit_enabled():
             evidence.extend(optimization_audit_evidence(role, reports_dir))
+        if capital100_audit_enabled():
+            evidence.extend(capital100_audit_evidence(role, reports_dir))
         report["verdict"] = "PASS"
         report["evidence"] = evidence
         if role == "A09":
