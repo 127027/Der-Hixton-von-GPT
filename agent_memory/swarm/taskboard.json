@@ -37,7 +37,7 @@
     "state": "IN_PROGRESS",
     "completion_mode": "continuous",
     "started_at_utc": "2026-09-16T10:30:00+00:00",
-    "last_transition_reason": "Owner instruction 2026-09-23: run a fresh improvement round across all ten isolated 250-USDC coin models, collect improvement proposals from A01-A11, and verify that any changed coin profile is the exact same profile consumed by shared 3x80. Parameter discovery must not optimize directly on 3x80; 3x80 is the downstream compatibility gate.",
+    "last_transition_reason": "Owner instruction 2026-09-23: compare 100 USDC per coin across all ten markets and identify the historically strongest capital layout without mutating the Live bot. Compare ten isolated 100-USDC ledgers with shared 1,000-USDC pools using one-per-symbol and ranked-repeat allocation, under baseline and stress, for current V6 and the last research candidate profile map.",
     "owner_instruction_date": "2026-09-23",
     "primary_agents": [
       "A01",
@@ -67,7 +67,7 @@
     ],
     "regression_cases": [
       "CURRENT_V6_PRODUCT",
-      "COIN_IMPROVEMENT_AUDIT"
+      "CAPITAL_100_AUDIT"
     ],
     "constraints": [
       "Product surfaces expose one current strategy only: V6. Legacy strategy implementations may remain only where required for archived compatibility tests and must not be selectable through the normal UI, API or CLI.",
@@ -104,7 +104,12 @@
       "Coin parameter discovery is performed only in isolated 10x250 research. Shared 3x80 must never be used to rank or generate candidates; it is a downstream compatibility gate only.",
       "The optimizer must independently fingerprint the actual per-symbol parameter/policy maps passed to the 10x250 runner and the 3x80 runner. Any mismatch fails the run.",
       "Expanded candidate search remains bounded and training-only. Holdout validation can reject candidates but cannot introduce or re-rank candidates using validation knowledge.",
-      "No optimization cycle may mutate src/hixton/domain/versions.py, Paper state or Live state automatically."
+      "No optimization cycle may mutate src/hixton/domain/versions.py, Paper state or Live state automatically.",
+      "All compared 100-USDC layouts must start with exactly 1,000 USDC total capital so ending-equity comparisons are like-for-like.",
+      "The 10x100 isolated model must use exactly 100 starting cash and 100 target notional for each of the ten symbols.",
+      "Shared 10x100 models must use exactly 1,000 starting cash, 100 target notional and 10 slots; allocation policy is the only shared-layout difference.",
+      "Both current V6 and the previously accepted research candidate profile map must be tested under identical history, execution rules and cost models.",
+      "Capital-layout research must not mutate canonical V6, Paper state, runtime settings or Live state."
     ],
     "acceptance": [
       "A01 confirms README, every DMS file and current agent memory agree on current V6, USDC, Paper-only operation, ranked_repeat 3x80 semantics, 10x250 diagnostic role and no permanent portfolio drawdown halt.",
@@ -148,7 +153,14 @@
       "A03 proves independent 10x250 and 3x80 runner profile fingerprints are identical per symbol for current and candidate maps.",
       "A08 proves shared 3x80 is used only as a non-regression compatibility gate after isolated candidate selection, never as the candidate search objective.",
       "A10 synthesizes all specialist suggestions and the fresh A02 result without auto-promoting a strategy.",
-      "A09/A11 reject any promotion claim unless aggregate_promotion_gate is promotable and a separate canonical-profile update is subsequently revalidated."
+      "A09/A11 reject any promotion claim unless aggregate_promotion_gate is promotable and a separate canonical-profile update is subsequently revalidated.",
+      "A02 runs the exact three-year 100-USDC capital simulation and reports all six profile/layout combinations under baseline and stress.",
+      "A03 verifies the same per-symbol profile map is reused across isolated and both shared capital models.",
+      "A05 reports per-coin 10x100 outcomes and flags any Binance minimum-size blocking.",
+      "A06 compares baseline versus stress ordering and rejects conclusions that disappear under stress.",
+      "A08 compares one-per-symbol versus ranked-repeat slot behavior and opportunity cost.",
+      "A10 synthesizes the historically strongest layout without changing the bot.",
+      "A09/A11 verify the result remains research-only and does not become a personalized investment instruction or automatic Live configuration."
     ],
     "current_reference": {
       "source_run_id": "35463131378",
@@ -231,6 +243,24 @@
         "Accept no research candidate that regresses shared 3x80 baseline or stress.",
         "Collect specific improvement suggestions from all eleven agents."
       ]
+    },
+    "capital_100_round": {
+      "requested_at_utc": "2026-09-23T18:04:00+00:00",
+      "total_starting_capital_usdc": "1000",
+      "isolated_model": "10 x 100 USDC separate ledgers",
+      "shared_models": [
+        "1000 USDC shared / 10 slots x 100 / one_per_symbol",
+        "1000 USDC shared / 10 slots x 100 / ranked_repeat"
+      ],
+      "profile_sets": [
+        "current canonical V6",
+        "research candidate XRP cmo15 + AVAX band_plus_06 + DOT cmo35"
+      ],
+      "cost_models": [
+        "baseline",
+        "stress"
+      ],
+      "automatic_live_change_allowed": false
     }
   },
   "queued_missions": [],
