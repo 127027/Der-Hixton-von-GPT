@@ -62,6 +62,17 @@ KNOWN_REGRESSION_CASES: dict[str, tuple[str, ...]] = {
         "verify_no_automatic_strategy_or_live_promotion",
         "collect_improvement_suggestions_from_all_eleven_agents",
     ),
+    "CAPITAL_100_AUDIT": (
+        "verify_exact_100_usdc_per_isolated_coin",
+        "verify_total_starting_capital_is_1000_usdc_for_all_compared_models",
+        "compare_isolated_one_per_symbol_and_ranked_repeat",
+        "compare_current_and_research_candidate_profile_maps",
+        "verify_baseline_and_stress_results",
+        "verify_same_profile_map_is_reused_across_capital_models",
+        "verify_current_binance_execution_rules_are_applied",
+        "verify_research_only_no_live_mutation",
+        "collect_capital_layout_assessment_from_all_eleven_agents",
+    ),
 }
 
 REGRESSION_EVIDENCE_CONTRACTS: dict[str, dict[str, tuple[str, ...]]] = {
@@ -103,6 +114,19 @@ REGRESSION_EVIDENCE_CONTRACTS: dict[str, dict[str, tuple[str, ...]]] = {
         "A09": ("optimization_qa",),
         "A10": ("optimization_synthesis",),
         "A11": ("optimization_governance",),
+    },
+    "CAPITAL_100_AUDIT": {
+        "A01": ("capital100_methodology", "capital100_scope"),
+        "A02": ("capital100_fresh_simulation",),
+        "A03": ("capital100_profile_consistency",),
+        "A04": ("capital100_product_separation",),
+        "A05": ("capital100_per_coin_distribution",),
+        "A06": ("capital100_stress_comparison",),
+        "A07": ("capital100_binance_rules",),
+        "A08": ("capital100_allocation_comparison",),
+        "A09": ("capital100_qa",),
+        "A10": ("capital100_synthesis",),
+        "A11": ("capital100_governance",),
     },
 }
 
