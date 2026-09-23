@@ -108,6 +108,7 @@ def _isolated(
     _, max_drawdown_pct = drawdown(combined_curve)
     ending = sum((result.metrics.ending_equity for result in results), D("0"))
     return {
+        "profile_hash_by_symbol": _profile_hashes(profiles),
         "starting_equity": "1000.00",
         "ending_equity": str(ending),
         "net_pnl": str(ending - D("1000")),
@@ -173,6 +174,7 @@ def _portfolio(
         item["slot_trades"] = int(item["slot_trades"]) + trade.slot_count
         item["realized_pnl"] = D(str(item["realized_pnl"])) + trade.realized_pnl
     return {
+        "profile_hash_by_symbol": _profile_hashes(profiles),
         "starting_equity": "1000.00",
         "ending_equity": str(result.metrics.ending_equity),
         "net_pnl": str(result.metrics.net_pnl),
@@ -273,6 +275,23 @@ def run(output: Path) -> dict[str, object]:
                 ),
             },
         }
+    for profile_label, payload in variants.items():
+        model_hashes = [
+            payload["baseline"][model]["profile_hash_by_symbol"]
+            for model in (
+                "isolated_10x100",
+                "shared_10x100_one_per_symbol",
+                "shared_10x100_ranked_repeat",
+            )
+        ]
+        payload["profile_match_across_models"] = (
+            model_hashes[0] == model_hashes[1] == model_hashes[2]
+        )
+        if payload["profile_match_across_models"] is not True:
+            raise RuntimeError(
+                f"{profile_label}: profile maps diverged across 100-USDC models"
+            )
+
     baseline_models = {
         f"{profile}:{model}": D(str(payload["baseline"][model]["ending_equity"]))
         for profile, payload in variants.items()
