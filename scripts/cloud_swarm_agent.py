@@ -1201,7 +1201,11 @@ def _capital100_audit_a10(reports_dir: Path | None) -> list[dict[str, Any]]:
     result = evidence_flag(reports.get("A02", {}), "capital100_result")
     stress = evidence_flag(reports.get("A06", {}), "capital100_stress_assessment")
     allocation = evidence_flag(reports.get("A08", {}), "capital100_allocation_comparison")
-    if not isinstance(result, dict) or not isinstance(stress, dict) or not isinstance(allocation, dict):
+    if (
+        not isinstance(result, dict)
+        or not isinstance(stress, dict)
+        or not isinstance(allocation, dict)
+    ):
         raise CheckFailure("capital100 specialist evidence incomplete")
     return [
         {
