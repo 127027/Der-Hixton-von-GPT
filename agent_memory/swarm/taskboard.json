@@ -37,8 +37,8 @@
     "state": "IN_PROGRESS",
     "completion_mode": "continuous",
     "started_at_utc": "2026-09-16T10:30:00+00:00",
-    "last_transition_reason": "Owner instruction 2026-09-21: implement the guarded local Live execution path. Code must support a controlled first 1x50 USDC round-trip and only afterwards gated continuous 3x80 Spot/USDC. Cloud A01-A11 remains key-free and must never submit orders.",
-    "owner_instruction_date": "2026-09-21",
+    "last_transition_reason": "Owner instruction 2026-09-23: run a fresh improvement round across all ten isolated 250-USDC coin models, collect improvement proposals from A01-A11, and verify that any changed coin profile is the exact same profile consumed by shared 3x80. Parameter discovery must not optimize directly on 3x80; 3x80 is the downstream compatibility gate.",
+    "owner_instruction_date": "2026-09-23",
     "primary_agents": [
       "A01",
       "A02",
@@ -67,7 +67,7 @@
     ],
     "regression_cases": [
       "CURRENT_V6_PRODUCT",
-      "LIVE_READINESS_AUDIT"
+      "COIN_IMPROVEMENT_AUDIT"
     ],
     "constraints": [
       "Product surfaces expose one current strategy only: V6. Legacy strategy implementations may remain only where required for archived compatibility tests and must not be selectable through the normal UI, API or CLI.",
@@ -100,7 +100,11 @@
       "Live implementation/audit work sends no real or testnet order. The local controlled 1x50 and continuous 3x80 gates may be implemented, but actual activation requires the owner locally and cannot be performed by cloud agents.",
       "The 250-USDC shared 3x80 model is the only candidate production capital model; isolated 10x250 is research/diagnostic only and must never become a Live sizing source.",
       "A historical backtest using same-base USDT continuity history may support strategy-path plausibility but may not be described as proof of historical USDC liquidity or actual Binance fills.",
-      "Live readiness requires explicit fail-closed evidence for duplicate delivery, retries, restart ambiguity, simultaneous signals, invalid/huge notionals and unavailable reconciliation."
+      "Live readiness requires explicit fail-closed evidence for duplicate delivery, retries, restart ambiguity, simultaneous signals, invalid/huge notionals and unavailable reconciliation.",
+      "Coin parameter discovery is performed only in isolated 10x250 research. Shared 3x80 must never be used to rank or generate candidates; it is a downstream compatibility gate only.",
+      "The optimizer must independently fingerprint the actual per-symbol parameter/policy maps passed to the 10x250 runner and the 3x80 runner. Any mismatch fails the run.",
+      "Expanded candidate search remains bounded and training-only. Holdout validation can reject candidates but cannot introduce or re-rank candidates using validation knowledge.",
+      "No optimization cycle may mutate src/hixton/domain/versions.py, Paper state or Live state automatically."
     ],
     "acceptance": [
       "A01 confirms README, every DMS file and current agent memory agree on current V6, USDC, Paper-only operation, ranked_repeat 3x80 semantics, 10x250 diagnostic role and no permanent portfolio drawdown halt.",
@@ -138,7 +142,13 @@
       "A09/A11 may approve the code for a controlled local 1x50 trial only when all offline safety evidence passes; they must not claim an actual Binance round-trip or continuous 3x80 operational approval before that real local trial is reconciled.",
       "A06 proves the production Live controller hard-caps BUY exposure at three 80-USDC slots, rejects oversized/invalid budgets, and never duplicates an ambiguous submit across retry/restart/repeated scheduler ticks.",
       "A06/A04 prove the first 1x50 activation itself sends no order and only arms a future-signal entitlement; continuous 3x80 activation itself also sends no order or backfills old signals.",
-      "A09/A11 require actual_live_activation_approved=false in cloud evidence even when controlled_trial_code_ready=true and production_live_code_ready=true."
+      "A09/A11 require actual_live_activation_approved=false in cloud evidence even when controlled_trial_code_ready=true and production_live_code_ready=true.",
+      "A01-A11 each emit an optimization-specific evidence contribution or improvement suggestion for this round.",
+      "A02 runs a fresh expanded optimization over all ten coins and reports Top-K, robust finalists, loss clusters, isolated aggregate results and shared 3x80 follow-up results.",
+      "A03 proves independent 10x250 and 3x80 runner profile fingerprints are identical per symbol for current and candidate maps.",
+      "A08 proves shared 3x80 is used only as a non-regression compatibility gate after isolated candidate selection, never as the candidate search objective.",
+      "A10 synthesizes all specialist suggestions and the fresh A02 result without auto-promoting a strategy.",
+      "A09/A11 reject any promotion claim unless aggregate_promotion_gate is promotable and a separate canonical-profile update is subsequently revalidated."
     ],
     "current_reference": {
       "source_run_id": "35463131378",
@@ -206,6 +216,21 @@
       "cloud_orders_allowed": false,
       "cloud_private_credentials_allowed": false,
       "actual_binance_roundtrip_required_before_continuous_live": true
+    },
+    "coin_improvement_round": {
+      "requested_at_utc": "2026-09-23T16:37:00+00:00",
+      "search_surface": "ISOLATED_10X250_ONLY",
+      "followup_gate": "SHARED_3X80_BASELINE_AND_STRESS",
+      "same_profile_required": true,
+      "automatic_promotion_allowed": false,
+      "goals": [
+        "Review all ten current coin methods on a fresh exact-three-year window.",
+        "Expand bounded local per-coin search with fine policy steps and two-parameter interactions.",
+        "Produce loss-cluster evidence for every coin.",
+        "Prove independent runner profile hashes match between 10x250 and 3x80.",
+        "Accept no research candidate that regresses shared 3x80 baseline or stress.",
+        "Collect specific improvement suggestions from all eleven agents."
+      ]
     }
   },
   "queued_missions": [],
