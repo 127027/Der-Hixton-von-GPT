@@ -15,7 +15,7 @@ from decimal import Decimal
 from pathlib import Path
 from typing import Any
 
-from hixton.backtest.continuity import load_continuity_history
+from hixton.backtest.continuity import continuity_manifest_data, load_continuity_history
 from hixton.backtest.engine import run_single_backtest
 from hixton.backtest.metrics import drawdown
 from hixton.backtest.models import BASELINE_COSTS, STRESS_COSTS, EquityPoint
@@ -317,7 +317,7 @@ def run(output: Path) -> dict[str, object]:
         "activation_performed": False,
         "report_start_utc": report_start.isoformat(),
         "report_end_utc": report_end.isoformat(),
-        "historical_market_source": history.market_source,
+        "history": continuity_manifest_data(history),
         "execution_quote_asset": "USDC",
         "research_overrides": RESEARCH_OVERRIDES,
         "variants": variants,
