@@ -521,6 +521,27 @@ def _profile_hashes(profiles: dict[str, Candidate]) -> dict[str, str]:
     return {symbol: _candidate_hash(candidate) for symbol, candidate in profiles.items()}
 
 
+def _runner_profile_hashes(
+    parameters_by_symbol: dict[str, StrategyParameters],
+    policies_by_symbol: dict[str, TradePolicy],
+) -> dict[str, str]:
+    if set(parameters_by_symbol) != set(policies_by_symbol):
+        raise RuntimeError("runner parameter/policy symbol sets diverged")
+    return {
+        symbol: hashlib.sha256(
+            json.dumps(
+                {
+                    "parameters": asdict(parameters_by_symbol[symbol]),
+                    "trade_policy": asdict(policies_by_symbol[symbol]),
+                },
+                sort_keys=True,
+                separators=(",", ":"),
+            ).encode()
+        ).hexdigest()
+        for symbol in parameters_by_symbol
+    }
+
+
 def _batch_summary(batch: Any) -> dict[str, object]:
     return {
         "starting_equity": str(batch.starting_equity),
@@ -650,7 +671,28 @@ def run_cycle(output: Path) -> dict[str, object]:
         for symbol in definition.symbols
     }
 
-    def run_batch(profiles: dict[str, Candidate], costs: CostModel) -> Any:
+    runner_profile_trace: dict[str, dict[str, dict[str, str]]] = {
+        "10x250": {},
+        "3x80": {},
+    }
+
+    def run_batch(
+        profiles: dict[str, Candidate],
+        costs: CostModel,
+        *,
+        trace_label: str | None = None,
+    ) -> Any:
+        parameters_by_symbol = {
+            symbol: candidate.parameters for symbol, candidate in profiles.items()
+        }
+        policies_by_symbol = {
+            symbol: candidate.policy for symbol, candidate in profiles.items()
+        }
+        if trace_label is not None:
+            runner_profile_trace["10x250"][trace_label] = _runner_profile_hashes(
+                parameters_by_symbol,
+                policies_by_symbol,
+            )
         return run_isolated_batch(
             candles_by_symbol=candles,
             report_start_utc=report_start,
@@ -658,18 +700,30 @@ def run_cycle(output: Path) -> dict[str, object]:
             costs=costs,
             execution_rules=rules,
             strategy_parameters=definition.parameters,
-            strategy_parameters_by_symbol={
-                symbol: candidate.parameters for symbol, candidate in profiles.items()
-            },
-            trade_policies_by_symbol={
-                symbol: candidate.policy for symbol, candidate in profiles.items()
-            },
+            strategy_parameters_by_symbol=parameters_by_symbol,
+            trade_policies_by_symbol=policies_by_symbol,
             strategy_semantics=definition.semantics,
             strategy_version=research_version,
             symbols=definition.symbols,
         )
 
-    def run_portfolio(profiles: dict[str, Candidate], costs: CostModel) -> Any:
+    def run_portfolio(
+        profiles: dict[str, Candidate],
+        costs: CostModel,
+        *,
+        trace_label: str | None = None,
+    ) -> Any:
+        parameters_by_symbol = {
+            symbol: candidate.parameters for symbol, candidate in profiles.items()
+        }
+        policies_by_symbol = {
+            symbol: candidate.policy for symbol, candidate in profiles.items()
+        }
+        if trace_label is not None:
+            runner_profile_trace["3x80"][trace_label] = _runner_profile_hashes(
+                parameters_by_symbol,
+                policies_by_symbol,
+            )
         return run_shared_portfolio_backtest(
             candles_by_symbol=candles,
             report_start_utc=report_start,
@@ -680,12 +734,8 @@ def run_cycle(output: Path) -> dict[str, object]:
             costs=costs,
             execution_rules=rules,
             strategy_parameters=definition.parameters,
-            strategy_parameters_by_symbol={
-                symbol: candidate.parameters for symbol, candidate in profiles.items()
-            },
-            trade_policies_by_symbol={
-                symbol: candidate.policy for symbol, candidate in profiles.items()
-            },
+            strategy_parameters_by_symbol=parameters_by_symbol,
+            trade_policies_by_symbol=policies_by_symbol,
             strategy_semantics=definition.semantics,
             strategy_version=research_version,
             slot_allocation=definition.slot_allocation,
@@ -693,7 +743,11 @@ def run_cycle(output: Path) -> dict[str, object]:
             symbols=definition.symbols,
         )
 
-    current_portfolio_baseline_raw = run_portfolio(current_profiles, BASELINE_COSTS)
+    current_portfolio_baseline_raw = run_portfolio(
+        current_profiles,
+        BASELINE_COSTS,
+        trace_label="current",
+    )
     current_portfolio_stress_raw = run_portfolio(current_profiles, STRESS_COSTS)
     current_portfolio_baseline = _portfolio_summary(current_portfolio_baseline_raw)
     current_portfolio_stress = _portfolio_summary(current_portfolio_stress_raw)
@@ -994,29 +1048,57 @@ def run_cycle(output: Path) -> dict[str, object]:
     current_hashes = _profile_hashes(current_profiles)
     candidate_hashes = _profile_hashes(assembled)
 
+    current_batch_baseline = run_batch(
+        current_profiles,
+        BASELINE_COSTS,
+        trace_label="current",
+    )
+    candidate_batch_baseline = run_batch(
+        assembled,
+        BASELINE_COSTS,
+        trace_label="candidate",
+    )
+    candidate_portfolio_baseline_raw = run_portfolio(
+        assembled,
+        BASELINE_COSTS,
+        trace_label="candidate",
+    )
+    if candidate_portfolio_baseline_raw.metrics.ending_equity != combined_baseline_raw.metrics.ending_equity:
+        raise RuntimeError("candidate portfolio rerun is not deterministic")
+
     batches = {
-        "current_baseline": _batch_summary(run_batch(current_profiles, BASELINE_COSTS)),
-        "candidate_baseline": _batch_summary(run_batch(assembled, BASELINE_COSTS)),
+        "current_baseline": _batch_summary(current_batch_baseline),
+        "candidate_baseline": _batch_summary(candidate_batch_baseline),
         "current_stress": _batch_summary(run_batch(current_profiles, STRESS_COSTS)),
         "candidate_stress": _batch_summary(run_batch(assembled, STRESS_COSTS)),
     }
     portfolios = {
         "current_baseline": current_portfolio_baseline,
-        "candidate_baseline": _portfolio_summary(combined_baseline_raw),
+        "candidate_baseline": _portfolio_summary(candidate_portfolio_baseline_raw),
         "current_stress": current_portfolio_stress,
         "candidate_stress": _portfolio_summary(combined_stress_raw),
     }
 
+    current_batch_hashes = runner_profile_trace["10x250"]["current"]
+    current_portfolio_hashes = runner_profile_trace["3x80"]["current"]
+    candidate_batch_hashes = runner_profile_trace["10x250"]["candidate"]
+    candidate_portfolio_hashes = runner_profile_trace["3x80"]["candidate"]
     parity = {
-        "current_10x250_profile_hash_by_symbol": current_hashes,
-        "current_3x80_profile_hash_by_symbol": current_hashes,
-        "candidate_10x250_profile_hash_by_symbol": candidate_hashes,
-        "candidate_3x80_profile_hash_by_symbol": candidate_hashes,
-        "current_match": current_hashes == current_hashes,
-        "candidate_match": candidate_hashes == candidate_hashes,
+        "declared_current_profile_hash_by_symbol": current_hashes,
+        "declared_candidate_profile_hash_by_symbol": candidate_hashes,
+        "current_10x250_profile_hash_by_symbol": current_batch_hashes,
+        "current_3x80_profile_hash_by_symbol": current_portfolio_hashes,
+        "candidate_10x250_profile_hash_by_symbol": candidate_batch_hashes,
+        "candidate_3x80_profile_hash_by_symbol": candidate_portfolio_hashes,
+        "current_match": (
+            current_batch_hashes == current_portfolio_hashes == current_hashes
+        ),
+        "candidate_match": (
+            candidate_batch_hashes == candidate_portfolio_hashes == candidate_hashes
+        ),
     }
-    if not parity["candidate_match"]:
-        raise RuntimeError("candidate profile hashes diverged between 10x250 and 3x80")
+    if not parity["current_match"] or not parity["candidate_match"]:
+        raise RuntimeError("profile hashes diverged between 10x250 and 3x80")
 
     promotion_gate = aggregate_promotion_gate(batches, portfolios)
 
