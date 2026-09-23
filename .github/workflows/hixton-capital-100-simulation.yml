@@ -31,7 +31,7 @@ jobs:
           # Project typing is enforced by the normal preflight. Running mypy on
           # this script alone misclassifies the editable hixton package as untyped.
       - name: Run exact three-year 100-USDC capital simulation
-        run: python scripts/capital_100_simulation.py
+        run: python -m scripts.capital_100_simulation
       - uses: actions/upload-artifact@v4
         with:
           name: hixton-capital-100-simulation
