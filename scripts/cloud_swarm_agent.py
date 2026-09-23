@@ -193,6 +193,15 @@ def live_audit_enabled() -> bool:
     return LIVE_AUDIT_CASE in cases
 
 
+OPTIMIZATION_AUDIT_CASE = "COIN_IMPROVEMENT_AUDIT"
+
+
+def optimization_audit_enabled() -> bool:
+    mission = load_mission(ROOT)
+    cases = mission.get("regression_cases") or []
+    return OPTIMIZATION_AUDIT_CASE in cases
+
+
 def _current_strategy_activity() -> dict[str, Any]:
     state = check_state_db()
     with sqlite3.connect(STATE_DB) as connection:
@@ -693,6 +702,311 @@ def live_audit_evidence(role: str, reports_dir: Path | None) -> list[dict[str, A
     return handlers[role]()
 
 
+
+def _optimization_audit_a01() -> list[dict[str, Any]]:
+    source = (ROOT / "scripts" / "coin_optimization_cycle.py").read_text(encoding="utf-8")
+    required = (
+        "training stress only freezes the ordered Top-8 challengers per coin",
+        "every robust finalist is tested alone in shared 3x80",
+        '"activation_performed": False',
+        "3x80 portfolio is used only later as a compatibility check",
+    )
+    missing = [item for item in required if item not in source]
+    if missing:
+        raise CheckFailure(f"optimization methodology contract incomplete: {missing}")
+    return [
+        {
+            "optimization_suggestions": [
+                "Keep parameter discovery isolated in 10x250; never rank candidates by 3x80 outcome.",
+                "Preserve training-only Top-K freeze and use validation/full windows only to reject.",
+                "Prefer bounded local two-parameter interactions over a broad unconstrained grid.",
+            ]
+        },
+        coverage("optimization_methodology", "optimization_scope"),
+    ]
+
+
+def _optimization_audit_a02() -> list[dict[str, Any]]:
+    output = ROOT / "evidence" / "coin-optimization-cycle.json"
+    if output.exists():
+        output.unlink()
+    run_result = require_command(
+        [sys.executable, "scripts/coin_optimization_cycle.py"],
+        timeout=3600,
+    )
+    if not output.is_file():
+        raise CheckFailure("fresh optimization evidence was not produced")
+    evidence = json.loads(output.read_text(encoding="utf-8"))
+    parity = evidence.get("profile_parity", {})
+    if parity.get("current_match") is not True or parity.get("candidate_match") is not True:
+        raise CheckFailure("10x250/3x80 profile parity failed")
+    per_coin_raw = evidence.get("per_coin", {})
+    per_coin: dict[str, object] = {}
+    suggestions: dict[str, str] = {}
+    for symbol, raw in per_coin_raw.items():
+        robust = list(raw.get("robust_finalists", []))
+        accepted = bool(raw.get("accepted"))
+        current = raw.get("full_current_baseline", {})
+        marginal = raw.get("marginal_3x80", {})
+        per_coin[symbol] = {
+            "current_ending_equity": current.get("ending_equity"),
+            "current_max_drawdown_pct": current.get("max_drawdown_pct"),
+            "completed_trades": current.get("completed_trades"),
+            "training_top_k_challengers": raw.get("training_top_k_challengers", []),
+            "robust_finalists": robust,
+            "accepted": accepted,
+            "accepted_candidate_name": raw.get("accepted_candidate_name", "current"),
+            "portfolio_selected": marginal.get("selected_for_combination", "current"),
+            "loss_cluster_analysis": raw.get("loss_cluster_analysis", {}),
+        }
+        if accepted:
+            suggestions[symbol] = (
+                "Research assembly improved both canonical models; candidate is eligible only "
+                "for a separate audited canonical-profile promotion."
+            )
+        elif robust:
+            suggestions[symbol] = (
+                "At least one isolated robust improvement exists but loses in shared 3x80. "
+                "Search a nearby isolated timing/band compromise that retains the coin gain "
+                "with lower slot opportunity cost; do not tune directly on 3x80."
+            )
+        else:
+            suggestions[symbol] = (
+                "No robust holdout finalist yet. Continue bounded isolated local interactions "
+                "around the training Top-K and the measured loss regimes."
+            )
+    aggregate = evidence.get("aggregate_promotion_gate", {})
+    result = {
+        "report_start_utc": evidence.get("report_start_utc"),
+        "report_end_utc": evidence.get("report_end_utc"),
+        "profile_parity": parity,
+        "per_coin": per_coin,
+        "aggregate_promotion_gate": aggregate,
+        "isolated_10x250": evidence.get("isolated_10x250"),
+        "portfolio_3x80": evidence.get("portfolio_3x80"),
+        "suggestions_by_symbol": suggestions,
+        "automatic_activation_performed": evidence.get("activation_performed"),
+    }
+    return [
+        run_result,
+        {"optimization_result": result},
+        {"optimization_suggestions": list(suggestions.values())},
+        coverage("optimization_fresh_run", "per_coin_improvement_evidence"),
+    ]
+
+
+def _optimization_audit_a03() -> list[dict[str, Any]]:
+    source = (ROOT / "scripts" / "coin_optimization_cycle.py").read_text(encoding="utf-8")
+    if "_runner_profile_hashes" not in source:
+        raise CheckFailure("independent runner profile fingerprinting missing")
+    if '"current_match": current_hashes == current_hashes' in source:
+        raise CheckFailure("tautological current profile parity check remains")
+    tests = require_command(
+        [
+            sys.executable,
+            "-m",
+            "pytest",
+            "-q",
+            "tests/test_coin_engine_parity.py",
+            "tests/test_backtest_coin_optimization.py",
+        ],
+        timeout=1200,
+    )
+    return [
+        tests,
+        {
+            "optimization_suggestions": [
+                "Treat any per-symbol fingerprint mismatch between isolated and portfolio runners "
+                "as a hard failure before comparing performance."
+            ],
+            "same_bot_contract": "INDEPENDENT_RUNNER_PROFILE_HASHES_REQUIRED",
+        },
+        coverage("optimization_profile_parity", "single_bot_contract"),
+    ]
+
+
+def _optimization_audit_a04() -> list[dict[str, Any]]:
+    html = (ROOT / "ui" / "index.html").read_text(encoding="utf-8")
+    if "10×250" in html and "research" not in html.lower():
+        raise CheckFailure("10x250 research model is exposed ambiguously in product UI")
+    return [
+        {
+            "optimization_suggestions": [
+                "Keep candidate tables internal; the normal UI should continue to show only the "
+                "single promoted canonical V6 profile per coin."
+            ]
+        },
+        coverage("optimization_product_semantics"),
+    ]
+
+
+def _optimization_audit_a05() -> list[dict[str, Any]]:
+    source = (ROOT / "scripts" / "coin_optimization_cycle.py").read_text(encoding="utf-8")
+    if 'per_coin[symbol]["loss_cluster_analysis"] = _loss_signal_clusters(full_current)' not in source:
+        raise CheckFailure("loss-cluster analysis is not produced for all ten coins")
+    return [
+        {
+            "optimization_suggestions": [
+                "Use each coin's loss clusters to propose the next bounded isolated neighborhood: "
+                "holding-time, ATR regime and breakout-strength patterns before adding new filters."
+            ]
+        },
+        coverage("optimization_loss_clusters"),
+    ]
+
+
+def _optimization_audit_a06() -> list[dict[str, Any]]:
+    tests = require_command(
+        [sys.executable, "-m", "pytest", "-q", "tests/test_backtest_coin_optimization.py"],
+        timeout=1200,
+    )
+    return [
+        tests,
+        {
+            "optimization_suggestions": [
+                "Do not relax the independent validation gate to rescue attractive full-window "
+                "candidates; if the expanded local search still fails, add a future rolling "
+                "walk-forward research layer rather than reusing the holdout for selection."
+            ]
+        },
+        coverage("optimization_overfit_regression", "optimization_search_bounds"),
+    ]
+
+
+def _optimization_audit_a07() -> list[dict[str, Any]]:
+    rules = _json_url("/api/v3/exchangeInfo")
+    symbols = {str(item.get("symbol")): item for item in rules.get("symbols", [])}
+    from hixton.constants import SYMBOLS
+
+    missing = [symbol for symbol in SYMBOLS if symbol not in symbols]
+    if missing:
+        raise CheckFailure(f"optimization universe missing current Binance symbols: {missing}")
+    return [
+        {
+            "optimization_suggestions": [
+                "Retain current public Binance execution filters in every candidate replay; "
+                "do not accept a theoretical parameter gain that depends on invalid order sizes."
+            ]
+        },
+        coverage("optimization_binance_execution_rules"),
+    ]
+
+
+def _optimization_audit_a08() -> list[dict[str, Any]]:
+    source = (ROOT / "scripts" / "coin_optimization_cycle.py").read_text(encoding="utf-8")
+    required = (
+        "portfolio_compatible =",
+        "baseline_delta >= D(\"0\")",
+        "stress_delta >= D(\"0\")",
+        "combination_baseline_delta_usdc",
+        "combination_stress_delta_usdc",
+    )
+    missing = [item for item in required if item not in source]
+    if missing:
+        raise CheckFailure(f"3x80 follow-up gate incomplete: {missing}")
+    return [
+        {
+            "optimization_suggestions": [
+                "Use 3x80 only as a post-search opportunity-cost gate. A coin improvement that "
+                "steals slots from stronger signals must remain research-only even when its "
+                "isolated 250-USDC account improves."
+            ]
+        },
+        coverage("optimization_portfolio_followup", "optimization_slot_effect"),
+    ]
+
+
+def _optimization_audit_a10(reports_dir: Path | None) -> list[dict[str, Any]]:
+    if reports_dir is None:
+        raise CheckFailure("optimization A10 requires reports")
+    reports = load_reports(reports_dir)
+    a02 = evidence_flag(reports.get("A02", {}), "optimization_result")
+    if not isinstance(a02, dict):
+        raise CheckFailure("A02 fresh optimization result missing")
+    all_suggestions: list[object] = []
+    for agent in [f"A{i:02d}" for i in range(1, 9)]:
+        value = evidence_flag(reports.get(agent, {}), "optimization_suggestions")
+        if isinstance(value, list):
+            all_suggestions.extend(value)
+    return [
+        {
+            "optimization_synthesis": {
+                "fresh_result": a02,
+                "specialist_suggestions": all_suggestions,
+                "promotion_policy": (
+                    "No automatic promotion. If aggregate_promotion_gate.promotable is true, "
+                    "a separate canonical-profile change plus fresh full A01-A11 is required."
+                ),
+            }
+        },
+        coverage("optimization_synthesis"),
+    ]
+
+
+def _optimization_audit_a09(reports_dir: Path | None) -> list[dict[str, Any]]:
+    if reports_dir is None:
+        raise CheckFailure("optimization A09 requires reports")
+    reports = load_reports(reports_dir)
+    synthesis = evidence_flag(reports.get("A10", {}), "optimization_synthesis")
+    if not isinstance(synthesis, dict):
+        raise CheckFailure("optimization synthesis missing")
+    fresh = synthesis.get("fresh_result", {})
+    parity = fresh.get("profile_parity", {}) if isinstance(fresh, dict) else {}
+    if parity.get("current_match") is not True or parity.get("candidate_match") is not True:
+        raise CheckFailure("QA rejects optimization without exact profile parity")
+    return [
+        {
+            "optimization_suggestions": [
+                "Only compare improvements from the fresh optimization window on this exact commit; "
+                "do not mix metrics from older windows when deciding whether to promote."
+            ]
+        },
+        coverage("optimization_qa"),
+    ]
+
+
+def _optimization_audit_a11(reports_dir: Path | None) -> list[dict[str, Any]]:
+    if reports_dir is None:
+        raise CheckFailure("optimization A11 requires reports")
+    reports = load_reports(reports_dir)
+    synthesis = evidence_flag(reports.get("A10", {}), "optimization_synthesis")
+    if not isinstance(synthesis, dict):
+        raise CheckFailure("governance optimization synthesis missing")
+    fresh = synthesis.get("fresh_result", {})
+    if not isinstance(fresh, dict) or fresh.get("automatic_activation_performed") is not False:
+        raise CheckFailure("optimization must remain research-only until separate promotion")
+    return [
+        {
+            "optimization_suggestions": [
+                "Governance permits a later profile promotion only after the research gate is "
+                "promotable, canonical versions.py is updated once, and the exact new profile map "
+                "passes fresh 10x250, 3x80, Paper parity and A01-A11."
+            ]
+        },
+        coverage("optimization_governance"),
+    ]
+
+
+def optimization_audit_evidence(
+    role: str,
+    reports_dir: Path | None,
+) -> list[dict[str, Any]]:
+    handlers = {
+        "A01": lambda: _optimization_audit_a01(),
+        "A02": lambda: _optimization_audit_a02(),
+        "A03": lambda: _optimization_audit_a03(),
+        "A04": lambda: _optimization_audit_a04(),
+        "A05": lambda: _optimization_audit_a05(),
+        "A06": lambda: _optimization_audit_a06(),
+        "A07": lambda: _optimization_audit_a07(),
+        "A08": lambda: _optimization_audit_a08(),
+        "A09": lambda: _optimization_audit_a09(reports_dir),
+        "A10": lambda: _optimization_audit_a10(reports_dir),
+        "A11": lambda: _optimization_audit_a11(reports_dir),
+    }
+    return handlers[role]()
+
+
 def role_a01() -> list[dict[str, Any]]:
     ready = validate_cloud_ready(ROOT)
     contract = paper_runtime_contract()
@@ -1087,6 +1401,8 @@ def execute(role: str, reports_dir: Path | None) -> dict[str, Any]:
             raise CheckFailure(f"unknown agent: {role}")
         if live_audit_enabled():
             evidence.extend(live_audit_evidence(role, reports_dir))
+        if optimization_audit_enabled():
+            evidence.extend(optimization_audit_evidence(role, reports_dir))
         report["verdict"] = "PASS"
         report["evidence"] = evidence
         if role == "A09":
