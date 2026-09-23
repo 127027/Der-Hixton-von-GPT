@@ -1053,7 +1053,7 @@ def _capital100_audit_a02() -> list[dict[str, Any]]:
     if output.exists():
         output.unlink()
     command = require_command(
-        [sys.executable, "scripts/capital_100_simulation.py"],
+        [sys.executable, "-m", "scripts.capital_100_simulation"],
         timeout=3600,
     )
     if not output.is_file():
