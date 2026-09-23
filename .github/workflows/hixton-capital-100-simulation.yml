@@ -1,0 +1,38 @@
+name: Hixton 100 USDC Capital Simulation
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [gpt/usdc-audit]
+    paths:
+      - "scripts/capital_100_simulation.py"
+      - ".github/workflows/hixton-capital-100-simulation.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  simulate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install locked project environment
+        run: |
+          python -m pip install --upgrade pip
+          pip install -e .[dev]
+      - name: Validate 100-USDC simulation harness
+        run: |
+          python -m py_compile scripts/capital_100_simulation.py
+          ruff check scripts/capital_100_simulation.py
+          mypy scripts/capital_100_simulation.py
+      - name: Run exact three-year 100-USDC capital simulation
+        run: python scripts/capital_100_simulation.py
+      - uses: actions/upload-artifact@v4
+        with:
+          name: hixton-capital-100-simulation
+          path: evidence/capital-100-simulation.json
+          retention-days: 14
