@@ -83,16 +83,16 @@ def candidate_catalog(symbol: str) -> tuple[Candidate, ...]:
 
     add("current")
 
-    for floor in (0.0, 0.1, 0.2, 0.3, 0.4):
+    for floor in (0.0, 0.1, 0.15, 0.2, 0.25, 0.3, 0.35, 0.4):
         add(f"cmo{int(floor * 100):02d}", policy=replace(base_policy, cmo_floor=floor))
-    for bars in (0, 24, 72):
+    for bars in (0, 12, 24, 36, 48, 72):
         add(f"slope{bars}", policy=replace(base_policy, slope_bars=bars))
-    for stop in (0.0, 1.5, 2.0, 3.0, 4.0):
+    for stop in (0.0, 1.5, 2.0, 2.5, 3.0, 3.5, 4.0, 4.5):
         add(
             f"stop{str(stop).replace('.', '_')}",
             policy=replace(base_policy, stop_atr=stop),
         )
-    for trail in (0.0, 1.5, 2.0, 3.0, 4.0):
+    for trail in (0.0, 1.5, 2.0, 2.5, 3.0, 3.5, 4.0, 4.5):
         add(
             f"trail{str(trail).replace('.', '_')}",
             policy=replace(base_policy, trail_atr=trail),
@@ -225,6 +225,62 @@ def candidate_catalog(symbol: str) -> tuple[Candidate, ...]:
             band_multiplier=round(base_parameters.band_multiplier + 0.3, 2),
         ),
     )
+
+    # Structured two-parameter neighbourhood around the active coin profile.
+    # These are still generated solely from the isolated coin profile; the shared
+    # 3x80 portfolio is used only later as a compatibility check.
+    vidya_near = sorted({max(2, base_parameters.vidya_length - 2), base_parameters.vidya_length + 2})
+    momentum_near = sorted({
+        max(4, base_parameters.momentum_length - 2),
+        base_parameters.momentum_length + 2,
+    })
+    smoothing_near = sorted({
+        max(2, base_parameters.smoothing_length - 2),
+        base_parameters.smoothing_length + 2,
+    })
+    atr_near = sorted({
+        max(15, base_parameters.atr_length - 30),
+        min(180, base_parameters.atr_length + 30),
+    })
+    for offset in (-0.1, 0.1, 0.2):
+        band = max(0.5, round(base_parameters.band_multiplier + offset, 2))
+        suffix = str(offset).replace("-", "m").replace(".", "_")
+        for length in vidya_near:
+            add(
+                f"vidya{length}_band_{suffix}",
+                parameters=replace(
+                    base_parameters,
+                    vidya_length=length,
+                    band_multiplier=band,
+                ),
+            )
+        for length in momentum_near:
+            add(
+                f"momentum{length}_band_{suffix}",
+                parameters=replace(
+                    base_parameters,
+                    momentum_length=length,
+                    band_multiplier=band,
+                ),
+            )
+    for length in smoothing_near:
+        add(
+            f"smoothing{length}_momentum{momentum_near[0]}",
+            parameters=replace(
+                base_parameters,
+                smoothing_length=length,
+                momentum_length=momentum_near[0],
+            ),
+        )
+    for length in atr_near:
+        add(
+            f"atr{length}_momentum{momentum_near[0]}",
+            parameters=replace(
+                base_parameters,
+                atr_length=length,
+                momentum_length=momentum_near[0],
+            ),
+        )
     return tuple(candidates)
 
 
@@ -681,7 +737,7 @@ def run_cycle(output: Path) -> dict[str, object]:
             }
 
         ordered = rank_training_candidates(scores, limit=len(scores))
-        shortlist_names = tuple(name for name in ordered if name != "current")[:5]
+        shortlist_names = tuple(name for name in ordered if name != "current")[:8]
         current = catalog["current"]
         low, high = windows["validation"]
         current_validation_base = _run_single(
@@ -813,11 +869,10 @@ def run_cycle(output: Path) -> dict[str, object]:
             "accepted_profile": _payload(current),
             "full_accepted_baseline": _result_summary(full_current),
         }
-        if symbol == "XRPUSDC":
-            per_coin[symbol]["loss_cluster_analysis"] = _loss_signal_clusters(full_current)
+        per_coin[symbol]["loss_cluster_analysis"] = _loss_signal_clusters(full_current)
         robust_names = ",".join(name for name, _candidate in robust) or "none"
         print(
-            f"{symbol}: top5={','.join(shortlist_names)}; robust={robust_names}",
+            f"{symbol}: top8={','.join(shortlist_names)}; robust={robust_names}",
             flush=True,
         )
 
@@ -979,7 +1034,7 @@ def run_cycle(output: Path) -> dict[str, object]:
             for name, (low, high) in windows.items()
         },
         "selection_rule": (
-            "training stress only freezes the ordered Top-5 challengers per coin; "
+            "training stress only freezes the ordered Top-8 challengers per coin; "
             "validation/full-3y baseline+stress may reject finalists but cannot introduce "
             "an unranked replacement"
         ),
