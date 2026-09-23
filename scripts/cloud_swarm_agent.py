@@ -829,8 +829,8 @@ def _optimization_audit_a03() -> list[dict[str, Any]]:
 
 def _optimization_audit_a04() -> list[dict[str, Any]]:
     html = (ROOT / "ui" / "index.html").read_text(encoding="utf-8")
-    if "10×250" in html and "research" not in html.lower():
-        raise CheckFailure("10x250 research model is exposed ambiguously in product UI")
+    if "10×250 isoliert (Forschung)" not in html:
+        raise CheckFailure("10x250 research model is not explicitly labelled Forschung")
     return [
         {
             "optimization_suggestions": [
