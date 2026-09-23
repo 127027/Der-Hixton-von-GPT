@@ -85,7 +85,7 @@ def candidate_catalog(symbol: str) -> tuple[Candidate, ...]:
 
     for floor in (0.0, 0.1, 0.15, 0.2, 0.25, 0.3, 0.35, 0.4):
         add(f"cmo{int(floor * 100):02d}", policy=replace(base_policy, cmo_floor=floor))
-    for bars in (0, 12, 24, 36, 48, 72):
+    for bars in (0, 24, 72):
         add(f"slope{bars}", policy=replace(base_policy, slope_bars=bars))
     for stop in (0.0, 1.5, 2.0, 2.5, 3.0, 3.5, 4.0, 4.5):
         add(
