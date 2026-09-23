@@ -2,7 +2,10 @@ from __future__ import annotations
 
 from decimal import Decimal
 
+from hixton.domain.models import StrategyParameters
+from hixton.domain.trade_policy import TradePolicy
 from scripts.coin_optimization_cycle import (
+    _runner_profile_hashes,
     aggregate_promotion_gate,
     candidate_catalog,
     choose_training_candidate,
@@ -16,7 +19,7 @@ def test_coin_optimization_catalog_is_bounded_and_contains_current() -> None:
         names = {candidate.name for candidate in candidates}
         assert "current" in names
         assert len(candidates) >= 10
-        assert len(candidates) <= 64
+        assert len(candidates) <= 128
         assert len({(candidate.parameters, candidate.policy) for candidate in candidates}) == len(
             candidates
         )
@@ -26,6 +29,12 @@ def test_coin_optimization_catalog_contains_fine_neighbourhood() -> None:
     names = {candidate.name for candidate in candidate_catalog("BTCUSDC")}
     assert {"band_plus_01", "band_plus_02", "band_plus_04", "band_plus_05"} <= names
     assert {"vidya7", "vidya9", "momentum18", "momentum22", "atr75", "atr105"} <= names
+    assert {
+        "vidya3_band_m0_1",
+        "vidya7_band_0_1",
+        "momentum18_band_0_2",
+        "momentum22_band_0_1",
+    } <= names
 
 
 def test_training_choice_prefers_current_on_exact_tie() -> None:
@@ -87,3 +96,35 @@ def test_aggregate_promotion_gate_requires_both_models_to_hold() -> None:
     portfolios["candidate_baseline"]["ending_equity"] = "51"
     accepted = aggregate_promotion_gate(batches, portfolios)
     assert accepted["promotable"] is True
+
+
+def test_runner_profile_hashes_are_independent_and_sensitive_to_inputs() -> None:
+    symbols = ("BTCUSDC", "ETHUSDC")
+    parameters = {
+        symbol: StrategyParameters(
+            vidya_length=5,
+            momentum_length=20,
+            smoothing_length=8,
+            atr_length=120,
+            band_multiplier=4.4,
+            warmup_bars=400,
+        )
+        for symbol in symbols
+    }
+    policies = dict.fromkeys(symbols, TradePolicy())
+    first = _runner_profile_hashes(parameters, policies)
+    second = _runner_profile_hashes(dict(parameters), dict(policies))
+    assert first == second
+
+    changed = dict(parameters)
+    changed["ETHUSDC"] = StrategyParameters(
+        vidya_length=7,
+        momentum_length=20,
+        smoothing_length=8,
+        atr_length=120,
+        band_multiplier=4.4,
+        warmup_bars=400,
+    )
+    third = _runner_profile_hashes(changed, policies)
+    assert third["BTCUSDC"] == first["BTCUSDC"]
+    assert third["ETHUSDC"] != first["ETHUSDC"]
