@@ -717,8 +717,10 @@ def _optimization_audit_a01() -> list[dict[str, Any]]:
     return [
         {
             "optimization_suggestions": [
-                "Keep parameter discovery isolated in 10x250; never rank candidates by 3x80 outcome.",
-                "Preserve training-only Top-K freeze and use validation/full windows only to reject.",
+                "Keep parameter discovery isolated in 10x250; never rank candidates "
+                "by 3x80 outcome.",
+                "Preserve training-only Top-K freeze and use validation/full windows "
+                "only to reject.",
                 "Prefer bounded local two-parameter interactions over a broad unconstrained grid.",
             ]
         },
@@ -842,7 +844,10 @@ def _optimization_audit_a04() -> list[dict[str, Any]]:
 
 def _optimization_audit_a05() -> list[dict[str, Any]]:
     source = (ROOT / "scripts" / "coin_optimization_cycle.py").read_text(encoding="utf-8")
-    if 'per_coin[symbol]["loss_cluster_analysis"] = _loss_signal_clusters(full_current)' not in source:
+    loss_cluster_line = (
+        'per_coin[symbol]["loss_cluster_analysis"] = _loss_signal_clusters(full_current)'
+    )
+    if loss_cluster_line not in source:
         raise CheckFailure("loss-cluster analysis is not produced for all ten coins")
     return [
         {
@@ -957,7 +962,8 @@ def _optimization_audit_a09(reports_dir: Path | None) -> list[dict[str, Any]]:
     return [
         {
             "optimization_suggestions": [
-                "Only compare improvements from the fresh optimization window on this exact commit; "
+                "Only compare improvements from the fresh optimization window on this exact "
+                "commit; "
                 "do not mix metrics from older windows when deciding whether to promote."
             ]
         },
