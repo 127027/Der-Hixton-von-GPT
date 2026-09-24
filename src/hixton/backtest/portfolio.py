@@ -21,7 +21,7 @@ from hixton.backtest.models import (
 )
 from hixton.constants import SYMBOLS, TIMEFRAME_DELTA
 from hixton.data.quality import audit_candles
-from hixton.domain.allocation import RANKED_REPEAT, allocate_entry_slots
+from hixton.domain.allocation import ONE_PER_SYMBOL, RANKED_REPEAT, allocate_entry_slots
 from hixton.domain.capital import DEFAULT_MAX_CAPITAL_USDC, capital_plan
 from hixton.domain.markets import validate_market_symbols
 from hixton.domain.models import Candle, Signal, SignalAction, StrategyParameters, StrategySemantics
