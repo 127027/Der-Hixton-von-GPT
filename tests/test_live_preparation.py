@@ -64,8 +64,9 @@ def config_for(tmp_path: Path) -> ProjectConfig:
         run_baseline_and_stress=True,
         paper_poll_seconds=30,
         paper_starting_cash_usdc=Decimal("250"),
-        paper_slot_count=3,
-        paper_target_notional_usdc=Decimal("80"),
+        paper_slot_count=2,
+        paper_target_notional_usdc=Decimal("125"),
+        paper_max_capital_usdc=Decimal("250"),
         daily_audit_utc="00:05",
         ui_bind="127.0.0.1",
         ui_port=8765,
@@ -186,8 +187,11 @@ def test_trial_route_requires_explicit_one_by_fifty_settings_and_never_bypasses(
     status = client.get("/api/live/status").json()
     assert status["trial_dispatch_available"] is False
     assert status["paper_settings_preview"] == {
-        "slot_count": 3,
-        "target_notional_usdc": "80.00",
+        "max_capital_usdc": "250.00",
+        "slot_count": 2,
+        "target_notional_usdc": "125.00",
+        "reserve_usdc": "0.00",
+        "allocation_policy": "ranked_repeat",
     }
     assert status["trial"]["state"] == "NOT_STARTED"
     assert service.trial is not None and service.runtime is not None
@@ -216,17 +220,6 @@ def test_controlled_trial_arms_only_after_fresh_account_check_without_sending_or
     client, config, service = client_for(tmp_path)
     unlock(client)
     save_key(client)
-    assert client.post(
-        "/api/trading/settings",
-        headers=HEADERS,
-        json={
-            "slot_count": 1,
-            "target_notional_usdc": "50.00",
-            "emergency_stop": False,
-            "confirmation": "ANWENDEN",
-        },
-    ).status_code == 200
-
     class FakeReadOnlyClient:
         def __init__(self, credentials: BinanceCredentials) -> None:
             assert credentials.api_key == KEY
@@ -291,15 +284,14 @@ def test_live_off_does_not_sell_open_trial_and_keys_cannot_orphan_it(tmp_path: P
     assert service.credentials.status()["configured"] is True
 
 
-def test_one_by_fifty_persists_without_reset(tmp_path: Path) -> None:
+def test_max_budget_persists_without_reset(tmp_path: Path) -> None:
     client, config, _ = client_for(tmp_path)
     before = client.get("/api/status").json()["paper"]
     response = client.post(
         "/api/paper/settings",
         headers=HEADERS,
         json={
-            "slot_count": 1,
-            "target_notional_usdc": "50.00",
+            "max_capital_usdc": "300.00",
             "emergency_stop": False,
             "confirmation": "ANWENDEN",
         },
@@ -310,20 +302,20 @@ def test_one_by_fifty_persists_without_reset(tmp_path: Path) -> None:
         base_url="http://127.0.0.1:8765",
     )
     after = restarted.get("/api/status").json()["paper"]
-    assert after["settings"]["slot_count"] == 1
-    assert after["settings"]["target_notional_usdc"] == "50.00"
+    assert after["settings"]["max_capital_usdc"] == "300.00"
+    assert after["settings"]["slot_count"] == 2
+    assert after["settings"]["target_notional_usdc"] == "150.00"
     for field in ("cash_usdc", "equity_usdc", "positions", "strategy_session", "soak"):
         assert before[field] == after[field]
 
 
-def test_common_settings_are_immediately_the_live_source_and_survive_restart(
+def test_common_max_budget_is_immediately_the_live_source_and_survives_restart(
     tmp_path: Path,
 ) -> None:
     client, config, _ = client_for(tmp_path)
     before = client.get("/api/status").json()["paper"]
     payload = {
-        "slot_count": 1,
-        "target_notional_usdc": "50.00",
+        "max_capital_usdc": "300.00",
         "emergency_stop": False,
         "confirmation": "ANWENDEN",
     }
@@ -337,7 +329,10 @@ def test_common_settings_are_immediately_the_live_source_and_survive_restart(
         status = active.get("/api/status").json()
         after = status["paper"]
         settings = after["settings"]
-        assert settings == {key: value for key, value in payload.items() if key != "confirmation"}
+        assert settings["max_capital_usdc"] == "300.00"
+        assert settings["slot_count"] == 2
+        assert settings["target_notional_usdc"] == "150.00"
+        assert settings["allocation_policy"] == "ranked_repeat"
         live = active.get("/api/live/status").json()
         assert live["trading_settings"] == settings
         assert live["first_live_trial"]["target_notional_quote"] == "50.00"
@@ -347,21 +342,25 @@ def test_common_settings_are_immediately_the_live_source_and_survive_restart(
             key: value for key, value in before.items() if key != "settings"
         }
         assert status["trading_limits"] == {
-            "max_slots": 10,
+            "min_capital_usdc": "100.00",
+            "max_capital_usdc": "1000.00",
+            "allocator_version": "CAPITAL-V1-2X50PCT",
         }
 
 
-@pytest.mark.parametrize("slots,amount", [(4, "45"), (5, "50"), (10, "100")])
-def test_expanded_slot_allocation_persists_without_inventing_cash(
+@pytest.mark.parametrize(
+    "capital,expected_target",
+    [("250", "125.00"), ("500", "250.00"), ("1000", "500.00")],
+)
+def test_validated_max_budgets_persist_without_inventing_cash(
     tmp_path: Path,
-    slots: int,
-    amount: str,
+    capital: str,
+    expected_target: str,
 ) -> None:
     client, config, _ = client_for(tmp_path)
     before = client.get("/api/status").json()["paper"]
     payload = {
-        "slot_count": slots,
-        "target_notional_usdc": amount,
+        "max_capital_usdc": capital,
         "emergency_stop": False,
         "confirmation": "ANWENDEN",
     }
@@ -371,8 +370,9 @@ def test_expanded_slot_allocation_persists_without_inventing_cash(
         base_url="http://127.0.0.1:8765",
     )
     after = restarted.get("/api/status").json()["paper"]
-    assert after["settings"]["slot_count"] == slots
-    assert after["settings"]["target_notional_usdc"] == amount
+    assert after["settings"]["max_capital_usdc"] == f"{Decimal(capital):.2f}"
+    assert after["settings"]["slot_count"] == 2
+    assert after["settings"]["target_notional_usdc"] == expected_target
     assert restarted.get("/api/live/status").json()["trading_settings"] == after["settings"]
     for field in ("cash_usdc", "positions", "strategy_session", "soak"):
         assert after[field] == before[field]
@@ -425,12 +425,12 @@ def test_existing_password_unlock_to_key_and_account_check_is_a_complete_local_f
 
 
 @pytest.mark.parametrize(
-    "slot_count,amount", [(11, "80"), (0, "80"), (3, "NaN"), (3, "Infinity"), (3, "-50")]
+    "capital",
+    ["99", "1000.01", "NaN", "Infinity", "-50"],
 )
 def test_common_settings_reject_unapproved_limits_without_silent_fallback(
     tmp_path: Path,
-    slot_count: int,
-    amount: str,
+    capital: str,
 ) -> None:
     client, _, _ = client_for(tmp_path)
     before = client.get("/api/live/status").json()["trading_settings"]
@@ -438,14 +438,13 @@ def test_common_settings_reject_unapproved_limits_without_silent_fallback(
         "/api/trading/settings",
         headers=HEADERS,
         json={
-            "slot_count": slot_count,
-            "target_notional_usdc": amount,
+            "max_capital_usdc": capital,
             "emergency_stop": False,
             "confirmation": "ANWENDEN",
         },
     )
     assert response.status_code == 400
-    assert "Ungültige Handelseinstellungen" in response.json()["detail"]
+    assert "maximaler USDC-Einsatz" in response.json()["detail"]
     assert client.get("/api/live/status").json()["trading_settings"] == before
 
 
@@ -468,8 +467,7 @@ def test_shared_entry_pause_stops_only_entries_and_never_rearms_or_sells(
             "/api/trading/settings",
             headers=HEADERS,
             json={
-                "slot_count": 3,
-                "target_notional_usdc": "80.00",
+                "max_capital_usdc": "250.00",
                 "emergency_stop": pause,
                 "confirmation": "ANWENDEN",
             },
@@ -489,8 +487,7 @@ def test_invalid_paper_amount_fails_cleanly(tmp_path: Path, notional: str) -> No
         "/api/paper/settings",
         headers=HEADERS,
         json={
-            "slot_count": 1,
-            "target_notional_usdc": notional,
+            "max_capital_usdc": notional,
             "confirmation": "ANWENDEN",
         },
     )
