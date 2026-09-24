@@ -298,7 +298,7 @@ function renderSystem(status: StatusResponse): void {
     ["Nächster 00:05-UTC-Audit", `${formatUtc(status.runtime.next_daily_audit_utc)} / ${formatDate(status.runtime.next_daily_audit_utc, true)} Europe/Berlin`],
     ["Letzter Tagesaudit", status.runtime.last_daily_audit_utc ? `${formatUtc(status.runtime.last_daily_audit_utc)} / ${formatDate(status.runtime.last_daily_audit_utc, true)} Europe/Berlin` : "—"],
     ["Datenbank", status.runtime.sync_in_progress ? "Synchronisierung läuft" : "WAL · bereit"],
-    ["Live-Ausführung", "Sicher deaktiviert"],
+    ["Live-Ausführung", status.runtime.live_state],
     ["Betriebsüberwachung", "UI & strukturierte Logs · manuell bestätigt"],
     ["Backup-/Restore-Gate", "Nicht konfiguriert · blockiert Live"],
     ["Paper-Soak", soakLabel],
@@ -429,7 +429,7 @@ async function refreshBacktests(): Promise<void> {
     const response = await api<{ runs: BacktestRun[]; status: string }>(`/api/backtests?${query}`);
     if (generation !== backtestLoadGeneration || required<HTMLSelectElement>("#backtest-strategy").value !== strategy || required<HTMLSelectElement>("#backtest-symbol").value !== selection) return;
     text("#backtest-eyebrow", `BACKTEST ${strategy.toUpperCase()}`);
-    text("#backtest-title", "Aktuelle V6 · 3×80, 10×250 oder Einzelcoin");
+    text("#backtest-title", "Aktuelle V6 · Budget-Portfolio, 10×250 Forschung oder Einzelcoin");
     const button = required<HTMLButtonElement>("#backtest-button");
     button.disabled = response.status === "RUNNING";
     button.textContent = response.status === "RUNNING" ? "Backtest läuft …" : "Backtest starten";
