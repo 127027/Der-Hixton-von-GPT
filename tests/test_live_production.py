@@ -152,7 +152,7 @@ def controller(tmp_path: Path):
         symbol: ExecutionRules(step_size=D("0.000001"), min_qty=D("0.000001"), min_notional=D("5"))
         for symbol in SYMBOLS
     }
-    settings = [3, D("80"), False]
+    settings = [2, D("125"), False]
     c = LivePortfolioController(
         database,
         journal,
@@ -168,8 +168,8 @@ def controller(tmp_path: Path):
     return c, exchange, account, settings
 
 
-def test_live_intent_hard_caps_three_by_eighty() -> None:
-    for slots in (1, 2, 3):
+def test_live_intent_accepts_only_two_budget_slots_and_explicit_quote() -> None:
+    for slots, budget in ((1, "125"), (2, "250")):
         intent = LiveIntent(
             f"buy-{slots}",
             "account",
@@ -178,10 +178,10 @@ def test_live_intent_hard_caps_three_by_eighty() -> None:
             V6.version,
             D("100"),
             slots,
-            quote_budget=D("80") * slots,
+            quote_budget=D(budget),
         )
         assert len(intent.client_order_id) == 36
-    for slots, budget in ((4, "320"), (3, "800"), (1, "50"), (1, "NaN")):
+    for slots, budget in ((3, "375"), (2, "NaN"), (1, "0")):
         try:
             LiveIntent(
                 "bad",
@@ -199,7 +199,7 @@ def test_live_intent_hard_caps_three_by_eighty() -> None:
             raise AssertionError("unsafe Live budget was accepted")
 
 
-def test_ranked_repeat_three_slots_is_one_bounded_market_order(tmp_path: Path) -> None:
+def test_ranked_repeat_two_slots_is_one_bounded_market_order(tmp_path: Path) -> None:
     c, exchange, account, _settings = controller(tmp_path)
     initial = universe(NOW - timedelta(hours=1))
     enable_now(c, account, initial)
@@ -210,25 +210,25 @@ def test_ranked_repeat_three_slots_is_one_bounded_market_order(tmp_path: Path) -
     report = c.report()
     assert len(exchange.submits) == 1
     assert exchange.submits[0].side == "BUY"
-    assert exchange.submits[0].quote_budget == D("240")
-    assert exchange.submits[0].slot_count == 3
-    assert report["used_slots"] == 3
+    assert exchange.submits[0].quote_budget == D("250")
+    assert exchange.submits[0].slot_count == 2
+    assert report["used_slots"] == 2
     assert report["free_slots"] == 0
-    assert account.balances["USDC"][0] == D("10")
+    assert account.balances["USDC"][0] == D("0")
 
 
-def test_ten_simultaneous_signals_never_exceed_three_slots(tmp_path: Path) -> None:
+def test_ten_simultaneous_signals_never_exceed_two_slots(tmp_path: Path) -> None:
     c, exchange, account, _settings = controller(tmp_path)
     enable_now(c, account, universe(NOW - timedelta(hours=1)))
     points = universe(NOW, enter=SYMBOLS)
     for _ in range(12):
         c.advance(points, now=NOW, healthy=True)
-    assert sum(intent.slot_count for intent in exchange.submits if intent.side == "BUY") == 3
+    assert sum(intent.slot_count for intent in exchange.submits if intent.side == "BUY") == 2
     assert (
         sum(intent.quote_budget for intent in exchange.submits if intent.side == "BUY")
-        == D("240")
+        == D("250")
     )
-    assert c.report()["used_slots"] == 3
+    assert c.report()["used_slots"] == 2
 
 
 def test_timeout_restart_reconciles_without_duplicate_submit(tmp_path: Path) -> None:
@@ -243,14 +243,14 @@ def test_timeout_restart_reconciles_without_duplicate_submit(tmp_path: Path) -> 
     for _ in range(4):
         c.advance(points, now=NOW, healthy=True)
     assert len(exchange.submits) == 1
-    assert c.report()["used_slots"] == 3
+    assert c.report()["used_slots"] == 2
 
 
 def test_settings_change_or_emergency_stop_blocks_new_live_entry(tmp_path: Path) -> None:
     c, exchange, account, settings = controller(tmp_path)
     enable_now(c, account, universe(NOW - timedelta(hours=1)))
-    settings[0] = 10
-    settings[1] = D("250")
+    settings[0] = 2
+    settings[1] = D("150")
     for _ in range(3):
         c.advance(universe(NOW, enter=("BTCUSDC",)), now=NOW, healthy=True)
     assert not exchange.submits
@@ -273,7 +273,7 @@ def test_exit_is_allowed_after_entries_are_disabled(tmp_path: Path) -> None:
     entry = universe(NOW, enter=("SOLUSDC",))
     for _ in range(4):
         c.advance(entry, now=NOW, healthy=True)
-    assert c.report()["used_slots"] == 3
+    assert c.report()["used_slots"] == 2
     c.disable_entries()
     later = NOW + timedelta(hours=1)
     exit_points = universe(later, exit_symbol="SOLUSDC")
@@ -310,4 +310,4 @@ def test_repeated_scheduler_ticks_do_not_duplicate_orders(tmp_path: Path) -> Non
         c.advance(points, now=NOW, healthy=True)
     buys = [item for item in exchange.submits if item.side == "BUY"]
     assert len(buys) == 1
-    assert buys[0].quote_budget <= D("240")
+    assert buys[0].quote_budget <= D("250")
