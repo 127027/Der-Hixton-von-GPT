@@ -109,23 +109,24 @@ def install_live_routes(
                 soak_ready = store.load_soak_progress().ready
                 settings = store.load_settings()
                 preview = {
+                    "max_capital_usdc": str(settings.max_capital_usdc),
                     "slot_count": settings.slot_count,
                     "target_notional_usdc": str(settings.target_notional_usdc),
+                    "reserve_usdc": str(settings.reserve_usdc),
+                    "allocation_policy": settings.allocation_policy,
                 }
                 shared = {**preview, "emergency_stop": settings.emergency_stop}
         except (RuntimeError, sqlite3.DatabaseError, KeyError):
             pass
-        slot_count = int(str(shared["slot_count"])) if shared is not None else None
-        target_notional = (
-            Decimal(str(shared["target_notional_usdc"])) if shared is not None else None
+        max_capital = (
+            Decimal(str(shared["max_capital_usdc"])) if shared is not None else None
         )
         emergency_stop = bool(shared["emergency_stop"]) if shared is not None else True
         result = service.status(
             authenticated=authenticated,
             soak_ready=soak_ready,
             healthy=supervisor.state.snapshot().health == "HEALTHY",
-            slot_count=slot_count,
-            target_notional=target_notional,
+            max_capital=max_capital,
             emergency_stop=emergency_stop,
         )
         result["paper_settings_preview"] = preview
@@ -229,8 +230,11 @@ def install_live_routes(
     async def enable(request: Request) -> dict[str, object]:
         require_session(request)
         data = await payload(request)
-        if set(data) != {"confirmation"} or data.get("confirmation") != "LIVE 3X80 AKTIVIEREN":
-            raise HTTPException(400, "3x80-Livebetrieb ausdrücklich bestätigen.")
+        if (
+            set(data) != {"confirmation"}
+            or data.get("confirmation") != "LIVE MAXIMALBUDGET AKTIVIEREN"
+        ):
+            raise HTTPException(400, "Livebetrieb mit gespeichertem Maximalbudget bestätigen.")
         try:
             with PaperStore(config.database_path) as store:
                 settings = store.load_settings()
@@ -240,8 +244,7 @@ def install_live_routes(
                 supervisor.state.points(),
                 healthy=supervisor.state.snapshot().health == "HEALTHY",
                 soak_ready=soak_ready,
-                slot_count=settings.slot_count,
-                target_notional=settings.target_notional_usdc,
+                max_capital=settings.max_capital_usdc,
                 emergency_stop=settings.emergency_stop,
             )
         except BinanceCheckError:
@@ -283,8 +286,6 @@ def install_live_routes(
             await run_in_threadpool(
                 service.start_trial,
                 healthy=supervisor.state.snapshot().health == "HEALTHY",
-                slot_count=settings.slot_count,
-                target_notional=settings.target_notional_usdc,
                 emergency_stop=settings.emergency_stop,
             )
         except BinanceCheckError:
