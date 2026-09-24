@@ -90,8 +90,7 @@ def test_setting_write_requires_local_action_header_and_confirmation(tmp_path: P
         base_url="http://127.0.0.1:8765",
     )
     payload = {
-        "slot_count": 2,
-        "target_notional_usdc": "60.00",
+        "max_capital_usdc": "300.00",
         "emergency_stop": True,
         "confirmation": "ANWENDEN",
     }
@@ -105,8 +104,9 @@ def test_setting_write_requires_local_action_header_and_confirmation(tmp_path: P
     assert saved.status_code == 200
     with PaperStore(config.database_path) as store:
         settings = store.load_settings()
+    assert settings.max_capital_usdc == Decimal("300.00")
     assert settings.slot_count == 2
-    assert settings.target_notional_usdc == Decimal("60.00")
+    assert settings.target_notional_usdc == Decimal("150.00")
     assert settings.emergency_stop is True
 
 
