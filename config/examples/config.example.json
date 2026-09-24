@@ -22,8 +22,7 @@
   },
   "paper": {
     "starting_cash_usdc": "250.00",
-    "slot_count": 3,
-    "target_notional_usdc": "80.00",
+    "max_capital_usdc": "250.00",
     "poll_seconds": 30,
     "daily_audit_utc": "00:05"
   },

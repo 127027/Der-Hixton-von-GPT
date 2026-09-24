@@ -10,6 +10,7 @@ from pathlib import Path
 from typing import Any
 
 from hixton.constants import SYMBOLS
+from hixton.domain.capital import DEFAULT_MAX_CAPITAL_USDC, capital_plan
 from hixton.domain.versions import strategy_definition
 
 
@@ -32,6 +33,7 @@ class ProjectConfig:
     ui_timezone: str
     ui_default_range: str
     sha256: str
+    paper_max_capital_usdc: Decimal = DEFAULT_MAX_CAPITAL_USDC
 
 
 def _required_mapping(value: object, name: str) -> dict[str, Any]:
@@ -94,14 +96,15 @@ def load_project_config(path: Path, *, project_root: Path) -> ProjectConfig:
         raise ValueError("paper starting cash must be 250.00 (legacy V2 also accepts 240.00)")
     expected_paper: dict[str, object] = {
         "starting_cash_usdc": paper["starting_cash_usdc"],
-        "slot_count": 3,
-        "target_notional_usdc": "80.00",
+        "max_capital_usdc": "250.00",
         "poll_seconds": 30,
         "daily_audit_utc": "00:05",
     }
     _reject_unknown(paper, set(expected_paper), "paper")
     if paper != expected_paper:
-        raise ValueError("paper settings must match the versioned starting cash with 3x80 USDC")
+        raise ValueError("paper settings must use the canonical 250-USDC maximum budget")
+    paper_max_capital = Decimal(str(paper["max_capital_usdc"]))
+    paper_plan = capital_plan(paper_max_capital)
 
     ui = _required_mapping(root.get("ui"), "ui")
     expected_ui: dict[str, object] = {
@@ -133,12 +136,13 @@ def load_project_config(path: Path, *, project_root: Path) -> ProjectConfig:
         run_baseline_and_stress=False,
         paper_poll_seconds=int(paper["poll_seconds"]),
         paper_starting_cash_usdc=Decimal(str(paper["starting_cash_usdc"])),
-        paper_slot_count=int(paper["slot_count"]),
-        paper_target_notional_usdc=Decimal(str(paper["target_notional_usdc"])),
+        paper_slot_count=paper_plan.slot_count,
+        paper_target_notional_usdc=paper_plan.target_notional_usdc,
         daily_audit_utc=str(paper["daily_audit_utc"]),
         ui_bind=str(ui["bind"]),
         ui_port=int(ui["port"]),
         ui_timezone=str(ui["timezone"]),
         ui_default_range=str(ui["default_range"]),
         sha256=digest,
+        paper_max_capital_usdc=paper_plan.max_capital_usdc,
     )

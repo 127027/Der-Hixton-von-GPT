@@ -9,6 +9,7 @@ from decimal import Decimal
 from enum import StrEnum
 
 from hixton.constants import HIXTON_SPEC_VERSION
+from hixton.domain.capital import DEFAULT_MAX_CAPITAL_USDC, CapitalPlan, capital_plan
 
 MAX_TRADING_SLOTS = 10
 
@@ -19,19 +20,56 @@ class PaperEventStatus(StrEnum):
     OBSERVED = "OBSERVED"
 
 
-@dataclass(frozen=True, slots=True)
+@dataclass(frozen=True, slots=True, init=False)
 class PaperSettings:
-    slot_count: int = 3
-    target_notional_usdc: Decimal = Decimal("80.00")
-    emergency_stop: bool = False
+    max_capital_usdc: Decimal
+    emergency_stop: bool
 
-    def __post_init__(self) -> None:
-        if type(self.slot_count) is not int or self.slot_count <= 0:
-            raise ValueError("paper slot_count must be positive")
-        if not self.target_notional_usdc.is_finite() or self.target_notional_usdc <= 0:
-            raise ValueError("paper target_notional_usdc must be positive")
-        if self.slot_count > MAX_TRADING_SLOTS:
-            raise ValueError(f"paper supports at most {MAX_TRADING_SLOTS} simultaneous slots")
+    def __init__(
+        self,
+        max_capital_usdc: Decimal = DEFAULT_MAX_CAPITAL_USDC,
+        emergency_stop: bool = False,
+        *,
+        slot_count: int | None = None,
+        target_notional_usdc: Decimal | None = None,
+    ) -> None:
+        # Legacy constructor compatibility is migration-only. It is immediately
+        # normalized into the single max-capital source of truth.
+        resolved = Decimal(str(max_capital_usdc))
+        if slot_count is not None or target_notional_usdc is not None:
+            if slot_count is None or target_notional_usdc is None:
+                raise ValueError("legacy slot settings require both values")
+            target = Decimal(str(target_notional_usdc))
+            resolved = (
+                DEFAULT_MAX_CAPITAL_USDC
+                if slot_count == 3 and target == Decimal("80")
+                else target * slot_count
+            )
+        plan = capital_plan(resolved)
+        if type(emergency_stop) is not bool:
+            raise ValueError("paper emergency_stop must be boolean")
+        object.__setattr__(self, "max_capital_usdc", plan.max_capital_usdc)
+        object.__setattr__(self, "emergency_stop", emergency_stop)
+
+    @property
+    def plan(self) -> CapitalPlan:
+        return capital_plan(self.max_capital_usdc)
+
+    @property
+    def slot_count(self) -> int:
+        return self.plan.slot_count
+
+    @property
+    def target_notional_usdc(self) -> Decimal:
+        return self.plan.target_notional_usdc
+
+    @property
+    def reserve_usdc(self) -> Decimal:
+        return self.plan.reserve_usdc
+
+    @property
+    def allocation_policy(self) -> str:
+        return self.plan.allocation_policy
 
 
 @dataclass(frozen=True, slots=True)

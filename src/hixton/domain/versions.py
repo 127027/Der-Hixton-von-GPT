@@ -194,7 +194,7 @@ _V6_PROFILES = (
             band_multiplier=3.2,
             warmup_bars=400,
         ),
-        TradePolicy(cmo_floor=0, slope_bars=0, stop_atr=4, trail_atr=0),
+        TradePolicy(cmo_floor=0.15, slope_bars=0, stop_atr=4, trail_atr=0),
     ),
     CoinProfile(
         "ADAUSDC",
@@ -227,7 +227,7 @@ _V6_PROFILES = (
             momentum_length=20,
             smoothing_length=8,
             atr_length=60,
-            band_multiplier=4.6,
+            band_multiplier=5.2,
             warmup_bars=400,
         ),
         TradePolicy(cmo_floor=0, slope_bars=0, stop_atr=0, trail_atr=0),
@@ -242,7 +242,7 @@ _V6_PROFILES = (
             band_multiplier=3.8,
             warmup_bars=400,
         ),
-        TradePolicy(cmo_floor=0, slope_bars=0, stop_atr=0, trail_atr=0),
+        TradePolicy(cmo_floor=0.35, slope_bars=0, stop_atr=0, trail_atr=0),
     ),
     CoinProfile(
         "DOGEUSDC",
