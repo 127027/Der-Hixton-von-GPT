@@ -37,8 +37,8 @@
     "state": "IN_PROGRESS",
     "completion_mode": "continuous",
     "started_at_utc": "2026-09-16T10:30:00+00:00",
-    "last_transition_reason": "Owner instruction 2026-09-23: compare 100 USDC per coin across all ten markets and identify the historically strongest capital layout without mutating the Live bot. Compare ten isolated 100-USDC ledgers with shared 1,000-USDC pools using one-per-symbol and ranked-repeat allocation, under baseline and stress, for current V6 and the last research candidate profile map.",
-    "owner_instruction_date": "2026-09-23",
+    "last_transition_reason": "Owner instruction 2026-09-24: stop assuming a fixed 3x80 or 10x100 layout. For a maximum 1,000-USDC account, search slot count, tranche size, reserve and allocation policy to find the historically strongest sensible use of capital. The UI/live bot must not change automatically from research.",
+    "owner_instruction_date": "2026-09-24",
     "primary_agents": [
       "A01",
       "A02",
@@ -67,7 +67,7 @@
     ],
     "regression_cases": [
       "CURRENT_V6_PRODUCT",
-      "CAPITAL_100_AUDIT"
+      "CAPITAL_BUDGET_AUDIT"
     ],
     "constraints": [
       "Product surfaces expose one current strategy only: V6. Legacy strategy implementations may remain only where required for archived compatibility tests and must not be selectable through the normal UI, API or CLI.",
@@ -109,7 +109,12 @@
       "The 10x100 isolated model must use exactly 100 starting cash and 100 target notional for each of the ten symbols.",
       "Shared 10x100 models must use exactly 1,000 starting cash, 100 target notional and 10 slots; allocation policy is the only shared-layout difference.",
       "Both current V6 and the previously accepted research candidate profile map must be tested under identical history, execution rules and cost models.",
-      "Capital-layout research must not mutate canonical V6, Paper state, runtime settings or Live state."
+      "Capital-layout research must not mutate canonical V6, Paper state, runtime settings or Live state.",
+      "Every capital-layout candidate starts from the same 1,000-USDC account equity. Unused budget remains cash in that same ledger.",
+      "Capital-layout search may vary slot_count, target_notional and allocation policy, but must reuse the same per-symbol strategy parameter/policy map, same history, same execution rules and same risk limits.",
+      "A candidate using less than 1,000 USDC maximum commitment is allowed to win only if its ending equity remains higher despite the idle cash.",
+      "The 250/3x80 versus 1000/3x320 scaling sanity check is required to separate engine scaling behavior from capital-layout effects.",
+      "No research winner may automatically modify canonical V6, Paper settings, UI defaults or Live settings."
     ],
     "acceptance": [
       "A01 confirms README, every DMS file and current agent memory agree on current V6, USDC, Paper-only operation, ranked_repeat 3x80 semantics, 10x250 diagnostic role and no permanent portfolio drawdown halt.",
@@ -160,7 +165,13 @@
       "A06 compares baseline versus stress ordering and rejects conclusions that disappear under stress.",
       "A08 compares one-per-symbol versus ranked-repeat slot behavior and opportunity cost.",
       "A10 synthesizes the historically strongest layout without changing the bot.",
-      "A09/A11 verify the result remains research-only and does not become a personalized investment instruction or automatic Live configuration."
+      "A09/A11 verify the result remains research-only and does not become a personalized investment instruction or automatic Live configuration.",
+      "A02 runs the full dynamic 1,000-USDC capital-budget search and reports the best baseline, best stress and robust leader.",
+      "A05 reports trade counts, slot-trades, max concurrent slots, utilization and NO_FREE_SLOT blocking for leading and reference layouts.",
+      "A06 verifies the robust leader remains strong under the stress cost model and flags any leader inversion.",
+      "A08 combines the scaling sanity result with the layout search and explains whether gains come from true scaling or from finer opportunity capture.",
+      "A10 synthesizes the historically strongest capital layout without applying it to the product.",
+      "A09/A11 require research_only=true and automatic product/live changes=false."
     ],
     "current_reference": {
       "source_run_id": "35463131378",
@@ -261,6 +272,38 @@
         "stress"
       ],
       "automatic_live_change_allowed": false
+    },
+    "capital_budget_round": {
+      "requested_at_utc": "2026-09-24T07:40:00+00:00",
+      "maximum_account_capital_usdc": "1000",
+      "search_dimensions": {
+        "allocation_policy": [
+          "ranked_repeat",
+          "one_per_symbol"
+        ],
+        "slot_count": "1..20 ranked_repeat; 1..10 one_per_symbol",
+        "tranche_floor_usdc": "50",
+        "capital_utilization_targets_pct": [
+          25,
+          50,
+          75,
+          90,
+          96,
+          100
+        ]
+      },
+      "fixed_references": [
+        "3x80",
+        "5x50",
+        "2x250",
+        "4x250",
+        "5x200",
+        "10x100",
+        "12x80",
+        "20x50"
+      ],
+      "selection": "broad baseline search -> stress top contenders + references -> robust ranking",
+      "automatic_live_or_ui_change": false
     }
   },
   "queued_missions": [],
