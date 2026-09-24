@@ -93,7 +93,7 @@ test("server gates keep trial and continuous live controls disabled until explic
   } finally {live.dispose();ui.restore();}
 });
 
-test("controlled 1x50 and continuous 3x80 send exact explicit confirmations",async()=>{
+test("controlled 1x50 and budget Live send exact explicit confirmations",async()=>{
   const mock=mockLive();mock.state.credentials.configured=true;
   const ui=harness(mock.fetcher),live=initializeLivePreparation(()=>null);
   try {
@@ -112,7 +112,7 @@ test("controlled 1x50 and continuous 3x80 send exact explicit confirmations",asy
     assert.equal(ui.node("live-request").disabled,false);
     await ui.node("live-request").fire("click");
     const enable=mock.calls.find(c=>c.url.endsWith("/enable"));
-    assert.deepEqual(enable.body,{confirmation:"LIVE 3X80 AKTIVIEREN"});
+    assert.deepEqual(enable.body,{confirmation:"LIVE MAXIMALBUDGET AKTIVIEREN"});
     assert.equal(mock.state.state,"LIVE_ENABLED");
   } finally {live.dispose();ui.restore();}
 });
@@ -145,61 +145,101 @@ test("live state selection follows server acknowledgement, rejects false green a
   } finally {live.dispose();ui.restore();}
 });
 
-test("250 and 1000 USDC planned allocations can be explicitly saved in the shared form",async()=>{
+test("250 and 1000 USDC maximum budgets can be saved through the single field",async()=>{
   const ui=harness(()=>{});const writes=[];
-  const settings=initializeTradingSettings(async value=>{writes.push(value);return value;},()=>{});
+  const settings=initializeTradingSettings(
+    async value=>{writes.push(value);return value;},
+    ()=>{},
+  );
+  const limits={
+    min_capital_usdc:"100.00",
+    max_capital_usdc:"1000.00",
+    allocator_version:"CAPITAL-V1-2X50PCT",
+  };
   try {
-    settings.render({slot_count:3,target_notional_usdc:"80",emergency_stop:false},{max_slots:10});
-    for(const [slots,amount] of [[5,50],[10,100]]) {
-      ui.node("slot-input").value=String(slots);await ui.node("slot-input").fire("input");
-      ui.node("notional-input").value=String(amount);await ui.node("notional-input").fire("input");
+    settings.render({
+      max_capital_usdc:"250.00",slot_count:2,target_notional_usdc:"125.00",
+      reserve_usdc:"0.00",allocation_policy:"ranked_repeat",
+      allocator_version:"CAPITAL-V1-2X50PCT",emergency_stop:false,
+    },limits);
+    for(const amount of ["250","1000"]) {
+      ui.node("capital-input").value=amount;
+      await ui.node("capital-input").fire("input");
       await ui.node("trading-form").fire("submit");
       assert.equal(ui.node("settings-validation").textContent,"");
       assert.equal(settings.liveBlocker(),null);
     }
     assert.equal(writes.length,2);
+    assert.equal(writes[0].slot_count,2);
+    assert.equal(writes[0].target_notional_usdc,"125.00");
+    assert.equal(writes[1].target_notional_usdc,"500.00");
     assert.match(ui.node("live-plan").textContent,/1.000,00 USDC/);
   } finally {ui.restore();}
 });
 
-test("one submit applies 4x45, preserves draft across polls and blocks duplicate submits",async()=>{
+test("one submit derives 2x125, preserves draft across polls and blocks duplicate submits",async()=>{
   const ui=harness(()=>{throw Error("No network expected");});
   let resolveSave, writes=0, accepted;
-  const settings=initializeTradingSettings(value=>{writes++;return new Promise(resolve=>{resolveSave=()=>resolve(value);});},value=>{accepted=value;});
-  const original={slot_count:3,target_notional_usdc:"80.00",emergency_stop:false};
-  const limits={max_slots:10};
+  const settings=initializeTradingSettings(
+    value=>{writes++;return new Promise(resolve=>{resolveSave=()=>resolve(value);});},
+    value=>{accepted=value;},
+  );
+  const original={
+    max_capital_usdc:"250.00",slot_count:2,target_notional_usdc:"125.00",
+    reserve_usdc:"0.00",allocation_policy:"ranked_repeat",
+    allocator_version:"CAPITAL-V1-2X50PCT",emergency_stop:false,
+  };
+  const limits={
+    min_capital_usdc:"100.00",
+    max_capital_usdc:"1000.00",
+    allocator_version:"CAPITAL-V1-2X50PCT",
+  };
   try {
     settings.render(original,limits);
-    ui.node("slot-input").value="4";await ui.node("slot-input").fire("input");
-    ui.node("notional-input").value="45";await ui.node("notional-input").fire("input");
+    ui.node("capital-input").value="300";
+    await ui.node("capital-input").fire("input");
     settings.render(original,limits);
-    assert.equal(ui.node("slot-input").value,"4");
-    assert.match(ui.node("live-plan").textContent,/4 × 45,00/);
+    assert.equal(ui.node("capital-input").value,"300");
+    assert.match(ui.node("live-plan").textContent,/2 × 150,00/);
     assert.match(settings.liveBlocker(),/Übernehmen/);
     const submit=ui.node("trading-form").fire("submit");
     assert.equal(ui.node("settings-button").disabled,true);
     await ui.node("trading-form").fire("submit");
     assert.equal(writes,1);resolveSave();await submit;
-    assert.deepEqual(accepted,{slot_count:4,target_notional_usdc:"45",emergency_stop:false});
-    assert.match(ui.node("settings-saved").textContent,/4 × 45,00 USDC = 180,00 USDC/);
+    assert.equal(accepted.max_capital_usdc,"300");
+    assert.equal(accepted.slot_count,2);
+    assert.equal(accepted.target_notional_usdc,"150.00");
+    assert.match(ui.node("settings-saved").textContent,/Max. 300,00 USDC/);
     assert.equal(settings.liveBlocker(),null);
   } finally {ui.restore();}
 });
 
-test("save failure and invalid amount stay visible without reverting the user's values",async()=>{
+test("save failure and invalid budget stay visible without reverting the user's value",async()=>{
   const ui=harness(()=>{});
-  const settings=initializeTradingSettings(async()=>{throw Error("Speichern fehlgeschlagen");},()=>{throw Error("Must not apply");});
+  const settings=initializeTradingSettings(
+    async()=>{throw Error("Speichern fehlgeschlagen");},
+    ()=>{throw Error("Must not apply");},
+  );
+  const limits={
+    min_capital_usdc:"100.00",
+    max_capital_usdc:"1000.00",
+    allocator_version:"CAPITAL-V1-2X50PCT",
+  };
   try {
-    settings.render({slot_count:3,target_notional_usdc:"80",emergency_stop:false},{max_slots:10});
-    ui.node("slot-input").value="4";await ui.node("slot-input").fire("input");
-    ui.node("notional-input").value="-1";await ui.node("notional-input").fire("input");
+    settings.render({
+      max_capital_usdc:"250.00",slot_count:2,target_notional_usdc:"125.00",
+      reserve_usdc:"0.00",allocation_policy:"ranked_repeat",
+      allocator_version:"CAPITAL-V1-2X50PCT",emergency_stop:false,
+    },limits);
+    ui.node("capital-input").value="99";
+    await ui.node("capital-input").fire("input");
     await ui.node("trading-form").fire("submit");
-    assert.match(ui.node("settings-validation").textContent,/positive, endliche/);
-    ui.node("notional-input").value="45";await ui.node("notional-input").fire("input");
+    assert.match(ui.node("settings-validation").textContent,/100,00/);
+    ui.node("capital-input").value="300";
+    await ui.node("capital-input").fire("input");
     await ui.node("trading-form").fire("submit");
     assert.match(ui.node("settings-validation").textContent,/Speichern fehlgeschlagen/);
-    assert.equal(ui.node("slot-input").value,"4");
-    assert.equal(ui.node("notional-input").value,"45");
+    assert.equal(ui.node("capital-input").value,"300");
   } finally {ui.restore();}
 });
 
