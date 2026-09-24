@@ -15,6 +15,7 @@ from typing import Any
 from uuid import uuid4
 
 from hixton.backtest.models import ExecutionRules
+from hixton.domain.capital import capital_plan
 from hixton.domain.models import IndicatorPoint
 from hixton.domain.versions import StrategyDefinition
 from hixton.live.binance import BinanceCheckError, BinanceReadOnlyClient
@@ -261,8 +262,6 @@ class LivePreparation:
         self,
         *,
         healthy: bool,
-        slot_count: int,
-        target_notional: Decimal,
         emergency_stop: bool,
     ) -> dict[str, object]:
         with self.lock:
@@ -270,8 +269,8 @@ class LivePreparation:
                 raise BinanceCheckError("Einmaltest-Runtime fehlt")
             # Arming itself sends no order. Runtime health is enforced again on every
             # execution tick before a future signal can reach the order adapter.
-            if slot_count != 1 or target_notional != Decimal("50") or emergency_stop:
-                raise BinanceCheckError("Erster Echtgeldtest benötigt Einstellungen 1 x 50 USDC")
+            if emergency_stop:
+                raise BinanceCheckError("Einstiegspause ist aktiv; 50-USDC-Test bleibt gesperrt")
             fresh = self._fresh_check()
             if fresh is None or fresh.get("account_checks_passed") is not True:
                 raise BinanceCheckError("Zuerst eine frische Binance-Kontoprüfung durchführen")
@@ -300,8 +299,7 @@ class LivePreparation:
         *,
         healthy: bool,
         soak_ready: bool,
-        slot_count: int,
-        target_notional: Decimal,
+        max_capital: Decimal,
         emergency_stop: bool,
     ) -> dict[str, object]:
         with self.lock:
@@ -311,8 +309,12 @@ class LivePreparation:
                 raise BinanceCheckError("Marktdaten/Bot sind nicht gesund")
             if not soak_ready:
                 raise BinanceCheckError("Paper-Dauertest ist noch nicht freigegeben")
-            if slot_count != 3 or target_notional != Decimal("80") or emergency_stop:
-                raise BinanceCheckError("24/7-Livebetrieb benötigt exakt 3 x 80 USDC")
+            try:
+                plan = capital_plan(max_capital)
+            except ValueError as error:
+                raise BinanceCheckError(str(error)) from error
+            if emergency_stop:
+                raise BinanceCheckError("Einstiegspause ist aktiv")
             if self.trial is None or self.trial.report()["state"] != "COMPLETED":
                 raise BinanceCheckError(
                     "Zuerst muss der kontrollierte 50-USDC-Roundtrip fertig sein"
@@ -320,8 +322,11 @@ class LivePreparation:
             fresh = self._fresh_check()
             if fresh is None or fresh.get("account_checks_passed") is not True:
                 raise BinanceCheckError("Zuerst eine frische Binance-Kontoprüfung durchführen")
-            if Decimal(str(fresh.get("free_usdc", "0"))) < Decimal("250"):
-                raise BinanceCheckError("Für 3 x 80 werden mindestens 250 freie USDC verlangt")
+            if Decimal(str(fresh.get("free_usdc", "0"))) < plan.max_capital_usdc:
+                raise BinanceCheckError(
+                    f"Für dieses Livebudget werden mindestens {plan.max_capital_usdc} "
+                    "freie USDC verlangt"
+                )
             credentials = self.credentials.load()
             if credentials is None:
                 raise BinanceCheckError("Binance-Schlüssel fehlt")
@@ -333,7 +338,12 @@ class LivePreparation:
             )
             self.audit(
                 "PRODUCTION_LIVE_ENABLED",
-                {"slot_count": 3, "target_notional_usdc": "80.00"},
+                {
+                    "max_capital_usdc": str(plan.max_capital_usdc),
+                    "slot_count": plan.slot_count,
+                    "target_notional_usdc": str(plan.target_notional_usdc),
+                    "allocator_version": plan.version,
+                },
             )
             return self.live.report()
 
@@ -343,8 +353,7 @@ class LivePreparation:
         authenticated: bool,
         soak_ready: bool,
         healthy: bool,
-        slot_count: int | None = None,
-        target_notional: Decimal | None = None,
+        max_capital: Decimal | None = None,
         emergency_stop: bool = True,
     ) -> dict[str, object]:
         with self.lock:
@@ -358,15 +367,15 @@ class LivePreparation:
                 "positions": [],
                 "unresolved_intents": [],
             }
-            trial_settings_ok = (
-                slot_count == 1
-                and target_notional == Decimal("50")
-                and emergency_stop is False
-            )
+            trial_settings_ok = emergency_stop is False
+            try:
+                production_plan = (
+                    capital_plan(max_capital) if max_capital is not None else None
+                )
+            except ValueError:
+                production_plan = None
             production_settings_ok = (
-                slot_count == 3
-                and target_notional == Decimal("80")
-                and emergency_stop is False
+                production_plan is not None and emergency_stop is False
             )
             trial_available = bool(
                 credential_status["configured"]
@@ -388,7 +397,8 @@ class LivePreparation:
                 and soak_ready
                 and trial_completed
                 and production_settings_ok
-                and free_usdc >= Decimal("250")
+                and production_plan is not None
+                and free_usdc >= production_plan.max_capital_usdc
                 and live.get("state") != "NEEDS_REVIEW"
             )
             blockers: list[str] = []
@@ -406,12 +416,14 @@ class LivePreparation:
                 blockers.append("Binance-Kontoprüfung enthält Blockierungen.")
             if not trial_completed:
                 blockers.append(
-                    "Vor dauerhaftem 3x80-Livebetrieb ist ein kontrollierter 1x50-Roundtrip nötig."
+                    "Vor dauerhaftem Livebetrieb ist ein kontrollierter 1x50-Roundtrip nötig."
                 )
             if not soak_ready:
                 blockers.append("Paper-Dauertest noch nicht bestanden (30 Tage / 20 Trades).")
             if not production_settings_ok:
-                blockers.append("Dauer-Liveprofil ist ausschließlich 3 x 80 USDC.")
+                blockers.append(
+                    "Maximalbudget liegt außerhalb des aktuell validierten Kapitalbereichs."
+                )
             if live.get("state") == "NEEDS_REVIEW":
                 blockers.append(
                     "Live-Ledger benötigt manuellen Abgleich; neue Orders sind gesperrt."
@@ -446,7 +458,7 @@ class LivePreparation:
                 "live": live if authenticated else {
                     "state": live.get("state", "LIVE_DISABLED"),
                     "used_slots": live.get("used_slots", 0),
-                    "free_slots": live.get("free_slots", 3),
+                    "free_slots": live.get("free_slots", 2),
                 },
                 "first_live_trial": {
                     "slot_count": 1,
@@ -454,12 +466,25 @@ class LivePreparation:
                     "target_notional_quote": "50.00",
                     "minimum_free_quote": "60.00",
                 },
-                "production_live": {
-                    "slot_count": 3,
-                    "target_notional_usdc": "80.00",
-                    "max_committed_usdc": "240.00",
-                    "minimum_free_usdc_at_enable": "250.00",
-                    "spot_only": True,
-                    "quote_asset": "USDC",
-                },
+                "production_live": (
+                    {
+                        "max_capital_usdc": str(production_plan.max_capital_usdc),
+                        "slot_count": production_plan.slot_count,
+                        "target_notional_usdc": str(
+                            production_plan.target_notional_usdc
+                        ),
+                        "max_committed_usdc": str(
+                            production_plan.max_commitment_usdc
+                        ),
+                        "reserve_usdc": str(production_plan.reserve_usdc),
+                        "allocator_version": production_plan.version,
+                        "minimum_free_usdc_at_enable": str(
+                            production_plan.max_capital_usdc
+                        ),
+                        "spot_only": True,
+                        "quote_asset": "USDC",
+                    }
+                    if production_plan is not None
+                    else None
+                ),
             }
