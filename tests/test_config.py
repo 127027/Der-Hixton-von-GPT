@@ -28,8 +28,7 @@ def _payload() -> dict[str, object]:
         },
         "paper": {
             "starting_cash_usdc": "250.00",
-            "slot_count": 3,
-            "target_notional_usdc": "80.00",
+            "max_capital_usdc": "250.00",
             "poll_seconds": 30,
             "daily_audit_utc": "00:05",
         },
@@ -60,8 +59,9 @@ def test_valid_active_v6_config_resolves_runtime_paths(tmp_path: Path) -> None:
     assert config.ui_port == 8765
     assert config.paper_poll_seconds == 30
     assert config.paper_starting_cash_usdc == Decimal("250.00")
-    assert config.paper_slot_count == 3
-    assert config.paper_target_notional_usdc == Decimal("80.00")
+    assert config.paper_max_capital_usdc == Decimal("250.00")
+    assert config.paper_slot_count == 2
+    assert config.paper_target_notional_usdc == Decimal("125.00")
 
 
 def test_unknown_or_changed_paper_baseline_is_rejected(tmp_path: Path) -> None:
@@ -75,9 +75,9 @@ def test_unknown_or_changed_paper_baseline_is_rejected(tmp_path: Path) -> None:
     payload = _payload()
     paper = payload["paper"]
     assert isinstance(paper, dict)
-    paper["slot_count"] = 4
+    paper["max_capital_usdc"] = "300.00"
     _write(path, payload)
-    with pytest.raises(ValueError, match="3x80"):
+    with pytest.raises(ValueError, match="250-USDC"):
         load_project_config(path, project_root=tmp_path)
 
 
