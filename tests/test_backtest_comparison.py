@@ -29,8 +29,8 @@ def evidence():
     metrics = {
         "baseline": {
             "portfolio": {
-                "slot_count": 3,
-                "target_notional": "80.00",
+                "slot_count": 2,
+                "target_notional": "125.00",
                 "starting_cash": "250",
                 "risk_limits_applied": True,
             }
@@ -63,8 +63,8 @@ def test_matching_only_when_all_evidence_present_without_mutation():
 @pytest.mark.parametrize(
     "field,value",
     [
-        ("slot_count", 4),
-        ("target_notional", "50"),
+        ("slot_count", 3),
+        ("target_notional", "100"),
         ("starting_cash", "240"),
         ("risk_limits_applied", False),
     ],
