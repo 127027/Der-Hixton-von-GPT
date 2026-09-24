@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="color-scheme" content="dark" />
     <title>Der Hixton</title>
-    <script type="module" crossorigin src="/assets/index-Cm_bUp7_.js"></script>
+    <script type="module" crossorigin src="/assets/index-Bn1tu18Q.js"></script>
     <link rel="stylesheet" crossorigin href="/assets/index-DoZY7JpP.css">
   </head>
   <body>
@@ -53,7 +53,7 @@
           <div class="metric-grid">
             <article class="metric-card"><span>Paper Equity</span><strong id="metric-equity">—</strong><small>USDC</small></article>
             <article class="metric-card"><span>Freier Cash</span><strong id="metric-cash">—</strong><small>USDC</small></article>
-            <article class="metric-card"><span>Freie Slots</span><strong id="metric-slots">—</strong><small>von 3</small></article>
+            <article class="metric-card"><span>Freie Slots</span><strong id="metric-slots">—</strong><small>von —</small></article>
             <article class="metric-card"><span>Drawdown</span><strong id="metric-drawdown">—</strong><small>20 % Haltgrenze</small></article>
           </div>
           <div class="section-heading">
@@ -149,15 +149,14 @@
               <h2>1 · Handel</h2>
               <form id="trading-form" class="settings-form">
                 <div class="settings-fields">
-                  <label>Maximal offene Trades<input id="slot-input" type="number" min="1" max="10" step="1" value="3" required /></label>
-                  <label>USDC pro Trade<input id="notional-input" type="number" min="1" step="1" value="80" required /></label>
+                  <label>Maximaler USDC-Einsatz<input id="capital-input" type="number" min="100" max="1000" step="1" value="250" required /></label>
                 </div>
                 <p id="settings-validation" class="negative" role="alert"></p>
                 <button id="settings-button" type="submit" class="button primary">Übernehmen</button>
               </form>
               <p id="settings-saved">Einstellungen werden geladen …</p>
               <p id="settings-edit-state" role="status"></p>
-              <p>Gilt für neue Paper-Trades. Kontostand und laufende Positionen bleiben erhalten.</p>
+              <p>Du gibst nur das maximale Budget vor. Hixton leitet daraus automatisch die geprüfte ranked-repeat-Kapitalaufteilung ab und verteilt freie Tranchen auf die aktuell stärksten gültigen Signale der zehn Coins. Gilt gemeinsam für Portfolio-Backtest, Paper und später Live.</p>
             </article>
 
             <article class="settings-card">
@@ -186,7 +185,7 @@
                   <ul>
                     <li>Lesen: EIN</li>
                     <li>Spot-Handel: EIN</li>
-                    <li>IP-Beschränkung: EIN, wenn möglich</li>
+                    <li>IP-Beschränkung: EIN (für die Freigabe erforderlich)</li>
                     <li>Auszahlungen, Transfers, Margin, Futures und Optionen: AUS</li>
                   </ul>
                 </div>
@@ -212,12 +211,12 @@
                 <button id="live-request" type="button" class="button secondary" aria-pressed="false" disabled>Live an</button>
                 <button id="live-off" type="button" class="button secondary" aria-pressed="false" disabled>Live aus</button>
               </div>
-              <p id="live-result" role="alert">Dauer-Live wird erst nach erfolgreichem 1×50-Roundtrip und allen Sicherheitsgates freigegeben.</p>
+              <p id="live-result" role="alert">Dauer-Live wird erst nach erfolgreichem 1×50-Roundtrip und allen Sicherheitsgates mit dem gespeicherten Maximalbudget freigegeben.</p>
               <p>Live aus stoppt neue Echtgeld-Einstiege. Bereits gesendete oder unklare Orders werden nur abgeglichen; offene Positionen dürfen regulär aussteigen. Paper läuft unabhängig weiter.</p>
               <details open>
                 <summary>Kontrollierter erster Echtgeldtest · 1 × 50 USDC</summary>
                 <p>Nach deiner ausdrücklichen Freigabe wird nicht sofort gekauft. Der Bot wartet auf ein neues gültiges Signal aus den zehn USDC-Märkten, sendet dann höchstens einen 50-USDC-Market-Kauf, verwaltet den regulären Ausstieg und gleicht anschließend Konto und Orders ab.</p>
-                <p>Vor dem Test müssen die Handelseinstellungen auf genau 1 offenen Trade und 50 USDC pro Trade stehen. Danach kann der dauerhafte Betrieb nur mit exakt 3 × 80 USDC aktiviert werden.</p>
+                <p>Der gespeicherte Maximalbetrag bleibt dabei unverändert, standardmäßig 250 USDC. Der 1×50-Test ist ein separater einmaliger Sicherheitsmodus. Erst nach einem vollständig abgeglichenen Kauf-und-Verkauf-Roundtrip kann der normale budgetgesteuerte Livebetrieb aktiviert werden.</p>
                 <button id="live-trial-start" type="button" class="button primary" disabled>1 × 50 USDC · Test freigeben</button>
                 <p id="live-trial-status" role="status">Nicht gestartet.</p>
                 <p id="live-trial-result" role="alert"></p>
