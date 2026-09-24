@@ -57,8 +57,9 @@ def test_fresh_start_archives_everything_and_only_resets_paper(tmp_path: Path) -
         assert json.loads(audit[1]) == result
     with PaperStore(config.database_path) as store:
         store.require_strategy(V6.key, V6.version)
-        assert store.load_settings().target_notional_usdc == 80
-        assert store.load_settings().slot_count == 3
+        assert store.load_settings().max_capital_usdc == 250
+        assert store.load_settings().target_notional_usdc == 125
+        assert store.load_settings().slot_count == 2
         assert store.load_account().cash_usdc == 250
         assert not store.load_account().halted
         store.save_account(replace(store.load_account(), cash_usdc=Decimal("231")))
