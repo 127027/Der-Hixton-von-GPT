@@ -9,6 +9,7 @@ risk limits. It never mutates canonical V6, Paper state or Live state.
 from __future__ import annotations
 
 import json
+import os
 from dataclasses import dataclass
 from decimal import ROUND_DOWN
 from decimal import Decimal as D
@@ -24,7 +25,7 @@ from hixton.runtime.supervisor import safe_closed_window
 from scripts.capital_100_simulation import _candidate_map, _profile_hashes
 from scripts.coin_optimization_cycle import _rules
 
-CAPITAL = D("1000")
+CAPITAL = D(os.environ.get("HIXTON_CAPITAL_BUDGET_USDC", "1000"))
 MIN_TRANCHE = D("50")
 STEP = D("5")
 FULL_UTILIZATION_SLOT_RANGE = range(1, 21)
@@ -263,7 +264,8 @@ def main() -> None:
             "No canonical V6, Paper or Live setting is changed automatically.",
         ],
     }
-    path = Path("evidence") / "capital-budget-optimizer.json"
+    capital_label = str(CAPITAL).replace(".", "_")
+    path = Path("evidence") / f"capital-budget-optimizer-{capital_label}.json"
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text(json.dumps(output, indent=2) + "\n", encoding="utf-8")
     print(json.dumps(output, indent=2))
