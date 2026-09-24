@@ -89,7 +89,7 @@ export function mockLive() {
       }
     }
     else if(url.endsWith("/enable")) {
-      if(!state.ready || !state.order_dispatch_available || body.confirmation!=="LIVE 3X80 AKTIVIEREN") {
+      if(!state.ready || !state.order_dispatch_available || body.confirmation!=="LIVE MAXIMALBUDGET AKTIVIEREN") {
         status=409;data={detail:"Livefreigabe sicher abgelehnt."};
       } else {
         state.state="LIVE_ENABLED";
