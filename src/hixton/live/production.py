@@ -1,9 +1,9 @@
-"""Persistent fail-closed Binance Spot runtime for the owner-approved 3x80 portfolio.
+"""Persistent fail-closed Binance Spot runtime for the budget-driven portfolio.
 
 This module never stores credentials and never enables itself. The local authenticated
 UI must explicitly arm the first 1x50 trial and, after that round-trip is reconciled,
-explicitly enable continuous 3x80. All order identities are persisted before dispatch;
-ambiguous submissions are queried and are never blindly re-sent.
+explicitly enable the saved max-capital plan. All order identities and quote budgets
+are persisted before dispatch; ambiguous submissions are queried and never re-sent.
 """
 
 from __future__ import annotations
@@ -23,6 +23,7 @@ from typing import Any, Protocol, cast
 from hixton.backtest.models import ExecutionRules
 from hixton.constants import SYMBOLS
 from hixton.domain.allocation import allocate_entry_slots
+from hixton.domain.capital import capital_plan
 from hixton.domain.models import IndicatorPoint, SignalAction
 from hixton.domain.strategy import entry_priority
 from hixton.domain.trade_policy import TradePolicyGate
@@ -30,9 +31,7 @@ from hixton.domain.versions import StrategyDefinition
 from hixton.live.orders import ExchangeOrder
 
 ZERO = Decimal("0")
-SLOT_NOTIONAL = Decimal("80")
-MAX_SLOTS = 3
-CASH_RESERVE = Decimal("10")
+MAX_LIVE_SLOTS = 2
 FINAL_ORDER = {"FILLED", "CANCELED", "REJECTED", "EXPIRED", "EXPIRED_IN_MATCH"}
 
 
@@ -69,7 +68,7 @@ class LiveIntent:
             or self.side not in {"BUY", "SELL"}
             or not self.strategy_version
             or type(self.slot_count) is not int
-            or not 1 <= self.slot_count <= MAX_SLOTS
+            or not 1 <= self.slot_count <= MAX_LIVE_SLOTS
         ):
             raise ValueError("invalid Live order identity")
         for amount, positive in (
@@ -80,8 +79,8 @@ class LiveIntent:
             if not amount.is_finite() or amount < 0 or (positive and amount == 0):
                 raise ValueError("Live order amounts must be finite and non-negative")
         if self.side == "BUY":
-            if self.quote_budget != SLOT_NOTIONAL * self.slot_count or self.base_quantity != ZERO:
-                raise ValueError("Live BUY budget must be exactly 80 USDC per allocated slot")
+            if self.quote_budget <= ZERO or self.base_quantity != ZERO:
+                raise ValueError("Live BUY requires an explicit positive persisted quote budget")
         elif self.quote_budget != ZERO or self.base_quantity <= ZERO:
             raise ValueError("Live SELL requires explicit owned base quantity")
 
@@ -113,7 +112,7 @@ class LiveOrderJournal:
                     side TEXT NOT NULL,
                     strategy TEXT NOT NULL,
                     reference TEXT NOT NULL,
-                    slot_count INTEGER NOT NULL CHECK(slot_count BETWEEN 1 AND 3),
+                    slot_count INTEGER NOT NULL CHECK(slot_count BETWEEN 1 AND 2),
                     quote_budget TEXT NOT NULL,
                     base_quantity TEXT NOT NULL,
                     state TEXT NOT NULL,
@@ -605,7 +604,7 @@ class LivePortfolioController:
                     entry_signal_id TEXT NOT NULL,
                     entry_atr TEXT NOT NULL,
                     highest_close TEXT NOT NULL,
-                    slot_count INTEGER NOT NULL CHECK(slot_count BETWEEN 1 AND 3)
+                    slot_count INTEGER NOT NULL CHECK(slot_count BETWEEN 1 AND 2)
                 );
                 CREATE TABLE IF NOT EXISTS live_events(
                     signal_id TEXT PRIMARY KEY,
@@ -777,13 +776,18 @@ class LivePortfolioController:
             ):
                 return False
             slots, target, emergency = self.settings()
+            try:
+                plan = capital_plan(target * slots)
+            except ValueError:
+                return False
+            if plan.slot_count != slots or plan.target_notional_usdc != target:
+                return False
             if intent.side == "BUY":
                 if (
                     control["state"] != "LIVE_ENABLED"
                     or not bool(control["entries_enabled"])
                     or emergency
-                    or slots != MAX_SLOTS
-                    or target != SLOT_NOTIONAL
+                    or intent.quote_budget != target * intent.slot_count
                 ):
                     return False
             elif control["state"] not in {"LIVE_ENABLED", "EXIT_ONLY"}:
@@ -800,8 +804,8 @@ class LivePortfolioController:
                 free_usdc = sum(snapshot.balances.get("USDC", (ZERO, ZERO)))
                 return (
                     intent.symbol not in positions
-                    and used + intent.slot_count <= MAX_SLOTS
-                    and free_usdc >= intent.quote_budget + CASH_RESERVE
+                    and used + intent.slot_count <= slots
+                    and free_usdc >= intent.quote_budget
                 )
             position = positions.get(intent.symbol)
             if position is None or intent.base_quantity > Decimal(position["quantity"]):
@@ -871,6 +875,7 @@ class LivePortfolioController:
         action: str,
         slot_count: int,
         quantity: Decimal = ZERO,
+        quote_budget: Decimal = ZERO,
         reason: str | None = None,
     ) -> None:
         identity = "live-" + hashlib.sha256(
@@ -882,6 +887,7 @@ class LivePortfolioController:
             "bar_close": _utc(point.candle.close_time_utc).isoformat(),
             "slot_count": slot_count,
             "base_quantity": str(quantity),
+            "quote_budget": str(quote_budget),
         }
         with self.journal._connect() as connection:
             connection.execute("BEGIN IMMEDIATE")
@@ -934,7 +940,7 @@ class LivePortfolioController:
             self.strategy.version,
             Decimal(payload["reference_price"]),
             slot_count,
-            quote_budget=SLOT_NOTIONAL * slot_count if buy else ZERO,
+            quote_budget=Decimal(payload["quote_budget"]) if buy else ZERO,
             base_quantity=ZERO if buy else Decimal(payload["base_quantity"]),
         )
         self.journal.create(intent)
@@ -1131,8 +1137,13 @@ class LivePortfolioController:
             if not healthy or set(points) != set(SYMBOLS):
                 return self.report()
             slots, target, emergency = self.settings()
+            try:
+                plan = capital_plan(target * slots)
+            except ValueError:
+                self.disable_entries()
+                return self.report()
             if control["state"] == "LIVE_ENABLED" and (
-                slots != MAX_SLOTS or target != SLOT_NOTIONAL
+                slots != plan.slot_count or target != plan.target_notional_usdc
             ):
                 self.disable_entries()
                 return self.report()
@@ -1197,7 +1208,7 @@ class LivePortfolioController:
                 equity = self._equity(snapshot, positions, group)
                 paused = self._risk_paused(equity, boundary)
                 used = sum(int(row["slot_count"]) for row in positions.values())
-                free_slots = max(0, MAX_SLOTS - used)
+                free_slots = max(0, plan.slot_count - used)
                 allocations = allocate_entry_slots(
                     [signal.symbol for signal, _ in candidates],
                     free_slots=free_slots,
@@ -1221,6 +1232,7 @@ class LivePortfolioController:
                         point,
                         action="ENTER_LONG",
                         slot_count=allocated,
+                        quote_budget=plan.target_notional_usdc * allocated,
                     )
                     return self.report()
 
@@ -1231,15 +1243,22 @@ class LivePortfolioController:
         control = self._control()
         positions = self._positions()
         used = sum(int(row["slot_count"]) for row in positions.values())
+        try:
+            slots, target, _emergency = self.settings()
+            plan = capital_plan(target * slots)
+        except Exception:
+            plan = capital_plan(Decimal("250"))
         return {
             "initialized": control is not None,
             "state": "LIVE_DISABLED" if control is None else str(control["state"]),
             "entries_enabled": bool(control["entries_enabled"]) if control is not None else False,
             "reason": control["reason"] if control is not None else None,
-            "slot_count": MAX_SLOTS,
-            "target_notional_usdc": str(SLOT_NOTIONAL),
+            "max_capital_usdc": str(plan.max_capital_usdc),
+            "slot_count": plan.slot_count,
+            "target_notional_usdc": str(plan.target_notional_usdc),
+            "allocator_version": plan.version,
             "used_slots": used,
-            "free_slots": max(0, MAX_SLOTS - used),
+            "free_slots": max(0, plan.slot_count - used),
             "positions": [
                 {
                     "symbol": symbol,
