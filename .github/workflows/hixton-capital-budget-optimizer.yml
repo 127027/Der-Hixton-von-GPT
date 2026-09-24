@@ -1,0 +1,34 @@
+name: Hixton Capital Budget Optimizer
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [gpt/usdc-audit]
+    paths:
+      - "scripts/capital_budget_optimizer.py"
+      - ".github/workflows/hixton-capital-budget-optimizer.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  optimize:
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: |
+          python -m pip install --upgrade pip
+          pip install -e .[dev]
+      - run: |
+          python -m py_compile scripts/capital_budget_optimizer.py
+          ruff check scripts/capital_budget_optimizer.py
+      - run: python -m scripts.capital_budget_optimizer
+      - uses: actions/upload-artifact@v4
+        with:
+          name: hixton-capital-budget-optimizer
+          path: evidence/capital-budget-optimizer.json
+          retention-days: 14
