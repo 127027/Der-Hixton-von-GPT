@@ -1294,7 +1294,7 @@ def _capital_budget_audit_a01() -> list[dict[str, Any]]:
     required = (
         'CAPITAL = D("1000")',
         'MIN_TRANCHE = D("50")',
-        "UTILIZATION_RATIOS",
+        "FULL_UTILIZATION_SLOT_RANGE",
         "Unused capital remains cash",
         '"activation_performed": False',
     )
