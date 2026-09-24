@@ -211,6 +211,15 @@ def capital100_audit_enabled() -> bool:
     return CAPITAL_100_AUDIT_CASE in cases
 
 
+CAPITAL_BUDGET_AUDIT_CASE = "CAPITAL_BUDGET_AUDIT"
+
+
+def capital_budget_audit_enabled() -> bool:
+    mission = load_mission(ROOT)
+    cases = mission.get("regression_cases") or []
+    return CAPITAL_BUDGET_AUDIT_CASE in cases
+
+
 def _current_strategy_activity() -> dict[str, Any]:
     state = check_state_db()
     with sqlite3.connect(STATE_DB) as connection:
@@ -1279,6 +1288,278 @@ def capital100_audit_evidence(
     return handlers[role]()
 
 
+
+def _capital_budget_audit_a01() -> list[dict[str, Any]]:
+    source = (ROOT / "scripts" / "capital_budget_optimizer.py").read_text(encoding="utf-8")
+    required = (
+        'CAPITAL = D("1000")',
+        'MIN_TRANCHE = D("50")',
+        "UTILIZATION_RATIOS",
+        "Unused capital remains cash",
+        '"activation_performed": False',
+    )
+    missing = [item for item in required if item not in source]
+    if missing:
+        raise CheckFailure(f"capital-budget methodology incomplete: {missing}")
+    return [
+        {
+            "capital_budget_methodology": {
+                "fixed_account_equity_usdc": "1000",
+                "searches_slots_tranche_policy_and_reserve": True,
+                "unused_budget_remains_cash": True,
+                "research_only": True,
+            }
+        },
+        coverage("capital_budget_methodology", "capital_budget_scope"),
+    ]
+
+
+def _capital_budget_audit_a02() -> list[dict[str, Any]]:
+    output = ROOT / "evidence" / "capital-budget-optimizer.json"
+    if output.exists():
+        output.unlink()
+    command = require_command(
+        [sys.executable, "-m", "scripts.capital_budget_optimizer"],
+        timeout=7200,
+    )
+    if not output.is_file():
+        raise CheckFailure("fresh capital-budget optimizer evidence missing")
+    payload = json.loads(output.read_text(encoding="utf-8"))
+    if payload.get("research_only") is not True or payload.get("activation_performed") is not False:
+        raise CheckFailure("capital-budget optimizer crossed research boundary")
+    if str(payload.get("maximum_account_capital_usdc")) != "1000":
+        raise CheckFailure("capital-budget search did not use fixed 1000-USDC account")
+    return [
+        command,
+        {"capital_budget_result": payload},
+        coverage("capital_budget_fresh_search"),
+    ]
+
+
+def _capital_budget_audit_a03() -> list[dict[str, Any]]:
+    source = (ROOT / "scripts" / "capital_budget_optimizer.py").read_text(encoding="utf-8")
+    required = (
+        "_candidate_map(research=True)",
+        "strategy_parameters_by_symbol=",
+        "trade_policies_by_symbol=",
+        "_profile_hashes(profiles)",
+    )
+    missing = [item for item in required if item not in source]
+    if missing:
+        raise CheckFailure(f"capital-budget profile consistency incomplete: {missing}")
+    return [
+        {
+            "capital_budget_profile_contract": (
+                "ONE_RESEARCH_PROFILE_MAP_REUSED_ACROSS_ALL_LAYOUTS"
+            )
+        },
+        coverage("capital_budget_profile_consistency"),
+    ]
+
+
+def _capital_budget_audit_a04() -> list[dict[str, Any]]:
+    source = (ROOT / "scripts" / "capital_budget_optimizer.py").read_text(encoding="utf-8")
+    forbidden = ("PaperStore(", "enable_live(", "start_trial(", "versions.py")
+    present = [item for item in forbidden if item in source]
+    if present:
+        raise CheckFailure(f"capital-budget research crosses product boundary: {present}")
+    return [
+        {
+            "capital_budget_product_state": (
+                "RESEARCH_ONLY_NO_CANONICAL_UI_PAPER_OR_LIVE_MUTATION"
+            )
+        },
+        coverage("capital_budget_product_separation"),
+    ]
+
+
+def _capital_budget_payload() -> dict[str, Any]:
+    output = ROOT / "evidence" / "capital-budget-optimizer.json"
+    if output.is_file():
+        return json.loads(output.read_text(encoding="utf-8"))
+    evidence = _capital_budget_audit_a02()
+    result = evidence[1].get("capital_budget_result")
+    if not isinstance(result, dict):
+        raise CheckFailure("capital-budget result unavailable")
+    return result
+
+
+def _capital_budget_audit_a05() -> list[dict[str, Any]]:
+    payload = _capital_budget_payload()
+    interesting = [payload["best_baseline"], payload["best_robust"]]
+    refs = payload.get("references", {})
+    for key in (
+        "ranked_repeat:3x80",
+        "ranked_repeat:5x50",
+        "ranked_repeat:4x250",
+        "ranked_repeat:10x100",
+        "ranked_repeat:12x80",
+        "ranked_repeat:20x50",
+    ):
+        item = refs.get(key)
+        if isinstance(item, dict):
+            interesting.append(item)
+    detail = {
+        str(row["layout"]): {
+            "ending_equity": row["ending_equity"],
+            "position_cycles": row["position_cycles"],
+            "slot_trades": row["slot_trades"],
+            "max_concurrent_slots": row["max_concurrent_slots"],
+            "blocked_no_free_slot": row["blocked_no_free_slot"],
+            "capital_utilization_pct": row["capital_utilization_pct"],
+            "max_drawdown_pct": row["max_drawdown_pct"],
+        }
+        for row in interesting
+    }
+    return [
+        {"capital_budget_trade_utilization": detail},
+        coverage("capital_budget_trade_utilization"),
+    ]
+
+
+def _capital_budget_audit_a06() -> list[dict[str, Any]]:
+    payload = _capital_budget_payload()
+    best_baseline = payload["best_baseline"]
+    best_stress = payload["best_stress"]
+    best_robust = payload["best_robust"]
+    return [
+        {
+            "capital_budget_stress": {
+                "best_baseline": best_baseline,
+                "best_stress": best_stress,
+                "best_robust": best_robust,
+                "leader_stable": (
+                    best_baseline["layout"] == best_stress["layout"]
+                    == best_robust["layout"]
+                ),
+            }
+        },
+        coverage("capital_budget_stress_robustness"),
+    ]
+
+
+def _capital_budget_audit_a07() -> list[dict[str, Any]]:
+    exchange = _json_url("/api/v3/exchangeInfo")
+    symbols = {str(item.get("symbol")): item for item in exchange.get("symbols", [])}
+    from hixton.constants import SYMBOLS
+
+    invalid = [
+        symbol
+        for symbol in SYMBOLS
+        if symbol not in symbols
+        or symbols[symbol].get("status") != "TRADING"
+        or symbols[symbol].get("quoteAsset") != "USDC"
+    ]
+    if invalid:
+        raise CheckFailure(f"capital-budget Binance universe invalid: {invalid}")
+    return [
+        {"capital_budget_binance_symbols": list(SYMBOLS)},
+        coverage("capital_budget_binance_rules"),
+    ]
+
+
+def _capital_budget_audit_a08() -> list[dict[str, Any]]:
+    payload = _capital_budget_payload()
+    scaling = ROOT / "evidence" / "capital-scaling-sanity.json"
+    scaling_payload: dict[str, Any] | None = None
+    if scaling.is_file():
+        scaling_payload = json.loads(scaling.read_text(encoding="utf-8"))
+    return [
+        {
+            "capital_budget_layout_assessment": {
+                "best_robust": payload["best_robust"],
+                "reference_layouts": payload.get("references", {}),
+                "scaling_sanity": scaling_payload,
+                "interpretation": (
+                    "Separate true capital/notional scaling from extra opportunity capture "
+                    "created by more independently reusable slots."
+                ),
+            }
+        },
+        coverage("capital_budget_scaling_and_layout"),
+    ]
+
+
+def _capital_budget_audit_a10(reports_dir: Path | None) -> list[dict[str, Any]]:
+    if reports_dir is None:
+        raise CheckFailure("capital-budget A10 requires reports")
+    reports = load_reports(reports_dir)
+    result = evidence_flag(reports.get("A02", {}), "capital_budget_result")
+    stress = evidence_flag(reports.get("A06", {}), "capital_budget_stress")
+    layout = evidence_flag(reports.get("A08", {}), "capital_budget_layout_assessment")
+    if not isinstance(result, dict) or not isinstance(stress, dict) or not isinstance(layout, dict):
+        raise CheckFailure("capital-budget specialist evidence incomplete")
+    return [
+        {
+            "capital_budget_synthesis": {
+                "best_baseline": result.get("best_baseline"),
+                "best_stress": result.get("best_stress"),
+                "best_robust": result.get("best_robust"),
+                "candidate_layout_count": result.get("candidate_layout_count"),
+                "stress_assessment": stress,
+                "layout_assessment": layout,
+                "research_only": True,
+                "automatic_product_change": False,
+            }
+        },
+        coverage("capital_budget_synthesis"),
+    ]
+
+
+def _capital_budget_audit_a09(reports_dir: Path | None) -> list[dict[str, Any]]:
+    if reports_dir is None:
+        raise CheckFailure("capital-budget A09 requires reports")
+    reports = load_reports(reports_dir)
+    synthesis = evidence_flag(reports.get("A10", {}), "capital_budget_synthesis")
+    if not isinstance(synthesis, dict) or synthesis.get("research_only") is not True:
+        raise CheckFailure("capital-budget QA rejects non-research result")
+    return [
+        {"capital_budget_qa": "PASS_RESEARCH_ONLY"},
+        coverage("capital_budget_qa"),
+    ]
+
+
+def _capital_budget_audit_a11(reports_dir: Path | None) -> list[dict[str, Any]]:
+    if reports_dir is None:
+        raise CheckFailure("capital-budget A11 requires reports")
+    reports = load_reports(reports_dir)
+    synthesis = evidence_flag(reports.get("A10", {}), "capital_budget_synthesis")
+    if (
+        not isinstance(synthesis, dict)
+        or synthesis.get("research_only") is not True
+        or synthesis.get("automatic_product_change") is not False
+    ):
+        raise CheckFailure("capital-budget governance denied")
+    return [
+        {
+            "capital_budget_governance": (
+                "PASS_RESEARCH_ONLY_NO_AUTOMATIC_PRODUCT_OR_LIVE_CONFIGURATION"
+            )
+        },
+        coverage("capital_budget_governance"),
+    ]
+
+
+def capital_budget_audit_evidence(
+    role: str,
+    reports_dir: Path | None,
+) -> list[dict[str, Any]]:
+    handlers = {
+        "A01": lambda: _capital_budget_audit_a01(),
+        "A02": lambda: _capital_budget_audit_a02(),
+        "A03": lambda: _capital_budget_audit_a03(),
+        "A04": lambda: _capital_budget_audit_a04(),
+        "A05": lambda: _capital_budget_audit_a05(),
+        "A06": lambda: _capital_budget_audit_a06(),
+        "A07": lambda: _capital_budget_audit_a07(),
+        "A08": lambda: _capital_budget_audit_a08(),
+        "A09": lambda: _capital_budget_audit_a09(reports_dir),
+        "A10": lambda: _capital_budget_audit_a10(reports_dir),
+        "A11": lambda: _capital_budget_audit_a11(reports_dir),
+    }
+    return handlers[role]()
+
+
 def role_a01() -> list[dict[str, Any]]:
     ready = validate_cloud_ready(ROOT)
     contract = paper_runtime_contract()
@@ -1677,6 +1958,8 @@ def execute(role: str, reports_dir: Path | None) -> dict[str, Any]:
             evidence.extend(optimization_audit_evidence(role, reports_dir))
         if capital100_audit_enabled():
             evidence.extend(capital100_audit_evidence(role, reports_dir))
+        if capital_budget_audit_enabled():
+            evidence.extend(capital_budget_audit_evidence(role, reports_dir))
         report["verdict"] = "PASS"
         report["evidence"] = evidence
         if role == "A09":
