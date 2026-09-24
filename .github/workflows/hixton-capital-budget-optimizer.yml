@@ -13,6 +13,10 @@ permissions:
 
 jobs:
   optimize:
+    strategy:
+      fail-fast: false
+      matrix:
+        capital_usdc: ["250", "500", "1000"]
     runs-on: ubuntu-latest
     timeout-minutes: 120
     steps:
@@ -27,8 +31,10 @@ jobs:
           python -m py_compile scripts/capital_budget_optimizer.py
           ruff check scripts/capital_budget_optimizer.py
       - run: python -m scripts.capital_budget_optimizer
+        env:
+          HIXTON_CAPITAL_BUDGET_USDC: ${{ matrix.capital_usdc }}
       - uses: actions/upload-artifact@v4
         with:
-          name: hixton-capital-budget-optimizer
-          path: evidence/capital-budget-optimizer.json
+          name: hixton-capital-budget-optimizer-${{ matrix.capital_usdc }}
+          path: evidence/capital-budget-optimizer-${{ matrix.capital_usdc }}.json
           retention-days: 14
