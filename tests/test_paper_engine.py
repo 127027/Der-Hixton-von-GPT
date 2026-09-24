@@ -205,14 +205,14 @@ def test_slot_priority_is_deterministic_and_cycle_is_idempotent(tmp_path: Path) 
     emitted = process_new_closed_points(str(path), points, _rules())
     filled = [event for event in emitted if event.status is PaperEventStatus.FILLED]
     blocked = [event for event in emitted if event.status is PaperEventStatus.BLOCKED]
-    assert [event.symbol for event in filled] == list(SYMBOLS[:3])
-    assert [event.symbol for event in blocked] == list(SYMBOLS[3:5])
+    assert [event.symbol for event in filled] == list(SYMBOLS[:2])
+    assert [event.symbol for event in blocked] == list(SYMBOLS[2:5])
     assert all(event.reason == "NO_FREE_SLOT" for event in blocked)
 
     assert process_new_closed_points(str(path), points, _rules()) == ()
     with PaperStore(path) as store:
         positions = store.load_positions()
-        assert [position.symbol for position in positions] == sorted(SYMBOLS[:3])
+        assert [position.symbol for position in positions] == sorted(SYMBOLS[:2])
         assert store.load_account().cash_usdc >= Decimal("0")
         assert len(store.load_events()) == 5
 
@@ -223,7 +223,7 @@ def test_exit_frees_slot_before_same_bar_entry(tmp_path: Path) -> None:
     initialize_paper_at_latest(str(path), _mapping(start), at=start)
     first = start + timedelta(hours=1)
     entries = _mapping(first)
-    for symbol in SYMBOLS[:3]:
+    for symbol in SYMBOLS[:2]:
         entries[symbol] = (_point(symbol, first, flip_up=True, strength=1.0),)
     process_new_closed_points(str(path), entries, _rules())
 
@@ -239,7 +239,6 @@ def test_exit_frees_slot_before_same_bar_entry(tmp_path: Path) -> None:
     with PaperStore(path) as store:
         assert {position.symbol for position in store.load_positions()} == {
             SYMBOLS[1],
-            SYMBOLS[2],
             SYMBOLS[3],
         }
 
@@ -250,7 +249,7 @@ def test_larger_planned_budget_never_creates_account_cash(tmp_path: Path) -> Non
     initialize_paper_at_latest(str(path), _mapping(start), at=start)
     with PaperStore(path) as store:
         before = store.load_account().cash_usdc
-        store.save_settings(PaperSettings(slot_count=10, target_notional_usdc=Decimal("100")))
+        store.save_settings(PaperSettings(max_capital_usdc=Decimal("1000")))
         assert store.load_account().cash_usdc == before
     signal_time = start + timedelta(hours=1)
     points = {symbol: (_point(symbol, signal_time, flip_up=True, strength=1.0),)
@@ -262,24 +261,26 @@ def test_larger_planned_budget_never_creates_account_cash(tmp_path: Path) -> Non
         assert len(store.load_positions()) < 10
 
 
-def test_four_slots_of_45_really_open_four_positions_and_keep_the_budget(tmp_path: Path) -> None:
+def test_300_budget_derives_two_150_slots_and_keeps_cash_bounded(tmp_path: Path) -> None:
     path = tmp_path / "paper.sqlite3"
     start = datetime(2026, 1, 1, 0, tzinfo=UTC)
-    initialize_paper_at_latest(str(path), _mapping(start), at=start)
+    initialize_paper_at_latest(
+        str(path), _mapping(start), at=start, starting_cash_usdc=Decimal("300")
+    )
     with PaperStore(path) as store:
-        store.save_settings(PaperSettings(slot_count=4, target_notional_usdc=Decimal("45")))
+        store.save_settings(PaperSettings(max_capital_usdc=Decimal("300")))
     signal_time = start + timedelta(hours=1)
     points = _mapping(signal_time)
     for symbol in SYMBOLS[:5]:
         points[symbol] = (_point(symbol, signal_time, flip_up=True, strength=1.0),)
     emitted = process_new_closed_points(str(path), points, _rules())
     filled = [event for event in emitted if event.status is PaperEventStatus.FILLED]
-    assert [event.symbol for event in filled] == list(SYMBOLS[:4])
-    assert all(event.quote_amount_usdc <= Decimal("45") for event in filled)
+    assert [event.symbol for event in filled] == list(SYMBOLS[:2])
+    assert all(event.quote_amount_usdc <= Decimal("150") for event in filled)
     assert any(event.reason == "NO_FREE_SLOT" for event in emitted)
     with PaperStore(path) as store:
-        assert len(store.load_positions()) == 4
-        assert store.load_account().cash_usdc > Decimal("59")
+        assert len(store.load_positions()) == 2
+        assert store.load_account().cash_usdc >= Decimal("0")
 
 
 def test_explicit_strategy_activation_closes_old_position_and_resets_soak(
