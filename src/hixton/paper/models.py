@@ -29,23 +29,8 @@ class PaperSettings:
         self,
         max_capital_usdc: Decimal = DEFAULT_MAX_CAPITAL_USDC,
         emergency_stop: bool = False,
-        *,
-        slot_count: int | None = None,
-        target_notional_usdc: Decimal | None = None,
     ) -> None:
-        # Legacy constructor compatibility is migration-only. It is immediately
-        # normalized into the single max-capital source of truth.
-        resolved = Decimal(str(max_capital_usdc))
-        if slot_count is not None or target_notional_usdc is not None:
-            if slot_count is None or target_notional_usdc is None:
-                raise ValueError("legacy slot settings require both values")
-            target = Decimal(str(target_notional_usdc))
-            resolved = (
-                DEFAULT_MAX_CAPITAL_USDC
-                if slot_count == 3 and target == Decimal("80")
-                else target * slot_count
-            )
-        plan = capital_plan(resolved)
+        plan = capital_plan(Decimal(str(max_capital_usdc)))
         if type(emergency_stop) is not bool:
             raise ValueError("paper emergency_stop must be boolean")
         object.__setattr__(self, "max_capital_usdc", plan.max_capital_usdc)
