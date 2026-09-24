@@ -96,6 +96,7 @@ class RuntimeSupervisor:
             strategy_version=self.strategy.version,
             execution_candles_by_symbol=execution,
             trade_policies_by_symbol=self.strategy.policy_map(),
+            slot_allocation=self.strategy.slot_allocation,
         )
 
     def start(self) -> None:
@@ -453,7 +454,7 @@ class RuntimeSupervisor:
                 candles_by_symbol=candles,
                 report_start_utc=report_start,
                 report_end_utc=report_end,
-                starting_cash=self.config.paper_starting_cash_usdc,
+                starting_cash=paper_settings.max_capital_usdc,
                 target_notional=paper_settings.target_notional_usdc,
                 slot_count=paper_settings.slot_count,
                 costs=CURRENT_COSTS,
