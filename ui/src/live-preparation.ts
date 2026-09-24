@@ -214,10 +214,10 @@ export function initializeLivePreparation(sharedSettingsBlocker: () => string | 
     if (!last.credentials.configured) {
       throw new Error("Zuerst API-Key und Secret speichern und Verbindung prüfen.");
     }
-    await request("enable", {confirmation:"LIVE 3X80 AKTIVIEREN"});
+    await request("enable", {confirmation:"LIVE MAXIMALBUDGET AKTIVIEREN"});
     message(
       "live-result",
-      "3×80-Livebetrieb aktiviert. Es wird keine Order nachgeholt; der Bot wartet auf neue gültige Signale.",
+      "Budgetgesteuerter Livebetrieb aktiviert. Es wird keine Order nachgeholt; der Bot wartet auf neue gültige Signale und nutzt das gespeicherte Maximalbudget.",
     );
   });
   bind("live-off", "click", "live-result", async () => {
