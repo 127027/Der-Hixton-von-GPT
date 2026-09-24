@@ -129,8 +129,9 @@ class PaperStore:
             self._connection.execute(
                 """
                 INSERT OR IGNORE INTO paper_settings (
-                    singleton, slot_count, target_notional_text, emergency_stop, updated_at_utc
-                ) VALUES (1, 3, '80.00', 0, ?)
+                    singleton, max_capital_text, slot_count, target_notional_text,
+                    emergency_stop, updated_at_utc
+                ) VALUES (1, '250.00', 2, '125.00', 0, ?)
                 """,
                 (_time(moment),),
             )
@@ -227,8 +228,7 @@ class PaperStore:
         if row is None:
             raise RuntimeError("paper settings are not initialized")
         return PaperSettings(
-            slot_count=int(row["slot_count"]),
-            target_notional_usdc=Decimal(str(row["target_notional_text"])),
+            max_capital_usdc=Decimal(str(row["max_capital_text"])),
             emergency_stop=bool(row["emergency_stop"]),
         )
 
@@ -238,11 +238,12 @@ class PaperStore:
         with self._connection:
             self._connection.execute(
                 """
-                UPDATE paper_settings SET slot_count=?, target_notional_text=?,
-                    emergency_stop=?, updated_at_utc=?
+                UPDATE paper_settings SET max_capital_text=?, slot_count=?,
+                    target_notional_text=?, emergency_stop=?, updated_at_utc=?
                 WHERE singleton=1
                 """,
                 (
+                    str(settings.max_capital_usdc),
                     settings.slot_count,
                     str(settings.target_notional_usdc),
                     int(settings.emergency_stop),
@@ -261,11 +262,13 @@ class PaperStore:
                     json.dumps(
                         {
                             "before": {
+                                "max_capital_usdc": str(previous.max_capital_usdc),
                                 "slot_count": previous.slot_count,
                                 "target_notional_usdc": str(previous.target_notional_usdc),
                                 "emergency_stop": previous.emergency_stop,
                             },
                             "after": {
+                                "max_capital_usdc": str(settings.max_capital_usdc),
                                 "slot_count": settings.slot_count,
                                 "target_notional_usdc": str(settings.target_notional_usdc),
                                 "emergency_stop": settings.emergency_stop,
@@ -861,6 +864,7 @@ class PaperStore:
                 );
                 CREATE TABLE IF NOT EXISTS paper_settings (
                     singleton INTEGER PRIMARY KEY CHECK (singleton=1),
+                    max_capital_text TEXT NOT NULL,
                     slot_count INTEGER NOT NULL CHECK (slot_count > 0),
                     target_notional_text TEXT NOT NULL,
                     emergency_stop INTEGER NOT NULL CHECK (emergency_stop IN (0, 1)),
@@ -941,6 +945,29 @@ class PaperStore:
                 "(event_id TEXT PRIMARY KEY, processed_at_utc TEXT NOT NULL, "
                 "execution_model TEXT NOT NULL)"
             )
+            settings_columns = {
+                str(row["name"])
+                for row in self._connection.execute("PRAGMA table_info(paper_settings)").fetchall()
+            }
+            if "max_capital_text" not in settings_columns:
+                self._connection.execute(
+                    "ALTER TABLE paper_settings ADD COLUMN max_capital_text TEXT"
+                )
+                rows = self._connection.execute(
+                    "SELECT singleton,slot_count,target_notional_text FROM paper_settings"
+                ).fetchall()
+                for row in rows:
+                    slots = int(row["slot_count"])
+                    target = Decimal(str(row["target_notional_text"]))
+                    legacy_max = (
+                        Decimal("250.00")
+                        if slots == 3 and target == Decimal("80")
+                        else target * slots
+                    )
+                    self._connection.execute(
+                        "UPDATE paper_settings SET max_capital_text=? WHERE singleton=?",
+                        (str(legacy_max), int(row["singleton"])),
+                    )
             event_columns = {
                 str(row["name"])
                 for row in self._connection.execute("PRAGMA table_info(paper_events)").fetchall()
