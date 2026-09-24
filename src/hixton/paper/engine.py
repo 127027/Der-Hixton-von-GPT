@@ -10,7 +10,7 @@ from decimal import ROUND_DOWN, Decimal
 
 from hixton.backtest.models import BASELINE_COSTS, ONE, ZERO, ExecutionRules
 from hixton.constants import HIXTON_SPEC_VERSION, SYMBOLS
-from hixton.domain.allocation import ONE_PER_SYMBOL, allocate_entry_slots
+from hixton.domain.allocation import ONE_PER_SYMBOL, RANKED_REPEAT, allocate_entry_slots
 from hixton.domain.models import Candle, IndicatorPoint, Signal, SignalAction
 from hixton.domain.risk import PortfolioRiskState, evaluate_portfolio_risk
 from hixton.domain.strategy import entry_priority
@@ -161,7 +161,7 @@ def process_new_closed_points(
     strategy_version: str = HIXTON_SPEC_VERSION,
     execution_candles_by_symbol: Mapping[str, list[Candle]] | None = None,
     trade_policies_by_symbol: Mapping[str, TradePolicy] | None = None,
-    slot_allocation: str = ONE_PER_SYMBOL,
+    slot_allocation: str | None = None,
 ) -> tuple[PaperEvent, ...]:
     """Process every not-yet-checkpointed bar atomically and exactly once."""
 
@@ -177,8 +177,13 @@ def process_new_closed_points(
         raise ValueError("paper policies require an explicit HIXTON-V6 version")
     if strategy_key == "v6" and trade_policies_by_symbol is None:
         raise ValueError("V6 paper requires its complete coin-policy map")
+    effective_allocation = (
+        RANKED_REPEAT
+        if slot_allocation is None and strategy_key == "v6"
+        else slot_allocation or ONE_PER_SYMBOL
+    )
     # Validate the allocation policy even when this cycle has no entry candidates.
-    allocate_entry_slots((), free_slots=0, policy=slot_allocation)
+    allocate_entry_slots((), free_slots=0, policy=effective_allocation)
     policy_gates = {s: TradePolicyGate((trade_policies_by_symbol or {}).get(s)) for s in SYMBOLS}
 
     with PaperStore(database_path) as store:
@@ -330,7 +335,7 @@ def process_new_closed_points(
             allocations = allocate_entry_slots(
                 [signal.symbol for signal, _point in candidates],
                 free_slots=free_slots,
-                policy=slot_allocation,
+                policy=effective_allocation,
             )
             for signal, point in candidates:
                 if settings.emergency_stop:
