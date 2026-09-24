@@ -1,4 +1,4 @@
-"""Chronological shared-cash 3x80 portfolio backtest for all DMS markets."""
+"""Chronological shared-cash budget portfolio backtest for all DMS markets."""
 
 from __future__ import annotations
 
@@ -21,7 +21,8 @@ from hixton.backtest.models import (
 )
 from hixton.constants import SYMBOLS, TIMEFRAME_DELTA
 from hixton.data.quality import audit_candles
-from hixton.domain.allocation import ONE_PER_SYMBOL, allocate_entry_slots
+from hixton.domain.allocation import RANKED_REPEAT, allocate_entry_slots
+from hixton.domain.capital import DEFAULT_MAX_CAPITAL_USDC, capital_plan
 from hixton.domain.markets import validate_market_symbols
 from hixton.domain.models import Candle, Signal, SignalAction, StrategyParameters, StrategySemantics
 from hixton.domain.risk import PortfolioRiskState, evaluate_portfolio_risk
@@ -29,6 +30,7 @@ from hixton.domain.strategy import HixtonStrategy, entry_priority
 from hixton.domain.trade_policy import TradePolicy, TradePolicyGate
 
 _HUNDRED = Decimal("100")
+_DEFAULT_CAPITAL_PLAN = capital_plan(DEFAULT_MAX_CAPITAL_USDC)
 
 
 @dataclass(slots=True)
@@ -72,9 +74,9 @@ def run_shared_portfolio_backtest(
     candles_by_symbol: dict[str, list[Candle]],
     report_start_utc: datetime,
     report_end_utc: datetime,
-    starting_cash: Decimal = Decimal("240.00"),
-    target_notional: Decimal = Decimal("80.00"),
-    slot_count: int = 3,
+    starting_cash: Decimal = DEFAULT_MAX_CAPITAL_USDC,
+    target_notional: Decimal = _DEFAULT_CAPITAL_PLAN.target_notional_usdc,
+    slot_count: int = _DEFAULT_CAPITAL_PLAN.slot_count,
     costs: CostModel = BASELINE_COSTS,
     execution_rules: dict[str, ExecutionRules] | None = None,
     strategy_parameters: StrategyParameters | None = None,
@@ -82,7 +84,7 @@ def run_shared_portfolio_backtest(
     trade_policies_by_symbol: dict[str, TradePolicy] | None = None,
     strategy_semantics: StrategySemantics = StrategySemantics.DMS_V1,
     strategy_version: str | None = None,
-    slot_allocation: str = ONE_PER_SYMBOL,
+    slot_allocation: str = RANKED_REPEAT,
     apply_risk_limits: bool = True,
     symbols: tuple[str, ...] = SYMBOLS,
 ) -> PortfolioBacktestResult:
