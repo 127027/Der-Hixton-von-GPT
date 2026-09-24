@@ -120,7 +120,7 @@ def command_status(config: ProjectConfig) -> int:
             "local_ui",
             "guarded_live_execution",
             "controlled_1x50_trial",
-            "bounded_3x80_spot_runtime",
+            "budget_driven_ranked_repeat_runtime",
         ],
         "not_yet_implemented": [],
         "live_enabled": False,
@@ -291,8 +291,7 @@ def command_backtest_portfolio(args: argparse.Namespace, config: ProjectConfig) 
             paper_settings = store.load_settings()
         except RuntimeError:
             paper_settings = PaperSettings(
-                slot_count=config.paper_slot_count,
-                target_notional_usdc=config.paper_target_notional_usdc,
+                max_capital_usdc=config.paper_max_capital_usdc,
                 emergency_stop=False,
             )
     candles_by_symbol = {}
@@ -311,7 +310,7 @@ def command_backtest_portfolio(args: argparse.Namespace, config: ProjectConfig) 
             candles_by_symbol=candles_by_symbol,
             report_start_utc=report_start,
             report_end_utc=report_end,
-            starting_cash=config.paper_starting_cash_usdc,
+            starting_cash=paper_settings.max_capital_usdc,
             target_notional=paper_settings.target_notional_usdc,
             slot_count=paper_settings.slot_count,
             costs=CURRENT_COSTS,
@@ -334,8 +333,8 @@ def command_backtest_portfolio(args: argparse.Namespace, config: ProjectConfig) 
         strategy=strategy,
     )
     print(
-        f"Portfolio {paper_settings.slot_count}x{paper_settings.target_notional_usdc} "
-        f"gespeichert: {output}"
+        f"Portfolio max {paper_settings.max_capital_usdc} USDC -> "
+        f"{paper_settings.slot_count}x{paper_settings.target_notional_usdc} gespeichert: {output}"
     )
     return 0
 
