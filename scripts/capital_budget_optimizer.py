@@ -27,7 +27,7 @@ from scripts.coin_optimization_cycle import _rules
 CAPITAL = D("1000")
 MIN_TRANCHE = D("50")
 STEP = D("5")
-UTILIZATION_RATIOS = (D("0.25"), D("0.50"), D("0.75"), D("0.90"), D("0.96"), D("1.00"))
+FULL_UTILIZATION_SLOT_RANGE = range(1, 21)
 
 
 @dataclass(frozen=True, slots=True)
@@ -51,25 +51,33 @@ def _floor_step(value: D) -> D:
 
 def _layouts() -> tuple[Layout, ...]:
     found: dict[str, Layout] = {}
-    for policy, max_slots in ((RANKED_REPEAT, 20), (ONE_PER_SYMBOL, 10)):
-        for slots in range(1, max_slots + 1):
-            for utilization in UTILIZATION_RATIOS:
-                tranche = _floor_step(CAPITAL * utilization / D(slots))
-                if tranche < MIN_TRANCHE:
-                    continue
-                layout = Layout(policy, slots, tranche)
-                if layout.commitment <= CAPITAL:
-                    found[layout.key] = layout
 
+    # Primary search axis: every practical ranked-repeat slot count using as much
+    # of the 1,000-USDC account as possible, rounded down to a 5-USDC tranche.
+    for slots in FULL_UTILIZATION_SLOT_RANGE:
+        tranche = _floor_step(CAPITAL / D(slots))
+        if tranche < MIN_TRANCHE:
+            continue
+        layout = Layout(RANKED_REPEAT, slots, tranche)
+        found[layout.key] = layout
+
+    # Explicit lower-utilization probes answer the owner's requirement that
+    # leaving capital idle may win if it materially improves opportunity quality.
     explicit = (
         Layout(RANKED_REPEAT, 3, D("80")),
         Layout(RANKED_REPEAT, 5, D("50")),
         Layout(RANKED_REPEAT, 2, D("250")),
-        Layout(RANKED_REPEAT, 4, D("250")),
-        Layout(RANKED_REPEAT, 5, D("200")),
-        Layout(RANKED_REPEAT, 10, D("100")),
+        Layout(RANKED_REPEAT, 3, D("250")),
+        Layout(RANKED_REPEAT, 4, D("125")),
+        Layout(RANKED_REPEAT, 4, D("200")),
+        Layout(RANKED_REPEAT, 5, D("100")),
+        Layout(RANKED_REPEAT, 5, D("150")),
+        Layout(RANKED_REPEAT, 10, D("50")),
         Layout(RANKED_REPEAT, 12, D("80")),
         Layout(RANKED_REPEAT, 20, D("50")),
+        Layout(ONE_PER_SYMBOL, 3, D("80")),
+        Layout(ONE_PER_SYMBOL, 5, D("100")),
+        Layout(ONE_PER_SYMBOL, 10, D("50")),
         Layout(ONE_PER_SYMBOL, 10, D("100")),
     )
     for layout in explicit:
@@ -149,8 +157,9 @@ def main() -> None:
     )
 
     layouts = _layouts()
-    baseline_rows = [
-        _run(
+    baseline_rows: list[dict[str, object]] = []
+    for index, layout in enumerate(layouts, start=1):
+        row = _run(
             candles=history.candles_by_symbol,
             rules=rules,
             profiles=profiles,
@@ -159,13 +168,16 @@ def main() -> None:
             layout=layout,
             costs=BASELINE_COSTS,
         )
-        for layout in layouts
-    ]
+        baseline_rows.append(row)
+        print(
+            f"baseline {index}/{len(layouts)} {layout.key}: "
+            f"{row['ending_equity']} USDC"
+        )
     baseline_ranked = _rank(baseline_rows)
 
     # Stress every serious baseline contender plus reference layouts. This keeps
     # the search broad while avoiding hundreds of redundant full stress replays.
-    top_keys = {str(row["layout"]) for row in baseline_ranked[:20]}
+    top_keys = {str(row["layout"]) for row in baseline_ranked[:10]}
     reference_keys = {
         f"{RANKED_REPEAT}:3x80",
         f"{RANKED_REPEAT}:5x50",
@@ -178,8 +190,9 @@ def main() -> None:
     stress_layouts = [
         layout for layout in layouts if layout.key in top_keys | reference_keys
     ]
-    stress_rows = [
-        _run(
+    stress_rows: list[dict[str, object]] = []
+    for index, layout in enumerate(stress_layouts, start=1):
+        row = _run(
             candles=history.candles_by_symbol,
             rules=rules,
             profiles=profiles,
@@ -188,8 +201,11 @@ def main() -> None:
             layout=layout,
             costs=STRESS_COSTS,
         )
-        for layout in stress_layouts
-    ]
+        stress_rows.append(row)
+        print(
+            f"stress {index}/{len(stress_layouts)} {layout.key}: "
+            f"{row['ending_equity']} USDC"
+        )
     stress_by_key = {str(row["layout"]): row for row in stress_rows}
 
     robust_rows: list[dict[str, object]] = []
@@ -236,7 +252,8 @@ def main() -> None:
             for key in sorted(reference_keys)
         },
         "selection_rule": (
-            "Broad baseline grid first; stress Top-20 baseline contenders plus fixed "
+            "Full-utilization ranked-repeat slots 1..20 plus targeted lower-utilization "
+            "and one-per-symbol probes; stress Top-10 baseline contenders plus fixed "
             "reference layouts; robust leader ranks by stress ending equity then baseline."
         ),
         "limitations": [
