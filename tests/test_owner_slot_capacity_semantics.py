@@ -116,28 +116,29 @@ def test_active_v6_uses_ranked_repeat_slot_capacity() -> None:
     assert V6_COIN_STRATEGY.slot_allocation == RANKED_REPEAT
 
 
-def test_one_candidate_gets_all_three_free_80_usdc_slots(tmp_path: Path) -> None:
+def test_one_candidate_gets_both_free_125_usdc_slots(tmp_path: Path) -> None:
     positions = _run_entries(tmp_path, {SYMBOLS[0]: 2.0})
     assert len(positions) == 1
     assert positions[0].symbol == SYMBOLS[0]
-    assert positions[0].slot_count == 3
-    assert Decimal("239") < positions[0].cost_basis_usdc <= Decimal("240")
+    assert positions[0].slot_count == 2
+    assert Decimal("249") < positions[0].cost_basis_usdc <= Decimal("250")
 
 
-def test_two_candidates_use_two_plus_one_slots(tmp_path: Path) -> None:
+def test_two_candidates_use_one_slot_each(tmp_path: Path) -> None:
     positions = _run_entries(tmp_path, {SYMBOLS[0]: 2.0, SYMBOLS[1]: 1.0})
     by_symbol = {position.symbol: position for position in positions}
-    assert by_symbol[SYMBOLS[0]].slot_count == 2
+    assert by_symbol[SYMBOLS[0]].slot_count == 1
     assert by_symbol[SYMBOLS[1]].slot_count == 1
-    assert sum(position.slot_count for position in positions) == 3
+    assert sum(position.slot_count for position in positions) == 2
 
 
-def test_three_candidates_use_one_slot_each(tmp_path: Path) -> None:
+def test_three_candidates_are_bounded_to_two_slots(tmp_path: Path) -> None:
     positions = _run_entries(
         tmp_path,
         {SYMBOLS[0]: 3.0, SYMBOLS[1]: 2.0, SYMBOLS[2]: 1.0},
     )
-    assert len(positions) == 3
+    assert len(positions) == 2
+    assert {position.symbol for position in positions} == {SYMBOLS[0], SYMBOLS[1]}
     assert all(position.slot_count == 1 for position in positions)
 
 
