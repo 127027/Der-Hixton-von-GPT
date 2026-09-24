@@ -48,10 +48,13 @@ def fresh_start_paper(
     strategy = strategy_definition(config.strategy_key)
     if not strategy.paper_approved:
         raise ValueError("strategy is not approved for paper")
-    if config.paper_starting_cash_usdc != 250 or (
-        config.paper_slot_count != 3 or config.paper_target_notional_usdc != 80
+    if (
+        config.paper_starting_cash_usdc != 250
+        or config.paper_max_capital_usdc != 250
+        or config.paper_slot_count != 2
+        or config.paper_target_notional_usdc != 125
     ):
-        raise ValueError("fresh start requires 250 USDC and 3x80 slots")
+        raise ValueError("fresh start requires the canonical 250-USDC max-capital plan")
     database = config.database_path.resolve(strict=True)
     archive = archive.resolve()
     backup_root = (project_root / "backups").resolve()
@@ -120,7 +123,7 @@ def fresh_start_paper(
                     (moment[:10], moment, moment),
                 )
                 connection.execute(
-                    "INSERT INTO paper_settings VALUES (1, 3, '80.00', 0, ?)",
+                    "INSERT INTO paper_settings VALUES (1, '250.00', 2, '125.00', 0, ?)",
                     (moment,),
                 )
                 connection.execute(
