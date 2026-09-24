@@ -16,7 +16,7 @@ from tests.test_ui_api import _config
 
 
 @pytest.mark.parametrize("initialized", [True, False])
-def test_cli_portfolio_mirrors_saved_sizes_not_installation_defaults(
+def test_cli_portfolio_mirrors_saved_max_budget_not_installation_defaults(
     tmp_path: Path,
     monkeypatch: pytest.MonkeyPatch,
     initialized: bool,
@@ -25,7 +25,7 @@ def test_cli_portfolio_mirrors_saved_sizes_not_installation_defaults(
     if initialized:
         with PaperStore(config.database_path) as store:
             store.initialize(starting_cash_usdc=Decimal("250"))
-            store.save_settings(PaperSettings(slot_count=4, target_notional_usdc=Decimal("45")))
+            store.save_settings(PaperSettings(max_capital_usdc=Decimal("300")))
             before = store.load_account()
     calls = []
     monkeypatch.setattr(cli, "PROJECT_ROOT", tmp_path)
@@ -43,9 +43,15 @@ def test_cli_portfolio_mirrors_saved_sizes_not_installation_defaults(
     args = Namespace(end=datetime(2026, 9, 8, tzinfo=UTC), strategy=None)
     assert cli.command_backtest_portfolio(args, config) == 0
     assert len(calls) == 1
-    assert all(call["slot_count"] == (4 if initialized else 3) for call in calls)
-    assert all(call["target_notional"] == Decimal("45" if initialized else "80") for call in calls)
-    assert all(call["starting_cash"] == Decimal("250") for call in calls)
+    assert all(call["slot_count"] == 2 for call in calls)
+    assert all(
+        call["target_notional"] == Decimal("150" if initialized else "125")
+        for call in calls
+    )
+    assert all(
+        call["starting_cash"] == Decimal("300" if initialized else "250")
+        for call in calls
+    )
     if initialized:
         with PaperStore(config.database_path) as store:
             assert store.load_account() == before
