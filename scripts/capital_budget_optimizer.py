@@ -10,7 +10,8 @@ from __future__ import annotations
 
 import json
 from dataclasses import dataclass
-from decimal import Decimal as D, ROUND_DOWN
+from decimal import ROUND_DOWN
+from decimal import Decimal as D
 from pathlib import Path
 from typing import Any
 
