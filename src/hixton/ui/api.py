@@ -24,9 +24,14 @@ from hixton.backtest.comparison import compare_run
 from hixton.backtest.reporting import source_fingerprint
 from hixton.config import ProjectConfig
 from hixton.constants import SYMBOLS
+from hixton.domain.capital import (
+    ALLOCATOR_VERSION,
+    MAX_VALIDATED_CAPITAL_USDC,
+    MIN_VALIDATED_CAPITAL_USDC,
+)
 from hixton.live.credentials import Vault
 from hixton.paper.engine import load_paper_portfolio
-from hixton.paper.models import MAX_TRADING_SLOTS, PaperSettings
+from hixton.paper.models import PaperSettings
 from hixton.paper.storage import PaperStore
 from hixton.runtime.state import RuntimeSnapshot
 from hixton.runtime.supervisor import RuntimeSupervisor
@@ -39,6 +44,18 @@ STATIC_ROOT = Path(__file__).with_name("static")
 
 def _iso(value: datetime | None) -> str | None:
     return value.astimezone(UTC).isoformat() if value is not None else None
+
+
+def _settings_payload(settings: PaperSettings) -> dict[str, object]:
+    return {
+        "max_capital_usdc": str(settings.max_capital_usdc),
+        "slot_count": settings.slot_count,
+        "target_notional_usdc": str(settings.target_notional_usdc),
+        "reserve_usdc": str(settings.reserve_usdc),
+        "allocation_policy": settings.allocation_policy,
+        "allocator_version": ALLOCATOR_VERSION,
+        "emergency_stop": settings.emergency_stop,
+    }
 
 
 def _runtime_payload(snapshot: RuntimeSnapshot) -> dict[str, object]:
@@ -108,11 +125,7 @@ def _paper_payload(
         "daily_loss_paused": portfolio.daily_loss_paused,
         "halted": portfolio.account.halted,
         "halt_reason": portfolio.account.halt_reason,
-        "settings": {
-            "slot_count": portfolio.settings.slot_count,
-            "target_notional_usdc": str(portfolio.settings.target_notional_usdc),
-            "emergency_stop": portfolio.settings.emergency_stop,
-        },
+        "settings": _settings_payload(portfolio.settings),
         "soak": {
             "started_at_utc": _iso(soak.started_at_utc),
             "calendar_days": soak.calendar_days,
@@ -368,7 +381,9 @@ def create_app(
             "runtime": runtime,
             "paper": _paper_payload(supervisor, config),
             "trading_limits": {
-                "max_slots": MAX_TRADING_SLOTS,
+                "min_capital_usdc": str(MIN_VALIDATED_CAPITAL_USDC),
+                "max_capital_usdc": str(MAX_VALIDATED_CAPITAL_USDC),
+                "allocator_version": ALLOCATOR_VERSION,
             },
             "server_time_utc": _iso(datetime.now(UTC)),
             "ui_timezone": config.ui_timezone,
@@ -442,21 +457,19 @@ def create_app(
         if not isinstance(payload, dict) or payload.get("confirmation") != "ANWENDEN":
             raise HTTPException(status_code=400, detail="Bestaetigung ANWENDEN fehlt")
         try:
-            if type(payload.get("slot_count")) is not int:
-                raise ValueError("Slots müssen eine ganze Zahl sein")
             if type(payload.get("emergency_stop", False)) is not bool:
                 raise ValueError("Not-Aus muss wahr oder falsch sein")
             settings = PaperSettings(
-                slot_count=payload["slot_count"],
-                target_notional_usdc=Decimal(str(payload["target_notional_usdc"])),
+                max_capital_usdc=Decimal(str(payload["max_capital_usdc"])),
                 emergency_stop=payload.get("emergency_stop", False),
             )
         except (KeyError, TypeError, ValueError, InvalidOperation):
             raise HTTPException(
                 status_code=400,
                 detail=(
-                    f"Ungültige Handelseinstellungen: 1-{MAX_TRADING_SLOTS} Slots, "
-                    "positives endliches Notional."
+                    "Ungültiger maximaler USDC-Einsatz. Der aktuell validierte Bereich "
+                    f"liegt zwischen {MIN_VALIDATED_CAPITAL_USDC} und "
+                    f"{MAX_VALIDATED_CAPITAL_USDC} USDC."
                 ),
             ) from None
         with PaperStore(config.database_path) as store:
@@ -467,10 +480,10 @@ def create_app(
             )
             store.require_strategy(supervisor.strategy.key, supervisor.strategy.version)
             store.save_settings(settings)
-        if settings.emergency_stop:
-            # Entry-only safety action; never liquidate or re-enable on unpause.
-            app.state.live_preparation.stop_entries()
-        return {"saved": True, "settings": asdict(settings)}
+        # Any budget change stops new real-money entries. Re-enabling Live is an
+        # explicit separate action; Paper immediately uses the same saved allocator.
+        app.state.live_preparation.stop_entries()
+        return {"saved": True, "settings": _settings_payload(settings)}
 
     @app.post("/api/data/sync")
     async def data_sync(request: Request) -> dict[str, object]:
@@ -530,7 +543,11 @@ def create_app(
                 metrics,
                 active=supervisor.strategy,
                 settings=settings,
-                starting_cash=config.paper_starting_cash_usdc,
+                starting_cash=(
+                    settings.max_capital_usdc
+                    if settings is not None
+                    else config.paper_max_capital_usdc
+                ),
                 source_hash=supervisor.execution_source_sha256,
             )
             if disk_changed:
