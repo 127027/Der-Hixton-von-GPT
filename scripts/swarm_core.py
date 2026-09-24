@@ -73,6 +73,17 @@ KNOWN_REGRESSION_CASES: dict[str, tuple[str, ...]] = {
         "verify_research_only_no_live_mutation",
         "collect_capital_layout_assessment_from_all_eleven_agents",
     ),
+    "CAPITAL_BUDGET_AUDIT": (
+        "search_slot_count_tranche_size_and_idle_reserve_under_1000_usdc",
+        "verify_all_layouts_share_exact_same_strategy_profiles_and_history",
+        "verify_uninvested_capital_remains_cash_in_same_1000_usdc_ledger",
+        "compare_trade_count_slot_utilization_and_no_free_slot_blocking",
+        "compare_baseline_and_stress_ordering",
+        "verify_true_4x_scaling_sanity_against_250_3x80",
+        "verify_current_binance_execution_rules_are_applied",
+        "verify_research_only_no_live_or_ui_mutation",
+        "collect_budget_allocation_assessment_from_all_eleven_agents",
+    ),
 }
 
 REGRESSION_EVIDENCE_CONTRACTS: dict[str, dict[str, tuple[str, ...]]] = {
@@ -127,6 +138,19 @@ REGRESSION_EVIDENCE_CONTRACTS: dict[str, dict[str, tuple[str, ...]]] = {
         "A09": ("capital100_qa",),
         "A10": ("capital100_synthesis",),
         "A11": ("capital100_governance",),
+    },
+    "CAPITAL_BUDGET_AUDIT": {
+        "A01": ("capital_budget_methodology", "capital_budget_scope"),
+        "A02": ("capital_budget_fresh_search",),
+        "A03": ("capital_budget_profile_consistency",),
+        "A04": ("capital_budget_product_separation",),
+        "A05": ("capital_budget_trade_utilization",),
+        "A06": ("capital_budget_stress_robustness",),
+        "A07": ("capital_budget_binance_rules",),
+        "A08": ("capital_budget_scaling_and_layout",),
+        "A09": ("capital_budget_qa",),
+        "A10": ("capital_budget_synthesis",),
+        "A11": ("capital_budget_governance",),
     },
 }
 
