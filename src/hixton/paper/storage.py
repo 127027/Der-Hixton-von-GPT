@@ -12,6 +12,7 @@ from types import TracebackType
 from uuid import uuid4
 
 from hixton.constants import HIXTON_SPEC_VERSION, SYMBOLS
+from hixton.domain.capital import capital_plan
 from hixton.paper.models import (
     PaperAccount,
     PaperEvent,
@@ -968,6 +969,27 @@ class PaperStore:
                         "UPDATE paper_settings SET max_capital_text=? WHERE singleton=?",
                         (str(legacy_max), int(row["singleton"])),
                     )
+            # slot_count and target_notional_text are retained as persisted
+            # derived values for compatibility, but max_capital_text is the
+            # single source of truth. Reconcile legacy 3x80 (and any other
+            # valid prior layout) to the canonical allocator on open.
+            sizing_rows = self._connection.execute(
+                "SELECT singleton,max_capital_text FROM paper_settings"
+            ).fetchall()
+            for row in sizing_rows:
+                raw_max = row["max_capital_text"]
+                if raw_max is None:
+                    continue
+                plan = capital_plan(Decimal(str(raw_max)))
+                self._connection.execute(
+                    "UPDATE paper_settings SET slot_count=?, target_notional_text=? "
+                    "WHERE singleton=?",
+                    (
+                        plan.slot_count,
+                        str(plan.target_notional_usdc),
+                        int(row["singleton"]),
+                    ),
+                )
             event_columns = {
                 str(row["name"])
                 for row in self._connection.execute("PRAGMA table_info(paper_events)").fetchall()
