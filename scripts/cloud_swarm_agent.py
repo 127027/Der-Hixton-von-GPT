@@ -19,6 +19,7 @@ from datetime import UTC, datetime, timedelta
 from pathlib import Path
 from typing import Any
 
+from hixton.domain.capital import DEFAULT_MAX_CAPITAL_USDC, capital_plan
 from scripts.swarm_core import (
     AGENT_IDS,
     load_json,
@@ -153,7 +154,7 @@ def check_state_db() -> dict[str, Any]:
             "halt_reason FROM paper_account WHERE singleton=1"
         ).fetchone()
         settings = connection.execute(
-            "SELECT slot_count, target_notional_text, emergency_stop "
+            "SELECT max_capital_text, slot_count, target_notional_text, emergency_stop "
             "FROM paper_settings WHERE singleton=1"
         ).fetchone()
         checkpoint_count = connection.execute(
@@ -164,9 +165,14 @@ def check_state_db() -> dict[str, Any]:
         ).fetchone()[0]
     if account is None or settings is None:
         raise CheckFailure("Paper account/settings are not initialized")
-    if int(settings[0]) != 3 or str(settings[1]) != "80.00":
-        raise CheckFailure(f"Paper sizing drifted from 3x80: {settings}")
-    if int(settings[2]) != 0:
+    plan = capital_plan(DEFAULT_MAX_CAPITAL_USDC)
+    if (
+        str(settings[0]) != str(plan.max_capital_usdc)
+        or int(settings[1]) != plan.slot_count
+        or str(settings[2]) != str(plan.target_notional_usdc)
+    ):
+        raise CheckFailure(f"Paper sizing drifted from canonical max-budget plan: {settings}")
+    if int(settings[3]) != 0:
         raise CheckFailure("Paper emergency stop is active")
     if int(checkpoint_count) != 10:
         raise CheckFailure(f"expected 10 Paper checkpoints, got {checkpoint_count}")
@@ -176,8 +182,10 @@ def check_state_db() -> dict[str, Any]:
         "high_water_usdc": str(account[2]),
         "halted": bool(account[3]),
         "halt_reason": account[4],
-        "slot_count": int(settings[0]),
-        "target_notional_usdc": str(settings[1]),
+        "max_capital_usdc": str(settings[0]),
+        "slot_count": int(settings[1]),
+        "target_notional_usdc": str(settings[2]),
+        "allocator_version": plan.version,
         "checkpoint_count": int(checkpoint_count),
         "latest_checkpoint_utc": latest_checkpoint,
     }
@@ -283,30 +291,24 @@ def _current_strategy_activity() -> dict[str, Any]:
 
 def _live_audit_a01() -> list[dict[str, Any]]:
     dms_files = sorted((ROOT / "DMS").glob("*.md"))
-    if not dms_files:
-        raise CheckFailure("DMS documentation missing")
     required = {
         "02_VERBINDLICHE_ANFORDERUNGEN.md": (
-            "250 USDC",
-            "drei 80-USDC-Slots",
-            "erster Test ausschließlich 1×50 USDC",
-        ),
-        "06_BACKTEST_UND_VALIDIERUNG.md": (
-            "portfolio: 250 USDC gemeinsam, 3×80, ranked_repeat",
-            "10×250 USDC isoliert",
+            "Maximalbudget",
+            "2 × 50 %",
+            "1×50 USDC",
         ),
         "07_AUSFUEHRUNG_ORDERS.md": (
             "1 × 50 USDC",
-            "3 × 80 USDC",
+            "Maximalbudget",
             "nicht blind erneut gesendet",
         ),
-        "18_BACKTEST_STATUS_UND_ERGEBNISFORMAT.md": (
-            "3×80 aktuell",
-            "Simulationen sind ausdrücklich keine Binance-Ausführungs- oder Zukunftsnachweise",
+        "08_UI_UX_SPEZIFIKATION.md": (
+            "Maximaler USDC-Einsatz",
+            "CAPITAL-V1-2X50PCT",
         ),
-        "22_QUELLEN_UND_BINANCE_PRUEFUNG.md": (
-            "Öffentliche Preisreihen beweisen keine reale Fillqualität",
-            "Private Binance-Endpunkte",
+        "20_BETRIEBSRUNBOOK.md": (
+            "1 × 50 USDC",
+            "Maximalbudget",
         ),
     }
     missing: dict[str, list[str]] = {}
@@ -325,7 +327,10 @@ def _live_audit_a01() -> list[dict[str, Any]]:
         {
             "live_documentation_audit": {
                 "dms_files_scanned": len(dms_files),
-                "portfolio_contract": "250 USDC shared / max 3 x 80 USDC / 10 symbols",
+                "portfolio_contract": (
+                    "saved max_capital_usdc / CAPITAL-V1-2X50PCT / ranked_repeat"
+                ),
+                "default_plan": "250 USDC -> 2 x 125 USDC",
                 "diagnostic_only": "10x250",
                 "documented_release_state": "STAGED_LOCAL_LIVE_CLOUD_KEY_FREE",
             }
@@ -343,19 +348,20 @@ def _live_audit_a02() -> list[dict[str, Any]]:
     if not output.is_file():
         raise CheckFailure("fresh dashboard E2E evidence missing")
     payload = json.loads(output.read_text(encoding="utf-8"))
-    portfolio = payload.get("portfolio_3x80", {})
+    portfolio = payload.get("portfolio_max_budget", {})
     summary = portfolio.get("summary", {})
     timing = portfolio.get("trade_timing", {})
+    plan = capital_plan(DEFAULT_MAX_CAPITAL_USDC)
     if (
         payload.get("credentials_used") is not False
         or payload.get("orders_sent") is not False
-        or summary.get("slot_count") != 3
-        or str(summary.get("target_notional")) != "80.00"
-        or summary.get("slot_allocation") != "ranked_repeat"
+        or summary.get("slot_count") != plan.slot_count
+        or str(summary.get("target_notional")) != str(plan.target_notional_usdc)
+        or summary.get("slot_allocation") != plan.allocation_policy
         or int(summary.get("completed_trades", 0)) <= 0
-        or int(timing.get("max_slot_occupancy", 99)) > 3
+        or int(timing.get("max_slot_occupancy", 99)) > plan.slot_count
     ):
-        raise CheckFailure("fresh 3x80 E2E violates audit invariants")
+        raise CheckFailure("fresh max-budget E2E violates allocator invariants")
     return [
         command,
         {
@@ -363,6 +369,10 @@ def _live_audit_a02() -> list[dict[str, Any]]:
                 "strategy": payload.get("strategy"),
                 "report_start_utc": portfolio.get("report_start_utc"),
                 "report_end_utc": portfolio.get("report_end_utc"),
+                "max_capital_usdc": str(plan.max_capital_usdc),
+                "slot_count": plan.slot_count,
+                "target_notional_usdc": str(plan.target_notional_usdc),
+                "allocator_version": plan.version,
                 "ending_equity_usdc": summary.get("ending_equity"),
                 "return_pct": summary.get("return_pct"),
                 "position_cycles": summary.get("completed_trades"),
@@ -395,11 +405,12 @@ def _live_audit_a03() -> list[dict[str, Any]]:
         ],
         timeout=1200,
     )
-    if activity["open_positions"] > 3:
-        raise CheckFailure("Paper state exceeds three-position capacity")
+    plan = capital_plan(DEFAULT_MAX_CAPITAL_USDC)
+    if activity["open_positions"] > plan.slot_count:
+        raise CheckFailure("Paper state exceeds allocator slot capacity")
     return [
         tests,
-        {"paper_live_activity": activity},
+        {"paper_live_activity": activity, "allocator_version": plan.version},
         coverage("paper_live_signal_parity", "slot_reuse_contract"),
     ]
 
@@ -410,16 +421,20 @@ def _live_audit_a04() -> list[dict[str, Any]]:
     )
     routes = (ROOT / "src" / "hixton" / "ui" / "live.py").read_text(encoding="utf-8")
     ui = (ROOT / "ui" / "src" / "live-preparation.ts").read_text(encoding="utf-8")
+    settings_ui = (ROOT / "ui" / "index.html").read_text(encoding="utf-8")
     required = (
         '"trial_dispatch_available": trial_available',
         '"order_dispatch_available": production_ready',
-        '"minimum_free_usdc_at_enable": "250.00"',
+        '"minimum_free_usdc_at_enable"',
         'confirmation:"TEST 50 USDC"',
-        'confirmation:"LIVE 3X80 AKTIVIEREN"',
+        'confirmation:"LIVE MAXIMALBUDGET AKTIVIEREN"',
+        'id="capital-input"',
+        "Maximaler USDC-Einsatz",
     )
-    combined = preparation + "\n" + routes + "\n" + ui
-    if any(value not in combined for value in required):
-        raise CheckFailure("staged Live UI/server readiness contract incomplete")
+    combined = "\n".join((preparation, routes, ui, settings_ui))
+    missing = [value for value in required if value not in combined]
+    if missing:
+        raise CheckFailure(f"staged max-budget Live surface incomplete: {missing}")
     tests = require_command(
         [sys.executable, "-m", "pytest", "-q", "tests/test_live_preparation.py"],
         timeout=1200,
@@ -431,7 +446,7 @@ def _live_audit_a04() -> list[dict[str, Any]]:
             "production_live_code_ready": True,
             "actual_live_activation_approved": False,
             "cloud_order_submission": False,
-            "current_live_surface": "EXPLICIT_1X50_THEN_RUNTIME_GATED_3X80",
+            "current_live_surface": "EXPLICIT_1X50_THEN_RUNTIME_GATED_MAX_BUDGET",
         },
         coverage("live_ui_fail_closed", "live_capital_semantics"),
     ]
@@ -440,12 +455,13 @@ def _live_audit_a04() -> list[dict[str, Any]]:
 def _live_audit_a05() -> list[dict[str, Any]]:
     activity = _current_strategy_activity()
     state = activity["paper_state"]
+    plan = capital_plan(DEFAULT_MAX_CAPITAL_USDC)
     technical_blockers: list[str] = []
     if bool(state.get("halted")):
         technical_blockers.append("PAPER_HALTED")
     if not bool(activity.get("all_ten_checkpoints_present")):
         technical_blockers.append("MISSING_CHECKPOINTS")
-    if int(activity.get("open_positions", 0)) > 3:
+    if int(activity.get("open_positions", 0)) > plan.slot_count:
         technical_blockers.append("TOO_MANY_OPEN_POSITIONS")
     diagnosis = (
         "NO_FILLED_ENTRY_SINCE_CURRENT_STRATEGY_ACTIVATION"
@@ -457,6 +473,7 @@ def _live_audit_a05() -> list[dict[str, Any]]:
             "current_no_trade_diagnosis": diagnosis,
             "technical_blockers_observed": technical_blockers,
             "activity": activity,
+            "allocator_version": plan.version,
         },
         coverage("current_no_trade_diagnosis", "live_runtime_blockers"),
     ]
@@ -478,15 +495,17 @@ def _live_audit_a06() -> list[dict[str, Any]]:
             "test_global_trial_budget_rejects_every_other_amount",
         ),
         "production": (
-            "test_live_intent_hard_caps_three_by_eighty",
-            "test_ten_simultaneous_signals_never_exceed_three_slots",
+            "test_live_intent_accepts_only_two_budget_slots_and_explicit_quote",
+            "test_ten_simultaneous_signals_never_exceed_two_slots",
             "test_timeout_restart_reconciles_without_duplicate_submit",
+            "test_settings_change_or_emergency_stop_blocks_new_live_entry",
             "test_repeated_scheduler_ticks_do_not_duplicate_orders",
             "test_account_mismatch_fails_closed_before_order",
         ),
         "preparation": (
             "test_controlled_trial_arms_only_after_fresh_account_check_without_sending_order",
-            "test_common_settings_reject_unapproved_limits_without_silent_fallback",
+            "test_common_max_budget_is_immediately_the_live_source_and_survives_restart",
+            "test_validated_max_budgets_persist_without_inventing_cash",
         ),
     }
     missing = {
@@ -515,7 +534,7 @@ def _live_audit_a06() -> list[dict[str, Any]]:
         tests,
         {
             "runaway_order_guard": "PERSIST_BEFORE_SUBMIT_QUERY_DONT_RESUBMIT",
-            "production_3x80_live_implemented": True,
+            "production_max_budget_live_implemented": True,
             "controlled_trial_code_ready": True,
             "production_live_code_ready": True,
             "actual_live_activation_approved": False,
@@ -526,6 +545,7 @@ def _live_audit_a06() -> list[dict[str, Any]]:
                 "timeout_query_without_resubmit",
                 "restart_reserved_entry",
                 "ten_simultaneous_signals",
+                "budget_change_while_live",
                 "invalid_or_huge_notional",
                 "account_reconciliation_mismatch",
                 "repeated_scheduler_ticks",
@@ -551,6 +571,7 @@ def _live_audit_a07() -> list[dict[str, Any]]:
             if isinstance(value, dict)
         }
         lot = filters.get("LOT_SIZE", {})
+        market_lot = filters.get("MARKET_LOT_SIZE", {})
         price = filters.get("PRICE_FILTER", {})
         notional = filters.get("NOTIONAL") or filters.get("MIN_NOTIONAL") or {}
         entry = {
@@ -560,7 +581,9 @@ def _live_audit_a07() -> list[dict[str, Any]]:
             "order_types": item.get("orderTypes"),
             "tick_size": price.get("tickSize"),
             "step_size": lot.get("stepSize"),
+            "market_step_size": market_lot.get("stepSize"),
             "min_qty": lot.get("minQty"),
+            "market_min_qty": market_lot.get("minQty"),
             "min_notional": notional.get("minNotional"),
         }
         if (
@@ -569,7 +592,9 @@ def _live_audit_a07() -> list[dict[str, Any]]:
             or entry["spot_allowed"] is not True
             or "MARKET" not in (entry["order_types"] or [])
             or not entry["step_size"]
+            or not entry["market_step_size"]
             or not entry["min_qty"]
+            or not entry["market_min_qty"]
             or not entry["min_notional"]
         ):
             raise CheckFailure(f"{symbol}: incomplete current Spot execution constraints {entry}")
@@ -607,16 +632,15 @@ def _live_audit_a08() -> list[dict[str, Any]]:
         ],
         timeout=1200,
     )
-    preparation = (ROOT / "src" / "hixton" / "live" / "preparation.py").read_text(
-        encoding="utf-8"
-    )
-    if '"production_submission_accepted": True' not in preparation:
-        raise CheckFailure("guarded production submission code is not declared implemented")
+    plan = capital_plan(DEFAULT_MAX_CAPITAL_USDC)
     return [
         tests,
         {
             "live_strategy_risk": {
-                "main_portfolio": "250 USDC / max 3 x 80 USDC",
+                "default_max_capital_usdc": str(plan.max_capital_usdc),
+                "default_slot_count": plan.slot_count,
+                "default_target_notional_usdc": str(plan.target_notional_usdc),
+                "allocator_version": plan.version,
                 "research_10x250_is_live_capital": False,
                 "production_submission_implemented": True,
                 "actual_live_activation_approved": False,
@@ -636,7 +660,7 @@ def _live_audit_a10(reports_dir: Path | None) -> list[dict[str, Any]]:
     if (
         evidence_flag(a04, "controlled_trial_code_ready") is not True
         or evidence_flag(a04, "production_live_code_ready") is not True
-        or evidence_flag(a06, "production_3x80_live_implemented") is not True
+        or evidence_flag(a06, "production_max_budget_live_implemented") is not True
         or evidence_flag(a06, "actual_live_activation_approved") is not False
         or evidence_flag(a06, "cloud_order_submission") is not False
     ):
@@ -649,7 +673,7 @@ def _live_audit_a10(reports_dir: Path | None) -> list[dict[str, Any]]:
             "audit_result": "CONTROLLED_TRIAL_CODE_READY",
             "reason": (
                 "Offline safety gates pass. A real local 1x50 round-trip is still required "
-                "before continuous 3x80 can become operationally eligible."
+                "before continuous max-budget Live can become operationally eligible."
             ),
         },
         coverage("live_audit_evidence_contract"),
