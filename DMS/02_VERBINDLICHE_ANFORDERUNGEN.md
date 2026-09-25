@@ -13,6 +13,7 @@ Status: CURRENT · 25.09.2026
 - 10×250 USDC isoliert ist ausschließlich Diagnose-/Coin-Optimierungsforschung.
 - Coin-Forschung darf Kandidaten nicht direkt auf dem Portfolio optimieren; das kanonische Maximalbudget-Portfolio ist nur nachgelagertes Non-Regression-Gate.
 - Es gibt keinen fest verdrahteten Gewinner-Coin. Freie Tranchen werden anhand der aktuellen gültigen Signale/ranked_repeat vergeben.
+- Es gibt **keinen permanenten Drawdown-Halt**; Drawdown-/Verlustschutz wird über die 5-%-UTC-Tagesverlustpause und die übrigen Runtime-Gates umgesetzt.
 - Die 5-%-UTC-Tagesverlustpause, Not-Aus, Daten-, Cash- und Exchange-Gates bleiben aktiv.
 - Cloud/CI/A01–A11 bleiben key-free und senden keine Echtgeld-/Testnet-Orders.
 - Erster lokaler Echtgeldschritt bleibt **1×50 USDC** als separater Einmaltest; das gespeicherte Maximalbudget wird dafür nicht auf 50 geändert.
