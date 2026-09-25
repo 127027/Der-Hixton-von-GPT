@@ -20,6 +20,7 @@ from pathlib import Path
 from typing import Any
 
 from hixton.domain.capital import DEFAULT_MAX_CAPITAL_USDC, capital_plan
+from hixton.paper.storage import PaperStore
 from scripts.swarm_core import (
     AGENT_IDS,
     load_json,
@@ -128,6 +129,12 @@ def paper_runtime_contract() -> dict[str, Any]:
 def check_state_db() -> dict[str, Any]:
     if not STATE_DB.is_file():
         raise CheckFailure(f"persistent Paper database not restored: {STATE_DB}")
+    # Always run the same idempotent schema migration that the real Paper
+    # runtime uses before deterministic agents inspect a restored state DB.
+    # This keeps cloud evidence compatible with preserved ledgers from the
+    # previous capital schema without bypassing any runtime validation.
+    with PaperStore(STATE_DB):
+        pass
     with sqlite3.connect(STATE_DB) as connection:
         integrity = connection.execute("PRAGMA integrity_check").fetchone()[0]
         if integrity != "ok":
@@ -1790,18 +1797,24 @@ def role_a08() -> list[dict[str, Any]]:
     config = ROOT / "config" / "examples" / "config.example.json"
     payload = json.loads(config.read_text(encoding="utf-8"))
     paper = payload.get("paper", {})
+    plan = capital_plan(DEFAULT_MAX_CAPITAL_USDC)
     expected = {
         "starting_cash_usdc": "250.00",
-        "slot_count": 3,
-        "target_notional_usdc": "80.00",
+        "max_capital_usdc": str(plan.max_capital_usdc),
     }
     drift = {
         key: paper.get(key)
         for key, value in expected.items()
         if paper.get(key) != value
     }
-    if drift:
-        raise CheckFailure(f"Paper baseline config drifted: {drift}")
+    legacy_editable_fields = [
+        key for key in ("slot_count", "target_notional_usdc") if key in paper
+    ]
+    if drift or legacy_editable_fields:
+        raise CheckFailure(
+            "Paper baseline config drifted from max-budget contract: "
+            f"drift={drift}, legacy_editable_fields={legacy_editable_fields}"
+        )
     command = [sys.executable, "-m", "pytest", "-q", *tests]
     result = require_command(command, timeout=1200)
     return [
