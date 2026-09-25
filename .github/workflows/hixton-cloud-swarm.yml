@@ -1,3 +1,4 @@
+# 2026-09-25: launch final release audit on isolated v3 swarm head 411fde8.
 # 2026-09-25: final A01-A11 release audit on fresh Paper state and engineering head f5ece4e.
 # 2026-09-25: launch hardened A01-A11 on v2 concurrency head eceda2f.
 # 2026-09-25: final A01-A11 rerun after Paper schema/max-budget fixes and parallel A02 hardening on engineering head de0cc1e.
