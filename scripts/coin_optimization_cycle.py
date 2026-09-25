@@ -4,7 +4,7 @@ Research only: this module never mutates the active strategy, Paper account or
 runtime settings. Candidate ranking uses training windows only. A bounded Top-K
 shortlist is frozen before validation; validation/full-window evidence may reject
 finalists but never introduce an unranked replacement. Robust finalists are then
-tested one-at-a-time in shared 3x80 before portfolio-compatible combinations.
+tested one-at-a-time in the canonical max-budget portfolio before compatible combinations.
 """
 
 from __future__ import annotations
@@ -28,6 +28,7 @@ from hixton.backtest.models import (
 )
 from hixton.backtest.portfolio import run_shared_portfolio_backtest
 from hixton.data.binance import BinancePublicClient
+from hixton.domain.capital import DEFAULT_MAX_CAPITAL_USDC, capital_plan
 from hixton.domain.models import Candle, StrategyParameters
 from hixton.domain.trade_policy import TradePolicy
 from hixton.domain.versions import V6_COIN_STRATEGY
@@ -228,7 +229,7 @@ def candidate_catalog(symbol: str) -> tuple[Candidate, ...]:
 
     # Structured two-parameter neighbourhood around the active coin profile.
     # These are still generated solely from the isolated coin profile; the shared
-    # 3x80 portfolio is used only later as a compatibility check.
+    # The canonical max-budget portfolio is used only later as a compatibility check.
     vidya_near = sorted(
         {
             max(2, base_parameters.vidya_length - 2),
@@ -678,8 +679,9 @@ def run_cycle(output: Path) -> dict[str, object]:
 
     runner_profile_trace: dict[str, dict[str, dict[str, str]]] = {
         "10x250": {},
-        "3x80": {},
+        "portfolio": {},
     }
+    portfolio_plan = capital_plan(DEFAULT_MAX_CAPITAL_USDC)
 
     def run_batch(
         profiles: dict[str, Candidate],
@@ -725,7 +727,7 @@ def run_cycle(output: Path) -> dict[str, object]:
             symbol: candidate.policy for symbol, candidate in profiles.items()
         }
         if trace_label is not None:
-            runner_profile_trace["3x80"][trace_label] = _runner_profile_hashes(
+            runner_profile_trace["portfolio"][trace_label] = _runner_profile_hashes(
                 parameters_by_symbol,
                 policies_by_symbol,
             )
@@ -733,9 +735,9 @@ def run_cycle(output: Path) -> dict[str, object]:
             candles_by_symbol=candles,
             report_start_utc=report_start,
             report_end_utc=report_end,
-            starting_cash=D("250"),
-            target_notional=D("80"),
-            slot_count=3,
+            starting_cash=portfolio_plan.max_capital_usdc,
+            target_notional=portfolio_plan.target_notional_usdc,
+            slot_count=portfolio_plan.slot_count,
             costs=costs,
             execution_rules=rules,
             strategy_parameters=definition.parameters,
@@ -743,7 +745,7 @@ def run_cycle(output: Path) -> dict[str, object]:
             trade_policies_by_symbol=policies_by_symbol,
             strategy_semantics=definition.semantics,
             strategy_version=research_version,
-            slot_allocation=definition.slot_allocation,
+            slot_allocation=portfolio_plan.allocation_policy,
             apply_risk_limits=True,
             symbols=definition.symbols,
         )
@@ -980,7 +982,7 @@ def run_cycle(output: Path) -> dict[str, object]:
             "trials": symbol_trials,
             "selected_for_combination": selected_name,
         }
-        per_coin[symbol]["marginal_3x80"] = marginal[symbol]
+        per_coin[symbol]["marginal_portfolio"] = marginal[symbol]
 
     winner_order = sorted(
         portfolio_winner_by_symbol,
@@ -1088,16 +1090,16 @@ def run_cycle(output: Path) -> dict[str, object]:
     }
 
     current_batch_hashes = runner_profile_trace["10x250"]["current"]
-    current_portfolio_hashes = runner_profile_trace["3x80"]["current"]
+    current_portfolio_hashes = runner_profile_trace["portfolio"]["current"]
     candidate_batch_hashes = runner_profile_trace["10x250"]["candidate"]
-    candidate_portfolio_hashes = runner_profile_trace["3x80"]["candidate"]
+    candidate_portfolio_hashes = runner_profile_trace["portfolio"]["candidate"]
     parity = {
         "declared_current_profile_hash_by_symbol": current_hashes,
         "declared_candidate_profile_hash_by_symbol": candidate_hashes,
         "current_10x250_profile_hash_by_symbol": current_batch_hashes,
-        "current_3x80_profile_hash_by_symbol": current_portfolio_hashes,
+        "current_portfolio_profile_hash_by_symbol": current_portfolio_hashes,
         "candidate_10x250_profile_hash_by_symbol": candidate_batch_hashes,
-        "candidate_3x80_profile_hash_by_symbol": candidate_portfolio_hashes,
+        "candidate_portfolio_profile_hash_by_symbol": candidate_portfolio_hashes,
         "current_match": (
             current_batch_hashes == current_portfolio_hashes == current_hashes
         ),
@@ -1106,7 +1108,7 @@ def run_cycle(output: Path) -> dict[str, object]:
         ),
     }
     if not parity["current_match"] or not parity["candidate_match"]:
-        raise RuntimeError("profile hashes diverged between 10x250 and 3x80")
+        raise RuntimeError("profile hashes diverged between 10x250 and canonical portfolio")
 
     promotion_gate = aggregate_promotion_gate(batches, portfolios)
 
@@ -1134,21 +1136,28 @@ def run_cycle(output: Path) -> dict[str, object]:
             "non-regressive on full-3y baseline/stress"
         ),
         "marginal_portfolio_gate": (
-            "every robust finalist is tested alone in shared 3x80; baseline and stress must "
+            "every robust finalist is tested alone in the canonical max-budget portfolio; baseline and stress must "
             "both be >= incumbent before it may enter the combination stage"
         ),
         "combination_rule": (
             "portfolio-compatible per-coin winners are added greedily by marginal baseline/stress "
-            "value; each addition must be non-regressive versus the already assembled 3x80 "
+            "value; each addition must be non-regressive versus the already assembled canonical portfolio "
             "baseline and stress"
         ),
         "per_coin": per_coin,
-        "marginal_3x80": marginal,
+        "marginal_portfolio": marginal,
+        "portfolio_plan": {
+            "max_capital_usdc": str(portfolio_plan.max_capital_usdc),
+            "slot_count": portfolio_plan.slot_count,
+            "target_notional_usdc": str(portfolio_plan.target_notional_usdc),
+            "allocation_policy": portfolio_plan.allocation_policy,
+            "allocator_version": portfolio_plan.version,
+        },
         "combination_steps": combination_steps,
         "assembled_candidate_profile_hash_by_symbol": candidate_hashes,
         "profile_parity": parity,
         "isolated_10x250": batches,
-        "portfolio_3x80": portfolios,
+        "portfolio_max_budget": portfolios,
         "aggregate_promotion_gate": promotion_gate,
     }
     output.parent.mkdir(parents=True, exist_ok=True)
