@@ -56,38 +56,40 @@ def test_current_normative_contract_matches_active_v6() -> None:
     runbook = _read("20_BETRIEBSRUNBOOK.md")
     structure = _read("23_ORDNERSTRUKTUR_UND_EINSTIEGSPUNKT.md")
 
-    assert "aktive Universum" in requirements
-    assert "USDC" in requirements
-    assert "ranked_repeat" in requirements
+    assert "BTCUSDC" in requirements and "DOGEUSDC" in requirements
+    assert "Maximalbudget" in requirements
+    assert "CAPITAL-V1-2X50PCT" in requirements
+    assert "2 × 50 %" in requirements
     assert "keinen permanenten Drawdown-Halt" in requirements
-    assert "kanonische StrategyDefinition" in requirements
+    assert "kanonische V6" in requirements
 
-    assert "Aktueller V6-Strategiestand 19.09.2026" in strategy
+    assert "Status: CURRENT · 25.09.2026" in strategy
     assert "| BTC | 5 |" in strategy
-    assert "| AVAX | 6 | 20 | 8 | 60 | 4,6 |" in strategy
+    assert "| XRP | 6 | 20 | 8 | 120 | 3,2 | CMO 0,15" in strategy
+    assert "| AVAX | 6 | 20 | 8 | 60 | 5,2 |" in strategy
+    assert "| DOT | 6 | 20 | 8 | 60 | 3,8 | CMO 0,35" in strategy
 
     assert "kein permanenter Portfolio-Drawdown-Halt" in risk
     assert "10×250 USDC" in risk
-    assert "3×80 USDC" in risk
+    assert "2 × 125 USDC" in risk
 
-    assert "Aktueller Validierungsvertrag 19.09.2026" in validation
+    assert "exakt drei Kalenderjahre" in validation
     assert "Top-K" in validation
-    assert "Parameter-/Policy-Hashes" in validation
+    assert "Maximalbudget-Portfolio" in validation
 
-    assert "V1/V2/V3-Auswahl mehr" in ui
-    assert "Positionszyklen" in ui
-    assert "Slot-Trades" in ui
+    assert "Maximaler USDC-Einsatz" in ui
+    assert "CAPITAL-V1-2X50PCT" in ui
+    assert "1×50-USDC-Test" in ui
 
     assert '"strategy": { "key": "v6" }' in schema
-    assert "einzige V6-Profil-/Digestquelle" in decisions
-    assert "DEC-061" in decisions
+    assert "max_capital_usdc" in schema
+    assert "DEC-062" in decisions
 
-    assert "1.217,91" in status
-    assert "8.217,01" in status
-    assert "94 Positionszyklen / 210 Slot-Trades" in status
+    assert "Statische alte 3×80-Ergebniswerte sind keine aktuelle Produktreferenz mehr" in status
+    assert "2 × 125 USDC" in status
 
-    assert "10×250-USDC-Batch" in runbook
-    assert "3×80-USDC-Portfolio" in runbook
+    assert "Maximaler USDC-Einsatz" in runbook
+    assert "1 × 50 USDC" in runbook
 
     assert "backtests/v6" in structure
     assert "V1–V5" not in structure

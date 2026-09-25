@@ -1,24 +1,22 @@
 # 13 – Konfiguration und Schemata
 
-Status: CURRENT · 19.09.2026
+Status: CURRENT · 25.09.2026
 
-## Aktueller Konfigurationsvertrag 19.09.2026
-
-config/examples/config.example.json enthält bei strategy ausschließlich:
+Die Runtime-Konfiguration enthält für die Strategie nur:
 
     "strategy": { "key": "v6" }
 
-V6-Version, slot_allocation und Coin-Profile kommen aus der kanonischen StrategyDefinition in src/hixton/domain/versions.py. Damit kann ein Profilupdate keinen zweiten, veralteten Config-Snapshot erzeugen.
+V6-Version, slot_allocation und Coin-Profile kommen aus der **kanonischen StrategyDefinition** in `src/hixton/domain/versions.py`; sie werden nicht als zweiter Profil-/Digest-Snapshot in Config gepflegt.
 
-Paper-Baseline:
-- starting_cash_usdc: 250.00
-- slot_count: 3
-- target_notional_usdc: 80.00
-- poll_seconds: 30
-- daily_audit_utc: 00:05
+Paper-Konfiguration:
 
-slot_allocation ist ranked_repeat und wird von der StrategyDefinition geliefert.
+- `starting_cash_usdc: 250.00`
+- `max_capital_usdc: 250.00`
+- `poll_seconds`
+- `daily_audit_utc`
 
-Ein permanenter globaler Drawdown-Halt ist **kein** aktiver Konfigurationsparameter mehr.
+`slot_count`, `target_notional_usdc`, Reserve und Allocation-Policy werden ausschließlich aus `capital_plan(max_capital_usdc)` abgeleitet. Sie dürfen nicht als zweite editierbare Konfiguration geführt werden.
 
-Unbekannte Config-Felder werden fail-closed abgelehnt.
+Aktueller Allocator: `CAPITAL-V1-2X50PCT` / ranked_repeat / 2 Tranchen zu je 50 %. Validierter Maximalbudgetbereich: 100 bis 1.000 USDC.
+
+Persistente Altspalten in SQLite dürfen für Migration/Audit vorhanden bleiben; geladen wird die kanonische Maximalbudget-Einstellung.

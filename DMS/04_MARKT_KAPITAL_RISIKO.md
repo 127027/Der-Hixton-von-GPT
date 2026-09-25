@@ -1,19 +1,19 @@
 # 04 – Markt, Kapital und Risiko
 
-Status: CURRENT · 19.09.2026
+Status: CURRENT · 25.09.2026
 
-Quote-Asset im Betrieb ist USDC. Das Hauptmodell verwendet 250 USDC Startkapital und 3×80 USDC. ranked_repeat kann freie Slots auf denselben besten gültigen Kandidaten verteilen.
+Quote-Asset ist USDC. Das Produkt besitzt ein gemeinsames Maximalbudget `max_capital_usdc`; Standard 250 USDC. Der zentrale Allocator `CAPITAL-V1-2X50PCT` leitet aktuell zwei ranked_repeat-Tranchen zu je 50 % ab. Bei 250 USDC sind das 2 × 125 USDC.
 
-10×250 USDC sind reine Coin-Diagnose: zehn getrennte 250-USDC-Konten.
+ranked_repeat kann freie Tranchen auf dasselbe aktuell stärkste gültige Signal verteilen. Kein Coin wird aufgrund vergangener Drei-Jahres-Performance dauerhaft bevorzugt.
 
-Aktive Risikoregeln:
-- 5-%-UTC-Tagesverlustpause für neue Entries;
-- Not-Aus/Einstiegspause;
+10×250 USDC sind reine Coin-Diagnose/Forschung: zehn getrennte 250-USDC-Konten. Sie sind keine Live-Kapitalquelle.
+
+Sicherheitsgates:
 - Cash-/Slotprüfung;
-- Binance-MinQty/Step/Tick/MinNotional;
-- Stale-/Gap-/Datenqualitätsgates;
-- XRP-spezifischer Close-Stop gemäß Profil.
+- maximaler gebundener Betrag aus dem zentralen Kapitalplan;
+- 5-%-UTC-Tagesverlustpause;
+- Not-/Einstiegssperre;
+- Daten- und Exchange-Filter;
+- Konto-/Order-Reconciliation im Livebetrieb.
 
-Es gibt **kein permanenter Portfolio-Drawdown-Halt**. High-Water-Mark und Drawdown werden weiterhin berechnet und berichtet.
-
-Backtest-Drawdown und Rendite sind Simulationsmetriken, keine Garantie.
+Es gibt **keinen permanenten Portfolio-Drawdown-Halt** in der aktiven V6. Drawdown wird gemessen und in Backtests/Stressauswertung berichtet.
