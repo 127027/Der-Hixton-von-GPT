@@ -749,9 +749,9 @@ def _optimization_audit_a01() -> list[dict[str, Any]]:
     source = (ROOT / "scripts" / "coin_optimization_cycle.py").read_text(encoding="utf-8")
     required = (
         "training stress only freezes the ordered Top-8 challengers per coin",
-        "every robust finalist is tested alone in shared 3x80",
+        "every robust finalist is tested alone in the canonical max-budget portfolio",
         '"activation_performed": False',
-        "3x80 portfolio is used only later as a compatibility check",
+        "canonical max-budget portfolio is used only later as a compatibility check",
     )
     missing = [item for item in required if item not in source]
     if missing:
@@ -760,7 +760,7 @@ def _optimization_audit_a01() -> list[dict[str, Any]]:
         {
             "optimization_suggestions": [
                 "Keep parameter discovery isolated in 10x250; never rank candidates "
-                "by 3x80 outcome.",
+                "by canonical portfolio outcome.",
                 "Preserve training-only Top-K freeze and use validation/full windows "
                 "only to reject.",
                 "Prefer bounded local two-parameter interactions over a broad unconstrained grid.",
@@ -783,7 +783,7 @@ def _optimization_audit_a02() -> list[dict[str, Any]]:
     evidence = json.loads(output.read_text(encoding="utf-8"))
     parity = evidence.get("profile_parity", {})
     if parity.get("current_match") is not True or parity.get("candidate_match") is not True:
-        raise CheckFailure("10x250/3x80 profile parity failed")
+        raise CheckFailure("10x250/canonical-portfolio profile parity failed")
     per_coin_raw = evidence.get("per_coin", {})
     per_coin: dict[str, object] = {}
     suggestions: dict[str, str] = {}
@@ -791,7 +791,7 @@ def _optimization_audit_a02() -> list[dict[str, Any]]:
         robust = list(raw.get("robust_finalists", []))
         accepted = bool(raw.get("accepted"))
         current = raw.get("full_current_baseline", {})
-        marginal = raw.get("marginal_3x80", {})
+        marginal = raw.get("marginal_portfolio", {})
         per_coin[symbol] = {
             "current_ending_equity": current.get("ending_equity"),
             "current_max_drawdown_pct": current.get("max_drawdown_pct"),
@@ -810,9 +810,9 @@ def _optimization_audit_a02() -> list[dict[str, Any]]:
             )
         elif robust:
             suggestions[symbol] = (
-                "At least one isolated robust improvement exists but loses in shared 3x80. "
+                "At least one isolated robust improvement exists but loses in the canonical max-budget portfolio. "
                 "Search a nearby isolated timing/band compromise that retains the coin gain "
-                "with lower slot opportunity cost; do not tune directly on 3x80."
+                "with lower slot opportunity cost; do not tune directly on the portfolio."
             )
         else:
             suggestions[symbol] = (
@@ -827,7 +827,7 @@ def _optimization_audit_a02() -> list[dict[str, Any]]:
         "per_coin": per_coin,
         "aggregate_promotion_gate": aggregate,
         "isolated_10x250": evidence.get("isolated_10x250"),
-        "portfolio_3x80": evidence.get("portfolio_3x80"),
+        "portfolio_max_budget": evidence.get("portfolio_max_budget"),
         "suggestions_by_symbol": suggestions,
         "automatic_activation_performed": evidence.get("activation_performed"),
     }
@@ -950,11 +950,11 @@ def _optimization_audit_a08() -> list[dict[str, Any]]:
     )
     missing = [item for item in required if item not in source]
     if missing:
-        raise CheckFailure(f"3x80 follow-up gate incomplete: {missing}")
+        raise CheckFailure(f"canonical portfolio follow-up gate incomplete: {missing}")
     return [
         {
             "optimization_suggestions": [
-                "Use 3x80 only as a post-search opportunity-cost gate. A coin improvement that "
+                "Use the canonical max-budget portfolio only as a post-search opportunity-cost gate. A coin improvement that "
                 "steals slots from stronger signals must remain research-only even when its "
                 "isolated 250-USDC account improves."
             ]
@@ -1028,7 +1028,7 @@ def _optimization_audit_a11(reports_dir: Path | None) -> list[dict[str, Any]]:
             "optimization_suggestions": [
                 "Governance permits a later profile promotion only after the research gate is "
                 "promotable, canonical versions.py is updated once, and the exact new profile map "
-                "passes fresh 10x250, 3x80, Paper parity and A01-A11."
+                "passes fresh 10x250, canonical max-budget portfolio, Paper parity and A01-A11."
             ]
         },
         coverage("optimization_governance"),
