@@ -845,7 +845,7 @@ class LivePortfolioController:
                     control["state"] != "LIVE_ENABLED"
                     or not bool(control["entries_enabled"])
                     or emergency
-                    or intent.quote_budget != target * intent.slot_count
+                    or intent.quote_budget != plan.target_notional_usdc * intent.slot_count
                 ):
                     return False
             elif control["state"] not in {"LIVE_ENABLED", "EXIT_ONLY"}:
