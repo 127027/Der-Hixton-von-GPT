@@ -116,3 +116,18 @@ def test_a11_rejects_missing_specialist_coverage(tmp_path: Path, monkeypatch) ->
     )
     with pytest.raises(cloud_swarm_agent.CheckFailure, match="evidence_missing"):
         cloud_swarm_agent.role_a11(tmp_path)
+
+
+def test_a08_accepts_single_max_capital_paper_contract(monkeypatch) -> None:
+    monkeypatch.setattr(cloud_swarm_agent, "paper_runtime_contract", lambda: {})
+    monkeypatch.setattr(
+        cloud_swarm_agent,
+        "existing_tests",
+        lambda *patterns: ["tests/test_risk.py"],
+    )
+    monkeypatch.setattr(cloud_swarm_agent, "require_command", lambda *args, **kwargs: {})
+    evidence = cloud_swarm_agent.role_a08()
+    assert evidence[-1]["coverage_tags"] == [
+        "strategy_risk_invariants",
+        "loss_analysis",
+    ]
