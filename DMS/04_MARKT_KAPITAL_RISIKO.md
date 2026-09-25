@@ -16,4 +16,4 @@ Sicherheitsgates:
 - Daten- und Exchange-Filter;
 - Konto-/Order-Reconciliation im Livebetrieb.
 
-Es gibt **keinen permanenten Portfolio-Drawdown-Halt** in der aktiven V6. Drawdown wird gemessen und in Backtests/Stressauswertung berichtet.
+Für die aktive V6 gilt: **kein permanenter Portfolio-Drawdown-Halt**. Drawdown wird gemessen und in Backtests/Stressauswertung berichtet.
