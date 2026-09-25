@@ -35,7 +35,6 @@ def test_v2_report_is_written_only_to_v2_with_full_strategy_snapshot(
         strategy_parameters=V2_RESEARCH_STRATEGY.parameters,
         strategy_semantics=V2_RESEARCH_STRATEGY.semantics,
         strategy_version=V2_RESEARCH_STRATEGY.version,
-        slot_allocation=V2_RESEARCH_STRATEGY.slot_allocation,
     )
     output_root = tmp_path / "backtests" / "v2" / "runs"
     run_directory = write_report_bundle(
@@ -77,6 +76,7 @@ def test_shared_portfolio_report_has_one_portfolio_curve(tmp_path: Path) -> None
         strategy_parameters=V2_RESEARCH_STRATEGY.parameters,
         strategy_semantics=V2_RESEARCH_STRATEGY.semantics,
         strategy_version=V2_RESEARCH_STRATEGY.version,
+        slot_allocation=V2_RESEARCH_STRATEGY.slot_allocation,
     )
     run_directory = write_report_bundle(
         scenarios={"current": result},
