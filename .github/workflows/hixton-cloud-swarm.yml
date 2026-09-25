@@ -1,3 +1,4 @@
+# 2026-09-25: launch hardened A01-A11 on v2 concurrency head eceda2f.
 # 2026-09-25: final A01-A11 rerun after Paper schema/max-budget fixes and parallel A02 hardening on engineering head de0cc1e.
 # 2026-09-24: final A01-A11 compact budget audit after A01 contract fix on engineering head 985427e.
 # 2026-09-24: definitive A01-A11 compact max-1000 capital budget audit on engineering head dd53ae5.
