@@ -81,6 +81,10 @@ permissions:
   contents: write
   actions: read
 
+concurrency:
+  group: hixton-cloud-swarm-caller
+  cancel-in-progress: true
+
 jobs:
   cloud-swarm:
     uses: 127027/Der-Hixton-von-GPT/.github/workflows/hixton-cloud-swarm-reusable.yml@gpt/usdc-audit
