@@ -132,6 +132,7 @@ def test_production_paper_and_portfolio_match_with_gaps_rounding_and_mixed_close
         strategy_parameters=strategy.parameters,
         strategy_semantics=strategy.semantics,
         strategy_version=strategy.version,
+        slot_allocation=strategy.slot_allocation,
     )
     assert reference.fills, "fixture must exercise actual fills"
     path = str(tmp_path / "paper.sqlite3")

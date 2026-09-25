@@ -118,12 +118,13 @@ def test_both_canonical_engines_use_usdc_and_report_the_quote(tmp_path: Path) ->
         strategy_parameters_by_symbol=strategy.parameter_map(),
         trade_policies_by_symbol=strategy.policy_map(),
         starting_cash=Decimal("250"),
+        slot_allocation=strategy.slot_allocation,
     )
     assert tuple(result.symbol for result in batch.results) == strategy.symbols
     assert all(result.metrics.starting_equity == 250 for result in batch.results)
     assert portfolio.symbols == strategy.symbols
     assert portfolio.starting_cash == 250
-    assert portfolio.target_notional == 80
+    assert portfolio.target_notional == 125
     assert portfolio.fills
     signals = {signal.signal_id: signal for signal in portfolio.signals}
     assert all(signals[fill.signal_id].symbol.endswith("USDC") for fill in portfolio.fills)

@@ -152,14 +152,14 @@ def controller(tmp_path: Path):
         symbol: ExecutionRules(step_size=D("0.000001"), min_qty=D("0.000001"), min_notional=D("5"))
         for symbol in SYMBOLS
     }
-    settings = [2, D("125"), False]
+    settings = [D("250"), False]
     c = LivePortfolioController(
         database,
         journal,
         executor,
         reconciler,
         account.snapshot,
-        lambda: (settings[0], settings[1], settings[2]),
+        lambda: (settings[0], settings[1]),
         lambda: rules,
         V6,
         lambda: True,
@@ -249,8 +249,7 @@ def test_timeout_restart_reconciles_without_duplicate_submit(tmp_path: Path) -> 
 def test_settings_change_or_emergency_stop_blocks_new_live_entry(tmp_path: Path) -> None:
     c, exchange, account, settings = controller(tmp_path)
     enable_now(c, account, universe(NOW - timedelta(hours=1)))
-    settings[0] = 2
-    settings[1] = D("150")
+    settings[0] = D("300")
     for _ in range(3):
         c.advance(universe(NOW, enter=("BTCUSDC",)), now=NOW, healthy=True)
     assert not exchange.submits

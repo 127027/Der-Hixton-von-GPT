@@ -35,6 +35,7 @@ def test_v2_report_is_written_only_to_v2_with_full_strategy_snapshot(
         strategy_parameters=V2_RESEARCH_STRATEGY.parameters,
         strategy_semantics=V2_RESEARCH_STRATEGY.semantics,
         strategy_version=V2_RESEARCH_STRATEGY.version,
+        slot_allocation=V2_RESEARCH_STRATEGY.slot_allocation,
     )
     output_root = tmp_path / "backtests" / "v2" / "runs"
     run_directory = write_report_bundle(
@@ -90,7 +91,7 @@ def test_shared_portfolio_report_has_one_portfolio_curve(tmp_path: Path) -> None
     metrics = json.loads((run_directory / "metrics.json").read_text(encoding="utf-8"))
     manifest = json.loads((run_directory / "manifest.json").read_text(encoding="utf-8"))
     equity = (run_directory / "equity.csv").read_text(encoding="utf-8")
-    assert metrics["current"]["portfolio"]["starting_cash"] == "240.00"
+    assert metrics["current"]["portfolio"]["starting_cash"] == "250.00"
     assert metrics["current"]["portfolio"]["signal_count"] == len(result.signals)
     assert metrics["current"]["portfolio"]["fill_count"] == len(result.fills)
     assert manifest["run_mode"] == "portfolio"

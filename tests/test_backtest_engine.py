@@ -159,7 +159,7 @@ def test_batch_rejects_missing_market() -> None:
         )
 
 
-def test_shared_portfolio_uses_one_240_cash_ledger_and_three_fixed_slots() -> None:
+def test_shared_portfolio_uses_one_250_cash_ledger_and_two_budget_slots() -> None:
     candles_by_symbol = {
         symbol: deterministic_candles(symbol, 1_200, market_index)
         for market_index, symbol in enumerate(SYMBOLS)
@@ -172,12 +172,12 @@ def test_shared_portfolio_uses_one_240_cash_ledger_and_three_fixed_slots() -> No
     )
 
     entries = [fill for fill in result.fills if fill.action is SignalAction.ENTER_LONG]
-    assert result.metrics.starting_equity == Decimal("240.00")
-    assert result.slot_count == 3
+    assert result.metrics.starting_equity == Decimal("250.00")
+    assert result.slot_count == 2
     assert result.risk_limits_applied is True
-    assert result.max_concurrent_positions <= 3
+    assert result.max_concurrent_positions <= 2
     assert entries
-    assert all(fill.quote_value <= Decimal("80.00") for fill in entries)
+    assert all(fill.quote_value <= Decimal("250.00") for fill in entries)
     assert all(point.cash >= 0 for point in result.equity_curve)
     assert set(result.data_snapshot_sha256_by_symbol) == set(SYMBOLS)
 
