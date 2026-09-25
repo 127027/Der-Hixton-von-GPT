@@ -26,6 +26,7 @@ from hixton.constants import SYMBOLS
 from hixton.data.binance import BinancePublicClient
 from hixton.data.storage import CandleStore, StoredSymbolRules
 from hixton.domain.allocation import RANKED_REPEAT
+from hixton.domain.capital import DEFAULT_MAX_CAPITAL_USDC, capital_plan
 from hixton.domain.versions import strategy_definition
 from hixton.paper.storage import PaperStore
 from hixton.runtime.continuity_supervisor import RuntimeSupervisor
@@ -277,8 +278,12 @@ def _portfolio_trade_breakdown(
         if occupancy not in range(4):
             raise RuntimeError(f"portfolio slot occupancy escaped 0..3: {occupancy}")
         occupancy_hours[str(occupancy)] += (end - previous).total_seconds() / 3600
-    if max_occupancy > 3:
-        raise RuntimeError(f"historical portfolio exceeded three slots: {max_occupancy}")
+    plan = capital_plan(DEFAULT_MAX_CAPITAL_USDC)
+    if max_occupancy > plan.slot_count:
+        raise RuntimeError(
+            f"historical portfolio exceeded allocator slots: {max_occupancy} > "
+            f"{plan.slot_count}"
+        )
     entries_by_year: dict[str, int] = {}
     for value in entries:
         key = str(value.year)
@@ -334,7 +339,7 @@ async def main() -> None:
             "public_binance_data": True,
             "credentials_used": False,
             "orders_sent": False,
-            "portfolio_3x80": portfolio,
+            "portfolio_max_budget": portfolio,
             "isolated_10x250": isolated,
         }
         output = PROJECT_ROOT / "evidence" / "dashboard-backtest-e2e.json"
