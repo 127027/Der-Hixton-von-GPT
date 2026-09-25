@@ -1,20 +1,20 @@
 # 02 – Verbindliche Anforderungen
 
-Status: CURRENT · 21.09.2026
+Status: CURRENT · 25.09.2026
 
-- Das aktive Universum umfasst BTCUSDC, ETHUSDC, BNBUSDC, SOLUSDC, XRPUSDC, ADAUSDC, LINKUSDC, AVAXUSDC, DOTUSDC und DOGEUSDC.
-- Normale Produktpfade unterstützen ausschließlich die aktuelle V6.
-- Die kanonische StrategyDefinition in src/hixton/domain/versions.py ist die einzige Quelle für V6-Version und Coin-Profile.
-- Config darf die Profilmap oder den Digest nicht duplizieren.
-- Strategiezeitrahmen ist 1h; Signale entstehen nur aus abgeschlossenen Kerzen.
-- Das Hauptportfolio startet mit 250 USDC, drei 80-USDC-Slots und ranked_repeat.
-- 10×250 USDC sind zehn isolierte Diagnosekonten.
-- Mehrere Slots desselben Signals sind Kapitaltranchen eines Positionszyklus.
-- Es gibt keinen permanenten Drawdown-Halt auf Portfolioebene.
-- Die 5-%-UTC-Tagesverlustpause und technische Safety-Gates bleiben aktiv.
-- Paper, Backtest und UI müssen dieselben Coin-Profile verwenden.
-- Änderungen müssen Baseline und Stress bestehen; isolierte Coin-Verbesserung allein genügt nicht.
-- Cloud, CI und A01–A11 bleiben key-free; dort sind Echtgeld- und Testnet-Orders strikt gesperrt.
-- Der lokale Echtgeldpfad ist gestuft und fail-closed: erster Test ausschließlich 1×50 USDC nach expliziter Freigabe; keine sofortige Order, sondern Warten auf ein neues gültiges Signal.
-- Dauer-Live ist ausschließlich das Hauptmodell 250 USDC / maximal drei 80-USDC-Slots / ranked_repeat und setzt einen vollständig abgeschlossenen und reconcilierten 1×50-Roundtrip voraus.
-- Live nutzt ausschließlich Binance Spot USDC: keine Margin-, Futures-, Transfer-, Options- oder Withdrawal-Rechte.
+- Universum: BTCUSDC, ETHUSDC, BNBUSDC, SOLUSDC, XRPUSDC, ADAUSDC, LINKUSDC, AVAXUSDC, DOTUSDC und DOGEUSDC.
+- Normale Produktpfade verwenden ausschließlich die kanonische V6 aus `src/hixton/domain/versions.py`.
+- Entscheidungen entstehen auf abgeschlossenen 1h-Kerzen; Warm-up: 400 Bars.
+- Die einzige editierbare Kapitalvorgabe ist das **Maximalbudget** `max_capital_usdc`.
+- Aktuell validierter Bereich: 100 bis 1.000 USDC; Standard: 250 USDC.
+- `CAPITAL-V1-2X50PCT` leitet daraus **2 × 50 %** ranked-repeat-Tranchen ab. 250 USDC ergeben 2 × 125 USDC.
+- Slotzahl, Tranchengröße und Reserve sind abgeleitete Werte und keine zweite Benutzerkonfiguration.
+- Portfolio-Backtest, Paper und normaler Livebetrieb müssen denselben `capital_plan(max_capital_usdc)` verwenden.
+- 10×250 USDC isoliert ist ausschließlich Diagnose-/Coin-Optimierungsforschung.
+- Coin-Forschung darf Kandidaten nicht direkt auf dem Portfolio optimieren; das kanonische Maximalbudget-Portfolio ist nur nachgelagertes Non-Regression-Gate.
+- Es gibt keinen fest verdrahteten Gewinner-Coin. Freie Tranchen werden anhand der aktuellen gültigen Signale/ranked_repeat vergeben.
+- Die 5-%-UTC-Tagesverlustpause, Not-Aus, Daten-, Cash- und Exchange-Gates bleiben aktiv.
+- Cloud/CI/A01–A11 bleiben key-free und senden keine Echtgeld-/Testnet-Orders.
+- Erster lokaler Echtgeldschritt bleibt **1×50 USDC** als separater Einmaltest; das gespeicherte Maximalbudget wird dafür nicht auf 50 geändert.
+- Dauer-Live ist erst nach vollständig reconciliertem 1×50-Roundtrip und allen Runtime-Gates zulässig und verwendet anschließend das gespeicherte Maximalbudget.
+- Live nutzt ausschließlich Binance Spot USDC; Withdrawal, Transfer, Margin, Futures und Optionen müssen deaktiviert sein.

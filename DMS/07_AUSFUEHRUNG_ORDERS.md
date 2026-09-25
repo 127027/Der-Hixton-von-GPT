@@ -1,23 +1,20 @@
 # 07 – Ausführung und Orders
 
-Status: CURRENT · 21.09.2026
+Status: CURRENT · 25.09.2026
 
-Paper und Backtest bleiben die Referenz für Strategie- und Portfolio-Parität. Ein Signal entsteht auf einer geschlossenen 1h-Bar; historische Ausführung verwendet das nächste verfügbare Bar-Open plus Kostenmodell. Paper-Fills sind keine Binance-Fills.
+Paper und Backtest sind die Referenz für Strategie-/Allocator-Parität. Ein Signal entsteht auf einer geschlossenen 1h-Bar. Historische Ausführung nutzt das nächste verfügbare Bar-Open plus Kostenmodell; Paper-Fills sind keine Binance-Fills.
 
-## Lokaler kontrollierter Echtgeldpfad
+## Kontrollierter Echtgeldpfad
 
-1. Binance API-Key/Secret werden ausschließlich lokal im Windows-Anmeldedatenspeicher gehalten.
-2. Eine private Kontovorprüfung muss Spot/USDC, erlaubte Rechte, freien Saldo, offene Orders und die zehn Märkte bestätigen.
-3. Der erste Echtgeldschritt ist ausdrücklich **1 × 50 USDC**. Das Freigeben sendet keine Order nachträglich oder sofort, sondern setzt einen einmaligen Anspruch und wartet auf ein neues gültiges V6-Signal.
-4. Nach dem Kauf darf nur der zugehörige reguläre Exit ausgeführt werden. Danach müssen Orderhistorie/Fills und Kontosalden vollständig reconciled sein.
-5. Dauerbetrieb ist erst danach mit exakt **3 × 80 USDC** erlaubt. 10×250 bleibt reines Forschungslabor.
+1. Binance API-Key/Secret liegen ausschließlich lokal im Windows-Anmeldedatenspeicher.
+2. Die Kontovorprüfung verlangt Spot/USDC, sichere Rechte, freie Salden, keine fremden offenen Orders und gültige Marktfilter.
+3. Der erste Echtgeldschritt ist **1 × 50 USDC**. Das Freigeben sendet nicht sofort eine Order, sondern wartet auf ein neues gültiges Signal.
+4. Nach dem Entry darf nur der zugehörige reguläre Exit ausgeführt werden; danach müssen Orders/Fills/Salden vollständig reconciled sein.
+5. Erst danach kann normaler Livebetrieb das gespeicherte **Maximalbudget** verwenden. Beim Standard 250 USDC leitet `CAPITAL-V1-2X50PCT` 2 × 125 USDC ranked_repeat ab.
+6. Eine Änderung des Maximalbudgets ändert keinen bereits gebundenen Live-Plan stillschweigend; neue Einstiege werden gesperrt und eine sichere erneute Freigabe ist erforderlich.
 
-## Order-Sicherheit
+Jede Order erhält vor dem Netzaufruf eine persistierte Client-/Intent-ID. Bei Timeout oder unbekanntem Ergebnis wird dieselbe ID abgefragt und **nicht blind erneut gesendet**. Restarts und wiederholte Scheduler-Ticks dürfen keine Doppelorder erzeugen.
 
-Jede Order erhält vor dem Netzaufruf eine persistierte eindeutige Intent-/Client-Order-ID. Bei Timeout oder unbekanntem Ergebnis wird dieselbe Order-ID ausschließlich abgefragt; sie wird nicht blind erneut gesendet. Parallelzugriffe, Restarts und wiederholte Scheduler-Ticks dürfen denselben Intent nicht duplizieren.
+BUY ist auf den persistent gebundenen Kapitalplan begrenzt. SELL darf höchstens den vom Bot persistent geführten Base-Bestand verkaufen. Konto-/Orderabweichungen, problematische Teilfills oder ungeklärte Zustände führen zu NEEDS_REVIEW und sperren neue Einstiege.
 
-BUY ist auf die freigegebene Quote-Budgetgröße begrenzt; im 3×80-Betrieb sind maximal 240 USDC gleichzeitig gebunden. SELL darf höchstens den persistent als Bot-Bestand geführten Base-Bestand verkaufen. Abweichende Salden, fremde Orders, partielle/problematische Restmengen oder ungeklärte Zustände führen zu NEEDS_REVIEW und sperren neue Einstiege.
-
-Live aus stoppt neue Einstiege, storniert keine unbekannte Order blind und erzwingt keinen Sofortverkauf. Bereits eigene offene Positionen dürfen weiterhin regulär aussteigen.
-
-Cloud-/CI-/Agentenpfade besitzen keine Binance-Secrets und senden niemals Echtgeld- oder Testnet-Orders.
+Live aus stoppt neue Einstiege, erzwingt keinen Sofortverkauf und storniert unbekannte Orders nicht blind.
