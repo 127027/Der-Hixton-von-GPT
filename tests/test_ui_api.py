@@ -46,7 +46,7 @@ def test_local_ui_status_and_ten_market_placeholders(tmp_path: Path) -> None:
     )
     status = client.get("/api/status")
     assert status.status_code == 200
-    assert status.json()["application_version"] == "0.4.10"
+    assert status.json()["application_version"] == "0.5.0"
     assert status.json()["runtime"]["live_state"] == "LIVE_DISABLED"
     assert status.headers["x-frame-options"] == "DENY"
     markets = client.get("/api/markets")
