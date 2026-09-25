@@ -810,8 +810,9 @@ def _optimization_audit_a02() -> list[dict[str, Any]]:
             )
         elif robust:
             suggestions[symbol] = (
-                "At least one isolated robust improvement exists but loses in the canonical max-budget portfolio. "
-                "Search a nearby isolated timing/band compromise that retains the coin gain "
+                "At least one isolated robust improvement exists but loses in the canonical "
+                "max-budget portfolio. Search a nearby isolated timing/band compromise that "
+                "retains the coin gain "
                 "with lower slot opportunity cost; do not tune directly on the portfolio."
             )
         else:
@@ -954,8 +955,9 @@ def _optimization_audit_a08() -> list[dict[str, Any]]:
     return [
         {
             "optimization_suggestions": [
-                "Use the canonical max-budget portfolio only as a post-search opportunity-cost gate. A coin improvement that "
-                "steals slots from stronger signals must remain research-only even when its "
+                "Use the canonical max-budget portfolio only as a post-search opportunity-cost "
+                "gate. A coin improvement that steals slots from stronger signals must remain "
+                "research-only even when its "
                 "isolated 250-USDC account improves."
             ]
         },
