@@ -120,3 +120,38 @@ def test_old_usdt_paper_database_is_rejected_before_mutation(tmp_path):
     with pytest.raises(RuntimeError, match="Legacy USDT"):
         PaperStore(path)
     assert path.read_bytes() == before
+
+
+def test_legacy_paper_sizing_migrates_to_canonical_max_budget(tmp_path):
+    import sqlite3
+
+    from hixton.paper.storage import PaperStore
+
+    path = tmp_path / "legacy-paper.sqlite3"
+    with sqlite3.connect(path) as connection:
+        connection.executescript(
+            """
+            CREATE TABLE paper_settings(
+                singleton INTEGER PRIMARY KEY,
+                slot_count INTEGER NOT NULL,
+                target_notional_text TEXT NOT NULL,
+                emergency_stop INTEGER NOT NULL,
+                updated_at_utc TEXT NOT NULL
+            );
+            INSERT INTO paper_settings VALUES(1, 3, '80', 0, '2026-09-20T00:00:00+00:00');
+            """
+        )
+
+    with PaperStore(path) as store:
+        settings = store.load_settings()
+
+    assert settings.max_capital_usdc == Decimal("250.00")
+    assert settings.slot_count == 2
+    assert settings.target_notional_usdc == Decimal("125.00")
+
+    with sqlite3.connect(path) as connection:
+        row = connection.execute(
+            "SELECT max_capital_text,slot_count,target_notional_text "
+            "FROM paper_settings WHERE singleton=1"
+        ).fetchone()
+    assert row == ("250.00", 2, "125.00")
