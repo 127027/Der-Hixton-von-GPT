@@ -13,7 +13,7 @@ permissions:
   actions: read
 
 concurrency:
-  group: hixton-key-free-swarm
+  group: hixton-key-free-swarm-v2
   # A newer validation targets a newer engineering head. Keeping an obsolete
   # multi-minute backtest alive only delays the exact release candidate.
   cancel-in-progress: true
