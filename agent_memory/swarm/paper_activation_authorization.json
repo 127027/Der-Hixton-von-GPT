@@ -3,7 +3,7 @@
   "scope": "PAPER_ONLY_CONTROLLED_STRATEGY_ACTIVATION",
   "strategy_key": "v6",
   "authorized_from_strategy_version": "HIXTON-V6-COIN-PAPER-1-6da9687bb531",
-  "authorized_to_strategy_version": "HIXTON-V6-COIN-PAPER-1-52af87bc294e",
+  "authorized_to_strategy_version": "HIXTON-V6-COIN-PAPER-1-fbd1b842f4f9",
   "confirmation": "AKTIVIEREN",
   "owner_instruction_date": "2026-09-25",
   "preserve_history": true,
@@ -11,5 +11,5 @@
   "close_open_simulated_positions_on_switch": true,
   "real_money_orders_allowed": false,
   "testnet_orders_allowed": false,
-  "note": "Owner-authorized Paper-only activation from the preserved current ledger strategy to the canonical 0.5.0 V6. Preserve ledger history, do not fresh-reset, close any open simulated positions on switch, and fail closed for any other from/to pair. Real-money and testnet orders remain forbidden."
+  "note": "Owner-authorized Paper-only activation from preserved V6 6da9687bb531 to the verified canonical 0.5.0 V6 fbd1b842f4f9, which includes the max-capital allocator release profile. Preserve history, no fresh reset, close open simulated positions on switch, fail closed for any other pair. Real-money and testnet orders remain forbidden."
 }
