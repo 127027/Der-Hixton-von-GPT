@@ -1136,13 +1136,14 @@ def run_cycle(output: Path) -> dict[str, object]:
             "non-regressive on full-3y baseline/stress"
         ),
         "marginal_portfolio_gate": (
-            "every robust finalist is tested alone in the canonical max-budget portfolio; baseline and stress must "
-            "both be >= incumbent before it may enter the combination stage"
+            "every robust finalist is tested alone in the canonical max-budget portfolio; "
+            "baseline and stress must both be >= incumbent before it may enter the "
+            "combination stage"
         ),
         "combination_rule": (
             "portfolio-compatible per-coin winners are added greedily by marginal baseline/stress "
-            "value; each addition must be non-regressive versus the already assembled canonical portfolio "
-            "baseline and stress"
+            "value; each addition must be non-regressive versus the already assembled "
+            "canonical portfolio baseline and stress"
         ),
         "per_coin": per_coin,
         "marginal_portfolio": marginal,
