@@ -1962,11 +1962,29 @@ SIMPLE_ROLES = {
 }
 
 
-def execute(role: str, reports_dir: Path | None) -> dict[str, Any]:
+AUDIT_SCOPES = (
+    "full",
+    "base",
+    "live",
+    "optimization",
+    "capital100",
+    "capitalbudget",
+)
+
+
+def execute(
+    role: str,
+    reports_dir: Path | None,
+    *,
+    scope: str = "full",
+) -> dict[str, Any]:
+    if scope not in AUDIT_SCOPES:
+        raise ValueError(f"unknown audit scope: {scope}")
     started = datetime.now(UTC)
     report: dict[str, Any] = {
         "schema_version": 2,
         "agent": role,
+        "audit_scope": scope,
         "started_at_utc": started.isoformat(),
         "execution_mode": "DETERMINISTIC_KEY_FREE",
         "openai_api_key_required": False,
@@ -1974,36 +1992,53 @@ def execute(role: str, reports_dir: Path | None) -> dict[str, Any]:
         "real_money_orders_allowed": False,
         "testnet_orders_allowed": False,
     }
+    evidence: list[dict[str, Any]] = []
     try:
-        if role in SIMPLE_ROLES:
-            evidence = SIMPLE_ROLES[role]()
-        elif role == "A10":
-            if reports_dir is None:
-                raise CheckFailure("A10 requires --reports-dir")
-            evidence = role_a10(reports_dir)
-        elif role == "A09":
-            if reports_dir is None:
-                raise CheckFailure("A09 requires --reports-dir")
-            evidence = role_a09(reports_dir)
-        elif role == "A11":
-            if reports_dir is None:
-                raise CheckFailure("A11 requires --reports-dir")
-            evidence = role_a11(reports_dir)
-        else:
-            raise CheckFailure(f"unknown agent: {role}")
-        if live_audit_enabled():
+        if scope in ("full", "base"):
+            print(f"[swarm] {role}: base audit starting", flush=True)
+            if role in SIMPLE_ROLES:
+                evidence.extend(SIMPLE_ROLES[role]())
+            elif role == "A10":
+                if reports_dir is None:
+                    raise CheckFailure("A10 requires --reports-dir")
+                evidence.extend(role_a10(reports_dir))
+            elif role == "A09":
+                if reports_dir is None:
+                    raise CheckFailure("A09 requires --reports-dir")
+                evidence.extend(role_a09(reports_dir))
+            elif role == "A11":
+                if reports_dir is None:
+                    raise CheckFailure("A11 requires --reports-dir")
+                evidence.extend(role_a11(reports_dir))
+            else:
+                raise CheckFailure(f"unknown agent: {role}")
+            print(f"[swarm] {role}: base audit complete", flush=True)
+
+        if scope in ("full", "live") and live_audit_enabled():
+            print(f"[swarm] {role}: live-readiness audit starting", flush=True)
             evidence.extend(live_audit_evidence(role, reports_dir))
-        if optimization_audit_enabled():
+            print(f"[swarm] {role}: live-readiness audit complete", flush=True)
+
+        if scope in ("full", "optimization") and optimization_audit_enabled():
+            print(f"[swarm] {role}: coin-optimization audit starting", flush=True)
             evidence.extend(optimization_audit_evidence(role, reports_dir))
-        if capital100_audit_enabled():
+            print(f"[swarm] {role}: coin-optimization audit complete", flush=True)
+
+        if scope in ("full", "capital100") and capital100_audit_enabled():
+            print(f"[swarm] {role}: capital-100 audit starting", flush=True)
             evidence.extend(capital100_audit_evidence(role, reports_dir))
-        if capital_budget_audit_enabled():
+            print(f"[swarm] {role}: capital-100 audit complete", flush=True)
+
+        if scope in ("full", "capitalbudget") and capital_budget_audit_enabled():
+            print(f"[swarm] {role}: capital-budget audit starting", flush=True)
             evidence.extend(capital_budget_audit_evidence(role, reports_dir))
+            print(f"[swarm] {role}: capital-budget audit complete", flush=True)
+
         report["verdict"] = "PASS"
         report["evidence"] = evidence
-        if role == "A09":
+        if role == "A09" and scope in ("full", "base"):
             report["gate"] = "QA_PASS"
-        if role == "A11":
+        if role == "A11" and scope in ("full", "base"):
             report["gate"] = "GOVERNANCE_PASS"
     except Exception as error:
         report["verdict"] = "FAIL"
@@ -2019,14 +2054,14 @@ def execute(role: str, reports_dir: Path | None) -> dict[str, Any]:
     report["finished_at_utc"] = datetime.now(UTC).isoformat()
     return report
 
-
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser()
     parser.add_argument("--role", required=True, choices=AGENT_IDS)
     parser.add_argument("--output", type=Path, required=True)
     parser.add_argument("--reports-dir", type=Path)
+    parser.add_argument("--scope", choices=AUDIT_SCOPES, default="full")
     args = parser.parse_args(argv)
-    report = execute(args.role, args.reports_dir)
+    report = execute(args.role, args.reports_dir, scope=args.scope)
     args.output.parent.mkdir(parents=True, exist_ok=True)
     serialized = json.dumps(report, indent=2, ensure_ascii=False) + "\n"
     args.output.write_text(serialized, encoding="utf-8")
