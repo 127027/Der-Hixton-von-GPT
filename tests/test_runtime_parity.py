@@ -142,6 +142,7 @@ def test_production_paper_and_portfolio_match_with_gaps_rounding_and_mixed_close
         at=start,
         strategy_key=strategy.key,
         strategy_version=strategy.version,
+        starting_cash_usdc=Decimal("250"),
     )
     events = process_points(
         path,
@@ -170,6 +171,7 @@ def test_production_paper_and_portfolio_match_with_gaps_rounding_and_mixed_close
         at=start,
         strategy_key=strategy.key,
         strategy_version=strategy.version,
+        starting_cash_usdc=Decimal("250"),
     )
     for stop in (850, 1600):
         process_points(
