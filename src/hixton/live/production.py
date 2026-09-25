@@ -561,7 +561,7 @@ class LivePortfolioController:
         executor: LiveOrderExecutor,
         reconciler: LiveBalanceReconciler,
         snapshot: Callable[[], LiveAccountSnapshot],
-        settings: Callable[[], tuple[int, Decimal, bool]],
+        settings: Callable[[], tuple[Decimal, bool]],
         rules: Callable[[], Mapping[str, ExecutionRules]],
         strategy: StrategyDefinition,
         release_check: Callable[[], bool],
@@ -583,6 +583,7 @@ class LivePortfolioController:
                     singleton INTEGER PRIMARY KEY CHECK(singleton=1),
                     account TEXT NOT NULL,
                     strategy_json TEXT NOT NULL,
+                    capital_json TEXT NOT NULL,
                     state TEXT NOT NULL,
                     entries_enabled INTEGER NOT NULL,
                     enabled_at TEXT NOT NULL,
@@ -622,9 +623,40 @@ class LivePortfolioController:
                 );
                 """
             )
+            columns = {
+                str(row["name"])
+                for row in connection.execute("PRAGMA table_info(live_control)").fetchall()
+            }
+            if "capital_json" not in columns:
+                connection.execute(
+                    "ALTER TABLE live_control ADD COLUMN capital_json TEXT NOT NULL DEFAULT ''"
+                )
+                connection.execute(
+                    "UPDATE live_control SET state='NEEDS_REVIEW',entries_enabled=0,"
+                    "reason='CAPITAL_PLAN_MIGRATION_REQUIRES_REVIEW' WHERE capital_json=''"
+                )
 
     def _strategy_json(self) -> str:
         return json.dumps(self.strategy.config_payload(), sort_keys=True, allow_nan=False)
+
+    @staticmethod
+    def _capital_json(plan: Any) -> str:
+        return json.dumps(
+            {
+                "max_capital_usdc": str(plan.max_capital_usdc),
+                "slot_count": plan.slot_count,
+                "target_notional_usdc": str(plan.target_notional_usdc),
+                "reserve_usdc": str(plan.reserve_usdc),
+                "allocation_policy": plan.allocation_policy,
+                "allocator_version": plan.version,
+            },
+            sort_keys=True,
+            allow_nan=False,
+        )
+
+    def _current_plan(self) -> tuple[Any, bool]:
+        max_capital, emergency = self.settings()
+        return capital_plan(max_capital), emergency
 
     def _control(self) -> sqlite3.Row | None:
         with self.journal._connect() as connection:
@@ -682,17 +714,27 @@ class LivePortfolioController:
         latest = {symbol: _utc(points[symbol][-1].candle.close_time_utc) for symbol in SYMBOLS}
         if len(set(latest.values())) != 1:
             raise RuntimeError("Live enable requires aligned closed bars")
+        plan, emergency = self._current_plan()
+        if emergency:
+            raise RuntimeError("Live enable refused while entry pause is active")
+        free_usdc = sum(snapshot.balances.get("USDC", (ZERO, ZERO)))
+        if free_usdc < plan.max_capital_usdc:
+            raise RuntimeError("Live account has less free USDC than configured max capital")
+        capital_json = self._capital_json(plan)
         self.reconciler.capture(snapshot, now=now)
         with self.lock, self.journal._connect() as connection:
             connection.execute("BEGIN IMMEDIATE")
             row = connection.execute("SELECT * FROM live_control WHERE singleton=1").fetchone()
             if row is None:
-                free_usdc = sum(snapshot.balances.get("USDC", (ZERO, ZERO)))
                 connection.execute(
-                    "INSERT INTO live_control VALUES(1,?,?,?,?,?,?,?,?,?)",
+                    "INSERT INTO live_control("
+                    "singleton,account,strategy_json,capital_json,state,entries_enabled,"
+                    "enabled_at,updated_at,day_start_date,day_start_equity,reason"
+                    ") VALUES(1,?,?,?,?,?,?,?,?,?,?)",
                     (
                         account,
                         self._strategy_json(),
+                        capital_json,
                         "LIVE_ENABLED",
                         1,
                         now.isoformat(),
@@ -711,6 +753,23 @@ class LivePortfolioController:
                 raise RuntimeError("Live account/strategy cannot change in place")
             if row["state"] == "NEEDS_REVIEW":
                 raise RuntimeError("Live ledger requires review before re-enable")
+            if row["capital_json"] != capital_json:
+                positions = self._positions()
+                unresolved = self.journal.unresolved_ids()
+                if row["state"] != "LIVE_DISABLED" or positions or unresolved:
+                    raise RuntimeError(
+                        "Live capital plan changed while ledger is active or unsettled"
+                    )
+                connection.execute(
+                    "UPDATE live_control SET capital_json=?,day_start_date=?,"
+                    "day_start_equity=?,updated_at=?,reason=NULL WHERE singleton=1",
+                    (
+                        capital_json,
+                        now.date().isoformat(),
+                        str(free_usdc),
+                        now.isoformat(),
+                    ),
+                )
             proof = self.reconciler.check(snapshot, now=now)
             if proof["passed"] is not True:
                 raise RuntimeError("Live account does not reconcile")
@@ -775,12 +834,11 @@ class LivePortfolioController:
                 or not self.release_check()
             ):
                 return False
-            slots, target, emergency = self.settings()
             try:
-                plan = capital_plan(target * slots)
+                plan, emergency = self._current_plan()
             except ValueError:
                 return False
-            if plan.slot_count != slots or plan.target_notional_usdc != target:
+            if control["capital_json"] != self._capital_json(plan):
                 return False
             if intent.side == "BUY":
                 if (
@@ -804,7 +862,7 @@ class LivePortfolioController:
                 free_usdc = sum(snapshot.balances.get("USDC", (ZERO, ZERO)))
                 return (
                     intent.symbol not in positions
-                    and used + intent.slot_count <= slots
+                    and used + intent.slot_count <= plan.slot_count
                     and free_usdc >= intent.quote_budget
                 )
             position = positions.get(intent.symbol)
@@ -1136,14 +1194,14 @@ class LivePortfolioController:
                 return self.report()
             if not healthy or set(points) != set(SYMBOLS):
                 return self.report()
-            slots, target, emergency = self.settings()
             try:
-                plan = capital_plan(target * slots)
+                plan, emergency = self._current_plan()
             except ValueError:
                 self.disable_entries()
                 return self.report()
-            if control["state"] == "LIVE_ENABLED" and (
-                slots != plan.slot_count or target != plan.target_notional_usdc
+            if (
+                control["state"] == "LIVE_ENABLED"
+                and control["capital_json"] != self._capital_json(plan)
             ):
                 self.disable_entries()
                 return self.report()
@@ -1244,8 +1302,7 @@ class LivePortfolioController:
         positions = self._positions()
         used = sum(int(row["slot_count"]) for row in positions.values())
         try:
-            slots, target, _emergency = self.settings()
-            plan = capital_plan(target * slots)
+            plan, _emergency = self._current_plan()
         except Exception:
             plan = capital_plan(Decimal("250"))
         return {

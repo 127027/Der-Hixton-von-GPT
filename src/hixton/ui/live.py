@@ -38,14 +38,10 @@ def install_live_routes(
     )
     app.state.live_preparation = service
 
-    def trading_settings() -> tuple[int, Decimal, bool]:
+    def trading_settings() -> tuple[Decimal, bool]:
         with PaperStore(config.database_path) as store:
             settings = store.load_settings()
-        return (
-            settings.slot_count,
-            settings.target_notional_usdc,
-            settings.emergency_stop,
-        )
+        return settings.max_capital_usdc, settings.emergency_stop
 
     def execution_rules() -> dict[str, ExecutionRules]:
         result: dict[str, ExecutionRules] = {}
@@ -114,6 +110,7 @@ def install_live_routes(
                     "target_notional_usdc": str(settings.target_notional_usdc),
                     "reserve_usdc": str(settings.reserve_usdc),
                     "allocation_policy": settings.allocation_policy,
+                    "allocator_version": settings.plan.version,
                 }
                 shared = {**preview, "emergency_stop": settings.emergency_stop}
         except (RuntimeError, sqlite3.DatabaseError, KeyError):

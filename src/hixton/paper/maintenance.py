@@ -12,6 +12,7 @@ from pathlib import Path
 from uuid import uuid4
 
 from hixton.config import ProjectConfig
+from hixton.domain.capital import DEFAULT_MAX_CAPITAL_USDC, capital_plan
 from hixton.domain.versions import strategy_definition
 
 # Never enumerate and delete arbitrary tables. Unknown future Paper state blocks reset.
@@ -49,12 +50,11 @@ def fresh_start_paper(
     if not strategy.paper_approved:
         raise ValueError("strategy is not approved for paper")
     if (
-        config.paper_starting_cash_usdc != 250
-        or config.paper_max_capital_usdc != 250
-        or config.paper_slot_count != 2
-        or config.paper_target_notional_usdc != 125
+        config.paper_starting_cash_usdc != DEFAULT_MAX_CAPITAL_USDC
+        or config.paper_max_capital_usdc != DEFAULT_MAX_CAPITAL_USDC
     ):
         raise ValueError("fresh start requires the canonical 250-USDC max-capital plan")
+    plan = capital_plan(config.paper_max_capital_usdc)
     database = config.database_path.resolve(strict=True)
     archive = archive.resolve()
     backup_root = (project_root / "backups").resolve()
@@ -123,8 +123,13 @@ def fresh_start_paper(
                     (moment[:10], moment, moment),
                 )
                 connection.execute(
-                    "INSERT INTO paper_settings VALUES (1, '250.00', 2, '125.00', 0, ?)",
-                    (moment,),
+                    "INSERT INTO paper_settings VALUES (1, ?, ?, ?, 0, ?)",
+                    (
+                        str(plan.max_capital_usdc),
+                        plan.slot_count,
+                        str(plan.target_notional_usdc),
+                        moment,
+                    ),
                 )
                 connection.execute(
                     "INSERT INTO paper_strategy_state VALUES (1, ?, ?, ?, '250.00')",

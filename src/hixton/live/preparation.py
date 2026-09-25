@@ -116,7 +116,7 @@ class LivePreparation:
         self,
         strategy: StrategyDefinition,
         *,
-        settings_provider: Callable[[], tuple[int, Decimal, bool]],
+        settings_provider: Callable[[], tuple[Decimal, bool]],
         rules_provider: Callable[[], Mapping[str, ExecutionRules]],
     ) -> TrialRuntime:
         """Wire both durable execution runtimes without enabling either one."""
