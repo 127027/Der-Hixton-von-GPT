@@ -96,7 +96,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        role: [A01, A02, A03, A04, A05, A06, A07, A08]
+        role: [A01, A03, A04, A05, A06, A07, A08]
     runs-on: ubuntu-latest
     timeout-minutes: 90
     steps:
@@ -156,9 +156,124 @@ jobs:
           retention-days: 14
           if-no-files-found: error
 
+
+  # A02 carries the three compute-heavy release proofs. Run them independently
+  # so one slow exact-3Y/optimization segment cannot serialize the whole swarm.
+  a02-segments:
+    needs: prepare-state
+    strategy:
+      fail-fast: false
+      matrix:
+        scope: [base, live, optimization]
+    runs-on: ubuntu-latest
+    timeout-minutes: 75
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ env.BASE_BRANCH }}
+          fetch-depth: 0
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+      - name: Build isolated A02 ${{ matrix.scope }} environment
+        shell: bash
+        run: |
+          set -euo pipefail
+          python -m venv .venv
+          .venv/bin/python -m pip install --upgrade pip
+          .venv/bin/pip install -e '.[dev]'
+      - name: Run A02 ${{ matrix.scope }} segment
+        shell: bash
+        run: |
+          set -o pipefail
+          mkdir -p partials
+          .venv/bin/python -m scripts.cloud_swarm_agent \
+            --role A02 \
+            --scope "${{ matrix.scope }}" \
+            --output "partials/A02-${{ matrix.scope }}.json"
+      - name: Persist A02 ${{ matrix.scope }} segment
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: swarm-partial-A02-${{ matrix.scope }}-${{ github.run_id }}
+          path: partials/A02-${{ matrix.scope }}.json
+          retention-days: 14
+          if-no-files-found: error
+
+  a02-aggregate:
+    needs: a02-segments
+    if: always() && needs.a02-segments.result != 'cancelled'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: swarm-partial-A02-*-${{ github.run_id }}
+          path: partials
+          merge-multiple: true
+      - name: Merge parallel A02 evidence
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p reports
+          python - <<'PY'
+          import json
+          import sys
+          from pathlib import Path
+
+          paths = sorted(Path("partials").rglob("A02-*.json"))
+          if len(paths) != 3:
+              raise SystemExit(f"expected 3 A02 segment reports, got {len(paths)}: {paths}")
+          parts = [json.loads(path.read_text(encoding="utf-8")) for path in paths]
+          evidence = []
+          for part in parts:
+              value = part.get("evidence")
+              if isinstance(value, list):
+                  evidence.extend(value)
+          failed = [part for part in parts if part.get("verdict") != "PASS"]
+          report = {
+              "schema_version": 2,
+              "agent": "A02",
+              "audit_scope": "parallel-full",
+              "started_at_utc": min(str(part["started_at_utc"]) for part in parts),
+              "finished_at_utc": max(str(part["finished_at_utc"]) for part in parts),
+              "execution_mode": "DETERMINISTIC_KEY_FREE",
+              "openai_api_key_required": False,
+              "binance_private_credentials_required": False,
+              "real_money_orders_allowed": False,
+              "testnet_orders_allowed": False,
+              "verdict": "FAIL" if failed else "PASS",
+              "evidence": evidence,
+              "segments": {
+                  str(part.get("audit_scope")): str(part.get("verdict"))
+                  for part in parts
+              },
+          }
+          if failed:
+              report["error"] = "; ".join(
+                  f"{part.get('audit_scope')}: {part.get('error', 'unknown failure')}"
+                  for part in failed
+              )
+          Path("reports/A02.json").write_text(
+              json.dumps(report, indent=2, ensure_ascii=False) + "\n",
+              encoding="utf-8",
+          )
+          print(json.dumps(report, indent=2, ensure_ascii=False))
+          sys.exit(0 if not failed else 1)
+          PY
+      - name: Persist merged A02 evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: swarm-report-A02-${{ github.run_id }}
+          path: reports/A02.json
+          retention-days: 14
+          if-no-files-found: error
+
   supervisor-a10:
-    needs: specialists
-    if: always() && needs.specialists.result != 'cancelled'
+    needs: [specialists, a02-aggregate]
+    if: always() && needs.specialists.result != 'cancelled' && needs.a02-aggregate.result != 'cancelled'
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
