@@ -192,6 +192,7 @@ def test_trial_route_requires_explicit_one_by_fifty_settings_and_never_bypasses(
         "target_notional_usdc": "125.00",
         "reserve_usdc": "0.00",
         "allocation_policy": "ranked_repeat",
+        "allocator_version": "CAPITAL-V1-2X50PCT",
     }
     assert status["trial"]["state"] == "NOT_STARTED"
     assert service.trial is not None and service.runtime is not None
