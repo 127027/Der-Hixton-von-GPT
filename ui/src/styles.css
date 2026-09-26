@@ -71,7 +71,7 @@ h2 { font-size: 1.25rem; }
 .button { border: 1px solid var(--border); border-radius: 8px; padding: 10px 14px; cursor: pointer; font-weight: 600; }
 .button.secondary { background: var(--panel-2); }
 .button.primary { background: var(--green); color: #07110e; border-color: var(--green); }
-.button:disabled { opacity: .45; cursor: wait; }
+.button:disabled { opacity: .45; cursor: not-allowed; }
 
 .market-grid { display: grid; grid-template-columns: repeat(5, minmax(160px, 1fr)); gap: 12px; }
 .market-card { padding: 16px; cursor: pointer; transition: .18s ease; min-height: 150px; }
