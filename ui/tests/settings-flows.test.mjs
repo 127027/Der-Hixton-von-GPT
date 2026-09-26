@@ -148,7 +148,7 @@ test("live state selection follows server acknowledgement, rejects false green a
 test("shared entry pause is visible, editable and blocks live until explicitly cleared",async()=>{
   const ui=harness(()=>{});const writes=[];
   const settings=initializeTradingSettings(async value=>{writes.push(value);return value;},()=>{});
-  const limits={min_capital_usdc:"100.00",max_capital_usdc:"1000.00",allocator_version:"CAPITAL-V1-2X50PCT"};
+  const limits={min_capital_usdc:"100.00",max_capital_usdc:"1000000.00",research_reference_max_usdc:"1000.00",allocator_version:"CAPITAL-V1-2X50PCT"};
   try {
     settings.render({
       max_capital_usdc:"250.00",slot_count:2,target_notional_usdc:"125.00",reserve_usdc:"0.00",
@@ -165,7 +165,7 @@ test("shared entry pause is visible, editable and blocks live until explicitly c
   } finally {ui.restore();}
 });
 
-test("250 and 1000 USDC maximum budgets can be saved through the single field",async()=>{
+test("250 and 500000 USDC maximum budgets use the single field and derived allocator",async()=>{
   const ui=harness(()=>{});const writes=[];
   const settings=initializeTradingSettings(
     async value=>{writes.push(value);return value;},
@@ -173,7 +173,8 @@ test("250 and 1000 USDC maximum budgets can be saved through the single field",a
   );
   const limits={
     min_capital_usdc:"100.00",
-    max_capital_usdc:"1000.00",
+    max_capital_usdc:"1000000.00",
+    research_reference_max_usdc:"1000.00",
     allocator_version:"CAPITAL-V1-2X50PCT",
   };
   try {
@@ -182,7 +183,7 @@ test("250 and 1000 USDC maximum budgets can be saved through the single field",a
       reserve_usdc:"0.00",allocation_policy:"ranked_repeat",
       allocator_version:"CAPITAL-V1-2X50PCT",emergency_stop:false,
     },limits);
-    for(const amount of ["250","1000"]) {
+    for(const amount of ["250","500000"]) {
       ui.node("capital-input").value=amount;
       await ui.node("capital-input").fire("input");
       await ui.node("trading-form").fire("submit");
@@ -192,8 +193,9 @@ test("250 and 1000 USDC maximum budgets can be saved through the single field",a
     assert.equal(writes.length,2);
     assert.equal(writes[0].slot_count,2);
     assert.equal(writes[0].target_notional_usdc,"125.00");
-    assert.equal(writes[1].target_notional_usdc,"500.00");
-    assert.match(ui.node("live-plan").textContent,/1.000,00 USDC/);
+    assert.equal(writes[1].target_notional_usdc,"250000.00");
+    assert.match(ui.node("live-plan").textContent,/500.000,00 USDC/);
+    assert.match(ui.node("live-plan").textContent,/Forschungsreferenz/);
   } finally {ui.restore();}
 });
 
@@ -211,7 +213,8 @@ test("one submit derives 2x125, preserves draft across polls and blocks duplicat
   };
   const limits={
     min_capital_usdc:"100.00",
-    max_capital_usdc:"1000.00",
+    max_capital_usdc:"1000000.00",
+    research_reference_max_usdc:"1000.00",
     allocator_version:"CAPITAL-V1-2X50PCT",
   };
   try {
@@ -242,7 +245,8 @@ test("save failure and invalid budget stay visible without reverting the user's 
   );
   const limits={
     min_capital_usdc:"100.00",
-    max_capital_usdc:"1000.00",
+    max_capital_usdc:"1000000.00",
+    research_reference_max_usdc:"1000.00",
     allocator_version:"CAPITAL-V1-2X50PCT",
   };
   try {
