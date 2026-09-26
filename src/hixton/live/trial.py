@@ -10,11 +10,12 @@ import json
 from collections.abc import Callable, Mapping, Sequence
 from dataclasses import asdict
 from datetime import UTC, datetime
-from decimal import Decimal
+from decimal import ROUND_DOWN, Decimal
 from threading import RLock
 from typing import Any
 from uuid import UUID
 
+from hixton.backtest.models import ExecutionRules
 from hixton.domain.markets import split_market
 from hixton.domain.models import IndicatorPoint, SignalAction
 from hixton.domain.strategy import entry_priority
@@ -49,6 +50,7 @@ class SignalTrial:
         executor: TrialOrderExecutor,
         strategy: StrategyDefinition,
         release_check: Callable[[], bool],
+        rules_provider: Callable[[], Mapping[str, ExecutionRules]] | None = None,
     ) -> None:
         if executor.journal.path.resolve() != journal.path.resolve():
             raise ValueError("Trial and order journal must share the same ledger")
@@ -56,6 +58,7 @@ class SignalTrial:
         self.executor = executor
         self.strategy = strategy
         self.release_check = release_check
+        self.rules_provider = rules_provider
         self.lock = RLock()
         with journal._connect() as connection:
             connection.execute("""
@@ -67,10 +70,19 @@ class SignalTrial:
                     buy_id TEXT UNIQUE, sell_id TEXT UNIQUE, symbol TEXT,
                     entry_signal_json TEXT, exit_signal_json TEXT,
                     entry_price TEXT, entry_atr TEXT, owned_quantity TEXT,
+                    residual_quantity TEXT NOT NULL DEFAULT '0',
                     highest_close TEXT, last_exit_bar TEXT,
                     reason TEXT, completed_at TEXT
                 )
             """)
+            columns = {
+                str(row["name"])
+                for row in connection.execute("PRAGMA table_info(signal_trial)").fetchall()
+            }
+            if "residual_quantity" not in columns:
+                connection.execute(
+                    "ALTER TABLE signal_trial ADD COLUMN residual_quantity TEXT NOT NULL DEFAULT '0'"
+                )
 
     def _row(self) -> dict[str, Any] | None:
         with self.journal._connect() as connection:
@@ -144,6 +156,7 @@ class SignalTrial:
             "entry_price",
             "entry_atr",
             "owned_quantity",
+            "residual_quantity",
             "highest_close",
             "last_exit_bar",
             "completed_at",
@@ -214,9 +227,35 @@ class SignalTrial:
                 connection, row["trial_id"], "ENTRY_RESERVED" if entry else "EXIT_RESERVED"
             )
 
+    def _execution_rules(self, symbol: str) -> ExecutionRules | None:
+        if self.rules_provider is None:
+            return None
+        rules = self.rules_provider()
+        return rules.get(symbol)
+
+    @staticmethod
+    def _round_down(quantity: Decimal, step: Decimal) -> Decimal:
+        if step <= 0:
+            return quantity
+        return (quantity / step).to_integral_value(rounding=ROUND_DOWN) * step
+
     def _drive_order(self, row: dict[str, Any], now: datetime) -> None:
         entry = row["state"] == "ENTRY_PENDING"
         signal = json.loads(row["entry_signal_json"] if entry else row["exit_signal_json"])
+        sell_quantity = Decimal(0)
+        if not entry:
+            owned = Decimal(row["owned_quantity"])
+            rules = self._execution_rules(str(row["symbol"]))
+            sell_quantity = owned
+            if rules is not None:
+                sell_quantity = self._round_down(owned, rules.step_size)
+                if sell_quantity < rules.min_qty:
+                    self._set(
+                        from_state="EXIT_PENDING",
+                        state="NEEDS_REVIEW",
+                        reason="EXIT_BELOW_MINIMUM_REQUIRES_REVIEW",
+                    )
+                    return
         intent = TrialIntent(
             row["buy_id"] if entry else row["sell_id"],
             row["account"],
@@ -225,7 +264,7 @@ class SignalTrial:
             self.strategy.version,
             Decimal(signal["reference_price"]),
             quote_budget=Decimal("50") if entry else Decimal(0),
-            base_quantity=Decimal(0) if entry else Decimal(row["owned_quantity"]),
+            base_quantity=Decimal(0) if entry else sell_quantity,
         )
         self.journal.create(intent)
         _, state = self.journal.load(intent.intent_id)
@@ -265,8 +304,12 @@ class SignalTrial:
             owned = Decimal(row["owned_quantity"])
             fees = summary["fees_by_asset"]
             assert isinstance(fees, dict)
-            consumed = sold + Decimal(str(fees.get(split_market(row["symbol"])[0], "0")))
-            if consumed != owned:
+            base = split_market(row["symbol"])[0]
+            consumed = sold + Decimal(str(fees.get(base, "0")))
+            remaining = owned - consumed
+            rules = self._execution_rules(str(row["symbol"]))
+            dust_limit = max(rules.step_size, rules.min_qty) if rules is not None else Decimal(0)
+            if remaining < 0 or (remaining > 0 and (rules is None or remaining >= dust_limit)):
                 self._set(
                     from_state="EXIT_PENDING",
                     state="NEEDS_REVIEW",
@@ -277,6 +320,7 @@ class SignalTrial:
                 self._set(
                     from_state="EXIT_PENDING",
                     state="AWAITING_RECONCILIATION",
+                    residual_quantity=str(remaining),
                     reason="ACCOUNT_CHECK_REQUIRED",
                 )
 
@@ -454,6 +498,7 @@ class SignalTrial:
             "entry_signal": json.loads(row["entry_signal_json"] or "null"),
             "exit_signal": json.loads(row["exit_signal_json"] or "null"),
             "account_reconciled": row["state"] == "COMPLETED",
+            "residual_quantity": row["residual_quantity"] or "0",
         }
         for label in ("buy", "sell"):
             identity = row[label + "_id"]
