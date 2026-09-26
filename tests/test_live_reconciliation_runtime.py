@@ -237,7 +237,12 @@ def test_reconciliation_never_accepts_unproved_balances(tmp_path, case):
         with pytest.raises((ValueError, RuntimeError)):
             runtime.reconciler.check(snapshot, now=NOW)
     else:
-        assert runtime.reconciler.check(snapshot, now=NOW)["balances_match"] is False
+        proof = runtime.reconciler.check(snapshot, now=NOW)
+        assert proof["passed"] is False
+        if case == "balance":
+            assert proof["balances_match"] is False
+        else:
+            assert proof["balances_match"] is True
 
 
 def test_no_inactive_or_stopped_runtime_network_and_immutable_baseline(tmp_path):
@@ -245,9 +250,11 @@ def test_no_inactive_or_stopped_runtime_network_and_immutable_baseline(tmp_path)
     runtime = make_runtime(tmp_path / "trial.sqlite3", fixture)
     runtime.tick({}, now=NOW, healthy=True, entries_allowed=True)
     runtime.reconciler.capture(fixture.snapshot(), now=NOW)
-    with pytest.raises(RuntimeError, match="replaced"):
-        runtime.reconciler.capture(fixture.snapshot(), now=NOW)
+    # A baseline that is not yet bound to a trial/order can be refreshed safely.
+    runtime.reconciler.capture(fixture.snapshot(), now=NOW)
     runtime.trial.arm(str(uuid4()), "fixture", now=NOW - timedelta(seconds=2), notional=D(50))
+    with pytest.raises(RuntimeError, match="active trial"):
+        runtime.reconciler.capture(fixture.snapshot(), now=NOW)
     runtime.stop()
     assert (
         runtime.tick(universe(), now=NOW, healthy=True, entries_allowed=True)["state"]
