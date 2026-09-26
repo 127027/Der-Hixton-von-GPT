@@ -85,7 +85,7 @@ def compare_run(
         if is_portfolio
         else "Isolierte Coin-Diagnose: je 250, keine Slotkonkurrenz und "
         "kein permanenter Portfolio-Drawdown-Halt. "
-        "Kein vollständiger Spiegel des 3x80-Betriebs."
+        "Kein vollständiger Spiegel des gemeinsamen Portfolio-Modells."
     )
     continuity_note = (
         " Drei-Jahres-Strategie-Kontinuität: dieselbe aktive USDC-Strategie, dasselbe Konto-, "
