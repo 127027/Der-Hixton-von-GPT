@@ -87,7 +87,9 @@ class SignalTrial:
             if row["state"] != "CANCELED":
                 return False
             if connection.execute("SELECT 1 FROM trial_intents LIMIT 1").fetchone() is not None:
-                raise RuntimeError("Canceled trial has order history and cannot be reset automatically")
+                raise RuntimeError(
+                    "Canceled trial has order history and cannot be reset automatically"
+                )
             old_id = str(row["trial_id"])
             connection.execute("DELETE FROM signal_trial WHERE singleton=1")
             self.journal._audit(connection, old_id, "TRIAL_RESET_BEFORE_ORDER")
