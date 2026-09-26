@@ -34,11 +34,11 @@ Historical Git content must not be interpreted as an active product requirement.
 - Product strategy: current V6 only.
 - Canonical V6 source: src/hixton/domain/versions.py.
 - Config stores only strategy.key = v6; no duplicated version/profile snapshot.
-- Public Binance USDC market data; Paper-only execution.
-- Main acceptance model: shared 250 USDC, 3×80, ranked_repeat.
+- Public Binance USDC market data; Paper plus guarded local Live execution with a separate controlled 1×50-USDC first roundtrip.
+- Main acceptance model: one saved `max_capital_usdc`; `CAPITAL-V1-2X50PCT` derives two `ranked_repeat` tranches at 50% each (default 250 → 2×125).
 - 10×250 is per-coin diagnostic research, not main account capital.
 - No permanent portfolio drawdown halt; 5% UTC-day pause and technical safety gates remain.
-- Real/testnet orders and automatic strategy activation/merge are prohibited.
+- Cloud/agent runs may never send real/testnet orders. Local real-money execution remains fail-closed and starts only through the explicit controlled 1×50-USDC gate; automatic strategy activation/merge is prohibited.
 
 ## Agent workflow
 
