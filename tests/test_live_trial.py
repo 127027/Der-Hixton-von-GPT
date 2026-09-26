@@ -9,6 +9,7 @@ from uuid import uuid4
 
 import pytest
 
+from hixton.backtest.models import ExecutionRules
 from hixton.constants import SYMBOLS
 from hixton.domain.versions import V6_COIN_STRATEGY as V6
 from hixton.live.orders import ExchangeFill, ExchangeOrder, OrderJournal, TrialOrderExecutor
@@ -109,6 +110,58 @@ def test_ten_simultaneous_signals_reserve_one_entry_in_dms_rank_order(tmp_path):
         controller.advance(points, now=NOW, healthy=True)
     assert controller.report()["symbol"] == "BTCUSDC"
     assert len(exchange.submits) == 1 and exchange.submits[0].quote_budget == D("50")
+
+
+def test_trial_exit_rounds_owned_quantity_and_tracks_only_sub_step_dust(tmp_path: Path) -> None:
+    journal = OrderJournal(tmp_path / "dust-safe.sqlite3")
+
+    class BaseFeeExchange(Exchange):
+        def submit(self, intent):
+            self.submits.append(intent)
+            if intent.side == "BUY":
+                quantity = D("0.5")
+                price = D("100")
+                fee = ExchangeFill("1", quantity, price, D("0.000123"), "SOL")
+            else:
+                quantity = intent.base_quantity
+                price = D("105")
+                fee = ExchangeFill("2", quantity, price, D("0"), "USDC")
+            order = ExchangeOrder(
+                intent.client_order_id,
+                str(len(self.submits)),
+                intent.symbol,
+                intent.side,
+                "FILLED",
+                quantity,
+                quantity * price,
+                (fee,),
+            )
+            self.orders[intent.client_order_id] = order
+            return order
+
+    exchange = BaseFeeExchange()
+    rules = {
+        symbol: ExecutionRules(step_size=D("0.001"), min_qty=D("0.001"), min_notional=D("5"))
+        for symbol in SYMBOLS
+    }
+    controller = SignalTrial(
+        journal,
+        TrialOrderExecutor(journal, exchange, lambda _: True),
+        V6,
+        lambda: True,
+        lambda: rules,
+    )
+    arm(controller)
+    open_position(controller, universe(buy_symbol="SOLUSDC"))
+    assert controller.report()["owned_quantity"] == "0.499877"
+    later = NOW + timedelta(hours=1)
+    exit_points = universe(later, buy_symbol=None, sell_symbol="SOLUSDC")
+    assert controller.advance(exit_points, now=later, healthy=True)["state"] == "EXIT_PENDING"
+    report = controller.advance(exit_points, now=later, healthy=True)
+    assert report["state"] == "AWAITING_RECONCILIATION"
+    assert exchange.submits[-1].side == "SELL"
+    assert exchange.submits[-1].base_quantity == D("0.499")
+    assert D(report["residual_quantity"]) == D("0.000877")
 
 
 def test_concurrent_arm_is_a_single_global_entitlement(tmp_path):
