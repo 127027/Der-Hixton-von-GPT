@@ -154,6 +154,7 @@ def assess_account(
     if not isinstance(orders, list) or not isinstance(account.get("balances"), list):
         raise BinanceCheckError("Unvollständige Binance-Order-/Saldoantwort.")
     blockers: list[str] = []
+    warnings: list[str] = []
     allowed = {"enableReading", "enableSpotAndMarginTrading", "ipRestrict"}
     forbidden = {
         "enableWithdrawals",
@@ -198,11 +199,12 @@ def assess_account(
         if asset not in {quote_asset, "BNB"} and free + locked > 0
     ]
     if foreign:
-        blockers.append(
-            "Fremdbestände vorhanden: "
+        warnings.append(
+            "Vorbestehende Spot-Bestände erkannt: "
             + ", ".join(sorted(foreign))
-            + ". Vorhandene Bestände müssen vom Bot-Bestand getrennt werden; "
-            "nicht allein wegen dieser Meldung verkaufen."
+            + ". Kein Blocker: Hixton übernimmt oder verkauft diese Bestände nicht. "
+            "Sie bleiben Teil der unveränderlichen Konto-Baseline; manuelle Änderungen "
+            "während eines scharfen Echtgeldlaufs sperren neue Orders beim Abgleich."
         )
     free_quote = balances.get(quote_asset, (Decimal(0), Decimal(0)))[0]
     if free_quote < notional + Decimal("10"):
@@ -251,6 +253,7 @@ def assess_account(
             {"asset": asset, "free": str(balances[asset][0]), "locked": str(balances[asset][1])}
             for asset in sorted(foreign)
         ],
+        "warnings": warnings,
         "blockers": blockers,
         "quote_asset": quote_asset,
         "free_quote": str(free_quote),
