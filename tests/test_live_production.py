@@ -10,6 +10,7 @@ from pathlib import Path
 from hixton.backtest.models import ExecutionRules
 from hixton.constants import SYMBOLS
 from hixton.domain.versions import V6_COIN_STRATEGY as V6
+from hixton.live.exchange import ExchangeRequestError
 from hixton.live.orders import ExchangeFill, ExchangeOrder
 from hixton.live.production import (
     LiveAccountSnapshot,
@@ -197,6 +198,41 @@ def test_live_intent_accepts_only_two_budget_slots_and_explicit_quote() -> None:
             pass
         else:
             raise AssertionError("unsafe Live budget was accepted")
+
+
+def test_definitive_live_order_rejection_is_terminal_and_never_retried(tmp_path: Path) -> None:
+    journal = LiveOrderJournal(tmp_path / "live-orders.sqlite3")
+    intent = LiveIntent(
+        "definitive-reject",
+        "account",
+        "BTCUSDC",
+        "BUY",
+        V6.version,
+        D("100"),
+        1,
+        quote_budget=D("125"),
+    )
+    journal.create(intent)
+
+    class RejectingExchange:
+        def __init__(self) -> None:
+            self.submits = 0
+            self.queries = 0
+
+        def submit(self, supplied: LiveIntent) -> ExchangeOrder:
+            assert supplied == intent
+            self.submits += 1
+            raise ExchangeRequestError(-1013, 400, definitely_rejected=True)
+
+        def query(self, supplied: LiveIntent) -> ExchangeOrder | None:
+            self.queries += 1
+            raise AssertionError("definitively rejected Live order must never be queried")
+
+    exchange = RejectingExchange()
+    executor = LiveOrderExecutor(journal, exchange, lambda _: True)
+    assert executor.execute(intent.intent_id) == "REJECTED"
+    assert executor.execute(intent.intent_id) == "REJECTED"
+    assert exchange.submits == 1 and exchange.queries == 0
 
 
 def test_ranked_repeat_two_slots_is_one_bounded_market_order(tmp_path: Path) -> None:
