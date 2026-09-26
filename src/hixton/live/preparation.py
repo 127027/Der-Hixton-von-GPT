@@ -193,6 +193,7 @@ class LivePreparation:
             strategy,
             lambda: self._trial_authorized
             and bool(self.credentials.status()["configured"]),
+            rules_provider,
         )
         self.runtime = TrialRuntime(self.trial, self.trial_reconciler, self._account_snapshot)
         self._trial_authorized = bool(self.trial.report().get("has_unsettled"))
