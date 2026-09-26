@@ -89,6 +89,60 @@ class LivePreparation:
             return None
         return self._check
 
+    def _cache_check(self, result: dict[str, object]) -> dict[str, object]:
+        self._check = {**result, "checked_at_utc": datetime.now(UTC).isoformat()}
+        self._check_time = time.monotonic()
+        return dict(self._check)
+
+    def _action_check(
+        self,
+        *,
+        trade_notional: Decimal,
+        minimum_free_quote: Decimal,
+        audit_prefix: str,
+    ) -> dict[str, object]:
+        """Run/reuse a sufficient read-only preflight inside the explicit action."""
+        fresh = self._fresh_check()
+        if fresh is not None and fresh.get("account_checks_passed") is True:
+            try:
+                checked = Decimal(str(fresh.get("checked_trade_notional", "0")))
+                minimum = Decimal(str(fresh.get("minimum_free_quote", "0")))
+            except Exception:
+                checked = Decimal(0)
+                minimum = Decimal(0)
+            if checked >= trade_notional and minimum >= minimum_free_quote:
+                return fresh
+        credentials = self.credentials.load()
+        if credentials is None:
+            raise BinanceCheckError("Binance API-Schlüssel fehlt. Bitte lokal sicher eintragen.")
+        self.audit(audit_prefix + "_PREFLIGHT_REQUESTED")
+        try:
+            result = self.client_factory(credentials).inspect(
+                trade_notional,
+                minimum_free_quote=minimum_free_quote,
+            )
+        except BinanceCheckError:
+            self.audit(audit_prefix + "_PREFLIGHT_FAILED")
+            raise
+        cached = self._cache_check(result)
+        self.audit(
+            audit_prefix + "_PREFLIGHT_COMPLETE",
+            {
+                "passed": result.get("account_checks_passed") is True,
+                "fingerprint": credentials.fingerprint,
+                "trade_notional": str(trade_notional),
+                "minimum_free_quote": str(minimum_free_quote),
+            },
+        )
+        if result.get("account_checks_passed") is not True:
+            blockers = result.get("blockers")
+            detail = "; ".join(str(item) for item in blockers) if isinstance(blockers, list) else ""
+            raise BinanceCheckError(
+                "Binance-Kontovorprüfung blockiert diese Freigabe."
+                + (f" {detail}" if detail else "")
+            )
+        return cached
+
     def _trial_pre_submit(self, intent: TrialIntent) -> bool:
         if not self._trial_authorized or self.trial_reconciler is None:
             return False
@@ -105,7 +159,9 @@ class LivePreparation:
                 credentials = self.credentials.load()
                 if credentials is None:
                     return False
-                result = self.client_factory(credentials).inspect(Decimal("50"))
+                result = self.client_factory(credentials).inspect(
+                    Decimal("50"), minimum_free_quote=Decimal("50")
+                )
                 return result.get("account_checks_passed") is True
             base = intent.symbol.removesuffix("USDC")
             return snapshot.balances.get(base, (Decimal(0), Decimal(0)))[0] >= intent.base_quantity
@@ -242,13 +298,14 @@ class LivePreparation:
             self._next_check = time.monotonic() + 30
             self.audit("BINANCE_READ_ONLY_CHECK_REQUESTED")
             try:
-                result = self.client_factory(credentials).inspect(Decimal("50"))
+                result = self.client_factory(credentials).inspect(
+                    Decimal("50"), minimum_free_quote=Decimal("60")
+                )
             except BinanceCheckError as error:
                 self._next_check = max(self._next_check, time.monotonic() + error.retry_after)
                 self.audit("BINANCE_READ_ONLY_CHECK_FAILED")
                 raise
-            self._check = {**result, "checked_at_utc": datetime.now(UTC).isoformat()}
-            self._check_time = time.monotonic()
+            cached = self._cache_check(result)
             self.audit(
                 "BINANCE_READ_ONLY_CHECK_COMPLETE",
                 {
@@ -256,7 +313,7 @@ class LivePreparation:
                     "fingerprint": credentials.fingerprint,
                 },
             )
-            return dict(self._check)
+            return cached
 
     def start_trial(
         self,
@@ -271,26 +328,63 @@ class LivePreparation:
             # execution tick before a future signal can reach the order adapter.
             if emergency_stop:
                 raise BinanceCheckError("Einstiegspause ist aktiv; 50-USDC-Test bleibt gesperrt")
-            fresh = self._fresh_check()
-            if fresh is None or fresh.get("account_checks_passed") is not True:
-                raise BinanceCheckError("Zuerst eine frische Binance-Kontoprüfung durchführen")
-            if self.trial.report()["state"] != "NOT_STARTED":
-                raise BinanceCheckError("Der kontrollierte 50-USDC-Test wurde bereits angelegt")
+            state = str(self.trial.report()["state"])
+            if state == "CANCELED":
+                try:
+                    self.trial.prepare_retry()
+                except RuntimeError as error:
+                    raise BinanceCheckError(
+                        "Abgebrochener Test enthält bereits Orderhistorie und benötigt Abgleich."
+                    ) from error
+                state = str(self.trial.report()["state"])
+            if state != "NOT_STARTED":
+                raise BinanceCheckError(
+                    f"Der kontrollierte 50-USDC-Test ist bereits im Zustand {state}."
+                )
             if self.live is not None and self.live.report()["state"] != "LIVE_DISABLED":
                 raise BinanceCheckError("Kontinuierlicher Livebetrieb ist bereits aktiv")
+            self._action_check(
+                trade_notional=Decimal("50"),
+                minimum_free_quote=Decimal("60"),
+                audit_prefix="CONTROLLED_50_USDC",
+            )
             credentials = self.credentials.load()
             if credentials is None:
                 raise BinanceCheckError("Binance-Schlüssel fehlt")
-            snapshot = self._account_snapshot()
-            self.trial_reconciler.capture(snapshot, now=datetime.now(UTC))
+            try:
+                snapshot = self._account_snapshot()
+            except Exception as error:
+                self.audit("CONTROLLED_50_USDC_BASELINE_READ_FAILED")
+                raise BinanceCheckError(
+                    "Kontobaseline konnte nicht stabil gelesen werden; bitte erneut versuchen."
+                ) from error
+            try:
+                self.trial_reconciler.capture(snapshot, now=datetime.now(UTC))
+            except (RuntimeError, ValueError, sqlite3.DatabaseError) as error:
+                self.audit("CONTROLLED_50_USDC_BASELINE_CAPTURE_FAILED")
+                raise BinanceCheckError(
+                    "Kontobaseline konnte nicht sicher vorbereitet werden; "
+                    "es wurde keine Order ausgelöst. Erneuter Start ist vor einer Order sicher möglich."
+                ) from error
             self._trial_authorized = True
-            self.trial.arm(
-                str(uuid4()),
-                credentials.fingerprint,
-                now=datetime.now(UTC),
-                notional=Decimal("50"),
+            try:
+                self.trial.arm(
+                    str(uuid4()),
+                    credentials.fingerprint,
+                    now=datetime.now(UTC),
+                    notional=Decimal("50"),
+                )
+            except (RuntimeError, ValueError, sqlite3.DatabaseError) as error:
+                self._trial_authorized = bool(self.trial.report().get("has_unsettled"))
+                self.audit("CONTROLLED_50_USDC_ARM_FAILED")
+                raise BinanceCheckError(
+                    "50-USDC-Test konnte vor der ersten Order nicht scharfgeschaltet werden; "
+                    "der Vorbereitungszustand ist wiederholbar."
+                ) from error
+            self.audit(
+                "CONTROLLED_50_USDC_TRIAL_ARMED",
+                {"runtime_health_at_arm": "HEALTHY" if healthy else "DEGRADED"},
             )
-            self.audit("CONTROLLED_50_USDC_TRIAL_ARMED")
             return self.trial.report()
 
     def enable_live(
@@ -298,7 +392,6 @@ class LivePreparation:
         points: Mapping[str, tuple[IndicatorPoint, ...]],
         *,
         healthy: bool,
-        soak_ready: bool,
         max_capital: Decimal,
         emergency_stop: bool,
     ) -> dict[str, object]:
@@ -307,8 +400,6 @@ class LivePreparation:
                 raise BinanceCheckError("Produktive Live-Runtime fehlt")
             if not healthy:
                 raise BinanceCheckError("Marktdaten/Bot sind nicht gesund")
-            if not soak_ready:
-                raise BinanceCheckError("Paper-Dauertest ist noch nicht freigegeben")
             try:
                 plan = capital_plan(max_capital)
             except ValueError as error:
@@ -319,23 +410,30 @@ class LivePreparation:
                 raise BinanceCheckError(
                     "Zuerst muss der kontrollierte 50-USDC-Roundtrip fertig sein"
                 )
-            fresh = self._fresh_check()
-            if fresh is None or fresh.get("account_checks_passed") is not True:
-                raise BinanceCheckError("Zuerst eine frische Binance-Kontoprüfung durchführen")
-            if Decimal(str(fresh.get("free_usdc", "0"))) < plan.max_capital_usdc:
-                raise BinanceCheckError(
-                    f"Für dieses Livebudget werden mindestens {plan.max_capital_usdc} "
-                    "freie USDC verlangt"
-                )
+            # Live performs its own fresh/sufficient preflight. A separate manual
+            # connection-check click is diagnostic only, never a required ritual.
+            self._action_check(
+                trade_notional=plan.max_capital_usdc,
+                minimum_free_quote=plan.max_capital_usdc,
+                audit_prefix="PRODUCTION_LIVE",
+            )
             credentials = self.credentials.load()
             if credentials is None:
                 raise BinanceCheckError("Binance-Schlüssel fehlt")
-            self.live.enable(
-                credentials.fingerprint,
-                points,
-                self._live_snapshot(),
-                now=datetime.now(UTC),
-            )
+            try:
+                snapshot = self._live_snapshot()
+                self.live.enable(
+                    credentials.fingerprint,
+                    points,
+                    snapshot,
+                    now=datetime.now(UTC),
+                )
+            except (RuntimeError, ValueError, sqlite3.DatabaseError) as error:
+                self.audit("PRODUCTION_LIVE_ENABLE_FAILED")
+                raise BinanceCheckError(
+                    "Live-Freigabe konnte Konto, Marktdaten oder Ledger nicht sicher binden; "
+                    "es wurde keine neue Order ausgelöst."
+                ) from error
             self.audit(
                 "PRODUCTION_LIVE_ENABLED",
                 {
@@ -377,40 +475,30 @@ class LivePreparation:
             production_settings_ok = (
                 production_plan is not None and emergency_stop is False
             )
+            trial_state = str(trial.get("state", "NOT_STARTED"))
             trial_blockers: list[str] = []
             if not credential_status["configured"]:
                 trial_blockers.append("Binance API-Schlüssel fehlt.")
-            if fresh is None:
-                trial_blockers.append(
-                    "Binance-Kontoprüfung ist älter als 60 Sekunden; bitte erneut prüfen."
-                )
-            elif fresh.get("account_checks_passed") is not True:
-                trial_blockers.append("Binance-Kontoprüfung enthält Blockierungen.")
             if not trial_settings_ok:
                 trial_blockers.append(
                     "Gemeinsame Einstiegspause ist aktiv. "
                     "In Einstellungen deaktivieren und übernehmen."
                 )
-            if trial.get("state") != "NOT_STARTED":
-                trial_blockers.append(f"50-USDC-Test ist bereits im Zustand {trial.get('state')}.")
+            if trial_state not in {"NOT_STARTED", "CANCELED"}:
+                trial_blockers.append(f"50-USDC-Test ist bereits im Zustand {trial_state}.")
             if live.get("state") != "LIVE_DISABLED":
                 trial_blockers.append("Normaler Livebetrieb ist nicht vollständig deaktiviert.")
+            if self.runtime is None:
+                trial_blockers.append("Einmaltest-Runtime ist nicht verbunden.")
             trial_available = not trial_blockers
-            trial_completed = trial.get("state") == "COMPLETED"
-            free_usdc = (
-                Decimal(str(fresh.get("free_usdc", "0")))
-                if account_ok and fresh is not None
-                else Decimal(0)
-            )
+            trial_completed = trial_state == "COMPLETED"
             production_ready = bool(
                 credential_status["configured"]
-                and account_ok
                 and healthy
-                and soak_ready
                 and trial_completed
                 and production_settings_ok
                 and production_plan is not None
-                and free_usdc >= production_plan.max_capital_usdc
+                and self.live is not None
                 and live.get("state") != "NEEDS_REVIEW"
             )
             blockers: list[str] = []
@@ -419,23 +507,19 @@ class LivePreparation:
             if not healthy:
                 blockers.append(
                     "Marktdaten/Bot derzeit nicht vollständig gesund. "
-                    "Scharfschalten des 1x50-Tests ist möglich, aber eine Order bleibt "
-                    "bis zum HEALTHY-Zustand gesperrt."
+                    "Der 50-USDC-Test kann vorbereitet werden, sendet aber erst bei HEALTHY."
                 )
-            if fresh is None:
-                blockers.append("Keine frische Binance-Kontoprüfung (höchstens 60 Sekunden alt).")
-            elif fresh.get("account_checks_passed") is not True:
-                blockers.append("Binance-Kontoprüfung enthält Blockierungen.")
+            if fresh is not None and fresh.get("account_checks_passed") is not True:
+                blockers.append(
+                    "Letzte Binance-Kontoprüfung enthält Blockierungen; "
+                    "Test/Live prüfen beim Klick automatisch erneut."
+                )
             if not trial_completed:
                 blockers.append(
                     "Vor dauerhaftem Livebetrieb ist ein kontrollierter 1x50-Roundtrip nötig."
                 )
-            if not soak_ready:
-                blockers.append("Paper-Dauertest noch nicht bestanden (30 Tage / 20 Trades).")
             if not production_settings_ok:
-                blockers.append(
-                    "Maximalbudget liegt außerhalb des aktuell validierten Kapitalbereichs."
-                )
+                blockers.append("Maximalbudget oder Einstiegspause verhindert die Live-Freigabe.")
             if live.get("state") == "NEEDS_REVIEW":
                 blockers.append(
                     "Live-Ledger benötigt manuellen Abgleich; neue Orders sind gesperrt."
@@ -457,6 +541,8 @@ class LivePreparation:
                 "trial_blockers": trial_blockers,
                 "trial_quote_asset": "USDC",
                 "trial_readiness": {
+                    "automatic_preflight_on_start": True,
+                    "manual_account_check_required": False,
                     "quote_aware_order_adapter_offline_tested": True,
                     "runtime_connected": self.runtime is not None,
                     "balance_conservation_connected": self.trial_reconciler is not None,
@@ -496,6 +582,8 @@ class LivePreparation:
                         ),
                         "spot_only": True,
                         "quote_asset": "USDC",
+                        "automatic_preflight_on_enable": True,
+                        "paper_soak_required": False,
                     }
                     if production_plan is not None
                     else None
