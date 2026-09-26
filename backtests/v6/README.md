@@ -23,6 +23,12 @@ Parameter order below: VIDYA / momentum / smoothing / ATR / band.
 
 All profiles use 1h closed-bar signal semantics and 400 warm-up bars.
 
+## Fresh 0.5.0 product evidence
+
+GitHub Actions run **36233820495** completed the dashboard/API E2E on the current V6 with the canonical max-budget allocator. The exact report window is **2023-09-26 09:00 UTC – 2026-09-26 09:00 UTC**, with 400 warm-up bars before the report window. The shared product portfolio used the default max budget and the server-derived 2-tranche `ranked_repeat` plan.
+
+The authoritative numeric result is the machine-readable `dashboard-backtest-e2e.json` artifact from that run. It used public Binance continuity history, no credentials and no orders.
+
 ## Historical pre-max-budget promotion evidence
 Run 35463131378 / artifact 10590881515, window 2023-09-19T19:00:00Z to 2026-09-19T19:00:00Z:
 
