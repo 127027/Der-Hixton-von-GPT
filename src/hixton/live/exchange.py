@@ -49,12 +49,20 @@ _ALLOWLIST = {
 
 
 class ExchangeRequestError(RuntimeError):
-    """Redacted codes only; never includes a signed URL, key or server message."""
+    """Redacted order error with an explicit ambiguity classification."""
 
-    def __init__(self, code: int | None = None, http_status: int | None = None) -> None:
-        super().__init__(f"Binance order request unresolved (HTTP {http_status}, code {code})")
+    def __init__(
+        self,
+        code: int | None = None,
+        http_status: int | None = None,
+        *,
+        definitely_rejected: bool = False,
+    ) -> None:
+        state = "rejected" if definitely_rejected else "unresolved"
+        super().__init__(f"Binance order request {state} (HTTP {http_status}, code {code})")
         self.code = code
         self.http_status = http_status
+        self.definitely_rejected = definitely_rejected
 
 
 class SpotTransport(Protocol):
@@ -140,7 +148,17 @@ class BinanceSpotTransport:
                     code = body["code"]
             except (ValueError, OSError):
                 pass
-            raise ExchangeRequestError(code, error.code) from None
+            ambiguous_codes = {-1006, -1007}
+            definitely_rejected = (
+                method == "POST"
+                and 400 <= error.code < 500
+                and code not in ambiguous_codes
+            )
+            raise ExchangeRequestError(
+                code,
+                error.code,
+                definitely_rejected=definitely_rejected,
+            ) from None
         except (URLError, OSError, ValueError):
             raise ExchangeRequestError() from None
 
