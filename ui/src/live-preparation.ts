@@ -8,6 +8,7 @@ interface LiveStatus {
   ready: boolean;
   order_dispatch_available: boolean;
   trial_dispatch_available: boolean;
+  trial_blockers?: string[];
   account_check: {
     blockers: string[];
     warnings?: string[];
@@ -91,14 +92,21 @@ export function initializeLivePreparation(sharedSettingsBlocker: () => string | 
         ? "Binance-Zugangsschlüssel lokal gespeichert."
         : "Noch kein Binance-Zugangsschlüssel gespeichert.",
     );
+    const trialReason = (status.trial_blockers ?? []).join(" · ");
     message(
       "live-trial-status",
       status.trial?.state && status.trial.state !== "NOT_STARTED"
         ? `Test: ${status.trial.state}${status.trial.symbol ? " · " + status.trial.symbol : ""}`
         : status.trial_dispatch_available
           ? "Bereit: wartet nach Freigabe auf ein neues gültiges Signal."
-          : "Nicht gestartet. Voraussetzungen siehe technische Freigabe.",
+          : trialReason
+            ? `Noch gesperrt: ${trialReason}`
+            : "Nicht gestartet. Voraussetzungen siehe technische Freigabe.",
     );
+    const trialButton = element<HTMLButtonElement>("live-trial-start");
+    trialButton.title = status.trial_dispatch_available
+      ? "Kontrollierten 1×50-USDC-Test freigeben"
+      : trialReason || "50-USDC-Test ist noch nicht freigegeben.";
     const list = element("live-blockers");
     list.replaceChildren();
     for (const reason of new Set([...status.blockers, ...(status.account_check?.blockers ?? [])])) {
