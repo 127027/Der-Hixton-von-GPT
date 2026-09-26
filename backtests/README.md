@@ -10,6 +10,12 @@ Status: CURRENT · 2026-09-26
 - There is no permanent portfolio drawdown entry halt. Drawdown is measured; the 5% UTC-day loss pause and technical safety gates remain.
 - Historical same-base USDT candles may only be an explicitly labelled pre-listing research proxy.
 
+## Fresh 0.5.0 max-budget release evidence
+
+A fresh dashboard E2E was completed in GitHub Actions run **36233820495** using the current V6 and the canonical `CAPITAL-V1-2X50PCT` product allocator. The report window is exactly **2023-09-26 09:00 UTC – 2026-09-26 09:00 UTC**, with 400 warm-up bars before the performance window.
+
+The authoritative machine-readable figures remain in the run artifact `dashboard-backtest-e2e.json`. This evidence uses public Binance continuity history, no credentials and no orders.
+
 ## Historical pre-max-budget research checkpoint
 Source: GitHub Actions run **35463131378**, artifact **10590881515**.
 Window: **2023-09-19 19:00 UTC – 2026-09-19 19:00 UTC**.
