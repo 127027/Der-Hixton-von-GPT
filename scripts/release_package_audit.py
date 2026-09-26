@@ -1,5 +1,7 @@
 """Independent audit of the downloadable Hixton Windows release package."""
 
+# ruff: noqa: I001
+
 from __future__ import annotations
 
 import argparse
