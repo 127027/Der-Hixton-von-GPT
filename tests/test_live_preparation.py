@@ -630,7 +630,7 @@ def test_dangerous_key_rights_block(flag: str) -> None:
     assert flag in str(result["blockers"])
 
 
-def test_missing_permissions_foreign_inventory_and_insufficient_usdc_fail_closed() -> None:
+def test_missing_permissions_orders_and_insufficient_usdc_fail_closed_while_holdings_only_warn() -> None:
     permissions, account, orders, markets = account_fixture()
     del permissions["enableWithdrawals"]
     account["balances"][0]["free"] = "0"
@@ -638,11 +638,13 @@ def test_missing_permissions_foreign_inventory_and_insufficient_usdc_fail_closed
     orders.append({"symbol": "BTCUSDC", "clientOrderId": "foreign"})
     result = assess_account(permissions, account, orders, markets, Decimal("50"))
     reasons = str(result["blockers"])
-    assert all(term in reasons for term in ("enableWithdrawals", "Fremdbestände", "60", "Orders"))
+    assert all(term in reasons for term in ("enableWithdrawals", "60", "Orders"))
+    assert "BUSD" not in reasons
+    assert "BUSD" in str(result["warnings"])
     assert result["free_usdc"] == "0"
 
 
-def test_preflight_explains_false_unknown_and_each_foreign_asset_without_relaxing_gate() -> None:
+def test_preflight_reports_foreign_inventory_as_warning_while_real_permissions_fail() -> None:
     permissions, account, orders, markets = account_fixture()
     permissions["enableSpotAndMarginTrading"] = False
     del permissions["ipRestrict"]
@@ -654,7 +656,26 @@ def test_preflight_explains_false_unknown_and_each_foreign_asset_without_relaxin
     assert result["foreign_balances"] == [{"asset": "BTC", "free": "0.0001", "locked": "0"}]
     assert "deaktiviert" in str(result["blockers"])
     assert "nicht eindeutig gemeldet" in str(result["blockers"])
-    assert "BTC" in str(result["blockers"])
+    assert "BTC" not in str(result["blockers"])
+    assert "BTC" in str(result["warnings"])
+
+
+def test_preexisting_spot_holdings_are_nonblocking_when_account_is_otherwise_safe() -> None:
+    permissions, account, orders, markets = account_fixture()
+    account["balances"].extend(
+        [
+            {"asset": "BTC", "free": "0.00120611", "locked": "0"},
+            {"asset": "USDT", "free": "12.34", "locked": "0"},
+            {"asset": "WNXM", "free": "0.01794", "locked": "0"},
+        ]
+    )
+    result = assess_account(permissions, account, orders, markets, Decimal("50"))
+    assert result["account_checks_passed"] is True
+    assert result["blockers"] == []
+    assert [row["asset"] for row in result["foreign_balances"]] == ["BTC", "USDT", "WNXM"]
+    warning = str(result["warnings"])
+    assert all(asset in warning for asset in ("BTC", "USDT", "WNXM"))
+    assert "Kein Blocker" in warning
 
 
 def test_usdc_preflight_checks_actual_quote_not_usdt_and_never_changes_paper(tmp_path):
