@@ -147,7 +147,7 @@
               <h2>1 · Handel</h2>
               <form id="trading-form" class="settings-form">
                 <div class="settings-fields">
-                  <label>Maximaler USDC-Einsatz<input id="capital-input" type="number" min="100" max="1000" step="1" value="250" required /></label>
+                  <label>Maximaler USDC-Einsatz<input id="capital-input" type="number" min="100" max="1000000" step="1" value="250" required /></label>
                   <label><input id="entry-pause-input" type="checkbox" /> Einstiegspause für neue Trades</label>
                 </div>
                 <p id="settings-validation" class="negative" role="alert"></p>
@@ -210,11 +210,11 @@
                 <button id="live-request" type="button" class="button secondary" aria-pressed="false" disabled>Live an</button>
                 <button id="live-off" type="button" class="button secondary" aria-pressed="false" disabled>Live aus</button>
               </div>
-              <p id="live-result" role="alert">Dauer-Live wird erst nach erfolgreichem 1×50-Roundtrip und allen Sicherheitsgates mit dem gespeicherten Maximalbudget freigegeben.</p>
+              <p id="live-result" role="alert">Dauer-Live wird erst nach erfolgreichem 1×50-Roundtrip freigegeben. Beim Klick auf Live an prüft Hixton Konto, API-Rechte, Marktdaten und das gespeicherte Maximalbudget automatisch erneut.</p>
               <p>Live aus stoppt neue Echtgeld-Einstiege. Bereits gesendete oder unklare Orders werden nur abgeglichen; offene Positionen dürfen regulär aussteigen. Paper läuft unabhängig weiter.</p>
               <details open>
                 <summary>Kontrollierter erster Echtgeldtest · 1 × 50 USDC</summary>
-                <p>Nach deiner ausdrücklichen Freigabe wird nicht sofort gekauft. Der Bot wartet auf ein neues gültiges Signal aus den zehn USDC-Märkten, sendet dann höchstens einen 50-USDC-Market-Kauf, verwaltet den regulären Ausstieg und gleicht anschließend Konto und Orders ab.</p>
+                <p>Nach deiner ausdrücklichen Freigabe prüft Hixton das Binance-Konto automatisch neu. Danach wird nicht sofort gekauft: Der Bot wartet auf ein neues gültiges Signal aus den zehn USDC-Märkten, sendet dann höchstens einen echten 50-USDC-Market-Kauf, verwaltet den regulären Ausstieg und gleicht anschließend Konto und Orders ab. Der separate Button „Binance-Verbindung prüfen“ ist nur Diagnose und keine Pflicht vor dem Test.</p>
                 <p>Der gespeicherte Maximalbetrag bleibt dabei unverändert, standardmäßig 250 USDC. Der 1×50-Test ist ein separater einmaliger Sicherheitsmodus. Erst nach einem vollständig abgeglichenen Kauf-und-Verkauf-Roundtrip kann der normale budgetgesteuerte Livebetrieb aktiviert werden.</p>
                 <button id="live-trial-start" type="button" class="button primary" disabled>1 × 50 USDC · Test freigeben</button>
                 <p id="live-trial-status" role="status">Nicht gestartet.</p>
