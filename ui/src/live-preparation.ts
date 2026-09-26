@@ -10,6 +10,7 @@ interface LiveStatus {
   trial_dispatch_available: boolean;
   account_check: {
     blockers: string[];
+    warnings?: string[];
     account_checks_passed?: boolean;
     quote_asset?: string;
     free_quote?: string;
@@ -103,6 +104,11 @@ export function initializeLivePreparation(sharedSettingsBlocker: () => string | 
     for (const reason of new Set([...status.blockers, ...(status.account_check?.blockers ?? [])])) {
       const item = document.createElement("li"); item.textContent = reason; list.append(item);
     }
+    for (const warning of new Set(status.account_check?.warnings ?? [])) {
+      const item = document.createElement("li");
+      item.textContent = `Hinweis (kein Blocker): ${warning}`;
+      list.append(item);
+    }
     updateControls();
   };
   const refresh = async (): Promise<boolean> => {
@@ -185,10 +191,14 @@ export function initializeLivePreparation(sharedSettingsBlocker: () => string | 
     requireAuth();
     const result = await request("check", {});
     const freeUsdc = typeof result.free_usdc === "string" ? ` · frei: ${result.free_usdc} USDC` : "";
+    const warnings = Array.isArray(result.warnings)
+      ? result.warnings.filter((item): item is string => typeof item === "string")
+      : [];
+    const warningText = warnings.length ? ` Hinweis (kein Blocker): ${warnings.join(" · ")}` : "";
     message(
       "live-check-result",
       result.account_checks_passed
-        ? `Binance-Verbindung und Kontovorprüfung bestanden${freeUsdc}. Echtgeld-Freigabe bleibt separat.`
+        ? `Binance-Verbindung und Kontovorprüfung bestanden${freeUsdc}. Echtgeld-Freigabe bleibt separat.${warningText}`
         : "Kontovorprüfung blockiert: "
           + ((result.blockers as string[] | undefined)?.join(" · ")
             || "Details unter technische Freigabe."),
