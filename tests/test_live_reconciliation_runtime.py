@@ -7,6 +7,7 @@ from uuid import uuid4
 
 import pytest
 
+from hixton.backtest.models import ExecutionRules
 from hixton.domain.versions import V6_COIN_STRATEGY as V6
 from hixton.live.exchange import BinanceSpotExchange
 from hixton.live.orders import OrderJournal, TrialOrderExecutor
@@ -101,11 +102,15 @@ class SpotFixture:
         )
 
 
-def make_runtime(path, transport, *, clock=lambda: NOW):
+def make_runtime(path, transport, *, clock=lambda: NOW, rules=None):
     journal = OrderJournal(path)
     exchange = BinanceSpotExchange(transport, account_fingerprint="fixture", quote_asset="USDC")
     controller = SignalTrial(
-        journal, TrialOrderExecutor(journal, exchange, lambda _: True), V6, lambda: True
+        journal,
+        TrialOrderExecutor(journal, exchange, lambda _: True),
+        V6,
+        lambda: True,
+        (lambda: rules) if rules is not None else None,
     )
     reconciler = TrialReconciler(journal)
     runtime = TrialRuntime(controller, reconciler, lambda: transport.snapshot(clock()), clock=clock)
@@ -199,6 +204,45 @@ def test_all_ten_profiles_complete_exactly_one_round_trip_with_real_adapter(tmp_
     assert [p["side"] for p in posts] == ["BUY", "SELL"]
     assert posts[1]["quantity"] == "0.5"  # Existing BTC/BNB were never sold.
     assert fixture.balances["BTC"] == D("0.003") and fixture.balances["BNB"] == D("0.03")
+
+
+def test_real_adapter_roundtrip_completes_with_base_fee_and_sub_step_residual(tmp_path):
+    class MixedFeeFixture(SpotFixture):
+        def request(self, method, path, params):
+            if method == "POST":
+                if params["side"] == "BUY":
+                    self.fee_asset, self.fee = "SOL", D("0.000123")
+                else:
+                    self.fee_asset, self.fee = "USDC", D("0.05")
+            return super().request(method, path, params)
+
+    fixture = MixedFeeFixture()
+    rules = {
+        symbol: ExecutionRules(step_size=D("0.001"), min_qty=D("0.001"), min_notional=D("5"))
+        for symbol in V6.symbols
+    }
+    at = NOW
+    runtime = make_runtime(
+        tmp_path / "dust-roundtrip.sqlite3", fixture, clock=lambda: at, rules=rules
+    )
+    runtime.reconciler.capture(fixture.snapshot(), now=NOW)
+    runtime.trial.arm(str(uuid4()), "fixture", now=NOW - timedelta(seconds=2), notional=D(50))
+    runtime.tick(universe(buy_symbol="SOLUSDC"), now=NOW, healthy=True, entries_allowed=True)
+    assert (
+        runtime.tick(universe(buy_symbol="SOLUSDC"), now=NOW, healthy=True, entries_allowed=True)[
+            "state"
+        ]
+        == "OPEN"
+    )
+    at = NOW + timedelta(hours=1)
+    points = universe(at, buy_symbol=None, sell_symbol="SOLUSDC")
+    runtime.tick(points, now=at, healthy=True, entries_allowed=False)
+    result = runtime.tick(points, now=at, healthy=True, entries_allowed=False)
+    assert result["state"] == "COMPLETED"
+    assert D(result["residual_quantity"]) == D("0.000877")
+    posts = [params for method, _, params in fixture.calls if method == "POST"]
+    assert posts[-1]["side"] == "SELL" and posts[-1]["quantity"] == "0.499"
+    assert fixture.balances["SOL"] == D("0.000877")
 
 
 def test_timeout_restart_recovers_by_id_without_another_buy(tmp_path):
