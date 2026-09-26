@@ -8,6 +8,7 @@ from threading import Barrier
 
 import pytest
 
+from hixton.live.exchange import ExchangeRequestError
 from hixton.live.orders import (
     ExchangeFill,
     ExchangeOrder,
@@ -146,6 +147,32 @@ def test_closed_gate_never_submits(tmp_path: Path) -> None:
     executor = TrialOrderExecutor(journal, exchange, lambda _: False)
     assert executor.execute(intent.intent_id) == "BLOCKED"
     assert exchange.submits == 0 and exchange.queries == 0
+
+
+def test_definitive_exchange_rejection_never_becomes_unknown_or_retries(tmp_path: Path) -> None:
+    journal = OrderJournal(tmp_path / "orders.sqlite3")
+    intent = buy()
+    journal.create(intent)
+
+    class RejectingExchange:
+        def __init__(self) -> None:
+            self.submits = 0
+            self.queries = 0
+
+        def submit(self, supplied: TrialIntent) -> ExchangeOrder:
+            assert supplied == intent
+            self.submits += 1
+            raise ExchangeRequestError(-1013, 400, definitely_rejected=True)
+
+        def query(self, supplied: TrialIntent) -> ExchangeOrder | None:
+            self.queries += 1
+            raise AssertionError("definitively rejected order must never be queried")
+
+    exchange = RejectingExchange()
+    executor = TrialOrderExecutor(journal, exchange, lambda _: True)
+    assert executor.execute(intent.intent_id) == "REJECTED"
+    assert executor.execute(intent.intent_id) == "REJECTED"
+    assert exchange.submits == 1 and exchange.queries == 0
 
 
 def test_one_submit_fill_fee_and_repeated_ui_calls(tmp_path: Path) -> None:
