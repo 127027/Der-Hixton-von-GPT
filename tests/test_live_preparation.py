@@ -27,6 +27,7 @@ from hixton.live.credentials import (
     WindowsVault,
 )
 from hixton.live.preparation import LivePreparation
+from hixton.live.production import LiveAccountSnapshot
 from hixton.live.reconciliation import AccountSnapshot
 from hixton.paper.storage import PaperStore
 from hixton.runtime.supervisor import RuntimeSupervisor
@@ -415,6 +416,7 @@ def test_common_max_budget_is_immediately_the_live_source_and_survives_restart(
     "capital,expected_target",
     [
         ("250", "125.00"),
+        ("400", "200.00"),
         ("500", "250.00"),
         ("1000", "500.00"),
         ("500000", "250000.00"),
@@ -658,6 +660,97 @@ def test_size_limit_does_not_echo_secrets(tmp_path: Path) -> None:
     client, _, _ = client_for(tmp_path)
     result = client.post("/api/live/unlock", headers=HEADERS, content=KEY * 100)
     assert result.status_code == 413 and KEY not in result.text
+
+
+def test_completed_trial_unlocks_live_action_without_paper_soak_or_manual_check(
+    tmp_path: Path,
+) -> None:
+    client, _, service = client_for(tmp_path)
+    unlock(client)
+    save_key(client)
+
+    class CompletedTrial:
+        def report(self):
+            return {"state": "COMPLETED", "has_unsettled": False}
+
+    service.trial = CompletedTrial()
+    status = service.status(
+        authenticated=True,
+        soak_ready=False,
+        healthy=True,
+        max_capital=Decimal("400"),
+        emergency_stop=False,
+    )
+    assert status["order_dispatch_available"] is True
+    assert status["ready"] is True
+    assert status["account_check"] is None
+    assert status["production_live"]["max_capital_usdc"] == "400.00"
+    assert status["production_live"]["target_notional_usdc"] == "200.00"
+    assert status["production_live"]["paper_soak_required"] is False
+
+
+def test_live_enable_auto_preflights_full_configured_budget(tmp_path: Path) -> None:
+    service = LivePreparation(tmp_path / "live.sqlite3", MemoryVault())
+    credentials = BinanceCredentials(KEY, SECRET)
+    service.credentials.save(credentials)
+    seen: list[tuple[Decimal, Decimal | None]] = []
+
+    class Client:
+        def __init__(self, supplied: BinanceCredentials) -> None:
+            assert supplied.fingerprint == credentials.fingerprint
+
+        def inspect(
+            self,
+            notional: Decimal,
+            *,
+            minimum_free_quote: Decimal | None = None,
+        ) -> dict[str, object]:
+            seen.append((notional, minimum_free_quote))
+            return {
+                "account_checks_passed": True,
+                "blockers": [],
+                "warnings": [],
+                "checked_trade_notional": str(notional),
+                "minimum_free_quote": str(minimum_free_quote),
+                "free_usdc": "500000",
+                "free_bnb": "0.03",
+            }
+
+    class CompletedTrial:
+        def report(self):
+            return {"state": "COMPLETED", "has_unsettled": False}
+
+    class Live:
+        def __init__(self) -> None:
+            self.enabled = False
+
+        def report(self):
+            return {"state": "LIVE_DISABLED", "initialized": False}
+
+        def enable(self, account, points, snapshot, *, now):
+            assert account == credentials.fingerprint
+            assert snapshot.account == credentials.fingerprint
+            assert snapshot.balances["USDC"][0] == Decimal("500000")
+            self.enabled = True
+
+    live = Live()
+    service.client_factory = Client
+    service.trial = CompletedTrial()
+    service.live = live
+    service._live_snapshot = lambda: LiveAccountSnapshot(
+        credentials.fingerprint,
+        datetime.now(UTC),
+        {"USDC": (Decimal("500000"), Decimal("0"))},
+        (),
+    )
+    service.enable_live(
+        {},
+        healthy=True,
+        max_capital=Decimal("500000"),
+        emergency_stop=False,
+    )
+    assert live.enabled is True
+    assert seen == [(Decimal("500000.00"), Decimal("500000.00"))]
 
 
 def test_clean_account_is_not_live_approval(tmp_path: Path) -> None:
