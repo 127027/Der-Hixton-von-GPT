@@ -8,6 +8,7 @@ Aktuelle Releasegrenze: Paper/backtest only.
 - A01–A11 benötigen keinen OpenAI API Key.
 - Real-/Testnet-Orders sind verboten.
 - Keine Secrets in Git, Logs, Reports oder Frontend.
+- Vorbestehende freie Spot-Bestände bleiben Fremdeigentum relativ zum Hixton-Ledger: Baseline erfassen, niemals adoptieren, SELL ausschließlich aus persistentem Hixton-Eigentum; unerwartete Kontobewegungen sperren neue Orders.
 - Lokale API akzeptiert mutierende UI-Aufrufe nur aus dem lokalen Bedienkontext.
 - Persistente Paperdaten werden nicht still gelöscht oder zurückgesetzt.
 - Strategieänderungen erfordern explizite Versionierung/Aktivierung.
