@@ -254,6 +254,10 @@ def test_controlled_trial_auto_checks_account_and_arms_without_sending_order(
     status = client.get("/api/live/status").json()
     assert status["trial_dispatch_available"] is True
     assert status["account_check"] is None
+    # Reproduce the real failure mode: a prior preparation attempt persisted only
+    # the account baseline and died before the one-shot trial row was armed.
+    assert service.trial_reconciler is not None
+    service.trial_reconciler.capture(service._account_snapshot(), now=datetime.now(UTC))
     body = {"confirmation": "TEST 50 USDC", "quote_asset": "USDC", "notional_quote": "50.00"}
     response = client.post("/api/live/trial/start", headers=HEADERS, json=body)
     assert response.status_code == 200
@@ -261,6 +265,12 @@ def test_controlled_trial_auto_checks_account_and_arms_without_sending_order(
     with sqlite3.connect(config.database_path.with_name("live-preparation.sqlite3")) as connection:
         assert connection.execute("SELECT COUNT(*) FROM signal_trial").fetchone()[0] == 1
         assert connection.execute("SELECT COUNT(*) FROM trial_intents").fetchone()[0] == 0
+    # Canceling before any order is also retryable; no entitlement/order history is reused.
+    assert client.post("/api/live/trial/stop", headers=HEADERS, json={}).status_code == 200
+    assert client.get("/api/live/status").json()["trial"]["state"] == "CANCELED"
+    retried = client.post("/api/live/trial/start", headers=HEADERS, json=body)
+    assert retried.status_code == 200
+    assert retried.json()["trial"]["state"] == "WAITING_SIGNAL"
 
 
 def test_entry_pause_explains_why_controlled_trial_button_must_stay_locked(tmp_path: Path) -> None:
