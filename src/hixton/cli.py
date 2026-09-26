@@ -426,7 +426,7 @@ def build_parser() -> argparse.ArgumentParser:
     all_ten.add_argument("--end", type=parse_utc)
     all_ten.add_argument("--strategy", choices=("v6",))
     portfolio = backtest_commands.add_parser(
-        "portfolio", help="gemeinsames Konto mit 3x80-USDC-Slots und Startcash laut Config testen"
+        "portfolio", help="gemeinsames Konto mit gespeichertem Maximalbudget und automatisch abgeleiteten ranked-repeat-Tranchen testen"
     )
     portfolio.add_argument("--end", type=parse_utc)
     portfolio.add_argument("--strategy", choices=("v6",))
