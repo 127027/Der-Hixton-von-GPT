@@ -479,13 +479,10 @@ class LiveBalanceReconciler:
         snapshot.validate(now)
         if snapshot.open_orders or any(locked != ZERO for _, locked in snapshot.balances.values()):
             raise ValueError("Live baseline requires no open orders or locked balances")
-        foreign = [
-            asset
-            for asset, (free, locked) in snapshot.balances.items()
-            if asset not in {"USDC", "BNB"} and free + locked > ZERO
-        ]
-        if foreign:
-            raise ValueError("Live baseline requires a dedicated account without foreign holdings")
+        # Pre-existing free Spot holdings are allowed and frozen into this immutable
+        # account baseline. They are never adopted as Hixton positions: SELL intents
+        # are bounded by live_positions, while reconciliation still detects any manual
+        # or foreign balance movement after Live is armed.
         encoded = json.dumps(
             {asset: str(free) for asset, (free, _) in snapshot.balances.items()},
             sort_keys=True,
