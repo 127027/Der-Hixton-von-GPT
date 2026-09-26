@@ -235,12 +235,10 @@ def install_live_routes(
         try:
             with PaperStore(config.database_path) as store:
                 settings = store.load_settings()
-                soak_ready = store.load_soak_progress().ready
             await run_in_threadpool(
                 service.enable_live,
                 supervisor.state.points(),
                 healthy=supervisor.state.snapshot().health == "HEALTHY",
-                soak_ready=soak_ready,
                 max_capital=settings.max_capital_usdc,
                 emergency_stop=settings.emergency_stop,
             )
@@ -287,12 +285,17 @@ def install_live_routes(
             )
         except BinanceCheckError:
             raise
-        except (RuntimeError, ValueError, sqlite3.DatabaseError):
-            await run_in_threadpool(service.audit, "CONTROLLED_TRIAL_START_FAILED")
+        except (RuntimeError, ValueError, sqlite3.DatabaseError) as error:
+            await run_in_threadpool(
+                service.audit,
+                "CONTROLLED_TRIAL_START_FAILED",
+                {"error_type": type(error).__name__},
+            )
             raise HTTPException(
                 409,
-                "Der kontrollierte 50-USDC-Test konnte nicht sicher vorbereitet werden. "
-                "Es wurde dadurch keine neue Order ausgelöst.",
+                "Der kontrollierte 50-USDC-Test konnte lokal nicht vorbereitet werden. "
+                "Es wurde keine neue Order ausgelöst; der Start kann vor einer Order erneut "
+                "versucht werden.",
             ) from None
         return JSONResponse(get_status(True))
 
