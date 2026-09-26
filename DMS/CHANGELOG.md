@@ -1,5 +1,13 @@
 # DMS Changelog
 
+## 26.09.2026 – Hixton 0.5.0 Max-Budget Release Readiness
+- Einzige aktuelle Kapitalvorgabe ist `max_capital_usdc`; `CAPITAL-V1-2X50PCT` leitet die zwei `ranked_repeat`-Tranchen ab.
+- Alte 3×80-Angaben wurden aus aktuellen Produkt-, Agenten-, Architektur-, CLI- und Betriebsverträgen entfernt bzw. ausdrücklich als historische Forschung gekennzeichnet.
+- Die sichtbare alte Drawdown-Haltbeschriftung wurde aus Quell- und ausgelieferter UI entfernt.
+- Der kontrollierte lokale Ersttest bleibt vom Maximalbudget getrennt; Cloud/CI/A01–A11 bleiben ohne private Binance-Zugangsdaten und ohne Orderausführung.
+- Frischer exakter Drei-Jahres-Dashboard-E2E: Run 36233820495; authoritative Zahlen liegen im zugehörigen maschinenlesbaren Artefakt.
+- Der Download-Audit prüft Version, Source-Commit, SHA-256, UI, Allocator und A01–A11 gegen dasselbe ZIP-Artefakt.
+
 ## 19.09.2026 – V6 Product Cleanup
 - Aktuelle V6 auf einen Produktpfad konsolidiert.
 - Profilverbesserungen ADA Band 4,4, AVAX Band 4,6, DOGE Momentum 18 und BTC VIDYA 5 dokumentiert.
