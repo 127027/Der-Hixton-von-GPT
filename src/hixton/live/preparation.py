@@ -381,11 +381,16 @@ class LivePreparation:
             if not credential_status["configured"]:
                 trial_blockers.append("Binance API-Schlüssel fehlt.")
             if fresh is None:
-                trial_blockers.append("Binance-Kontoprüfung ist älter als 60 Sekunden; bitte erneut prüfen.")
+                trial_blockers.append(
+                    "Binance-Kontoprüfung ist älter als 60 Sekunden; bitte erneut prüfen."
+                )
             elif fresh.get("account_checks_passed") is not True:
                 trial_blockers.append("Binance-Kontoprüfung enthält Blockierungen.")
             if not trial_settings_ok:
-                trial_blockers.append("Gemeinsame Einstiegspause ist aktiv. In Einstellungen deaktivieren und übernehmen.")
+                trial_blockers.append(
+                    "Gemeinsame Einstiegspause ist aktiv. "
+                    "In Einstellungen deaktivieren und übernehmen."
+                )
             if trial.get("state") != "NOT_STARTED":
                 trial_blockers.append(f"50-USDC-Test ist bereits im Zustand {trial.get('state')}.")
             if live.get("state") != "LIVE_DISABLED":
