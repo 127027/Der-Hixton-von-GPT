@@ -1,6 +1,6 @@
 # Hixton data flows — current V6 product
 
-Status: CURRENT · 2026-09-19
+Status: CURRENT · 2026-09-26
 
 ## Market data
 Public Binance USDC candles and exchange filters -> data quality -> SQLite candle store -> indicator analysis. Only finalized 1h candles enter signal logic; the next bar open may be used as the execution model reference.
@@ -16,14 +16,14 @@ Restart restores the same account and replays missed finalized bars exactly once
 The same canonical V6 map and execution semantics feed:
 1. single 250-USDC coin tests;
 2. isolated 10×250 diagnostics;
-3. shared 250-USDC / 3×80 `ranked_repeat` portfolio tests.
+3. shared max-budget `CAPITAL-V1-2X50PCT` / `ranked_repeat` portfolio tests.
 
 Baseline and stress cost models are separate. Position-cycle count and slot-trade count are separate metrics.
 
 ## Optimization
 Per coin: bounded candidate catalog -> training A/B ranking -> frozen Top-K -> validation baseline/stress -> full-three-year baseline/stress -> robust finalists.
 
-Each robust finalist then changes only one coin in the shared 3×80 map. Only non-regressive baseline+stress candidates may enter combination assembly. Every addition is re-tested against the already assembled portfolio. Final promotion additionally requires isolated 10×250 baseline/stress non-regression.
+Each robust finalist then changes only one coin in the canonical max-budget portfolio map. Only non-regressive baseline+stress candidates may enter combination assembly. Every addition is re-tested against the already assembled portfolio. Final promotion additionally requires isolated 10×250 baseline/stress non-regression.
 
 The optimizer emits research evidence only; it does not automatically activate a strategy.
 
