@@ -253,7 +253,7 @@ class LivePreparation:
                 self.trial.disable_entries()
             if self.live is not None:
                 self.live.disable_entries()
-            self.audit("LIVE_NEW_ENTRIES_DISABLED")
+            self.audit_after_commit("LIVE_NEW_ENTRIES_DISABLED")
             live = self.live.report() if self.live is not None else {"state": "LIVE_DISABLED"}
             trial = self.trial.report() if self.trial is not None else {"state": "NOT_STARTED"}
             return {
@@ -279,6 +279,18 @@ class LivePreparation:
                 "INSERT INTO live_preparation_audit(at_utc,action,details_json) VALUES(?,?,?)",
                 (datetime.now(UTC).isoformat(), action, json.dumps(details or {})),
             )
+
+    def audit_after_commit(
+        self,
+        action: str,
+        details: dict[str, object] | None = None,
+    ) -> None:
+        """Never report a durable state change as failed only because auxiliary audit I/O failed."""
+        try:
+            self.audit(action, details)
+        except sqlite3.Error:
+            # Trial/order journals and live_control are the authoritative durable records.
+            pass
 
     def invalidate_check(self) -> None:
         self._check = None
@@ -383,7 +395,7 @@ class LivePreparation:
                     "50-USDC-Test konnte vor der ersten Order nicht scharfgeschaltet werden; "
                     "der Vorbereitungszustand ist wiederholbar."
                 ) from error
-            self.audit(
+            self.audit_after_commit(
                 "CONTROLLED_50_USDC_TRIAL_ARMED",
                 {"runtime_health_at_arm": "HEALTHY" if healthy else "DEGRADED"},
             )
@@ -436,7 +448,7 @@ class LivePreparation:
                     "Live-Freigabe konnte Konto, Marktdaten oder Ledger nicht sicher binden; "
                     "es wurde keine neue Order ausgelöst."
                 ) from error
-            self.audit(
+            self.audit_after_commit(
                 "PRODUCTION_LIVE_ENABLED",
                 {
                     "max_capital_usdc": str(plan.max_capital_usdc),
