@@ -1,4 +1,4 @@
-"""Chronological shared-cash max-budget portfolio backtest for all DMS markets."""
+"""Chronological shared-cash max-budget backtest for the canonical ten USDC markets."""
 
 from __future__ import annotations
 
