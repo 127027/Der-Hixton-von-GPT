@@ -93,10 +93,32 @@ class TrialReconciler:
         )
         with self.journal._connect() as connection:
             connection.execute("BEGIN IMMEDIATE")
-            if connection.execute("SELECT 1 FROM trial_intents LIMIT 1").fetchone():
+            intents_exist = connection.execute(
+                "SELECT 1 FROM trial_intents LIMIT 1"
+            ).fetchone() is not None
+            trial_exists = connection.execute(
+                "SELECT 1 FROM signal_trial LIMIT 1"
+            ).fetchone() is not None
+            existing = connection.execute(
+                "SELECT account FROM trial_account_baseline WHERE singleton=1"
+            ).fetchone()
+            if intents_exist:
                 raise RuntimeError("Cannot establish baseline after an order intent")
-            if connection.execute("SELECT 1 FROM trial_account_baseline").fetchone():
-                raise RuntimeError("Account baseline cannot be replaced")
+            if existing is not None:
+                if existing["account"] != snapshot.account:
+                    raise RuntimeError("Account baseline belongs to another API account")
+                if trial_exists:
+                    raise RuntimeError("Account baseline is already bound to an active trial")
+                # A previous start attempt may have persisted the baseline before the
+                # one-shot trial row was armed. With no order intent and no trial row,
+                # replacing that orphan with a fresh snapshot is safe and retryable.
+                connection.execute(
+                    "UPDATE trial_account_baseline SET observed_at=?,balances_json=? "
+                    "WHERE singleton=1",
+                    (snapshot.observed_at.isoformat(), encoded),
+                )
+                self.journal._audit(connection, "ACCOUNT", "BASELINE_REFRESHED")
+                return
             connection.execute(
                 "INSERT INTO trial_account_baseline VALUES(1,?,?,?)",
                 (snapshot.account, snapshot.observed_at.isoformat(), encoded),
