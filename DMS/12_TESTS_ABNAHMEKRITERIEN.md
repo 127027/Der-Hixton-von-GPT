@@ -1,6 +1,6 @@
 # 12 – Tests und Abnahmekriterien
 
-Status: CURRENT · 19.09.2026
+Status: CURRENT · 26.09.2026
 
 Ein aktueller Download-/Releasekandidat benötigt auf demselben Commit:
 - Cloud Preflight PASS;
@@ -14,6 +14,6 @@ Ein aktueller Download-/Releasekandidat benötigt auf demselben Commit:
 - A09 QA_PASS;
 - A11 GOVERNANCE_PASS.
 
-Für eine Profilpromotion zusätzlich: Top-K/Validation/full/stress, marginaler 3×80-Test, Kombinationstest und finaler 10×250-/3×80-Gate.
+Für eine Profilpromotion zusätzlich: Top-K/Validation/full/stress, marginaler Test im kanonischen Maximalbudget-Portfolio, Kombinationstest und finaler 10×250-/Maximalbudget-Portfolio-Gate.
 
 Paper-Freshness und aktive Strategie-Session müssen zum kanonischen V6-Digest passen. Alte grüne Runs werden durch spätere relevante Commits ungültig.
