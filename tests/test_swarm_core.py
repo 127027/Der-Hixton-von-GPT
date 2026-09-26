@@ -35,7 +35,7 @@ def test_active_cloud_mission_requires_all_agents_and_current_v6_regression() ->
     cases = known_regression_requirements(mission)
     assert "CURRENT_V6_PRODUCT" in cases
     assert "verify_current_v6_is_the_only_product_strategy" in cases["CURRENT_V6_PRODUCT"]
-    assert "verify_assembled_10x250_and_3x80_non_regression" in cases["CURRENT_V6_PRODUCT"]
+    assert "verify_assembled_10x250_and_max_budget_non_regression" in cases["CURRENT_V6_PRODUCT"]
     evidence = required_evidence_by_agent(mission)
     assert "topk_validation" in evidence["A02"]
     assert "portfolio_gate" in evidence["A02"]
