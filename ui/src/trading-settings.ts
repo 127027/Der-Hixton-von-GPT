@@ -38,7 +38,7 @@ export function initializeTradingSettings(
     }
     return derivedDraft(
       item<HTMLInputElement>("capital-input").value,
-      saved?.emergency_stop ?? false,
+      item<HTMLInputElement>("entry-pause-input").checked,
       limits,
     );
   };
@@ -48,7 +48,7 @@ export function initializeTradingSettings(
       item<HTMLInputElement>("capital-input").value =
         String(Number(saved.max_capital_usdc));
     const value = read();
-    for (const id of ["capital-input", "settings-button"])
+    for (const id of ["capital-input", "entry-pause-input", "settings-button"])
       item<HTMLInputElement | HTMLButtonElement>(id).disabled =
         draft.saving || !saved || !limits;
     item("settings-button").textContent =
@@ -70,6 +70,11 @@ export function initializeTradingSettings(
   };
 
   item("capital-input").addEventListener("input", () => {
+    draft.edit();
+    failure = "";
+    draw();
+  });
+  item("entry-pause-input").addEventListener("change", () => {
     draft.edit();
     failure = "";
     draw();
@@ -102,6 +107,8 @@ export function initializeTradingSettings(
     render(value: TradingSettings | null, boundaries: TradingLimits | null): void {
       saved = value;
       limits = boundaries;
+      if (saved && draft.acceptsPolling)
+        item<HTMLInputElement>("entry-pause-input").checked = saved.emergency_stop;
       draw();
     },
     liveBlocker(): string | null {
