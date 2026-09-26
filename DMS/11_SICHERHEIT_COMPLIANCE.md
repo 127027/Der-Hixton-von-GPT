@@ -13,4 +13,4 @@ Aktuelle Releasegrenze: Paper/backtest only.
 - Strategieänderungen erfordern explizite Versionierung/Aktivierung.
 - Automatisches Merge und automatische Live-/Paper-Strategieaktivierung sind nicht erlaubt.
 
-Vor einer zukünftigen Livefreigabe ist ein separater Sicherheits-/Order-/Reconciliation-Abnahmevertrag erforderlich.
+Für jede lokale Echtgeldfreigabe gilt der implementierte gestufte Sicherheits-/Order-/Reconciliation-Abnahmevertrag: zuerst die read-only Kontovorprüfung, danach ausschließlich der ausdrücklich freigegebene 1×50-USDC-Roundtrip; normaler Maximalbudget-Livebetrieb bleibt bis zu einer separaten Freigabe gesperrt.
