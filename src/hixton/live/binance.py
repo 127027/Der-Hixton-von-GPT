@@ -105,7 +105,12 @@ class BinanceReadOnlyClient:
         except (URLError, OSError, ValueError):
             raise BinanceCheckError("Binance-Prüfung: Netzwerk-/TLS- oder Antwortfehler.") from None
 
-    def inspect(self, notional: Decimal) -> dict[str, object]:
+    def inspect(
+        self,
+        notional: Decimal,
+        *,
+        minimum_free_quote: Decimal | None = None,
+    ) -> dict[str, object]:
         before = time.time() * 1000
         server = self._read("/api/v3/time")
         after = time.time() * 1000
@@ -122,7 +127,13 @@ class BinanceReadOnlyClient:
             "/api/v3/exchangeInfo", {"symbols": json.dumps(self.symbols, separators=(",", ":"))}
         )
         return assess_account(
-            permissions, account, orders, markets, notional, quote_asset=self.quote_asset
+            permissions,
+            account,
+            orders,
+            markets,
+            notional,
+            quote_asset=self.quote_asset,
+            minimum_free_quote=minimum_free_quote,
         )
 
 
@@ -144,11 +155,15 @@ def assess_account(
     notional: Decimal,
     *,
     quote_asset: str = "USDC",
+    minimum_free_quote: Decimal | None = None,
 ) -> dict[str, object]:
     """Strict data assessment; metadata only, never import account holdings into paper."""
     symbols = symbols_for_quote(quote_asset)
-    if not notional.is_finite() or notional != Decimal("50"):
-        raise BinanceCheckError("Einmaltest-Vorprüfung benötigt genau 50 Quote-Einheiten.")
+    if not notional.is_finite() or notional <= 0:
+        raise BinanceCheckError("Binance-Vorprüfung benötigt ein positives Quote-Budget.")
+    minimum_free = notional if minimum_free_quote is None else minimum_free_quote
+    if not minimum_free.is_finite() or minimum_free < notional:
+        raise BinanceCheckError("Ungültige Mindestreserve für die Binance-Vorprüfung.")
     if not all(isinstance(value, dict) for value in (permissions, account, markets)):
         raise BinanceCheckError("Unvollständige Binance-Kontoantwort.")
     if not isinstance(orders, list) or not isinstance(account.get("balances"), list):
@@ -207,9 +222,9 @@ def assess_account(
             "während eines scharfen Echtgeldlaufs sperren neue Orders beim Abgleich."
         )
     free_quote = balances.get(quote_asset, (Decimal(0), Decimal(0)))[0]
-    if free_quote < notional + Decimal("10"):
+    if free_quote < minimum_free:
         blockers.append(
-            f"Für den ersten 1x50-Test werden mindestens 60 freie {quote_asset} benötigt."
+            f"Mindestens {minimum_free} freie {quote_asset} werden für diese Freigabe benötigt."
         )
     raw_symbols = markets.get("symbols")
     if not isinstance(raw_symbols, list):
@@ -242,7 +257,17 @@ def assess_account(
             blockers.append(f"{symbol}: Mengenfilter unvollständig.")
         notionals = [by_kind[k] for k in ("MIN_NOTIONAL", "NOTIONAL") if k in by_kind]
         if not notionals or any(_amount(f.get("minNotional")) > notional for f in notionals):
-            blockers.append(f"{symbol}: Mindestnotional fehlt oder liegt über 50 {quote_asset}.")
+            blockers.append(
+                f"{symbol}: Mindestnotional fehlt oder liegt über {notional} {quote_asset}."
+            )
+        notional_filter = by_kind.get("NOTIONAL")
+        if isinstance(notional_filter, dict) and notional_filter.get("applyMaxToMarket") is True:
+            max_notional = _amount(notional_filter.get("maxNotional"))
+            if max_notional > 0 and notional > max_notional:
+                blockers.append(
+                    f"{symbol}: Market-Notional {notional} {quote_asset} überschreitet "
+                    f"Binance-Maximum {max_notional}."
+                )
     return {
         "account_checks_passed": not blockers,
         "permission_states": {
@@ -256,6 +281,8 @@ def assess_account(
         "warnings": warnings,
         "blockers": blockers,
         "quote_asset": quote_asset,
+        "checked_trade_notional": str(notional),
+        "minimum_free_quote": str(minimum_free),
         "free_quote": str(free_quote),
         "free_usdt": str(free_quote) if quote_asset == "USDT" else None,
         "free_usdc": str(free_quote) if quote_asset == "USDC" else None,
