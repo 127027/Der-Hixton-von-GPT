@@ -1,0 +1,236 @@
+name: Hixton 0.5.0 Download Audit
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+    paths:
+      - .github/workflows/hixton-release-download-audit.yml
+
+permissions:
+  contents: read
+  actions: read
+
+concurrency:
+  group: hixton-release-download-audit
+  cancel-in-progress: true
+
+env:
+  BASE_BRANCH: gpt/usdc-audit
+  RELEASE_VERSION: "0.5.0"
+  ARCHIVE_NAME: Der-Hixton-0.5.0-Windows.zip
+
+jobs:
+  build-download-candidate:
+    runs-on: ubuntu-latest
+    outputs:
+      source_commit: ${{ steps.meta.outputs.source_commit }}
+    steps:
+      - name: Checkout current release branch
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ env.BASE_BRANCH }}
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Freeze source identity
+        id: meta
+        shell: bash
+        run: |
+          set -euo pipefail
+          source_commit="$(git rev-parse HEAD)"
+          echo "source_commit=$source_commit" >> "$GITHUB_OUTPUT"
+          test "$(python - <<'PY'
+          import re
+          from pathlib import Path
+          text = Path('src/hixton/__init__.py').read_text(encoding='utf-8')
+          match = re.search(r'__version__\s*=\s*"([^"]+)"', text)
+          print(match.group(1) if match else '')
+          PY
+          )" = "$RELEASE_VERSION"
+
+      - name: Build fresh Windows ZIP from frozen source
+        shell: bash
+        env:
+          SOURCE_COMMIT: ${{ steps.meta.outputs.source_commit }}
+        run: |
+          set -euo pipefail
+          rm -rf /tmp/hixton-release
+          mkdir -p /tmp/hixton-release
+          git archive HEAD | tar -x -C /tmp/hixton-release
+          python - <<'PY'
+          import json
+          import os
+          from datetime import UTC, datetime
+          from pathlib import Path
+          manifest = {
+              "schema_version": 1,
+              "release_version": os.environ["RELEASE_VERSION"],
+              "source_branch": os.environ["BASE_BRANCH"],
+              "source_commit": os.environ["SOURCE_COMMIT"],
+              "archive_name": os.environ["ARCHIVE_NAME"],
+              "built_at_utc": datetime.now(UTC).isoformat(),
+              "purpose": "Windows controlled-1x50 then max-budget live release candidate",
+          }
+          Path("/tmp/hixton-release/RELEASE_MANIFEST.json").write_text(
+              json.dumps(manifest, indent=2, ensure_ascii=False) + "\n",
+              encoding="utf-8",
+          )
+          PY
+          python - <<'PY'
+          from pathlib import Path
+          from zipfile import ZIP_DEFLATED, ZipFile
+          root = Path("/tmp/hixton-release")
+          out = Path("Der-Hixton-0.5.0-Windows.zip")
+          with ZipFile(out, "w", compression=ZIP_DEFLATED, compresslevel=9) as zf:
+              for path in sorted(root.rglob("*")):
+                  if path.is_file():
+                      zf.write(path, path.relative_to(root))
+          PY
+          sha256sum "$ARCHIVE_NAME" > "$ARCHIVE_NAME.sha256"
+
+      - name: Preflight the exact freshly built package
+        shell: bash
+        env:
+          SOURCE_COMMIT: ${{ steps.meta.outputs.source_commit }}
+        run: |
+          set -euo pipefail
+          rm -rf /tmp/preflight-extracted
+          python -m zipfile -e "$ARCHIVE_NAME" /tmp/preflight-extracted
+          python /tmp/preflight-extracted/scripts/release_package_audit.py \
+            --root /tmp/preflight-extracted \
+            --role A11 \
+            --expected-source "$SOURCE_COMMIT" \
+            --output /tmp/preflight-report.json
+
+      - name: Upload immutable download candidate
+        uses: actions/upload-artifact@v4
+        with:
+          name: hixton-0.5.0-download-candidate-${{ github.run_id }}
+          path: |
+            ${{ env.ARCHIVE_NAME }}
+            ${{ env.ARCHIVE_NAME }}.sha256
+          retention-days: 30
+          if-no-files-found: error
+
+  agents-download-and-audit:
+    needs: build-download-candidate
+    strategy:
+      fail-fast: false
+      matrix:
+        role: [A01, A02, A03, A04, A05, A06, A07, A08, A09, A10, A11]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Download the exact candidate artifact as ${{ matrix.role }}
+        uses: actions/download-artifact@v4
+        with:
+          name: hixton-0.5.0-download-candidate-${{ github.run_id }}
+          path: download
+
+      - name: Verify archive transport hash
+        shell: bash
+        run: |
+          set -euo pipefail
+          cd download
+          sha256sum -c "$ARCHIVE_NAME.sha256"
+
+      - name: Extract independently
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p extracted reports
+          python -m zipfile -e "download/$ARCHIVE_NAME" extracted
+
+      - name: ${{ matrix.role }} verify this is the new 0.5.0 package, not the old build
+        shell: bash
+        env:
+          SOURCE_COMMIT: ${{ needs.build-download-candidate.outputs.source_commit }}
+        run: |
+          set -o pipefail
+          python extracted/scripts/release_package_audit.py \
+            --root extracted \
+            --role "${{ matrix.role }}" \
+            --expected-source "$SOURCE_COMMIT" \
+            --output "reports/${{ matrix.role }}.json"
+
+      - name: Persist ${{ matrix.role }} download evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: release-download-report-${{ matrix.role }}-${{ github.run_id }}
+          path: reports/${{ matrix.role }}.json
+          retention-days: 30
+          if-no-files-found: error
+
+  aggregate-eleven-agent-verdict:
+    needs: [build-download-candidate, agents-download-and-audit]
+    if: always() && needs.build-download-candidate.result == 'success'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Download all eleven independent reports
+        uses: actions/download-artifact@v4
+        with:
+          pattern: release-download-report-*-${{ github.run_id }}
+          path: collected
+          merge-multiple: true
+
+      - name: Require A01-A11 PASS on the same downloaded ZIP
+        shell: bash
+        env:
+          SOURCE_COMMIT: ${{ needs.build-download-candidate.outputs.source_commit }}
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          import json
+          import os
+          from pathlib import Path
+
+          expected = [f"A{i:02d}" for i in range(1, 12)]
+          reports = {}
+          for path in Path("collected").glob("A*.json"):
+              payload = json.loads(path.read_text(encoding="utf-8"))
+              reports[payload["agent"]] = payload
+          missing = [role for role in expected if role not in reports]
+          failed = [role for role in expected if reports.get(role, {}).get("verdict") != "PASS"]
+          wrong_source = [
+              role for role in expected
+              if reports.get(role, {}).get("source_commit") != os.environ["SOURCE_COMMIT"]
+          ]
+          if missing or failed or wrong_source:
+              raise SystemExit(
+                  f"release download audit failed: missing={missing} failed={failed} wrong_source={wrong_source}"
+              )
+          summary = {
+              "schema_version": 1,
+              "verdict": "PASS",
+              "release_version": "0.5.0",
+              "source_commit": os.environ["SOURCE_COMMIT"],
+              "agents": {role: "PASS" for role in expected},
+              "all_agents_downloaded_same_archive": True,
+              "old_build_rejected_by_contract": True,
+          }
+          Path("AGENT_VERIFICATION.json").write_text(
+              json.dumps(summary, indent=2, ensure_ascii=False) + "\n",
+              encoding="utf-8",
+          )
+          print(json.dumps(summary, indent=2, ensure_ascii=False))
+          PY
+
+      - name: Download candidate again for verified handoff
+        uses: actions/download-artifact@v4
+        with:
+          name: hixton-0.5.0-download-candidate-${{ github.run_id }}
+          path: verified
+
+      - name: Attach eleven-agent verification
+        shell: bash
+        run: cp AGENT_VERIFICATION.json verified/AGENT_VERIFICATION.json
+
+      - name: Upload final verified Windows download
+        uses: actions/upload-artifact@v4
+        with:
+          name: Hixton-0.5.0-Windows-VERIFIED-${{ github.run_id }}
+          path: verified
+          retention-days: 30
+          if-no-files-found: error
