@@ -23,7 +23,7 @@ In der UI nur **Maximaler USDC-Einsatz** ändern. Standard: 250 USDC. Beim aktue
 ## Gestufte lokale Echtgeld-Inbetriebnahme
 
 1. Binance API-Key mit Lesen + Spot erstellen; IP-Beschränkung EIN; Withdrawal/Transfer/Margin/Futures/Optionen AUS.
-2. In Hixton lokalen Schlüsselbereich entsperren, Key/Secret speichern und **Binance-Verbindung prüfen**.
+2. In Hixton lokalen Schlüsselbereich entsperren, Key/Secret speichern und **Binance-Verbindung prüfen**. Bereits vorhandene freie BTC-/Altcoin-/USDT-Bestände werden als Hinweis angezeigt, blockieren den Test aber nicht und werden niemals als Hixton-Position übernommen. Nach dem Scharfschalten keine manuellen Spot-Bestandsbewegungen durchführen, bis der Lauf reconciled bzw. Live wieder sicher deaktiviert ist.
 3. Maximalbudget bleibt standardmäßig 250 USDC.
 4. **1 × 50 USDC · Test freigeben**. Keine sofortige Order: Hixton wartet auf ein neues gültiges Signal, führt den einmaligen Entry und regulären Exit aus und reconciled Konto/Fills.
 5. Erst nach vollständig abgeschlossenem Roundtrip und allen weiteren Gates kann **Live an** den gespeicherten Maximalbudget-Plan aktivieren.
