@@ -252,6 +252,17 @@ class LiveOrderJournal:
                 self._audit(connection, intent_id, "LOCAL_CANCEL_" + reason)
             return changed == 1
 
+    def reject(self, intent_id: str) -> None:
+        """Record only a definitive exchange rejection after submit was claimed."""
+        with self._connect() as connection:
+            changed = connection.execute(
+                "UPDATE live_intents SET state='REJECTED',updated_at=? WHERE intent_id=? "
+                "AND state IN ('SUBMITTING','UNKNOWN')",
+                (datetime.now(UTC).isoformat(), intent_id),
+            ).rowcount
+            if changed:
+                self._audit(connection, intent_id, "DEFINITIVE_EXCHANGE_REJECTION")
+
     def unknown(self, intent_id: str) -> None:
         with self._connect() as connection:
             connection.execute(
@@ -422,8 +433,11 @@ class LiveOrderExecutor:
             return self.reconcile(intent_id)
         try:
             self.journal.record(intent, self.exchange.submit(intent))
-        except Exception:
-            self.journal.unknown(intent_id)
+        except Exception as error:
+            if getattr(error, "definitely_rejected", False):
+                self.journal.reject(intent_id)
+            else:
+                self.journal.unknown(intent_id)
         return self.journal.load(intent_id)[1]
 
     def reconcile(self, intent_id: str) -> str:
