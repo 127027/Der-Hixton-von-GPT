@@ -12,8 +12,13 @@ from decimal import ROUND_DOWN, Decimal
 
 from hixton.domain.allocation import RANKED_REPEAT
 
-MIN_VALIDATED_CAPITAL_USDC = Decimal("100.00")
-MAX_VALIDATED_CAPITAL_USDC = Decimal("1000.00")
+MIN_CONFIGURABLE_CAPITAL_USDC = Decimal("100.00")
+MAX_CONFIGURABLE_CAPITAL_USDC = Decimal("1000000.00")
+MAX_RESEARCH_REFERENCE_USDC = Decimal("1000.00")
+# Backward-compatible names for existing reporting/tests; these are product input bounds,
+# not a claim that every scale up to the hard ceiling has historical liquidity validation.
+MIN_VALIDATED_CAPITAL_USDC = MIN_CONFIGURABLE_CAPITAL_USDC
+MAX_VALIDATED_CAPITAL_USDC = MAX_CONFIGURABLE_CAPITAL_USDC
 DEFAULT_MAX_CAPITAL_USDC = Decimal("250.00")
 ALLOCATOR_VERSION = "CAPITAL-V1-2X50PCT"
 _CENT = Decimal("0.01")
@@ -39,13 +44,13 @@ def capital_plan(max_capital_usdc: Decimal) -> CapitalPlan:
     if not max_capital_usdc.is_finite():
         raise ValueError("max capital must be finite")
     normalized = max_capital_usdc.quantize(_CENT, rounding=ROUND_DOWN)
-    if normalized < MIN_VALIDATED_CAPITAL_USDC:
+    if normalized < MIN_CONFIGURABLE_CAPITAL_USDC:
         raise ValueError(
-            f"max capital must be at least {MIN_VALIDATED_CAPITAL_USDC} USDC"
+            f"max capital must be at least {MIN_CONFIGURABLE_CAPITAL_USDC} USDC"
         )
-    if normalized > MAX_VALIDATED_CAPITAL_USDC:
+    if normalized > MAX_CONFIGURABLE_CAPITAL_USDC:
         raise ValueError(
-            f"max capital currently validated only through {MAX_VALIDATED_CAPITAL_USDC} USDC"
+            f"max capital must not exceed {MAX_CONFIGURABLE_CAPITAL_USDC} USDC"
         )
     slots = 2
     tranche = (normalized / slots).quantize(_CENT, rounding=ROUND_DOWN)
