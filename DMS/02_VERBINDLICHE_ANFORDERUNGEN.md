@@ -19,3 +19,4 @@ Status: CURRENT · 25.09.2026
 - Erster lokaler Echtgeldschritt bleibt **1×50 USDC** als separater Einmaltest; das gespeicherte Maximalbudget wird dafür nicht auf 50 geändert.
 - Dauer-Live ist erst nach vollständig reconciliertem 1×50-Roundtrip und allen Runtime-Gates zulässig und verwendet anschließend das gespeicherte Maximalbudget.
 - Live nutzt ausschließlich Binance Spot USDC; Withdrawal, Transfer, Margin, Futures und Optionen müssen deaktiviert sein.
+- Vorbestehende freie Spot-Bestände dürfen vorhanden sein. Sie werden als Konto-Baseline überwacht, nicht als Bot-Eigentum übernommen und dürfen von Hixton nicht verkauft werden; manuelle Bestandsänderungen während eines scharfen Echtgeldlaufs müssen den Abgleich fail-closed sperren.
