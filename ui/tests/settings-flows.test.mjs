@@ -145,6 +145,26 @@ test("live state selection follows server acknowledgement, rejects false green a
   } finally {live.dispose();ui.restore();}
 });
 
+test("shared entry pause is visible, editable and blocks live until explicitly cleared",async()=>{
+  const ui=harness(()=>{});const writes=[];
+  const settings=initializeTradingSettings(async value=>{writes.push(value);return value;},()=>{});
+  const limits={min_capital_usdc:"100.00",max_capital_usdc:"1000.00",allocator_version:"CAPITAL-V1-2X50PCT"};
+  try {
+    settings.render({
+      max_capital_usdc:"250.00",slot_count:2,target_notional_usdc:"125.00",reserve_usdc:"0.00",
+      allocation_policy:"ranked_repeat",allocator_version:"CAPITAL-V1-2X50PCT",emergency_stop:true,
+    },limits);
+    assert.equal(ui.node("entry-pause-input").checked,true);
+    assert.match(settings.liveBlocker(),/Einstiegssperre/);
+    ui.node("entry-pause-input").checked=false;
+    await ui.node("entry-pause-input").fire("change");
+    assert.match(settings.liveBlocker(),/Übernehmen/);
+    await ui.node("trading-form").fire("submit");
+    assert.equal(writes.at(-1).emergency_stop,false);
+    assert.equal(settings.liveBlocker(),null);
+  } finally {ui.restore();}
+});
+
 test("250 and 1000 USDC maximum budgets can be saved through the single field",async()=>{
   const ui=harness(()=>{});const writes=[];
   const settings=initializeTradingSettings(
