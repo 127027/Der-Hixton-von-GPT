@@ -377,13 +377,20 @@ class LivePreparation:
             production_settings_ok = (
                 production_plan is not None and emergency_stop is False
             )
-            trial_available = bool(
-                credential_status["configured"]
-                and account_ok
-                and trial_settings_ok
-                and trial.get("state") == "NOT_STARTED"
-                and live.get("state") == "LIVE_DISABLED"
-            )
+            trial_blockers: list[str] = []
+            if not credential_status["configured"]:
+                trial_blockers.append("Binance API-Schlüssel fehlt.")
+            if fresh is None:
+                trial_blockers.append("Binance-Kontoprüfung ist älter als 60 Sekunden; bitte erneut prüfen.")
+            elif fresh.get("account_checks_passed") is not True:
+                trial_blockers.append("Binance-Kontoprüfung enthält Blockierungen.")
+            if not trial_settings_ok:
+                trial_blockers.append("Gemeinsame Einstiegspause ist aktiv. In Einstellungen deaktivieren und übernehmen.")
+            if trial.get("state") != "NOT_STARTED":
+                trial_blockers.append(f"50-USDC-Test ist bereits im Zustand {trial.get('state')}.")
+            if live.get("state") != "LIVE_DISABLED":
+                trial_blockers.append("Normaler Livebetrieb ist nicht vollständig deaktiviert.")
+            trial_available = not trial_blockers
             trial_completed = trial.get("state") == "COMPLETED"
             free_usdc = (
                 Decimal(str(fresh.get("free_usdc", "0")))
@@ -442,6 +449,7 @@ class LivePreparation:
                 "blockers": blockers,
                 "account_check": fresh if authenticated else None,
                 "trial_dispatch_available": trial_available,
+                "trial_blockers": trial_blockers,
                 "trial_quote_asset": "USDC",
                 "trial_readiness": {
                     "quote_aware_order_adapter_offline_tested": True,
