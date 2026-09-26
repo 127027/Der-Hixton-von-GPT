@@ -1,3 +1,4 @@
+# 2026-09-26: rebuild UI after controlled-trial entry-pause UX changes.
 name: Hixton UI Build
 
 on:
