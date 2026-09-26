@@ -12,6 +12,7 @@ export interface TradingSettings {
 export interface TradingLimits {
   min_capital_usdc: string;
   max_capital_usdc: string;
+  research_reference_max_usdc?: string;
   allocator_version: string;
 }
 
@@ -35,7 +36,7 @@ export function settingsProblem(
   if (!Number.isFinite(amount) || !Number.isFinite(minimum) || !Number.isFinite(maximum))
     return "Maximalbudget muss eine gültige USDC-Zahl sein.";
   if (amount < minimum || amount > maximum)
-    return "Aktuell validiert sind " + formatBudget(minimum) + " bis "
+    return "Konfigurierbar sind " + formatBudget(minimum) + " bis "
       + formatBudget(maximum) + " USDC.";
   return null;
 }
@@ -85,8 +86,16 @@ export function describeLivePlan(
       + ": " + describeSettings(draft) + ". "
       + (settingsProblem(draft, limits)
         ?? "Erst Übernehmen klicken, bevor Live angefordert wird.");
+  const reference = Number(limits.research_reference_max_usdc ?? "NaN");
+  const selected = Number(saved.max_capital_usdc);
+  const scaleNote = Number.isFinite(reference) && Number.isFinite(selected) && selected > reference
+    ? " Hinweis: Die Kapitalhöhe liegt über der historischen Forschungsreferenz von "
+      + formatBudget(reference) + " USDC; echte Marktliquidität und Slippage werden beim "
+      + "Echtbetrieb nicht durch den Backtest garantiert."
+    : "";
   return active
-    + " Dasselbe Budget und derselbe Allocator gelten für Portfolio-Backtest, Paper und normalen Livebetrieb.";
+    + " Dasselbe Budget und derselbe Allocator gelten für Portfolio-Backtest, Paper und normalen Livebetrieb."
+    + scaleNote;
 }
 
 export class SettingsDraft {
