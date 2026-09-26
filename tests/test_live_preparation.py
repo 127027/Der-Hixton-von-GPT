@@ -630,7 +630,7 @@ def test_dangerous_key_rights_block(flag: str) -> None:
     assert flag in str(result["blockers"])
 
 
-def test_missing_permissions_orders_and_insufficient_usdc_fail_closed_while_holdings_only_warn() -> None:
+def test_real_blockers_fail_closed_while_existing_holdings_only_warn() -> None:
     permissions, account, orders, markets = account_fixture()
     del permissions["enableWithdrawals"]
     account["balances"][0]["free"] = "0"
