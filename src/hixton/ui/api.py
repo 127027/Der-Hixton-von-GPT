@@ -26,8 +26,9 @@ from hixton.config import ProjectConfig
 from hixton.constants import SYMBOLS
 from hixton.domain.capital import (
     ALLOCATOR_VERSION,
-    MAX_VALIDATED_CAPITAL_USDC,
-    MIN_VALIDATED_CAPITAL_USDC,
+    MAX_CONFIGURABLE_CAPITAL_USDC,
+    MAX_RESEARCH_REFERENCE_USDC,
+    MIN_CONFIGURABLE_CAPITAL_USDC,
 )
 from hixton.live.credentials import Vault
 from hixton.paper.engine import load_paper_portfolio
@@ -381,8 +382,9 @@ def create_app(
             "runtime": runtime,
             "paper": _paper_payload(supervisor, config),
             "trading_limits": {
-                "min_capital_usdc": str(MIN_VALIDATED_CAPITAL_USDC),
-                "max_capital_usdc": str(MAX_VALIDATED_CAPITAL_USDC),
+                "min_capital_usdc": str(MIN_CONFIGURABLE_CAPITAL_USDC),
+                "max_capital_usdc": str(MAX_CONFIGURABLE_CAPITAL_USDC),
+                "research_reference_max_usdc": str(MAX_RESEARCH_REFERENCE_USDC),
                 "allocator_version": ALLOCATOR_VERSION,
             },
             "server_time_utc": _iso(datetime.now(UTC)),
@@ -467,9 +469,9 @@ def create_app(
             raise HTTPException(
                 status_code=400,
                 detail=(
-                    "Ungültiger maximaler USDC-Einsatz. Der aktuell validierte Bereich "
-                    f"liegt zwischen {MIN_VALIDATED_CAPITAL_USDC} und "
-                    f"{MAX_VALIDATED_CAPITAL_USDC} USDC."
+                    "Ungültiger maximaler USDC-Einsatz. Der konfigurierbare Bereich "
+                    f"liegt zwischen {MIN_CONFIGURABLE_CAPITAL_USDC} und "
+                    f"{MAX_CONFIGURABLE_CAPITAL_USDC} USDC."
                 ),
             ) from None
         with PaperStore(config.database_path) as store:
