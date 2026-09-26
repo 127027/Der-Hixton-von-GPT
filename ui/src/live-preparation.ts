@@ -96,7 +96,9 @@ export function initializeLivePreparation(sharedSettingsBlocker: () => string | 
     message(
       "live-trial-status",
       status.trial?.state && status.trial.state !== "NOT_STARTED"
-        ? `Test: ${status.trial.state}${status.trial.symbol ? " · " + status.trial.symbol : ""}`
+        ? status.trial.state === "CANCELED"
+          ? "Vor einer Order abgebrochen · kann erneut gestartet werden."
+          : `Test: ${status.trial.state}${status.trial.symbol ? " · " + status.trial.symbol : ""}`
         : status.trial_dispatch_available
           ? "Bereit: wartet nach Freigabe auf ein neues gültiges Signal."
           : trialReason
@@ -105,8 +107,19 @@ export function initializeLivePreparation(sharedSettingsBlocker: () => string | 
     );
     const trialButton = element<HTMLButtonElement>("live-trial-start");
     trialButton.title = status.trial_dispatch_available
-      ? "Kontrollierten 1×50-USDC-Test freigeben"
+      ? "Kontrollierten 1×50-USDC-Echtgeldtest starten; Kontoprüfung erfolgt automatisch"
       : trialReason || "50-USDC-Test ist noch nicht freigegeben.";
+    const liveButton = element<HTMLButtonElement>("live-request");
+    liveButton.title = status.order_dispatch_available
+      ? "Normalen Livebetrieb starten; Kontoprüfung erfolgt automatisch"
+      : status.blockers.join(" · ") || "Livebetrieb ist noch nicht freigegeben.";
+    if (status.authenticated && status.credentials.configured && !status.account_check) {
+      message(
+        "live-check-result",
+        "Kein frischer Diagnose-Check gespeichert. Das ist kein Startblocker: "
+          + "50-USDC-Test und Live prüfen das Binance-Konto beim Klick automatisch neu.",
+      );
+    }
     const list = element("live-blockers");
     list.replaceChildren();
     for (const reason of new Set([...status.blockers, ...(status.account_check?.blockers ?? [])])) {
@@ -189,7 +202,11 @@ export function initializeLivePreparation(sharedSettingsBlocker: () => string | 
     const secret_key = element<HTMLInputElement>("live-api-secret").value;
     try {
       await request("credentials", {api_key, secret_key, confirmation:"SCHLUESSEL SPEICHERN"});
-      message("live-key-result", "Schlüssel sicher gespeichert. Jetzt Verbindung prüfen.");
+      message(
+        "live-key-result",
+        "Schlüssel sicher gespeichert. Du kannst den 50-USDC-Test direkt starten; "
+          + "„Binance-Verbindung prüfen“ ist optional zur Diagnose.",
+      );
     } finally {
       element<HTMLInputElement>("live-api-key").value = "";
       element<HTMLInputElement>("live-api-secret").value = "";
@@ -230,7 +247,7 @@ export function initializeLivePreparation(sharedSettingsBlocker: () => string | 
     }
     const blocker = sharedSettingsBlocker(); if (blocker) throw new Error(blocker);
     if (!last.credentials.configured) {
-      throw new Error("Zuerst API-Key und Secret speichern und Verbindung prüfen.");
+      throw new Error("Zuerst API-Key und Secret lokal speichern.");
     }
     await request("enable", {confirmation:"LIVE MAXIMALBUDGET AKTIVIEREN"});
     message(
@@ -250,7 +267,7 @@ export function initializeLivePreparation(sharedSettingsBlocker: () => string | 
     }
     const blocker = sharedSettingsBlocker(); if (blocker) throw new Error(blocker);
     if (!last.credentials.configured) {
-      throw new Error("Zuerst API-Key und Secret speichern und Verbindung prüfen.");
+      throw new Error("Zuerst API-Key und Secret lokal speichern.");
     }
     await request("trial/start", {
       confirmation:"TEST 50 USDC",
@@ -259,7 +276,8 @@ export function initializeLivePreparation(sharedSettingsBlocker: () => string | 
     });
     message(
       "live-trial-result",
-      "1×50-Test scharf. Noch keine Order wurde sofort gesendet; der Bot wartet auf ein neues gültiges Signal.",
+      "1×50-Echtgeldtest scharf. Kontoprüfung und Baseline sind bestanden. "
+        + "Noch keine Order wurde sofort gesendet; der Bot wartet auf ein neues gültiges Signal.",
     );
   });
   window.addEventListener("pagehide", clearSecrets);
