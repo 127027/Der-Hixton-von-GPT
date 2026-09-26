@@ -1,3 +1,4 @@
+# 2026-09-26: build verified Windows ZIP for pre-existing Spot ownership isolation head 5610b3c5.
 # 2026-09-26: build and independently verify final engineering head ce154b2a for controlled 1x50-USDC handoff.
 name: Hixton 0.5.0 Download Audit
 
