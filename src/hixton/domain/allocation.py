@@ -1,4 +1,4 @@
-"""Versioned 80-USDC slot allocation for portfolio validation."""
+"""Versioned max-budget slot allocation for portfolio validation."""
 
 from __future__ import annotations
 
