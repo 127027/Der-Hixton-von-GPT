@@ -252,6 +252,41 @@ def test_controlled_trial_arms_only_after_fresh_account_check_without_sending_or
         assert connection.execute("SELECT COUNT(*) FROM trial_intents").fetchone()[0] == 0
 
 
+def test_entry_pause_explains_why_controlled_trial_button_must_stay_locked(tmp_path: Path) -> None:
+    client, _, service = client_for(tmp_path)
+    unlock(client)
+    save_key(client)
+
+    class FakeReadOnlyClient:
+        def __init__(self, credentials: BinanceCredentials) -> None:
+            assert credentials.api_key == KEY
+
+        def inspect(self, notional: Decimal) -> dict[str, object]:
+            return {
+                "account_checks_passed": True,
+                "blockers": [],
+                "warnings": [],
+                "free_usdc": "100",
+                "free_bnb": "0.03",
+            }
+
+    service.client_factory = FakeReadOnlyClient
+    assert client.post("/api/live/check", headers=HEADERS, json={}).status_code == 200
+    response = client.post(
+        "/api/trading/settings",
+        headers=HEADERS,
+        json={
+            "confirmation": "ANWENDEN",
+            "max_capital_usdc": "250.00",
+            "emergency_stop": True,
+        },
+    )
+    assert response.status_code == 200
+    status = client.get("/api/live/status").json()
+    assert status["trial_dispatch_available"] is False
+    assert any("Einstiegspause" in reason for reason in status["trial_blockers"])
+
+
 def test_live_off_does_not_sell_open_trial_and_keys_cannot_orphan_it(tmp_path: Path) -> None:
     from tests.test_live_trial import arm, open_position, trial
 
