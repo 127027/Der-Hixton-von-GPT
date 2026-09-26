@@ -96,9 +96,13 @@ class TrialReconciler:
             intents_exist = connection.execute(
                 "SELECT 1 FROM trial_intents LIMIT 1"
             ).fetchone() is not None
-            trial_exists = connection.execute(
-                "SELECT 1 FROM signal_trial LIMIT 1"
-            ).fetchone() is not None
+            trial_table = connection.execute(
+                "SELECT 1 FROM sqlite_master WHERE type='table' AND name='signal_trial'"
+            ).fetchone()
+            trial_exists = bool(
+                trial_table
+                and connection.execute("SELECT 1 FROM signal_trial LIMIT 1").fetchone()
+            )
             existing = connection.execute(
                 "SELECT account FROM trial_account_baseline WHERE singleton=1"
             ).fetchone()
