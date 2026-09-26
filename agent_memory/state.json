@@ -2,7 +2,7 @@
   "mode": "V6_PRODUCT_CONTINUOUS",
   "bootstrap_complete": true,
   "progress_percent": 100,
-  "current_focus": "SWARM-003 is active: maintain one clean current V6 USDC Paper/backtest product, keep A01-A11 key-free and continuously verifying it, and run evidence-led Top-K coin optimization with shared 3x80 as the authoritative acceptance model.",
+  "current_focus": "SWARM-003 is active: maintain one clean current V6 USDC product with one saved max_capital_usdc, CAPITAL-V1-2X50PCT (default 250 -> 2x125), a separate controlled local 1x50-USDC first real-money roundtrip, key-free A01-A11 verification, and isolated 10x250 coin research.",
   "last_indexed_commit": "247ec4f3ed3fae547fbb486992bef820b05cb245",
   "last_learning_round": 6,
   "current_strategy": "V6 canonical coin profiles from src/hixton/domain/versions.py",
@@ -13,7 +13,8 @@
     "shared_3x80_baseline_usdc": "1217.90575965983510000000",
     "shared_3x80_stress_usdc": "1133.4052326050468000000",
     "report_start_utc": "2023-09-19T19:00:00+00:00",
-    "report_end_utc": "2026-09-19T19:00:00+00:00"
+    "report_end_utc": "2026-09-19T19:00:00+00:00",
+    "reference_type": "historical_pre_max_budget_research_checkpoint"
   },
   "agent_runtime": {
     "agent_count": 11,
@@ -29,5 +30,13 @@
     "Binance public market-data endpoint availability and policy are external facts and must fail closed rather than trigger synthetic operational candles.",
     "Historical performance does not guarantee future profitability."
   ],
-  "notes": "Current A01-A11 roles live under agent_memory/swarm/. Legacy bootstrap memory was superseded by the current V6 product mission. Paper state must be preserved across strategy activation; Live/testnet orders remain prohibited."
+  "notes": "Current A01-A11 roles live under agent_memory/swarm/. The active product uses the max-capital allocator; legacy 3x80 values in current_reference are historical research evidence only. Paper state is preserved across strategy activation. Cloud agents never submit real/testnet orders; local real-money execution remains fail-closed behind the explicit controlled 1x50 trial.",
+  "current_product": {
+    "max_capital_source": "max_capital_usdc",
+    "allocator_version": "CAPITAL-V1-2X50PCT",
+    "default_max_capital_usdc": "250.00",
+    "default_slot_count": 2,
+    "default_target_notional_usdc": "125.00",
+    "first_live_trial": "1x50 USDC controlled roundtrip"
+  }
 }
