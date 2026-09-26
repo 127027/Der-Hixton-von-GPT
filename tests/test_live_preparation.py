@@ -173,7 +173,7 @@ def test_trial_endpoint_rejects_non_fifty_budget(tmp_path: Path, amount: str) ->
     assert response.status_code == 400
 
 
-def test_trial_route_requires_explicit_one_by_fifty_settings_and_never_bypasses(
+def test_trial_route_requires_auth_key_and_exact_one_by_fifty_payload(
     tmp_path: Path,
 ) -> None:
     client, config, service = client_for(tmp_path)
@@ -182,10 +182,10 @@ def test_trial_route_requires_explicit_one_by_fifty_settings_and_never_bypasses(
     assert client.post("/api/live/trial/start", headers=HEADERS, json=body).status_code == 401
     unlock(client)
     save_key(client)
-    response = client.post("/api/live/trial/start", headers=HEADERS, json=body)
-    assert response.status_code == 400
     status = client.get("/api/live/status").json()
-    assert status["trial_dispatch_available"] is False
+    # A separate manual connection-check click is deliberately not a prerequisite.
+    assert status["trial_dispatch_available"] is True
+    assert status["account_check"] is None
     assert status["paper_settings_preview"] == {
         "max_capital_usdc": "250.00",
         "slot_count": 2,
@@ -197,7 +197,8 @@ def test_trial_route_requires_explicit_one_by_fifty_settings_and_never_bypasses(
     assert status["trial"]["state"] == "NOT_STARTED"
     assert service.trial is not None and service.runtime is not None
     assert status["trial_readiness"]["runtime_connected"] is True
-    assert status["trial_readiness"]["production_submission_accepted"] is True
+    assert status["trial_readiness"]["automatic_preflight_on_start"] is True
+    assert status["trial_readiness"]["manual_account_check_required"] is False
     assert (
         client.post(
             "/api/live/trial/start", headers=HEADERS, json={**body, "force_live": True}
@@ -215,7 +216,7 @@ def test_trial_route_requires_explicit_one_by_fifty_settings_and_never_bypasses(
         )
 
 
-def test_controlled_trial_arms_only_after_fresh_account_check_without_sending_order(
+def test_controlled_trial_auto_checks_account_and_arms_without_sending_order(
     tmp_path: Path,
 ) -> None:
     client, config, service = client_for(tmp_path)
@@ -225,11 +226,20 @@ def test_controlled_trial_arms_only_after_fresh_account_check_without_sending_or
         def __init__(self, credentials: BinanceCredentials) -> None:
             assert credentials.api_key == KEY
 
-        def inspect(self, notional: Decimal) -> dict[str, object]:
+        def inspect(
+            self,
+            notional: Decimal,
+            *,
+            minimum_free_quote: Decimal | None = None,
+        ) -> dict[str, object]:
             assert notional == Decimal("50")
+            assert minimum_free_quote == Decimal("60")
             return {
                 "account_checks_passed": True,
                 "blockers": [],
+                "warnings": [],
+                "checked_trade_notional": "50",
+                "minimum_free_quote": "60",
                 "free_usdc": "100",
                 "free_bnb": "0.03",
             }
@@ -241,8 +251,9 @@ def test_controlled_trial_arms_only_after_fresh_account_check_without_sending_or
         {"USDC": (Decimal("100"), Decimal("0")), "BNB": (Decimal("0.03"), Decimal("0"))},
         (),
     )
-    assert client.post("/api/live/check", headers=HEADERS, json={}).status_code == 200
-    assert client.get("/api/live/status").json()["trial_dispatch_available"] is True
+    status = client.get("/api/live/status").json()
+    assert status["trial_dispatch_available"] is True
+    assert status["account_check"] is None
     body = {"confirmation": "TEST 50 USDC", "quote_asset": "USDC", "notional_quote": "50.00"}
     response = client.post("/api/live/trial/start", headers=HEADERS, json=body)
     assert response.status_code == 200
@@ -261,7 +272,12 @@ def test_entry_pause_explains_why_controlled_trial_button_must_stay_locked(tmp_p
         def __init__(self, credentials: BinanceCredentials) -> None:
             assert credentials.api_key == KEY
 
-        def inspect(self, notional: Decimal) -> dict[str, object]:
+        def inspect(
+            self,
+            notional: Decimal,
+            *,
+            minimum_free_quote: Decimal | None = None,
+        ) -> dict[str, object]:
             return {
                 "account_checks_passed": True,
                 "blockers": [],
@@ -379,14 +395,20 @@ def test_common_max_budget_is_immediately_the_live_source_and_survives_restart(
         }
         assert status["trading_limits"] == {
             "min_capital_usdc": "100.00",
-            "max_capital_usdc": "1000.00",
+            "max_capital_usdc": "1000000.00",
+            "research_reference_max_usdc": "1000.00",
             "allocator_version": "CAPITAL-V1-2X50PCT",
         }
 
 
 @pytest.mark.parametrize(
     "capital,expected_target",
-    [("250", "125.00"), ("500", "250.00"), ("1000", "500.00")],
+    [
+        ("250", "125.00"),
+        ("500", "250.00"),
+        ("1000", "500.00"),
+        ("500000", "250000.00"),
+    ],
 )
 def test_validated_max_budgets_persist_without_inventing_cash(
     tmp_path: Path,
@@ -443,7 +465,12 @@ def test_existing_password_unlock_to_key_and_account_check_is_a_complete_local_f
         def __init__(self, credentials: BinanceCredentials) -> None:
             assert credentials.api_key == KEY
 
-        def inspect(self, notional: Decimal) -> dict[str, object]:
+        def inspect(
+            self,
+            notional: Decimal,
+            *,
+            minimum_free_quote: Decimal | None = None,
+        ) -> dict[str, object]:
             assert notional == Decimal("50")
             return {
                 "account_checks_passed": True,
@@ -462,7 +489,7 @@ def test_existing_password_unlock_to_key_and_account_check_is_a_complete_local_f
 
 @pytest.mark.parametrize(
     "capital",
-    ["99", "1000.01", "NaN", "Infinity", "-50"],
+    ["99", "1000000.01", "NaN", "Infinity", "-50"],
 )
 def test_common_settings_reject_unapproved_limits_without_silent_fallback(
     tmp_path: Path,
@@ -629,8 +656,10 @@ def test_clean_account_is_not_live_approval(tmp_path: Path) -> None:
     save_key(client)
 
     class Client:
-        def inspect(self, notional):
-            return assess_account(*account_fixture(), notional)
+        def inspect(self, notional, *, minimum_free_quote=None):
+            return assess_account(
+                *account_fixture(), notional, minimum_free_quote=minimum_free_quote
+            )
 
     service.client_factory = lambda _: Client()
     check = client.post("/api/live/check", headers=HEADERS, json={})
@@ -671,7 +700,14 @@ def test_real_blockers_fail_closed_while_existing_holdings_only_warn() -> None:
     account["balances"][0]["free"] = "0"
     account["balances"].append({"asset": "BUSD", "free": "1000", "locked": "0"})
     orders.append({"symbol": "BTCUSDC", "clientOrderId": "foreign"})
-    result = assess_account(permissions, account, orders, markets, Decimal("50"))
+    result = assess_account(
+        permissions,
+        account,
+        orders,
+        markets,
+        Decimal("50"),
+        minimum_free_quote=Decimal("60"),
+    )
     reasons = str(result["blockers"])
     assert all(term in reasons for term in ("enableWithdrawals", "60", "Orders"))
     assert "BUSD" not in reasons
@@ -863,7 +899,7 @@ def test_check_expiration_and_rate_limit(tmp_path: Path, monkeypatch: pytest.Mon
     monkeypatch.setattr("hixton.live.preparation.time.monotonic", lambda: now[0])
 
     class Client:
-        def inspect(self, notional):
+        def inspect(self, notional, *, minimum_free_quote=None):
             return assess_account(*account_fixture(), notional)
 
     service.client_factory = lambda _: Client()
