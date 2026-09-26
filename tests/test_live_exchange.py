@@ -303,6 +303,33 @@ def test_transport_failure_has_no_retry_or_secret_echo(failure):
     assert "secret-message" not in str(captured.value)
 
 
+@pytest.mark.parametrize(
+    "http_status,code,expected",
+    [
+        (400, -1013, True),
+        (400, -1007, False),
+        (500, -1013, False),
+    ],
+)
+def test_order_transport_classifies_definitive_rejection_vs_ambiguous_failure(
+    http_status: int,
+    code: int,
+    expected: bool,
+) -> None:
+    failure = HTTPError(
+        "https://secret-url.invalid",
+        http_status,
+        "hidden",
+        {},
+        io.BytesIO(json.dumps({"code": code, "msg": SECRET}).encode()),
+    )
+    client = transport(FakeOpener(failure))
+    with pytest.raises(ExchangeRequestError) as captured:
+        client.request("POST", "/api/v3/order", {"symbol": "SOLUSDC"})
+    assert captured.value.definitely_rejected is expected
+    assert SECRET not in str(captured.value)
+
+
 def test_transport_refuses_alternative_hosts_and_mutating_endpoints():
     with pytest.raises(ValueError):
         BinanceSpotTransport(BinanceCredentials(KEY, SECRET), base_url="http://api.binance.com")
