@@ -153,7 +153,7 @@ class LivePreparation:
                 now=datetime.now(UTC),
                 ignore_intent_id=intent.intent_id,
             )
-            if proof["balances_match"] is not True or proof["no_open_orders"] is not True:
+            if proof["passed"] is not True:
                 return False
             if intent.side == "BUY":
                 credentials = self.credentials.load()
