@@ -37,7 +37,7 @@ Alle Profile verwenden 400 Warm-up-Bars.
 
 1. Binance-Key/Secret werden nur lokal im Windows-Anmeldedatenspeicher gehalten.
 2. Read-only Kontovorprüfung: Spot/USDC, Rechte, freie Salden, offene Orders und Marktfilter.
-3. Erster Echtgeldtest: **genau 1 × 50 USDC**. Die Freigabe sendet nicht sofort eine Order, sondern wartet auf ein neues gültiges Signal, führt einen Entry und den regulären Exit aus und reconciled anschließend Konto/Fills.
+3. Erster Echtgeldtest: **genau 1 × 50 USDC**. Die Freigabe sendet nicht sofort eine Order, sondern wartet auf ein neues gültiges Signal, führt einen Entry und den regulären Exit aus und reconciled anschließend Konto/Fills. Bereits vorhandene freie Spot-Bestände sind kein Blocker: sie werden in einer unveränderlichen Konto-Baseline erfasst, nicht als Hixton-Position übernommen und niemals durch einen Hixton-SELL verbraucht.
 4. Erst nach vollständig abgeschlossenem 1×50-Roundtrip kann der normale budgetgesteuerte Livebetrieb freigegeben werden. Dieser nutzt das in der UI gespeicherte Maximalbudget und denselben Allocator wie Paper/Backtest.
 5. Eine Budgetänderung während eines gebundenen Live-Ledgers stoppt neue Einstiege und benötigt eine sichere erneute Freigabe.
 
