@@ -175,18 +175,23 @@ class TrialReconciler:
             if row["state"] not in FINAL and row["intent_id"] != ignore_intent_id
         ]
         locked = any(amount != 0 for _, amount in snapshot.balances.values())
-        passed = not (mismatches or unresolved or locked or snapshot.open_orders)
+        balances_match = not mismatches
+        no_open_orders = not snapshot.open_orders
+        no_locked_balances = not locked
+        passed = balances_match and no_open_orders and no_locked_balances and not unresolved
         with self.journal._connect() as connection:
             self.journal._audit(
                 connection, "ACCOUNT", "BALANCES_MATCH" if passed else "BALANCES_UNRESOLVED"
             )
         return {
-            "balances_match": passed,
-            "no_open_orders": not snapshot.open_orders,
+            "balances_match": balances_match,
+            "no_open_orders": no_open_orders,
+            "no_locked_balances": no_locked_balances,
             "mismatched_assets": mismatches,
             "unresolved_intents": unresolved,
             "movements": {asset: str(value) for asset, value in movements.items()},
             "observed_at_utc": snapshot.observed_at.isoformat(),
+            "passed": passed,
         }
 
     def complete_if_proven(self, trial: Any, snapshot: AccountSnapshot, *, now: datetime) -> bool:
@@ -199,9 +204,12 @@ class TrialReconciler:
             movements = proof["movements"]
             assert isinstance(movements, dict)
             remaining = Decimal(movements.get(base, "0"))
-            if proof["balances_match"] is not True or remaining != ZERO:
+            if proof["passed"] is not True or remaining != ZERO:
                 return False
             trial.confirm_reconciled(
-                no_open_orders=True, owned_remaining=remaining, account_matches=True, now=now
+                no_open_orders=proof["no_open_orders"] is True,
+                owned_remaining=remaining,
+                account_matches=proof["balances_match"] is True,
+                now=now,
             )
             return True
