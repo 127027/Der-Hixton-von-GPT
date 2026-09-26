@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "status": "CURRENT_PROMOTION_CHECKPOINT",
+  "status": "HISTORICAL_PRE_MAX_BUDGET_PROMOTION_CHECKPOINT",
   "source_run_id": 35463131378,
   "source_artifact_id": 10590881515,
   "source_head_sha": "6eef5262a38e9d9aa52d3be085975d063525a4a5",
@@ -228,5 +228,7 @@
         "trail_atr": 0
       }
     }
-  }
+  },
+  "evidence_scope": "Historical research checkpoint only; not current 0.5.0 product capitalization or release evidence.",
+  "current_product_reference": "Use fresh dashboard-backtest-e2e evidence for CAPITAL-V1-2X50PCT max-budget product results."
 }
