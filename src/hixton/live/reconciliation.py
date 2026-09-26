@@ -204,11 +204,12 @@ class TrialReconciler:
             movements = proof["movements"]
             assert isinstance(movements, dict)
             remaining = Decimal(movements.get(base, "0"))
-            if proof["passed"] is not True or remaining != ZERO:
+            residual = Decimal(str(report.get("residual_quantity", "0")))
+            if proof["passed"] is not True or remaining != residual:
                 return False
             trial.confirm_reconciled(
                 no_open_orders=proof["no_open_orders"] is True,
-                owned_remaining=remaining,
+                owned_remaining=remaining - residual,
                 account_matches=proof["balances_match"] is True,
                 now=now,
             )
