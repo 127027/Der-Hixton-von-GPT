@@ -77,7 +77,10 @@ export function mockLive() {
     else if(url.endsWith("/credentials")) {state.credentials.configured=true;data={configured:true};}
     else if(url.endsWith("/credentials/delete")) {state.credentials.configured=false;data={removed:true};}
     else if(url.endsWith("/lock")) {state.authenticated=false;data={authenticated:false};}
-    else if(url.endsWith("/check")) data={account_checks_passed:true};
+    else if(url.endsWith("/check")) {
+      state.account_check={account_checks_passed:true,blockers:[],warnings:[],free_usdc:"100"};
+      data=structuredClone(state.account_check);
+    }
     else if(url.endsWith("/trial/start")) {
       if(!state.trial_dispatch_available || body.confirmation!=="TEST 50 USDC") {
         status=409;data={detail:"Testfreigabe sicher abgelehnt."};
