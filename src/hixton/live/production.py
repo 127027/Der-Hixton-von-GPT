@@ -475,7 +475,13 @@ class LiveBalanceReconciler:
                 "SELECT 1 FROM live_account_baseline WHERE singleton=1"
             ).fetchone() is not None
 
-    def capture(self, snapshot: LiveAccountSnapshot, *, now: datetime) -> None:
+    def capture(
+        self,
+        snapshot: LiveAccountSnapshot,
+        *,
+        now: datetime,
+        allow_refresh: bool = False,
+    ) -> None:
         snapshot.validate(now)
         if snapshot.open_orders or any(locked != ZERO for _, locked in snapshot.balances.values()):
             raise ValueError("Live baseline requires no open orders or locked balances")
@@ -495,6 +501,12 @@ class LiveBalanceReconciler:
             if existing is not None:
                 if existing["account"] != snapshot.account:
                     raise RuntimeError("Live account identity changed")
+                if allow_refresh:
+                    connection.execute(
+                        "UPDATE live_account_baseline SET observed_at=?,balances_json=? "
+                        "WHERE singleton=1",
+                        (snapshot.observed_at.isoformat(), encoded),
+                    )
                 return
             if connection.execute("SELECT 1 FROM live_intents LIMIT 1").fetchone():
                 raise RuntimeError("cannot capture Live baseline after order history exists")
@@ -714,11 +726,24 @@ class LivePortfolioController:
         plan, emergency = self._current_plan()
         if emergency:
             raise RuntimeError("Live enable refused while entry pause is active")
-        free_usdc = sum(snapshot.balances.get("USDC", (ZERO, ZERO)))
+        free_usdc = snapshot.balances.get("USDC", (ZERO, ZERO))[0]
         if free_usdc < plan.max_capital_usdc:
             raise RuntimeError("Live account has less free USDC than configured max capital")
         capital_json = self._capital_json(plan)
-        self.reconciler.capture(snapshot, now=now)
+        existing_control = self._control()
+        existing_positions = self._positions()
+        existing_unresolved = self.journal.unresolved_ids()
+        allow_baseline_refresh = bool(
+            existing_control is not None
+            and existing_control["state"] == "LIVE_DISABLED"
+            and not existing_positions
+            and not existing_unresolved
+        )
+        self.reconciler.capture(
+            snapshot,
+            now=now,
+            allow_refresh=allow_baseline_refresh,
+        )
         with self.lock, self.journal._connect() as connection:
             connection.execute("BEGIN IMMEDIATE")
             row = connection.execute("SELECT * FROM live_control WHERE singleton=1").fetchone()
@@ -813,6 +838,19 @@ class LivePortfolioController:
                     (state, datetime.now(UTC).isoformat()),
                 )
 
+    def _normalize_disabled_state(self) -> None:
+        control = self._control()
+        if control is None or control["state"] != "EXIT_ONLY":
+            return
+        if self._positions() or self.journal.unresolved_ids():
+            return
+        with self.journal._connect() as connection:
+            connection.execute(
+                "UPDATE live_control SET state='LIVE_DISABLED',entries_enabled=0,"
+                "updated_at=?,reason=NULL WHERE singleton=1 AND state='EXIT_ONLY'",
+                (datetime.now(UTC).isoformat(),),
+            )
+
     def fail_closed(self, reason: str) -> None:
         with self.journal._connect() as connection:
             connection.execute(
@@ -856,7 +894,7 @@ class LivePortfolioController:
             positions = self._positions()
             if intent.side == "BUY":
                 used = sum(int(row["slot_count"]) for row in positions.values())
-                free_usdc = sum(snapshot.balances.get("USDC", (ZERO, ZERO)))
+                free_usdc = snapshot.balances.get("USDC", (ZERO, ZERO))[0]
                 return (
                     intent.symbol not in positions
                     and used + intent.slot_count <= plan.slot_count
@@ -1179,6 +1217,7 @@ class LivePortfolioController:
     ) -> dict[str, object]:
         now = _utc(now)
         with self.lock:
+            self._normalize_disabled_state()
             control = self._control()
             if control is None or control["state"] == "LIVE_DISABLED":
                 return self.report()
