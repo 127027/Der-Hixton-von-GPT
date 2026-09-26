@@ -344,7 +344,7 @@ def test_exit_is_allowed_after_entries_are_disabled(tmp_path: Path) -> None:
         c.advance(exit_points, now=later, healthy=True)
     assert [item.side for item in exchange.submits] == ["BUY", "SELL"]
     assert c.report()["used_slots"] == 0
-    assert c.report()["state"] == "EXIT_ONLY"
+    assert c.report()["state"] == "LIVE_DISABLED"
 
 
 def test_reenable_reanchors_checkpoints_and_does_not_backfill_disabled_interval(
@@ -363,6 +363,19 @@ def test_reenable_reanchors_checkpoints_and_does_not_backfill_disabled_interval(
         }
     assert set(checkpoints) == set(SYMBOLS)
     assert set(checkpoints.values()) == {NOW}
+
+
+def test_fully_disabled_flat_live_session_rebases_manual_account_changes(tmp_path: Path) -> None:
+    c, _exchange, account, _settings = controller(tmp_path)
+    enable_now(c, account, universe(NOW - timedelta(hours=2)))
+    c.disable_entries()
+    assert c.report()["state"] == "LIVE_DISABLED"
+    account.balances["USDC"] = (D("300"), D("0"))
+    account.balances["BTC"] = (D("0.001"), D("0"))
+    enable_now(c, account, universe(NOW - timedelta(hours=1)))
+    assert c.report()["state"] == "LIVE_ENABLED"
+    proof = c.reconciler.check(account.snapshot(), now=datetime.now(UTC))
+    assert proof["passed"] is True
 
 
 def test_repeated_scheduler_ticks_do_not_duplicate_orders(tmp_path: Path) -> None:
