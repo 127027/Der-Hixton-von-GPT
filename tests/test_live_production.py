@@ -231,6 +231,34 @@ def test_ten_simultaneous_signals_never_exceed_two_slots(tmp_path: Path) -> None
     assert c.report()["used_slots"] == 2
 
 
+def test_preexisting_spot_holdings_stay_outside_owned_live_position(tmp_path: Path) -> None:
+    c, exchange, account, _settings = controller(tmp_path)
+    original_btc = D("0.00120611")
+    original_wnxm = D("0.01794")
+    account.balances["BTC"] = (original_btc, D("0"))
+    account.balances["WNXM"] = (original_wnxm, D("0"))
+    enable_now(c, account, universe(NOW - timedelta(hours=1)))
+
+    entry = universe(NOW, enter=("BTCUSDC",))
+    for _ in range(4):
+        c.advance(entry, now=NOW, healthy=True)
+    buys = [intent for intent in exchange.submits if intent.side == "BUY"]
+    assert len(buys) == 1
+    bot_owned = exchange.orders[buys[0].client_order_id].executed_quantity
+    assert account.balances["BTC"][0] == original_btc + bot_owned
+
+    later = NOW + timedelta(hours=1)
+    exit_points = universe(later, exit_symbol="BTCUSDC")
+    for _ in range(5):
+        c.advance(exit_points, now=later, healthy=True)
+    sells = [intent for intent in exchange.submits if intent.side == "SELL"]
+    assert len(sells) == 1
+    assert sells[0].base_quantity == bot_owned
+    assert account.balances["BTC"][0] == original_btc
+    assert account.balances["WNXM"][0] == original_wnxm
+    assert c.report()["used_slots"] == 0
+
+
 def test_timeout_restart_reconciles_without_duplicate_submit(tmp_path: Path) -> None:
     c, exchange, account, _settings = controller(tmp_path)
     enable_now(c, account, universe(NOW - timedelta(hours=1)))
