@@ -364,7 +364,8 @@ class LivePreparation:
                 self.audit("CONTROLLED_50_USDC_BASELINE_CAPTURE_FAILED")
                 raise BinanceCheckError(
                     "Kontobaseline konnte nicht sicher vorbereitet werden; "
-                    "es wurde keine Order ausgelöst. Erneuter Start ist vor einer Order sicher möglich."
+                    "es wurde keine Order ausgelöst. Erneuter Start ist vor einer Order "
+                    "sicher möglich."
                 ) from error
             self._trial_authorized = True
             try:
@@ -457,7 +458,6 @@ class LivePreparation:
         with self.lock:
             credential_status = self.credentials.status()
             fresh = self._fresh_check()
-            account_ok = fresh is not None and fresh.get("account_checks_passed") is True
             trial = self.trial.report() if self.trial is not None else {"state": "NOT_STARTED"}
             live = self.live.report() if self.live is not None else {
                 "initialized": False,
