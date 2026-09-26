@@ -237,6 +237,17 @@ class OrderJournal:
                 self._audit(connection, intent_id, "SUBMITTING")
             return changed == 1
 
+    def reject(self, intent_id: str) -> None:
+        """Record only a definitive exchange rejection after submit was claimed."""
+        with self._connect() as connection:
+            changed = connection.execute(
+                "UPDATE trial_intents SET state='REJECTED',updated_at=? WHERE intent_id=? "
+                "AND state IN ('SUBMITTING','UNKNOWN')",
+                (datetime.now(UTC).isoformat(), intent_id),
+            ).rowcount
+            if changed:
+                self._audit(connection, intent_id, "DEFINITIVE_EXCHANGE_REJECTION")
+
     def unknown(self, intent_id: str) -> None:
         with self._connect() as connection:
             connection.execute(
@@ -439,9 +450,12 @@ class TrialOrderExecutor:
         try:
             response = self.exchange.submit(intent)
             self.journal.record(intent, response)
-        except Exception:
+        except Exception as error:
             # Never log a raw adapter exception (it could contain signed URLs or secrets).
-            self.journal.unknown(intent_id)
+            if getattr(error, "definitely_rejected", False):
+                self.journal.reject(intent_id)
+            else:
+                self.journal.unknown(intent_id)
         return self.journal.load(intent_id)[1]
 
     def reconcile(self, intent_id: str) -> str:
