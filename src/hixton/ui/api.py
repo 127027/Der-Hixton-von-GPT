@@ -59,6 +59,24 @@ def _settings_payload(settings: PaperSettings) -> dict[str, object]:
     }
 
 
+def _trading_settings_payload(
+    config: ProjectConfig,
+    supervisor: RuntimeSupervisor,
+) -> dict[str, object] | None:
+    """Load editable trading settings independently from Paper dashboard health."""
+    try:
+        with PaperStore(config.database_path) as store:
+            store.initialize(
+                strategy_key=supervisor.strategy.key,
+                strategy_version=supervisor.strategy.version,
+                starting_cash_usdc=config.paper_starting_cash_usdc,
+            )
+            store.require_strategy(supervisor.strategy.key, supervisor.strategy.version)
+            return _settings_payload(store.load_settings())
+    except (OSError, RuntimeError, sqlite3.DatabaseError):
+        return None
+
+
 def _runtime_payload(snapshot: RuntimeSnapshot) -> dict[str, object]:
     return {
         "health": snapshot.health,
@@ -381,6 +399,7 @@ def create_app(
             "strategy_profiles": supervisor.strategy.profiles_payload(),
             "runtime": runtime,
             "paper": _paper_payload(supervisor, config),
+            "trading_settings": _trading_settings_payload(config, supervisor),
             "trading_limits": {
                 "min_capital_usdc": str(MIN_CONFIGURABLE_CAPITAL_USDC),
                 "max_capital_usdc": str(MAX_CONFIGURABLE_CAPITAL_USDC),
