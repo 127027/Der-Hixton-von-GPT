@@ -51,6 +51,10 @@ class SignalTrial:
         strategy: StrategyDefinition,
         release_check: Callable[[], bool],
         rules_provider: Callable[[], Mapping[str, ExecutionRules]] | None = None,
+        *,
+        application_version: str = "unknown",
+        execution_source_sha256: str = "unknown",
+        allocator_version: str = "unknown",
     ) -> None:
         if executor.journal.path.resolve() != journal.path.resolve():
             raise ValueError("Trial and order journal must share the same ledger")
@@ -59,6 +63,9 @@ class SignalTrial:
         self.strategy = strategy
         self.release_check = release_check
         self.rules_provider = rules_provider
+        self.application_version = application_version
+        self.execution_source_sha256 = execution_source_sha256
+        self.allocator_version = allocator_version
         self.lock = RLock()
         with journal._connect() as connection:
             connection.execute("""
@@ -72,7 +79,10 @@ class SignalTrial:
                     entry_price TEXT, entry_atr TEXT, owned_quantity TEXT,
                     residual_quantity TEXT NOT NULL DEFAULT '0',
                     highest_close TEXT, last_exit_bar TEXT,
-                    reason TEXT, completed_at TEXT
+                    reason TEXT, completed_at TEXT,
+                    application_version TEXT NOT NULL DEFAULT 'legacy',
+                    execution_source_sha256 TEXT NOT NULL DEFAULT 'legacy',
+                    allocator_version TEXT NOT NULL DEFAULT 'legacy'
                 )
             """)
             columns = {
@@ -84,6 +94,16 @@ class SignalTrial:
                     "ALTER TABLE signal_trial ADD COLUMN residual_quantity TEXT NOT NULL "
                     "DEFAULT '0'"
                 )
+            for column in (
+                "application_version",
+                "execution_source_sha256",
+                "allocator_version",
+            ):
+                if column not in columns:
+                    connection.execute(
+                        f"ALTER TABLE signal_trial ADD COLUMN {column} TEXT NOT NULL "
+                        "DEFAULT 'legacy'"
+                    )
 
     def _row(self) -> dict[str, Any] | None:
         with self.journal._connect() as connection:
@@ -124,9 +144,19 @@ class SignalTrial:
             if not self.release_check():
                 raise RuntimeError("Echtgeld-Testfreigabe fehlt")
             connection.execute(
-                "INSERT INTO signal_trial(singleton,trial_id,account,strategy_json,armed_at,"
-                "state,entries_enabled) VALUES(1,?,?,?,?,'WAITING_SIGNAL',1)",
-                (trial_id, account, _strategy_json(self.strategy), now.isoformat()),
+                "INSERT INTO signal_trial("
+                "singleton,trial_id,account,strategy_json,armed_at,state,entries_enabled,"
+                "application_version,execution_source_sha256,allocator_version"
+                ") VALUES(1,?,?,?,?, 'WAITING_SIGNAL',1,?,?,?)",
+                (
+                    trial_id,
+                    account,
+                    _strategy_json(self.strategy),
+                    now.isoformat(),
+                    self.application_version,
+                    self.execution_source_sha256,
+                    self.allocator_version,
+                ),
             )
             self.journal._audit(connection, trial_id, "TRIAL_ARMED")
 
@@ -365,6 +395,16 @@ class SignalTrial:
             if row["strategy_json"] != _strategy_json(self.strategy):
                 self._set(reason="FROZEN_STRATEGY_MISMATCH", entries_enabled=0)
                 return self.report()
+            source_changed = row["execution_source_sha256"] != self.execution_source_sha256
+            if source_changed and row["state"] == "WAITING_SIGNAL":
+                self._set(
+                    state="CANCELED",
+                    reason="EXECUTION_SOURCE_CHANGED_BEFORE_ORDER",
+                    entries_enabled=0,
+                )
+                return self.report()
+            if source_changed and row["state"] != "AWAITING_RECONCILIATION":
+                self._set(reason="EXECUTION_SOURCE_CHANGED_DURING_TEST", entries_enabled=0)
             if row["state"] in {"ENTRY_PENDING", "EXIT_PENDING"}:
                 # Query uncertain orders even when market health is degraded.
                 if healthy or self.journal_state(row) != "CREATED":
@@ -500,6 +540,18 @@ class SignalTrial:
             "exit_signal": json.loads(row["exit_signal_json"] or "null"),
             "account_reconciled": row["state"] == "COMPLETED",
             "residual_quantity": row["residual_quantity"] or "0",
+            "execution_identity": {
+                "frozen_application_version": row["application_version"],
+                "frozen_source_sha256": row["execution_source_sha256"],
+                "frozen_allocator_version": row["allocator_version"],
+                "current_application_version": self.application_version,
+                "current_source_sha256": self.execution_source_sha256,
+                "current_allocator_version": self.allocator_version,
+                "source_matches_current": (
+                    row["execution_source_sha256"] == self.execution_source_sha256
+                ),
+                "allocator_matches_current": row["allocator_version"] == self.allocator_version,
+            },
         }
         for label in ("buy", "sell"):
             identity = row[label + "_id"]
