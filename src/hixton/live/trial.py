@@ -539,6 +539,7 @@ class SignalTrial:
             "entry_signal": json.loads(row["entry_signal_json"] or "null"),
             "exit_signal": json.loads(row["exit_signal_json"] or "null"),
             "account_reconciled": row["state"] == "COMPLETED",
+            "owned_quantity": row["owned_quantity"] or "0",
             "residual_quantity": row["residual_quantity"] or "0",
             "execution_identity": {
                 "frozen_application_version": row["application_version"],
