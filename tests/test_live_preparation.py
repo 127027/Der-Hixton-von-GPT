@@ -297,6 +297,42 @@ def test_production_live_snapshot_uses_stable_account_path(tmp_path: Path) -> No
     assert live.open_orders == expected.open_orders
 
 
+def test_trading_settings_survive_missing_paper_soak_dashboard(tmp_path: Path) -> None:
+    client, config, _service = client_for(tmp_path)
+    with sqlite3.connect(config.database_path) as connection:
+        connection.execute("DELETE FROM paper_soak_symbols")
+        connection.execute("DELETE FROM paper_soak")
+        connection.commit()
+
+    core = client.get("/api/status").json()
+    live = client.get("/api/live/status").json()
+
+    assert core["paper"] is None
+    assert core["trading_settings"]["max_capital_usdc"] == "250.00"
+    assert core["trading_settings"]["emergency_stop"] is False
+    assert live["trading_settings"]["max_capital_usdc"] == "250.00"
+    assert live["trading_settings"]["emergency_stop"] is False
+    assert "Gemeinsame Handelseinstellungen nicht verfügbar." not in live["blockers"]
+
+
+def test_degraded_health_is_visible_without_disabling_trial_arming(tmp_path: Path) -> None:
+    client, _config, service = client_for(tmp_path)
+    unlock(client)
+    save_key(client)
+    service.client_factory = lambda _credentials: None  # type: ignore[assignment]
+    service_status = service.status(
+        authenticated=True,
+        soak_ready=False,
+        healthy=False,
+        max_capital=Decimal("250"),
+        emergency_stop=False,
+    )
+    assert service_status["trial_dispatch_available"] is True
+    assert service_status["runtime_health"] == "DEGRADED"
+    assert service_status["trial_order_execution_blocked_by_health"] is True
+    assert any("HEALTHY" in reason for reason in service_status["blockers"])
+
+
 def test_entry_pause_explains_why_controlled_trial_button_must_stay_locked(tmp_path: Path) -> None:
     client, _, service = client_for(tmp_path)
     unlock(client)
