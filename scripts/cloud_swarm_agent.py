@@ -33,10 +33,19 @@ ROOT = Path(__file__).resolve().parents[1]
 MARKET_DATA_URL = "https://data-api.binance.vision"
 STATE_DB = ROOT / "runtime_state" / "hixton-usdc.sqlite3"
 STATE_MANIFEST = ROOT / "runtime_state" / "manifest.json"
+COORDINATION_FILE = ROOT / "agent_memory" / "swarm" / "coordination.json"
 
 
 class CheckFailure(RuntimeError):
     """Raised when one deterministic role cannot satisfy its duty."""
+
+
+class DispatchFailure(CheckFailure):
+    """A10 failure that carries explicit repair routing back to specialist owners."""
+
+    def __init__(self, message: str, routes: dict[str, list[str]]) -> None:
+        super().__init__(message)
+        self.routes = routes
 
 
 def run(command: list[str], *, timeout: int = 900) -> dict[str, Any]:
@@ -1851,6 +1860,65 @@ def coverage_defects(
     return defects
 
 
+def current_source_commit() -> str:
+    completed = subprocess.run(
+        ["git", "rev-parse", "HEAD"],
+        cwd=ROOT,
+        capture_output=True,
+        text=True,
+        timeout=30,
+        check=False,
+    )
+    if completed.returncode != 0:
+        raise CheckFailure(f"cannot resolve source commit: {completed.stderr.strip()}")
+    return completed.stdout.strip()
+
+
+def coordination_contract() -> dict[str, Any]:
+    value = load_json(COORDINATION_FILE)
+    round_id = value.get("round_id")
+    assignments = value.get("assignments")
+    if not isinstance(round_id, str) or not round_id:
+        raise CheckFailure("coordination round_id missing")
+    if not isinstance(assignments, dict) or set(assignments) != set(AGENT_IDS):
+        raise CheckFailure("coordination assignments must contain exactly A01..A11")
+    if value.get("commit_policy") != "PIN_EXACT_COMMIT_AT_RUN_START":
+        raise CheckFailure("coordination commit policy must pin the exact run commit")
+    return value
+
+
+def coordination_assignment(role: str) -> dict[str, Any]:
+    value = coordination_contract().get("assignments", {}).get(role)
+    if not isinstance(value, dict):
+        raise CheckFailure(f"coordination assignment missing for {role}")
+    return value
+
+
+def coordination_identity_defects(
+    reports: dict[str, dict[str, Any]], agents: list[str]
+) -> dict[str, list[str]]:
+    contract = coordination_contract()
+    expected_round = str(contract["round_id"])
+    expected_commit = current_source_commit()
+    defects: dict[str, list[str]] = {}
+    for agent in agents:
+        report = reports.get(agent)
+        if not isinstance(report, dict):
+            continue
+        problems: list[str] = []
+        if report.get("round_id") != expected_round:
+            problems.append(
+                f"round_id={report.get('round_id')!r}, expected={expected_round!r}"
+            )
+        if report.get("source_commit") != expected_commit:
+            problems.append(
+                f"source_commit={report.get('source_commit')!r}, expected={expected_commit!r}"
+            )
+        if problems:
+            defects[agent] = problems
+    return defects
+
+
 def role_a10(reports_dir: Path) -> list[dict[str, Any]]:
     ready = validate_cloud_ready(ROOT)
     reports = load_reports(reports_dir)
@@ -1860,17 +1928,35 @@ def role_a10(reports_dir: Path) -> list[dict[str, Any]]:
         agent for agent in required if reports.get(agent, {}).get("verdict") != "PASS"
     ]
     evidence_missing = coverage_defects(reports, required)
-    if missing or failed or evidence_missing:
+    identity_defects = coordination_identity_defects(reports, required)
+    if missing or failed or evidence_missing or identity_defects:
+        routes: dict[str, list[str]] = {}
+        for agent in missing:
+            routes.setdefault(agent, []).append("rerun_missing_report")
+        for agent in failed:
+            routes.setdefault(agent, []).append("repair_failed_duty_then_rerun")
+        for agent, tags in evidence_missing.items():
+            routes.setdefault(agent, []).append(
+                "produce_missing_evidence:" + ",".join(tags)
+            )
+        for agent, defects in identity_defects.items():
+            routes.setdefault(agent, []).append(
+                "discard_stale_or_mixed_commit_evidence:" + " | ".join(defects)
+            )
         detail = (
-            f"missing={missing}, failed={failed}, evidence_missing={evidence_missing}"
+            f"missing={missing}, failed={failed}, evidence_missing={evidence_missing}, "
+            f"identity_defects={identity_defects}, routes={routes}"
         )
-        raise CheckFailure(f"dispatcher repair loop: {detail}")
+        raise DispatchFailure(f"dispatcher repair loop: {detail}", routes)
     return [
         {
             "mission_id": ready["mission_id"],
             "mission_state": ready["mission_state"],
+            "coordination_round": coordination_contract()["round_id"],
+            "source_commit": current_source_commit(),
             "specialists_received": required,
             "evidence_contract_passed": True,
+            "identity_contract_passed": True,
             "repair_required": False,
         },
         coverage("evidence_contract_audit", "repair_routing"),
@@ -1884,15 +1970,18 @@ def role_a09(reports_dir: Path) -> list[dict[str, Any]]:
         agent for agent in required if reports.get(agent, {}).get("verdict") != "PASS"
     ]
     evidence_missing = coverage_defects(reports, required)
+    identity_defects = coordination_identity_defects(reports, required)
     a10 = reports.get("A10", {})
     if (
         bad
         or evidence_missing
+        or identity_defects
         or evidence_flag(a10, "evidence_contract_passed") is not True
         or evidence_flag(a10, "repair_required") is not False
     ):
         detail = (
             f"bad={bad}, evidence_missing={evidence_missing}, "
+            f"identity_defects={identity_defects}, "
             f"a10_contract={evidence_flag(a10, 'evidence_contract_passed')}, "
             f"a10_repair={evidence_flag(a10, 'repair_required')}"
         )
@@ -1918,18 +2007,21 @@ def role_a11(reports_dir: Path) -> list[dict[str, Any]]:
         agent for agent in required if reports.get(agent, {}).get("verdict") != "PASS"
     ]
     evidence_missing = coverage_defects(reports, required)
+    identity_defects = coordination_identity_defects(reports, required)
     qa = reports.get("A09", {})
     a10 = reports.get("A10", {})
     if (
         missing
         or failed
         or evidence_missing
+        or identity_defects
         or qa.get("gate") != "QA_PASS"
         or evidence_flag(a10, "evidence_contract_passed") is not True
         or evidence_flag(a10, "repair_required") is not False
     ):
         detail = (
             f"missing={missing}, failed={failed}, evidence_missing={evidence_missing}, "
+            f"identity_defects={identity_defects}, "
             f"qa_gate={qa.get('gate')}, "
             f"a10_contract={evidence_flag(a10, 'evidence_contract_passed')}, "
             f"a10_repair={evidence_flag(a10, 'repair_required')}"
@@ -1981,16 +2073,23 @@ def execute(
     if scope not in AUDIT_SCOPES:
         raise ValueError(f"unknown audit scope: {scope}")
     started = datetime.now(UTC)
+    coordination = coordination_contract()
+    assignment = coordination_assignment(role)
     report: dict[str, Any] = {
-        "schema_version": 2,
+        "schema_version": 3,
         "agent": role,
         "audit_scope": scope,
+        "round_id": coordination["round_id"],
+        "source_commit": current_source_commit(),
+        "assignment": assignment.get("objective"),
         "started_at_utc": started.isoformat(),
         "execution_mode": "DETERMINISTIC_KEY_FREE",
         "openai_api_key_required": False,
         "binance_private_credentials_required": False,
         "real_money_orders_allowed": False,
         "testnet_orders_allowed": False,
+        "blockers": [],
+        "handoff": assignment.get("handoff", []),
     }
     evidence: list[dict[str, Any]] = []
     try:
@@ -2040,12 +2139,21 @@ def execute(
             report["gate"] = "QA_PASS"
         if role == "A11" and scope in ("full", "base"):
             report["gate"] = "GOVERNANCE_PASS"
+    except DispatchFailure as error:
+        report["verdict"] = "FAIL"
+        report["error"] = f"{type(error).__name__}: {error}"
+        report["blockers"] = [str(error)]
+        report["repair_required"] = True
+        report["repair_owner"] = "A10_DISPATCH"
+        report["repair_routes"] = error.routes
+        report["defect_class"] = "SPECIALIST_OR_EVIDENCE_CONTRACT"
     except Exception as error:
         report["verdict"] = "FAIL"
         report["error"] = f"{type(error).__name__}: {error}"
+        report["blockers"] = [str(error)]
         if role == "A10":
             report["repair_required"] = True
-            report["repair_owner"] = "A10"
+            report["repair_owner"] = "A10_DISPATCH"
             report["defect_class"] = "LIFECYCLE_OR_EVIDENCE_CONTRACT"
         if role == "A09":
             report["gate"] = "QA_FAIL"
