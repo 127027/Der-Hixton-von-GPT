@@ -274,7 +274,7 @@ def test_controlled_trial_auto_checks_account_and_arms_without_sending_order(
     assert retried.json()["trial"]["state"] == "WAITING_SIGNAL"
 
 
-def test_production_live_snapshot_reuses_the_same_stable_account_snapshot_path(tmp_path: Path) -> None:
+def test_production_live_snapshot_uses_stable_account_path(tmp_path: Path) -> None:
     _client, _config, service = client_for(tmp_path)
     expected = AccountSnapshot(
         "fixture-account",
