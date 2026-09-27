@@ -17,3 +17,7 @@ Own the truth boundary between Binance market data/exchange metadata and Hixton'
 
 ## Boundaries
 A07 never edits prices to create parity, never supplies secrets and never sends an authenticated trading order.
+
+## Current Live-monitoring duty
+- Verify the report's Binance interpretation against the order journal: terminal state, exchange order id, fill count, market filters and reconciliation semantics must match the authenticated adapter contract without using private credentials in cloud jobs.
+- Distinguish a local intent from a Binance-accepted/filled order; only terminal FILLED evidence may count toward a completed real-money leg.

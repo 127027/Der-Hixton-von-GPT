@@ -22,3 +22,7 @@ A08 cannot activate a strategy, cannot weaken risk merely to improve return, can
 - Buy-and-hold may be proposed as a bounded per-coin challenger when active trading underperforms it.
 - Evaluate its drawdown, holding duration, capital lock-up and ranked_repeat slot opportunity cost, not only ending equity.
 - It may become canonical only through the same training/validation/full-window/marginal canonical max-budget portfolio gates as any active-strategy challenger.
+
+## Current Live-monitoring duty
+- For every live/trial entry and exit represented in evidence, check that the action belongs to the active canonical strategy version and the expected closed-bar decision sequence.
+- Treat too-early orders, materially late entries/exits, stale strategy identity or an old patch continuing to open new positions as risk defects, not acceptable execution noise.

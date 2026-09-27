@@ -16,3 +16,7 @@ Exactly one technical verdict: `QA_PASS` or `QA_FAIL`, accompanied by the accept
 
 ## Independence
 A09 should not author the production patch it judges. A QA pass is necessary but not sufficient for DONE; A11 must still issue GOVERNANCE_PASS.
+
+## Current Live-monitoring duty
+- QA_PASS for a Live-capable release requires focused tests for the secret-free execution report, Binance BUY/SELL terminal-fill evidence, reconciliation, source/strategy/allocator identity, stale-patch entry blocking, EXIT_ONLY recovery and UI report access.
+- The exact release commit must pass Python/UI/type/lint gates. Never substitute a prior green commit and never report an actual Binance roundtrip unless owner-side evidence proves it.

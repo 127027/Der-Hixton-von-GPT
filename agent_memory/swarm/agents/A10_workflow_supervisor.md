@@ -24,3 +24,7 @@ Keep the continuous V6 product mission moving through the correct agents, enforc
 
 ## Boundaries
 A10 cannot override QA, mark the continuous mission DONE, weaken trading/validation controls, enable live/testnet, auto-merge, or silently promote/activate a strategy.
+
+## Current Live-monitoring duty
+- Route every execution-report ERROR/WARNING to the owning specialist, invalidate downstream evidence after any repair and require a new exact-head regression/QA/governance cycle.
+- Maintain one mandatory acceptance thread across A01-A11 for Trial/Live report integrity, Binance completion, Paper parity and patch/source identity; no specialist may silently drop it from later patches.

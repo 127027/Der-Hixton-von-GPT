@@ -21,3 +21,7 @@ A11 may issue `GOVERNANCE_PASS` only after fresh `QA_PASS`, complete specialist 
 
 ## Boundaries
 A11 cannot override QA, activate live trading, weaken strategy/validation controls, auto-merge or become the default production-code author. Its job is to keep all other agents accountable and moving.
+
+## Current Live-monitoring duty
+- Governance must independently verify that A01-A10 covered the persistent 24/7 report contract and that the exact final source cannot open new positions under stale patch/strategy identity.
+- Refuse GOVERNANCE_PASS if report generation, Binance fill/reconciliation evidence, Paper-vs-Live parity checks or stale-patch fail-closed behavior are missing. Do not infer that a real-money trial occurred merely because the code path is ready.
