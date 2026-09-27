@@ -1734,6 +1734,7 @@ def _capital_budget_audit_a01() -> list[dict[str, Any]]:
         'Layout(RANKED_REPEAT, 3, D("83.33"))',
         'Layout(RANKED_REPEAT, 4, D("62.50"))',
         'Layout(RANKED_REPEAT, 5, D("50"))',
+        'Layout(ONE_PER_SYMBOL, 5, D("50"))',
         "Unused capital remains cash",
         '"activation_performed": False',
     )
@@ -1773,6 +1774,7 @@ def _capital_budget_audit_a02() -> list[dict[str, Any]]:
         "ranked_repeat:3x83.33",
         "ranked_repeat:4x62.50",
         "ranked_repeat:5x50",
+        "one_per_symbol:5x50",
     }
     references = payload.get("references", {})
     if not isinstance(references, dict) or not required_layouts <= set(references):
@@ -1844,6 +1846,7 @@ def _capital_budget_audit_a05() -> list[dict[str, Any]]:
         "ranked_repeat:3x83.33",
         "ranked_repeat:4x62.50",
         "ranked_repeat:5x50",
+        "one_per_symbol:5x50",
     ):
         item = refs.get(key)
         if isinstance(item, dict):
@@ -1944,47 +1947,53 @@ def _capital_budget_audit_a10(reports_dir: Path | None) -> list[dict[str, Any]]:
         raise CheckFailure("capital-budget specialist evidence incomplete")
     references = result.get("references", {})
     two = references.get("ranked_repeat:2x125") if isinstance(references, dict) else None
-    five = references.get("ranked_repeat:5x50") if isinstance(references, dict) else None
+    five_repeat = references.get("ranked_repeat:5x50") if isinstance(references, dict) else None
+    five_independent = (
+        references.get("one_per_symbol:5x50") if isinstance(references, dict) else None
+    )
     stress_rows = {
         str(row.get("layout")): row
         for row in result.get("stress_results", [])
         if isinstance(row, dict)
     }
-    if not isinstance(two, dict) or not isinstance(five, dict):
-        raise CheckFailure("capital-budget synthesis requires both 2x125 and 5x50")
+    if not isinstance(two, dict) or not isinstance(five_repeat, dict) or not isinstance(five_independent, dict):
+        raise CheckFailure(
+            "capital-budget synthesis requires 2x125, ranked-repeat 5x50 and "
+            "one-per-symbol 5x50"
+        )
     stress_two = stress_rows.get("ranked_repeat:2x125")
-    stress_five = stress_rows.get("ranked_repeat:5x50")
-    if not isinstance(stress_two, dict) or not isinstance(stress_five, dict):
-        raise CheckFailure("capital-budget synthesis requires stress evidence for 2x125 and 5x50")
+    stress_repeat = stress_rows.get("ranked_repeat:5x50")
+    stress_independent = stress_rows.get("one_per_symbol:5x50")
+    if not isinstance(stress_two, dict) or not isinstance(stress_repeat, dict) or not isinstance(stress_independent, dict):
+        raise CheckFailure("capital-budget synthesis requires stress evidence for all key layouts")
+
+    def delta(left: dict[str, Any], right: dict[str, Any]) -> dict[str, object]:
+        return {
+            "ending_equity_delta_candidate_minus_2x125": str(
+                Decimal(str(right["ending_equity"])) - Decimal(str(left["ending_equity"]))
+            ),
+            "position_cycle_delta_candidate_minus_2x125": (
+                int(right["position_cycles"]) - int(left["position_cycles"])
+            ),
+            "no_free_slot_delta_candidate_minus_2x125": (
+                int(right["blocked_no_free_slot"]) - int(left["blocked_no_free_slot"])
+            ),
+        }
 
     comparison = {
         "baseline": {
-            "2x125": two,
-            "5x50": five,
-            "ending_equity_delta_5x50_minus_2x125": str(
-                Decimal(str(five["ending_equity"])) - Decimal(str(two["ending_equity"]))
-            ),
-            "position_cycle_delta_5x50_minus_2x125": (
-                int(five["position_cycles"]) - int(two["position_cycles"])
-            ),
-            "no_free_slot_delta_5x50_minus_2x125": (
-                int(five["blocked_no_free_slot"]) - int(two["blocked_no_free_slot"])
-            ),
+            "2x125_ranked_repeat": two,
+            "5x50_ranked_repeat": five_repeat,
+            "5x50_one_per_symbol": five_independent,
+            "ranked_repeat_delta": delta(two, five_repeat),
+            "one_per_symbol_delta": delta(two, five_independent),
         },
         "stress": {
-            "2x125": stress_two,
-            "5x50": stress_five,
-            "ending_equity_delta_5x50_minus_2x125": str(
-                Decimal(str(stress_five["ending_equity"]))
-                - Decimal(str(stress_two["ending_equity"]))
-            ),
-            "position_cycle_delta_5x50_minus_2x125": (
-                int(stress_five["position_cycles"]) - int(stress_two["position_cycles"])
-            ),
-            "no_free_slot_delta_5x50_minus_2x125": (
-                int(stress_five["blocked_no_free_slot"])
-                - int(stress_two["blocked_no_free_slot"])
-            ),
+            "2x125_ranked_repeat": stress_two,
+            "5x50_ranked_repeat": stress_repeat,
+            "5x50_one_per_symbol": stress_independent,
+            "ranked_repeat_delta": delta(stress_two, stress_repeat),
+            "one_per_symbol_delta": delta(stress_two, stress_independent),
         },
     }
     return [
@@ -2016,6 +2025,8 @@ def _capital_budget_audit_a09(reports_dir: Path | None) -> list[dict[str, Any]]:
         or not isinstance(comparison, dict)
         or not isinstance(comparison.get("baseline"), dict)
         or not isinstance(comparison.get("stress"), dict)
+        or not isinstance(comparison["baseline"].get("5x50_one_per_symbol"), dict)
+        or not isinstance(comparison["stress"].get("5x50_one_per_symbol"), dict)
     ):
         raise CheckFailure("capital-budget QA rejects incomplete/non-research comparison")
     return [
