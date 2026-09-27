@@ -49,11 +49,27 @@ class Exchange:
         return self.orders.get(intent.client_order_id)
 
 
-def trial(tmp_path: Path, exchange=None, *, released=True):
+def trial(
+    tmp_path: Path,
+    exchange=None,
+    *,
+    released=True,
+    source_sha256: str = "test-source-v1",
+):
     journal = OrderJournal(tmp_path / "test-only.sqlite3")
     exchange = exchange or Exchange()
     executor = TrialOrderExecutor(journal, exchange, lambda _: released)
-    return SignalTrial(journal, executor, V6, lambda: released), exchange
+    return (
+        SignalTrial(
+            journal,
+            executor,
+            V6,
+            lambda: released,
+            execution_source_sha256=source_sha256,
+            allocator_version="CAPITAL-V1-2X50PCT",
+        ),
+        exchange,
+    )
 
 
 def universe(at=NOW, *, buy_symbol="SOLUSDC", sell_symbol=None):
@@ -90,6 +106,18 @@ def test_global_trial_budget_rejects_every_other_amount(tmp_path, amount):
         controller.arm(str(uuid4()), "fake-account", now=NOW, notional=D(amount))
     assert not exchange.submits
     assert controller.report()["state"] == "NOT_STARTED"
+
+
+def test_patch_change_before_first_order_cancels_stale_trial_and_reports_identity(tmp_path):
+    controller, exchange = trial(tmp_path, source_sha256="patch-v1")
+    arm(controller)
+    assert controller.report()["state"] == "WAITING_SIGNAL"
+    controller.execution_source_sha256 = "patch-v2"
+    result = controller.advance(universe(), now=NOW, healthy=True)
+    assert result["state"] == "CANCELED"
+    assert result["reason"] == "EXECUTION_SOURCE_CHANGED_BEFORE_ORDER"
+    assert result["execution_identity"]["source_matches_current"] is False
+    assert exchange.submits == []
 
 
 def test_missing_release_never_arms(tmp_path):
