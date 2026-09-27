@@ -16,10 +16,6 @@ permissions:
   contents: write
   actions: read
 
-concurrency:
-  group: hixton-agent-dispatcher
-  cancel-in-progress: true
-
 jobs:
   run-swarm:
     uses: ./.github/workflows/hixton-cloud-swarm-reusable.yml
