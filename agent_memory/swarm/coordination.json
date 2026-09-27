@@ -99,7 +99,8 @@
         "live-button",
         "error-surface",
         "bundle-freshness",
-        "legacy-local-upgrade"
+        "legacy-local-upgrade",
+        "real-browser-user-flow"
       ]
     },
     "A05": {
@@ -172,7 +173,8 @@
         "commit-pin",
         "full-tests",
         "ui-build",
-        "live-readiness"
+        "live-readiness",
+        "real-browser-user-flow"
       ]
     },
     "A10": {
@@ -185,7 +187,8 @@
         "repair-routing",
         "evidence-freshness",
         "commit-pin",
-        "legacy-local-upgrade"
+        "legacy-local-upgrade",
+        "real-browser-user-flow"
       ]
     },
     "A11": {
@@ -197,7 +200,8 @@
         "repair-loop",
         "commit-pin",
         "no-live-overclaim",
-        "legacy-local-upgrade"
+        "legacy-local-upgrade",
+        "real-browser-user-flow"
       ]
     }
   },
@@ -224,6 +228,7 @@
       "WTC"
     ],
     "observed_trial_ui": "trial says ready/waits for fresh signal, but clicking 1x50 start returns generic preparation failure before any order",
-    "migration_requirement": "Latest build must safely upgrade/reuse the old local SQLite/live-preparation state, preserve credentials, preserve pre-existing Spot baseline-only assets, and remove obsolete paper-soak gating."
+    "migration_requirement": "Latest build must safely upgrade/reuse the old local SQLite/live-preparation state, preserve credentials, preserve pre-existing Spot baseline-only assets, and remove obsolete paper-soak gating.",
+    "ui_release_requirement": "A04 must execute a real Chromium user flow against the local Hixton server: fresh settings page -> 250 USDC settings usable -> entry-pause toggle/save -> local unlock -> test credentials -> controlled 1x50 trial reaches WAITING_SIGNAL -> degraded runtime visibly explains that order execution waits for HEALTHY -> after simulated completed trial the 250-USDC Live button becomes enabled. A04 may not PASS from TypeScript/unit/build checks alone."
   }
 }
