@@ -1956,7 +1956,11 @@ def _capital_budget_audit_a10(reports_dir: Path | None) -> list[dict[str, Any]]:
         for row in result.get("stress_results", [])
         if isinstance(row, dict)
     }
-    if not isinstance(two, dict) or not isinstance(five_repeat, dict) or not isinstance(five_independent, dict):
+    if (
+        not isinstance(two, dict)
+        or not isinstance(five_repeat, dict)
+        or not isinstance(five_independent, dict)
+    ):
         raise CheckFailure(
             "capital-budget synthesis requires 2x125, ranked-repeat 5x50 and "
             "one-per-symbol 5x50"
@@ -1964,8 +1968,14 @@ def _capital_budget_audit_a10(reports_dir: Path | None) -> list[dict[str, Any]]:
     stress_two = stress_rows.get("ranked_repeat:2x125")
     stress_repeat = stress_rows.get("ranked_repeat:5x50")
     stress_independent = stress_rows.get("one_per_symbol:5x50")
-    if not isinstance(stress_two, dict) or not isinstance(stress_repeat, dict) or not isinstance(stress_independent, dict):
-        raise CheckFailure("capital-budget synthesis requires stress evidence for all key layouts")
+    if (
+        not isinstance(stress_two, dict)
+        or not isinstance(stress_repeat, dict)
+        or not isinstance(stress_independent, dict)
+    ):
+        raise CheckFailure(
+            "capital-budget synthesis requires stress evidence for all key layouts"
+        )
 
     def delta(left: dict[str, Any], right: dict[str, Any]) -> dict[str, object]:
         return {
