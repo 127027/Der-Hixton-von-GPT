@@ -5,6 +5,8 @@ from __future__ import annotations
 import asyncio
 import json
 import subprocess
+import time
+from collections.abc import Callable
 from contextlib import suppress
 from datetime import UTC, datetime, timedelta
 
@@ -73,6 +75,9 @@ class RuntimeSupervisor:
         self._trial_task: asyncio.Task[None] | None = None
         self._last_trial_error: str | None = None
         self._last_live_error: str | None = None
+        self.execution_reporter: Callable[[], None] | None = None
+        self._execution_report_signature: str | None = None
+        self._last_execution_report_monotonic = 0.0
 
     def _process_paper(
         self, points: dict[str, tuple[IndicatorPoint, ...]], rules: dict[str, ExecutionRules]
@@ -148,6 +153,8 @@ class RuntimeSupervisor:
             entries_allowed = False
         trial_error = None
         live_error = None
+        report: dict[str, object] = {"state": "NOT_STARTED"}
+        live: dict[str, object] = {"state": "LIVE_DISABLED"}
         if self.trial_runtime is not None:
             report = self.trial_runtime.tick(
                 self.state.points(),
@@ -166,6 +173,35 @@ class RuntimeSupervisor:
             if live.get("runtime_error"):
                 live_error = "LIVE_REVIEW_REQUIRED"
         self._record_trial_error(live_error or trial_error)
+        signature = json.dumps(
+            {
+                "trial_state": report.get("state"),
+                "trial_reason": report.get("reason"),
+                "live_state": live.get("state"),
+                "live_reason": live.get("reason"),
+                "live_positions": live.get("positions", []),
+                "live_unresolved": live.get("unresolved_intents", []),
+            },
+            sort_keys=True,
+            default=str,
+        )
+        now_monotonic = time.monotonic()
+        due = now_monotonic - self._last_execution_report_monotonic >= 300
+        if self.execution_reporter is not None and (
+            signature != self._execution_report_signature or due
+        ):
+            try:
+                self.execution_reporter()
+            except Exception:
+                self.state.log(
+                    level="WARNING",
+                    component="live",
+                    event_code="EXECUTION_REPORT_WRITE_FAILED",
+                    message="Live-Diagnosebericht konnte nicht aktualisiert werden.",
+                )
+            else:
+                self._execution_report_signature = signature
+                self._last_execution_report_monotonic = now_monotonic
 
     async def stop(self) -> None:
         self.state.set_status(health="STOPPING", message="Geordnetes Herunterfahren")
