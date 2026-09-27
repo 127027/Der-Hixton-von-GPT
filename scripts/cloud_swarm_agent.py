@@ -1028,13 +1028,20 @@ def _trial_blocker_a08() -> list[dict[str, Any]]:
         'if emergency_stop:',
         'self.trial.report()["state"] != "COMPLETED"',
         "capital_plan(max_capital)",
-        "CAPITAL-V1-2X50PCT",
     )
     combined = prep + "\n" + production
     missing = [item for item in required if item not in combined]
     if missing:
         raise CheckFailure(f"trial/live risk gate matrix incomplete: {missing}")
     plan = capital_plan(DEFAULT_MAX_CAPITAL_USDC)
+    if (
+        plan.version != "CAPITAL-V1-2X50PCT"
+        or plan.slot_count != 2
+        or plan.target_notional_usdc != DEFAULT_MAX_CAPITAL_USDC / 2
+    ):
+        raise CheckFailure(
+            "default allocator no longer resolves to CAPITAL-V1-2X50PCT / 2x50%"
+        )
     return [
         {
             "trial_risk_gate_matrix": {
