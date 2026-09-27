@@ -16,7 +16,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        capital_usdc: ["250", "500", "1000"]
+        capital_usdc: ["250"]
     runs-on: ubuntu-latest
     timeout-minutes: 120
     steps:
@@ -36,5 +36,5 @@ jobs:
       - uses: actions/upload-artifact@v4
         with:
           name: hixton-capital-budget-optimizer-${{ matrix.capital_usdc }}
-          path: evidence/capital-budget-optimizer-${{ matrix.capital_usdc }}.json
+          path: evidence/capital-budget-optimizer.json
           retention-days: 14
