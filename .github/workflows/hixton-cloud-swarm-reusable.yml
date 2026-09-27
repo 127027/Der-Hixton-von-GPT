@@ -244,10 +244,20 @@ jobs:
               if isinstance(value, list):
                   evidence.extend(value)
           failed = [part for part in parts if part.get("verdict") != "PASS"]
+          round_ids = {str(part.get("round_id")) for part in parts}
+          source_commits = {str(part.get("source_commit")) for part in parts}
+          if len(round_ids) != 1 or "None" in round_ids:
+              raise SystemExit(f"A02 segments have mixed/missing round_id: {sorted(round_ids)}")
+          if len(source_commits) != 1 or "None" in source_commits:
+              raise SystemExit(
+                  f"A02 segments have mixed/missing source_commit: {sorted(source_commits)}"
+              )
           report = {
               "schema_version": 2,
               "agent": "A02",
               "audit_scope": "parallel-full",
+              "round_id": next(iter(round_ids)),
+              "source_commit": next(iter(source_commits)),
               "started_at_utc": min(str(part["started_at_utc"]) for part in parts),
               "finished_at_utc": max(str(part["finished_at_utc"]) for part in parts),
               "execution_mode": "DETERMINISTIC_KEY_FREE",
