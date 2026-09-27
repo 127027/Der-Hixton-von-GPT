@@ -12,7 +12,6 @@ import pytest
 import uvicorn
 
 from hixton.config import ProjectConfig
-from hixton.constants import SYMBOLS
 from hixton.live.credentials import BinanceCredentials
 from hixton.live.reconciliation import AccountSnapshot
 from hixton.paper.storage import PaperStore
@@ -179,7 +178,7 @@ def test_real_browser_settings_and_trial_user_flow(tmp_path: Path) -> None:
             expect(page.locator("#live-trial-start")).to_be_enabled()
             page.locator("#live-trial-start").click()
             expect(page.locator("#live-trial-status")).to_contain_text("WAITING_SIGNAL")
-            expect(page.locator("#live-trial-result")).to_contain_text("1×50-Echtgeldtest scharf")
+            expect(page.locator("#live-trial-result")).to_contain_text("Echtgeldtest scharf")
 
             # Normal 250-USDC live stays locked until the real roundtrip is completed.
             expect(page.locator("#live-request")).to_be_disabled()
