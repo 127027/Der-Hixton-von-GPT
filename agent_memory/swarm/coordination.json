@@ -1,17 +1,17 @@
 {
   "schema_version": 1,
-  "round_id": "COORD-2026-09-27-LIVEBLOCK-002",
+  "round_id": "COORD-2026-09-27-CAPITAL-REALLOC-003",
   "status": "DISPATCHED",
-  "owner_objective": "Find and repair every reason why the locally configured Binance API key/secret cannot progress Hixton through the controlled 1x50-USDC trial and then normal 250-USDC Live. Cloud remains key-free and order-free; it must prove all code, state, UI and runtime gates up to the local authenticated boundary.",
+  "owner_objective": "Challenge the current 250-USDC production capital split. Re-run an exact-three-year, same-profile, same-history, same-cost comparison of 2x125 versus higher-slot layouts, especially 5x50, and determine whether more slots materially improve trade activity/opportunity capture without unacceptable loss of profitability or robustness. Research only; no automatic Paper/Live mutation.",
   "target_branch": "gpt/usdc-audit",
   "commit_policy": "PIN_EXACT_COMMIT_AT_RUN_START",
   "repair_policy": "ANY_PATCH_INVALIDATES_AFFECTED_EVIDENCE_AND_REQUIRES_A_NEW_PINNED_RUN",
   "acceptance": {
-    "controlled_trial": "A fresh local authenticated account preflight can arm exactly one 50-USDC trial without immediately submitting an old signal; the next fresh valid signal can progress through entry, fill, bot-owned ledger, strategy exit, sell fill and reconciliation.",
-    "production_live": "Only after a completed/reconciled controlled trial can normal saved max_capital_usdc Live become eligible; default 250 USDC maps to CAPITAL-V1-2X50PCT, two ranked-repeat tranches of 125 USDC.",
-    "ownership": "Pre-existing Binance balances are baseline-only and may never be sold unless tied to a Hixton-owned position/order ledger.",
-    "runtime_identity": "UI, backend, running process, strategy, source and allocator identity are explicitly checked; stale runtime blocks new entries and must surface a precise remediation.",
-    "cloud_boundary": "No GitHub/cloud job may read private Binance credentials or place real/testnet orders."
+    "capital_baseline": "Treat current 2x125 ranked_repeat as the production baseline, not as a presumed optimum.",
+    "required_layouts": "At minimum compare 2x125, 3x83.33, 4x62.50 and 5x50 using exactly 250 USDC total maximum capital.",
+    "controlled_variables": "Use identical current canonical V6 coin profiles, exact-three-year history, Binance execution filters, baseline/stress costs and risk semantics for every layout.",
+    "activity_metrics": "Report position cycles, slot trades, NO_FREE_SLOT blocks, average/median/longest entry gaps, zero-position hours, full-slot hours and holding times in addition to PnL/return/drawdown.",
+    "governance": "No layout is promoted automatically. A10 must synthesize the direct 2x125-vs-5x50 evidence; A09 and A11 independently verify before any product allocator change."
   },
   "communication_rules": {
     "all_reports_must_include": [
@@ -31,23 +31,25 @@
     "cloud_real_money_orders_allowed": false
   },
   "diagnostic_chain": [
-    "UI control/state",
-    "credential storage/status",
-    "backend authenticated-preflight boundary",
-    "account baseline and bot-owned ledger",
-    "trial state machine",
-    "runtime/source/strategy/allocator identity",
-    "fresh signal requirement",
-    "risk/capital gates",
-    "order intent/idempotency",
-    "exchange filters",
-    "fill/reconciliation",
-    "trial completion gate",
-    "production Live eligibility"
+    "fixed 250-USDC budget",
+    "same canonical V6 profiles",
+    "same exact-three-year history",
+    "same Binance execution rules and costs",
+    "2x125 baseline",
+    "3x83.33 comparison",
+    "4x62.50 comparison",
+    "5x50 comparison",
+    "trade frequency and entry-gap analysis",
+    "slot occupancy and NO_FREE_SLOT analysis",
+    "baseline profitability and drawdown",
+    "stress profitability and drawdown",
+    "A10 synthesis",
+    "A09 independent QA",
+    "A11 governance"
   ],
   "assignments": {
     "A01": {
-      "objective": "Trace every documented and coded prerequisite for controlled 1x50 trial and later 250-USDC Live. Identify circular, obsolete or contradictory gates and stale documentation.",
+      "objective": "Audit that the 250-USDC capital-layout study is methodologically fair and does not assume 2x125 is optimal.",
       "handoff": [
         "A10"
       ],
@@ -59,7 +61,7 @@
       ]
     },
     "A02": {
-      "objective": "Verify strategy/backtest signal semantics permit the trial to wait for the next fresh valid signal and never replay an old signal. Identify signal-frequency, candle-close or timestamp conditions that can look like a broken trial.",
+      "objective": "Run the fresh exact-three-year 250-USDC capital-layout simulations and produce comparable baseline/stress evidence for 2x125, 3x83.33, 4x62.50 and 5x50.",
       "handoff": [
         "A03",
         "A08",
@@ -73,7 +75,7 @@
       ]
     },
     "A03": {
-      "objective": "Audit Paper/Live parity, persistent state, account baseline, bot-owned ledger and every trial-state transition. Find stale armed/failed/completed states or ownership conflicts that can block a new 1x50 trial.",
+      "objective": "Verify every layout uses exactly the same current canonical V6 coin-profile map and does not alter Paper/Live state.",
       "handoff": [
         "A06",
         "A10"
@@ -87,7 +89,7 @@
       ]
     },
     "A04": {
-      "objective": "Reproduce the operator flow in the shipped UI: credential status, account check, trial arm/start, error display and later Live enable. Find false disabled states, stale frontend bundle or missing confirmations.",
+      "objective": "Verify capital-layout research remains separate from the one-field product UI and does not silently expose or activate an unapproved layout.",
       "handoff": [
         "A06",
         "A10"
@@ -104,7 +106,7 @@
       ]
     },
     "A05": {
-      "objective": "Detect stale running processes, source/version drift, restart requirements, stale market data and scheduler inactivity that could leave a configured system unable to consume the next trial signal.",
+      "objective": "Quantify trade activity/utilization for each layout, especially zero-position time, full-slot time, entry gaps and NO_FREE_SLOT opportunity loss.",
       "handoff": [
         "A03",
         "A06",
@@ -119,7 +121,7 @@
       ]
     },
     "A06": {
-      "objective": "Reproduce the full failure path from configured credentials to controlled-trial eligibility with fake/auth-boundary tests. Extend the failure matrix for duplicate submit, timeout, retry, restart, budget change, stale version, EXIT_ONLY and circular gate failures. Repair integration defects.",
+      "objective": "Verify the comparison is reproducible, same-history/same-cost, and stress-tested without hidden state or stale research-profile dependencies.",
       "handoff": [
         "A10"
       ],
@@ -133,7 +135,7 @@
       ]
     },
     "A07": {
-      "objective": "Audit authenticated-preflight implementation and current Binance Spot USDC requirements: API permission/status handling, IP restriction errors, balance, filters, precision and reconciliation assumptions. Never use private credentials in cloud.",
+      "objective": "Verify all layouts remain compatible with the current ten Binance Spot USDC markets and execution filters; no private credentials or orders.",
       "handoff": [
         "A06",
         "A10"
@@ -148,7 +150,7 @@
       ]
     },
     "A08": {
-      "objective": "Audit every strategy/risk/capital/safety gate that can block the 50-USDC trial or subsequent Live: emergency stop, entry pause, daily loss pause, open bot positions, cash, version/source/allocator mismatch and 10x250 research separation.",
+      "objective": "Compare risk/capital effects of 2x125 versus higher-slot layouts, including drawdown, long holding periods, slot saturation and opportunity capture.",
       "handoff": [
         "A02",
         "A06",
@@ -164,7 +166,7 @@
       ]
     },
     "A09": {
-      "objective": "Independently QA the repaired exact commit only after A10 has complete fresh evidence. Reject any mixed-commit, stale, mocked-as-real or incomplete Live-readiness claim.",
+      "objective": "Independently QA the exact-head comparison and reject conclusions based only on trade count or only on headline return.",
       "handoff": [
         "A11"
       ],
@@ -178,7 +180,7 @@
       ]
     },
     "A10": {
-      "objective": "Act as dispatcher and problem router. Build the exact blocker chain UI -> credentials -> authenticated preflight -> baseline/ledger -> trial state -> runtime/version -> fresh signal -> risk/capital -> order -> fill/reconciliation -> trial completion -> Live eligibility. Assign every defect to a named specialist and require a new pinned rerun after repairs.",
+      "objective": "Synthesize all evidence with an explicit direct 2x125-vs-5x50 comparison across profitability, drawdown, turnover, utilization and stress robustness. Do not inherit the prior 2x125 conclusion.",
       "handoff": [
         "A09"
       ],
@@ -192,7 +194,7 @@
       ]
     },
     "A11": {
-      "objective": "Audit the complete repair process and A10 itself. Reject ownerless blockers, stale/mixed evidence, circular approvals and any claim that a real 50-USDC Binance roundtrip happened in cloud.",
+      "objective": "Govern the study: reject mixed/stale evidence or automatic allocator promotion; require a fresh release round before any product change.",
       "handoff": [],
       "required_focus": [
         "governance",
