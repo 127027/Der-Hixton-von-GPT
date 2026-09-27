@@ -10,6 +10,8 @@ interface LiveStatus {
   trial_dispatch_available: boolean;
   trial_retryable_before_submit?: boolean;
   trial_blockers?: string[];
+  runtime_health?: string;
+  trial_order_execution_blocked_by_health?: boolean;
   account_check: {
     blockers: string[];
     warnings?: string[];
@@ -98,14 +100,18 @@ export function initializeLivePreparation(sharedSettingsBlocker: () => string | 
         : "Noch kein Binance-Zugangsschlüssel gespeichert.",
     );
     const trialReason = (status.trial_blockers ?? []).join(" · ");
+    const healthWait = status.trial_order_execution_blocked_by_health
+      ? " Order-Ausführung derzeit blockiert: Warmup/Marktdaten sind noch nicht HEALTHY. "
+        + "Es wird keine Binance-Order gesendet, bis der Bot HEALTHY meldet."
+      : "";
     message(
       "live-trial-status",
       status.trial?.state && status.trial.state !== "NOT_STARTED"
         ? status.trial_retryable_before_submit
           ? `Vor einer Binance-Order beendet (${status.trial.state}) · sicher erneut startbar.`
-          : `Test: ${status.trial.state}${status.trial.symbol ? " · " + status.trial.symbol : ""}`
+          : `Test: ${status.trial.state}${status.trial.symbol ? " · " + status.trial.symbol : ""}.${healthWait}`
         : status.trial_dispatch_available
-          ? "Bereit: wartet nach Freigabe auf ein neues gültiges Signal."
+          ? `Bereit: wartet nach Freigabe auf ein neues gültiges Signal.${healthWait}`
           : trialReason
             ? `Noch gesperrt: ${trialReason}`
             : "Nicht gestartet. Voraussetzungen siehe technische Freigabe.",
