@@ -1,0 +1,20 @@
+name: Hixton A01-A11 Scheduled Watch
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: "17 * * * *"
+
+permissions:
+  contents: write
+  actions: read
+
+concurrency:
+  group: hixton-scheduled-agent-watch
+  cancel-in-progress: true
+
+jobs:
+  run-swarm:
+    uses: 127027/Der-Hixton-von-GPT/.github/workflows/hixton-cloud-swarm-reusable.yml@gpt/usdc-audit
+    with:
+      mission: scheduled-watch
