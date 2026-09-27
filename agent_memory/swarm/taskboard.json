@@ -37,7 +37,7 @@
     "state": "IN_PROGRESS",
     "completion_mode": "continuous",
     "started_at_utc": "2026-09-25T19:35:00+00:00",
-    "last_transition_reason": "50-USDC blocker investigation upgraded to a dedicated mandatory LIVE_TRIAL_BLOCKER_AUDIT. Generic Live PASS evidence is no longer sufficient.",
+    "last_transition_reason": "Owner requested a fresh all-agent capital-allocation challenge: current 250-USDC 2x125 is baseline only and must be re-compared against higher-slot layouts, especially 5x50, for profitability, activity, utilization and robustness before any allocation change.",
     "owner_instruction_date": "2026-09-27",
     "primary_agents": [
       "A01",
@@ -69,7 +69,8 @@
       "CURRENT_V6_PRODUCT",
       "LIVE_READINESS_AUDIT",
       "COIN_IMPROVEMENT_AUDIT",
-      "LIVE_TRIAL_BLOCKER_AUDIT"
+      "LIVE_TRIAL_BLOCKER_AUDIT",
+      "CAPITAL_BUDGET_AUDIT"
     ],
     "constraints": [
       "UI exposes one editable capital value only: max_capital_usdc. Slot count, tranche size, reserve and allocation policy are derived and not separate user truths.",
@@ -86,7 +87,13 @@
       "The 1x50 and normal Live actions perform their sufficient Binance account preflight automatically; the separate manual connection check is diagnostic only.",
       "Trial and Live bind application/source/strategy/allocator identity. A stale execution source may never open a new position; owned/unresolved positions may continue only through monitored EXIT_ONLY/reconciliation.",
       "A secret-free live-execution-report.json is mandatory for 24x7 operation and must include Binance terminal/fill evidence, full round-trip completion, unresolved intents, signal-to-submit timing, Paper-vs-Live parity and frozen-vs-current execution identity.",
-      "Any patch that changes execution/runtime/strategy/order/report semantics invalidates prior Live-readiness evidence and requires fresh A01-A11 validation on the exact new head."
+      "Any patch that changes execution/runtime/strategy/order/report semantics invalidates prior Live-readiness evidence and requires fresh A01-A11 validation on the exact new head.",
+      "CAPITAL_BUDGET_AUDIT must not assume CAPITAL-V1-2X50PCT is optimal. Treat current 250 -> 2x125 ranked_repeat as the production baseline only until fresh evidence compares it against higher-slot layouts.",
+      "At minimum compare the same 250-USDC total budget as 2x125, 3x~83.33, 4x62.50 and 5x50 with no leverage and no increase in total capital; additional layouts may be explored only as research.",
+      "Every compared layout must use the identical exact-three-year window, canonical V6 coin profiles, costs, execution model, Binance filters and risk assumptions so slot layout is the controlled variable.",
+      "Capital-layout evidence must report net PnL/return, max drawdown, completed position cycles, slot trades, wins/losses, average holding time, median/average/longest entry gap, hours with zero/partial/full slot occupancy, NO_FREE_SLOT blocks and baseline/stress results.",
+      "The audit must explicitly test whether 5x50 converts materially more of the ten-coin signal opportunity into executed trades than 2x125 without unacceptable degradation in net performance or drawdown.",
+      "No capital-layout candidate is automatically promoted to Paper or Live. Any change from 2x125 requires A10 synthesis, A09 independent QA, A11 governance and a fresh exact-head release-validation round."
     ],
     "acceptance": [
       "A01 proves README/DMS/AGENTS/swarm docs describe max_capital_usdc, CAPITAL-V1-2X50PCT, 10x250 research separation, automatic action-time preflight, the separate 1x50 trial and the mandatory 24x7 Live execution report without stale product gates.",
@@ -100,7 +107,11 @@
       "A10 accepts evidence only when A01-A08 satisfy the max-budget and mandatory Live-monitoring contract and routes every report incident to repair with downstream evidence invalidation.",
       "A09 emits QA_PASS only from fresh exact-head evidence including source/strategy/allocator binding, report/UI tests, Binance terminal/fill/reconciliation semantics and stale-patch/EXIT_ONLY regressions.",
       "A11 emits GOVERNANCE_PASS only after fresh QA_PASS and complete A01-A10 Live-monitoring evidence; it refuses stale-patch execution or any claim that an actual Binance roundtrip occurred without owner-side proof.",
-      "The shipped static UI displays Hixton 0.5.0 and the release commit is identical to the tested/downloadable commit."
+      "The shipped static UI displays Hixton 0.5.0 and the release commit is identical to the tested/downloadable commit.",
+      "A02 produces a fresh controlled 250-USDC capital-layout comparison including at least 2x125, 3x~83.33, 4x62.50 and 5x50, with exact-three-year baseline and stress evidence plus activity/utilization metrics.",
+      "A05/A08 quantify whether long holds and slot saturation explain low portfolio turnover, including NO_FREE_SLOT opportunity loss and zero-position/full-slot time for each layout.",
+      "A10 must challenge the prior 2x125 conclusion rather than inherit it: synthesize profitability, drawdown, turnover, utilization and robustness evidence and state whether evidence supports retaining 2x125 or promoting a different research candidate.",
+      "A09 and A11 independently reject any capital-layout conclusion that is based only on higher trade count or only on headline return; exact same-history/risk/cost comparability and robustness are mandatory."
     ],
     "release_candidate": {
       "version": "0.5.0",
@@ -119,7 +130,7 @@
       ],
       "actual_live_roundtrip_completed": false
     },
-    "coordination_round": "COORD-2026-09-27-LIVEBLOCK-002",
+    "coordination_round": "COORD-2026-09-27-CAPITAL-REALLOC-003",
     "coordination_file": "agent_memory/swarm/coordination.json",
     "coordination_requirements": [
       "Use the latest gpt/usdc-audit product head, never an older release/main bootstrap state.",
