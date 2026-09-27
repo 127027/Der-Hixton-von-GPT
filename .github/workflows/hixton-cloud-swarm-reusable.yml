@@ -179,14 +179,14 @@ jobs:
           if-no-files-found: error
 
 
-  # A02 carries the three compute-heavy release proofs. Run them independently
+  # A02 carries the compute-heavy release proofs. Run them independently
   # so one slow exact-3Y/optimization segment cannot serialize the whole swarm.
   a02-segments:
     needs: prepare-state
     strategy:
       fail-fast: false
       matrix:
-        scope: [base, live, optimization]
+        scope: [base, live, optimization, capitalbudget]
     runs-on: ubuntu-latest
     timeout-minutes: 75
     steps:
@@ -245,8 +245,8 @@ jobs:
           from pathlib import Path
 
           paths = sorted(Path("partials").rglob("A02-*.json"))
-          if len(paths) != 3:
-              raise SystemExit(f"expected 3 A02 segment reports, got {len(paths)}: {paths}")
+          if len(paths) != 4:
+              raise SystemExit(f"expected 4 A02 segment reports, got {len(paths)}: {paths}")
           parts = [json.loads(path.read_text(encoding="utf-8")) for path in paths]
           evidence = []
           for part in parts:
