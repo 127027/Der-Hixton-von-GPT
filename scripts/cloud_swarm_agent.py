@@ -869,7 +869,10 @@ def _trial_blocker_a03() -> list[dict[str, Any]]:
     return [
         tests,
         {
-            "trial_state_machine": "NOT_STARTED->WAITING_SIGNAL->ENTRY_PENDING->OPEN->EXIT_PENDING->AWAITING_RECONCILIATION->COMPLETED",
+            "trial_state_machine": (
+                "NOT_STARTED->WAITING_SIGNAL->ENTRY_PENDING->OPEN->EXIT_PENDING->"
+                "AWAITING_RECONCILIATION->COMPLETED"
+            ),
             "bot_owned_ledger": True,
             "preexisting_balances_are_baseline_only": True,
             "canceled_preorder_trial_can_be_retried": True,
