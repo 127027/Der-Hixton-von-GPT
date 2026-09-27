@@ -588,6 +588,9 @@ class LivePortfolioController:
         rules: Callable[[], Mapping[str, ExecutionRules]],
         strategy: StrategyDefinition,
         release_check: Callable[[], bool],
+        *,
+        application_version: str = "unknown",
+        execution_source_sha256: str = "unknown",
     ) -> None:
         self.database = database
         self.journal = journal
@@ -598,6 +601,8 @@ class LivePortfolioController:
         self.rules = rules
         self.strategy = strategy
         self.release_check = release_check
+        self.application_version = application_version
+        self.execution_source_sha256 = execution_source_sha256
         self.lock = RLock()
         with journal._connect() as connection:
             connection.executescript(
@@ -613,7 +618,9 @@ class LivePortfolioController:
                     updated_at TEXT NOT NULL,
                     day_start_date TEXT NOT NULL,
                     day_start_equity TEXT NOT NULL,
-                    reason TEXT
+                    reason TEXT,
+                    application_version TEXT NOT NULL DEFAULT 'legacy',
+                    execution_source_sha256 TEXT NOT NULL DEFAULT 'legacy'
                 );
                 CREATE TABLE IF NOT EXISTS live_checkpoints(
                     symbol TEXT PRIMARY KEY,
@@ -658,6 +665,12 @@ class LivePortfolioController:
                     "UPDATE live_control SET state='NEEDS_REVIEW',entries_enabled=0,"
                     "reason='CAPITAL_PLAN_MIGRATION_REQUIRES_REVIEW' WHERE capital_json=''"
                 )
+            for column in ("application_version", "execution_source_sha256"):
+                if column not in columns:
+                    connection.execute(
+                        f"ALTER TABLE live_control ADD COLUMN {column} TEXT NOT NULL "
+                        "DEFAULT 'legacy'"
+                    )
 
     def _strategy_json(self) -> str:
         return json.dumps(self.strategy.config_payload(), sort_keys=True, allow_nan=False)
