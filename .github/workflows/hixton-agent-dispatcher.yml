@@ -1,0 +1,27 @@
+name: Hixton A01-A11 Engineering Dispatcher
+
+on:
+  workflow_dispatch:
+    inputs:
+      mission:
+        description: Optional coordination note
+        required: false
+        type: string
+        default: ""
+  push:
+    branches:
+      - gpt/usdc-audit
+
+permissions:
+  contents: write
+  actions: read
+
+concurrency:
+  group: hixton-agent-dispatcher
+  cancel-in-progress: true
+
+jobs:
+  run-swarm:
+    uses: ./.github/workflows/hixton-cloud-swarm-reusable.yml
+    with:
+      mission: ${{ inputs.mission || 'branch-change' }}
