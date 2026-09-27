@@ -15,7 +15,9 @@ from threading import RLock
 from typing import Any
 from uuid import uuid4
 
+from hixton import __version__
 from hixton.backtest.models import ExecutionRules
+from hixton.domain.capital import ALLOCATOR_VERSION
 from hixton.domain.capital import capital_plan
 from hixton.domain.models import IndicatorPoint
 from hixton.domain.versions import StrategyDefinition
@@ -44,12 +46,19 @@ class LivePreparation:
         database: Path,
         vault: Vault,
         client_factory: Callable[..., BinanceReadOnlyClient] = _USDC_CLIENT,
+        *,
+        application_version: str = __version__,
+        execution_source_sha256: str = "unknown",
+        allocator_version: str = ALLOCATOR_VERSION,
     ) -> None:
         self.database = database
         self.credentials = CredentialService(vault)
         self.access = LocalAccess(vault)
         self.lock = RLock()
         self.client_factory = client_factory
+        self.application_version = application_version
+        self.execution_source_sha256 = execution_source_sha256
+        self.allocator_version = allocator_version
         self._check: dict[str, object] | None = None
         self._check_time = 0.0
         self._next_check = 0.0
@@ -195,6 +204,9 @@ class LivePreparation:
             lambda: self._trial_authorized
             and bool(self.credentials.status()["configured"]),
             rules_provider,
+            application_version=self.application_version,
+            execution_source_sha256=self.execution_source_sha256,
+            allocator_version=self.allocator_version,
         )
         self.runtime = TrialRuntime(self.trial, self.trial_reconciler, self._account_snapshot)
         self._trial_authorized = bool(self.trial.report().get("has_unsettled"))
@@ -217,6 +229,8 @@ class LivePreparation:
             rules_provider,
             strategy,
             lambda: bool(self.credentials.status()["configured"]),
+            application_version=self.application_version,
+            execution_source_sha256=self.execution_source_sha256,
         )
         holder["controller"] = self.live
         self.live_runtime = LivePortfolioRuntime(self.live)
