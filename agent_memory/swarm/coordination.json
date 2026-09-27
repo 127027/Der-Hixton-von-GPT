@@ -1,17 +1,22 @@
 {
   "schema_version": 1,
-  "round_id": "COORD-2026-09-27-CAPITAL-REALLOC-003",
+  "round_id": "COORD-2026-09-27-REALROUNDTRIP-004",
   "status": "DISPATCHED",
-  "owner_objective": "Challenge the current 250-USDC production capital split. Compare 2x125 ranked_repeat not only against smaller ranked_repeat tranches but against a true one_per_symbol 5x50 model representing up to five different simultaneous coin positions. Use exact same three-year history, profiles, costs and risk rules; research only.",
+  "owner_objective": "Independently prove the complete locally authenticated Binance Spot lifecycle for the controlled 1x50-USDC trial and subsequent normal Live: WAITING_SIGNAL -> fresh closed-1h canonical signal -> durable idempotent MARKET BUY -> actual fill query -> bot-owned position -> canonical strategy exit -> durable MARKET SELL -> fill query -> account/order reconciliation -> COMPLETED -> production Live eligibility. Verify restart/timeout/partial-fill/dust/error behavior and Paper/Backtest strategy parity. Cloud remains key-free/order-free and must never claim a real Binance fill.",
   "target_branch": "gpt/usdc-audit",
   "commit_policy": "PIN_EXACT_COMMIT_AT_RUN_START",
   "repair_policy": "ANY_PATCH_INVALIDATES_AFFECTED_EVIDENCE_AND_REQUIRES_A_NEW_PINNED_RUN",
   "acceptance": {
-    "capital_baseline": "Treat current 2x125 ranked_repeat as the production baseline, not as a presumed optimum.",
-    "required_layouts": "At minimum compare 2x125 ranked_repeat, 3x83.33 ranked_repeat, 4x62.50 ranked_repeat, 5x50 ranked_repeat and 5x50 one_per_symbol using exactly 250 USDC total maximum capital.",
-    "controlled_variables": "Use identical current canonical V6 coin profiles, exact-three-year history, Binance execution filters, baseline/stress costs and risk semantics for every layout.",
-    "activity_metrics": "Report position cycles, slot trades, NO_FREE_SLOT blocks, average/median/longest entry gaps, zero-position hours, full-slot hours and holding times in addition to PnL/return/drawdown.",
-    "governance": "No layout is promoted automatically. A10 must synthesize both 2x125-vs-5x50-ranked_repeat and 2x125-vs-true-independent-5x50 evidence; A09 and A11 independently verify before any product allocator change."
+    "waiting_signal": "Arming performs a fresh authenticated account/baseline preflight but never submits an old signal. Only a fresh valid closed-1h signal from the ten canonical USDC markets may reserve the one 50-USDC BUY.",
+    "real_submit_boundary": "The bound production transport must POST /api/v3/order type=MARKET with quoteOrderQty=50.00 for BUY and explicit bot-owned base quantity for SELL, using durable clientOrderId and no automatic retry of ambiguous submissions.",
+    "buy_fill": "ACK alone is never treated as fill. Order state and myTrades fills must be queried and persisted; partial/unknown/incomplete fill details remain unsettled.",
+    "ownership": "Only quantity proven from Hixton's own persisted BUY fills may be sold. Existing Binance holdings remain baseline-only.",
+    "exit": "After an owned entry, canonical strategy exit rules continue even if new entries/release are disabled. The SELL must be rounded down only to current Binance step size and may not exceed owned quantity.",
+    "completion": "A SELL fill alone is insufficient. Trial reaches COMPLETED only after fresh account reconciliation proves no open orders, no locked balances, expected balances and no tradable residual; otherwise NEEDS_REVIEW/AWAITING_RECONCILIATION persists.",
+    "recovery": "Restart, network timeout, ambiguous Binance response, duplicate advance, partial fill and process interruption may not create a duplicate BUY/SELL. Submitted or uncertain history is reconciled, never reset as a new entitlement.",
+    "parity": "Trial and production Live must bind the same canonical StrategyDefinition/coin profiles/closed-candle semantics as current V6 backtest/Paper. Real fills/fees/slippage may differ from modeled backtests and no identical PnL is claimed.",
+    "production": "Normal budget-controlled Live remains disabled until the 1x50 BUY+SELL roundtrip is fully reconciled; normal Live must preserve the same ownership, pre-submit, reconciliation and exit-safety principles.",
+    "cloud_boundary": "No cloud/agent job may read private Binance credentials or place real/testnet orders. A real Binance fill can only be proven locally by authenticated order/fill/reconciliation evidence."
   },
   "communication_rules": {
     "all_reports_must_include": [
@@ -31,26 +36,29 @@
     "cloud_real_money_orders_allowed": false
   },
   "diagnostic_chain": [
-    "fixed 250-USDC budget",
-    "same canonical V6 profiles",
-    "same exact-three-year history",
-    "same Binance execution rules and costs",
-    "2x125 ranked_repeat production baseline",
-    "3x83.33 ranked_repeat",
-    "4x62.50 ranked_repeat",
-    "5x50 ranked_repeat",
-    "5x50 one_per_symbol true independent-position model",
-    "trade frequency and entry-gap analysis",
-    "slot occupancy and NO_FREE_SLOT analysis",
-    "baseline profitability and drawdown",
-    "stress profitability and drawdown",
-    "A10 synthesis",
-    "A09 independent QA",
-    "A11 governance"
+    "UI WAITING_SIGNAL and operator consent",
+    "credential binding and account fingerprint",
+    "fresh authenticated preflight and stable baseline",
+    "ten-market closed-1h data freshness",
+    "canonical strategy/profile identity",
+    "fresh ENTER_LONG selection and ranking",
+    "entry reservation/idempotency before submit",
+    "source/release/health/settings recheck immediately before submit",
+    "Binance signed MARKET BUY quoteOrderQty=50.00",
+    "ACK -> order query -> myTrades fill persistence",
+    "restart/timeout/partial-fill recovery without resubmit",
+    "bot-owned quantity calculation including base-asset fees",
+    "canonical strategy exit while entries may be disabled",
+    "Binance SELL explicit owned base quantity and filter rounding",
+    "SELL fill details and residual/dust validation",
+    "fresh account/open-order/locked-balance reconciliation",
+    "trial COMPLETED gate",
+    "normal Live eligibility and parity",
+    "24/7 diagnostic evidence without secrets"
   ],
   "assignments": {
     "A01": {
-      "objective": "Audit that the 250-USDC capital-layout study is methodologically fair and does not assume 2x125 is optimal.",
+      "objective": "Trace docs, UI text and code for the complete 1x50 BUY->SELL->reconciliation lifecycle. Identify any wording that implies a fill/completion before Binance evidence exists or any obsolete gate.",
       "handoff": [
         "A10"
       ],
@@ -62,7 +70,7 @@
       ]
     },
     "A02": {
-      "objective": "Run the fresh exact-three-year 250-USDC capital-layout simulations and produce comparable baseline/stress evidence for 2x125, 3x83.33, 4x62.50 and 5x50.",
+      "objective": "Prove strategy parity: the trial and production Live consume the same canonical ten-coin StrategyDefinition, coin profiles, closed-1h semantics, entry ranking and exit rules as current Backtest/Paper. Exercise fresh-signal-only and missed-exit/current-reference behavior.",
       "handoff": [
         "A03",
         "A08",
@@ -76,7 +84,7 @@
       ]
     },
     "A03": {
-      "objective": "Verify every layout uses exactly the same current canonical V6 coin-profile map and does not alter Paper/Live state.",
+      "objective": "Audit durable state, account baseline, bot-owned ledger, restart recovery and every trial transition WAITING_SIGNAL->ENTRY_PENDING->OPEN->EXIT_PENDING->AWAITING_RECONCILIATION->COMPLETED/NEEDS_REVIEW. Prove foreign holdings cannot be sold.",
       "handoff": [
         "A06",
         "A10"
@@ -90,7 +98,7 @@
       ]
     },
     "A04": {
-      "objective": "Verify capital-layout research remains separate from the one-field product UI and does not silently expose or activate an unapproved layout.",
+      "objective": "Run the real Chromium operator flow through credentials/status, automatic preflight on arm, WAITING_SIGNAL, visible BUY/OPEN/EXIT/reconciliation states under fake exchange evidence, and Live enable only after COMPLETED. Verify shipped bundle freshness.",
       "handoff": [
         "A06",
         "A10"
@@ -107,7 +115,7 @@
       ]
     },
     "A05": {
-      "objective": "Quantify trade activity/utilization for each layout, especially zero-position time, full-slot time, entry gaps and NO_FREE_SLOT opportunity loss.",
+      "objective": "Audit 24/7 scheduler, closed-bar wake-up, runtime HEALTHY/DEGRADED handling, source/version drift and process restart. Prove an OPEN owned position remains exit-capable and is not stranded by entry-disable/release changes.",
       "handoff": [
         "A03",
         "A06",
@@ -122,7 +130,7 @@
       ]
     },
     "A06": {
-      "objective": "Verify the comparison is reproducible, same-history/same-cost, and stress-tested without hidden state or stale research-profile dependencies.",
+      "objective": "Execute full integration/failure matrix with fake authenticated exchange: successful BUY+SELL, timeout after accepted BUY, timeout after accepted SELL, partial fills, missing fill details, restart between reservation/submit/query, duplicate calls, definitive rejection, API/network errors, residual quantity and reconciliation mismatch. No duplicate order may occur.",
       "handoff": [
         "A10"
       ],
@@ -136,7 +144,7 @@
       ]
     },
     "A07": {
-      "objective": "Verify all layouts remain compatible with the current ten Binance Spot USDC markets and execution filters; no private credentials or orders.",
+      "objective": "Audit the concrete Binance Spot adapter and current official API requirements: signed POST /api/v3/order MARKET BUY quoteOrderQty, MARKET SELL quantity, origClientOrderId lookup, myTrades fill lookup, permissions, filters, precision, account/openOrders snapshot. No private credential use in cloud.",
       "handoff": [
         "A06",
         "A10"
@@ -151,7 +159,7 @@
       ]
     },
     "A08": {
-      "objective": "Compare risk/capital effects of 2x125 versus higher-slot layouts, including drawdown, long holding periods, slot saturation and opportunity capture.",
+      "objective": "Audit all safety/risk/capital gates immediately before entry and exit. Confirm HEALTHY/release/source/settings gates block new BUY safely but never strand a proven bot-owned exit; verify minQty/stepSize/dust and 50-USDC exact budget.",
       "handoff": [
         "A02",
         "A06",
@@ -167,7 +175,7 @@
       ]
     },
     "A09": {
-      "objective": "Independently QA the exact-head comparison and reject conclusions based only on trade count or only on headline return.",
+      "objective": "Independently QA the exact commit after A10. Require complete evidence for the full simulated roundtrip, real Chromium, full tests, strategy parity, idempotency/restart, exit/reconciliation and no cloud-real-fill overclaim.",
       "handoff": [
         "A11"
       ],
@@ -181,7 +189,7 @@
       ]
     },
     "A10": {
-      "objective": "Synthesize all evidence with an explicit direct 2x125-vs-5x50 comparison across profitability, drawdown, turnover, utilization and stress robustness. Do not inherit the prior 2x125 conclusion.",
+      "objective": "Synthesize the exact blocker chain from WAITING_SIGNAL to COMPLETED and normal Live. Reject PASS if BUY can be sent but SELL/reconciliation/restart/ownership proof is incomplete; route every defect to a named specialist.",
       "handoff": [
         "A09"
       ],
@@ -195,7 +203,7 @@
       ]
     },
     "A11": {
-      "objective": "Govern the study: reject mixed/stale evidence or automatic allocator promotion; require a fresh release round before any product change.",
+      "objective": "Govern the entire round. Reject stale/mixed commits, mocked-as-real claims, missing real-browser evidence, duplicate-submit risk, foreign-balance liquidation risk, or any statement that cloud proved a real Binance fill.",
       "handoff": [],
       "required_focus": [
         "governance",
@@ -209,29 +217,14 @@
     }
   },
   "owner_context": {
-    "local_installed_build": "older intermediate build: UI already shows max 250 USDC -> 2x125 ranked_repeat, but still shows obsolete Paper soak blocker 30 days / 20 trades and the old generic controlled-trial preparation error",
-    "local_binance_preflight": "PASS",
-    "local_free_usdc": "1100.01301944",
-    "local_existing_spot_assets": [
-      "AMB",
-      "BTC",
-      "DREP",
-      "FOR",
-      "LTO",
-      "LUNC",
-      "PEPE",
-      "PERL",
-      "PNT",
-      "SNM",
-      "SNS",
-      "USDT",
-      "VDAO",
-      "VITE",
-      "WNXM",
-      "WTC"
+    "observed_local_trial_state": "WAITING_SIGNAL",
+    "operator_statement": "API key/secret are stored locally; UI says controlled 1x50 trial armed, baseline/account checks passed, no order sent yet.",
+    "operator_questions": [
+      "Will a real Binance Spot order actually be submitted when a fresh valid signal occurs?",
+      "Will the bot later close that exact bot-owned position automatically instead of leaving it open indefinitely?",
+      "Does the real execution use the same strategy/exit logic as the backtests, subject to real market fills/fees/slippage?",
+      "Can restarts, timeouts, partial fills, dust, account changes or disabled entries strand or duplicate the position?"
     ],
-    "observed_trial_ui": "trial says ready/waits for fresh signal, but clicking 1x50 start returns generic preparation failure before any order",
-    "migration_requirement": "Latest build must safely upgrade/reuse the old local SQLite/live-preparation state, preserve credentials, preserve pre-existing Spot baseline-only assets, and remove obsolete paper-soak gating.",
-    "ui_release_requirement": "A04 must execute a real Chromium user flow against the local Hixton server: fresh settings page -> 250 USDC settings usable -> entry-pause toggle/save -> local unlock -> test credentials -> controlled 1x50 trial reaches WAITING_SIGNAL -> degraded runtime visibly explains that order execution waits for HEALTHY -> after simulated completed trial the 250-USDC Live button becomes enabled. A04 may not PASS from TypeScript/unit/build checks alone."
+    "required_local_boundary": "Cloud may prove code and simulated exchange behavior only. Actual real-order/fill proof must come from the local authenticated runtime and must include Binance order/fill IDs plus reconciliation, without exposing API key/secret."
   }
 }
