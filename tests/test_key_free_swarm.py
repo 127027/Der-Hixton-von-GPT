@@ -21,9 +21,13 @@ def _contract() -> dict[str, tuple[str, ...]]:
 def _write_reports(root: Path, agents: list[str]) -> None:
     root.mkdir(parents=True, exist_ok=True)
     contract = _contract()
+    coordination = cloud_swarm_agent.coordination_contract()
+    source_commit = cloud_swarm_agent.current_source_commit()
     for agent in agents:
         payload: dict[str, object] = {
             "agent": agent,
+            "round_id": coordination["round_id"],
+            "source_commit": source_commit,
             "verdict": "PASS",
             "evidence": [{"coverage_tags": list(contract[agent])}],
         }
