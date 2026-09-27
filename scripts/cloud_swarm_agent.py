@@ -509,6 +509,7 @@ def _live_audit_a06() -> list[dict[str, Any]]:
         "trial": (
             "test_reserved_entry_restart_and_timeout_cannot_rebuy",
             "test_global_trial_budget_rejects_every_other_amount",
+            "test_patch_change_before_first_order_cancels_stale_trial_and_reports_identity",
         ),
         "production": (
             "test_live_intent_accepts_only_two_budget_slots_and_explicit_quote",
@@ -517,11 +518,13 @@ def _live_audit_a06() -> list[dict[str, Any]]:
             "test_settings_change_or_emergency_stop_blocks_new_live_entry",
             "test_repeated_scheduler_ticks_do_not_duplicate_orders",
             "test_account_mismatch_fails_closed_before_order",
+            "test_patch_change_blocks_new_entries_but_allows_owned_exit",
         ),
         "preparation": (
-            "test_controlled_trial_arms_only_after_fresh_account_check_without_sending_order",
+            "test_controlled_trial_auto_checks_account_and_arms_without_sending_order",
             "test_common_max_budget_is_immediately_the_live_source_and_survives_restart",
             "test_validated_max_budgets_persist_without_inventing_cash",
+            "test_execution_report_is_authenticated_downloadable_and_secret_free",
         ),
     }
     missing = {
