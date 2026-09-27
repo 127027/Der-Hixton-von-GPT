@@ -37,7 +37,7 @@
     "state": "IN_PROGRESS",
     "completion_mode": "continuous",
     "started_at_utc": "2026-09-25T19:35:00+00:00",
-    "last_transition_reason": "Dedicated real-roundtrip audit uses only registered CURRENT_V6_PRODUCT, LIVE_READINESS_AUDIT and LIVE_TRIAL_BLOCKER_AUDIT contracts. Detailed BUY->SELL->reconciliation/restart/ownership/parity requirements remain mandatory in coordination and acceptance; no new unregistered regression identifiers.",
+    "last_transition_reason": "Final exact-head real-roundtrip release validation after adding explicit ambiguous SELL timeout/restart recovery coverage and Binance MARKET BUY/SELL adapter evidence. Freeze product and audit code until Preflight plus A01-A11 complete on this head.",
     "owner_instruction_date": "2026-09-27",
     "primary_agents": [
       "A01",
