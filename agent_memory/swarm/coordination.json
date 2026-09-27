@@ -1,0 +1,83 @@
+{
+  "schema_version": 1,
+  "round_id": "COORD-2026-09-27-LIVE-001",
+  "status": "DISPATCHED",
+  "owner_objective": "Make Hixton operationally ready for the local controlled 1x50-USDC real-money roundtrip and the later 250-USDC max-budget Live mode, while preserving exact strategy/capital parity across Backtest, Paper and Live and enforcing complete 24/7 observability.",
+  "target_branch": "gpt/usdc-audit",
+  "commit_policy": "PIN_EXACT_COMMIT_AT_RUN_START",
+  "repair_policy": "ANY_PATCH_INVALIDATES_AFFECTED_EVIDENCE_AND_REQUIRES_A_NEW_PINNED_RUN",
+  "communication_rules": {
+    "all_reports_must_include": [
+      "round_id",
+      "source_commit",
+      "agent",
+      "verdict",
+      "evidence",
+      "blockers",
+      "handoff"
+    ],
+    "accept_cross_commit_evidence": false,
+    "accept_cross_round_evidence": false,
+    "bare_pass_is_valid": false,
+    "a10_must_route_failures_to_named_owner": true,
+    "a11_must_reject_stale_or_mixed_evidence": true,
+    "cloud_real_money_orders_allowed": false
+  },
+  "assignments": {
+    "A01": {
+      "objective": "Audit README/DMS/runbooks against current Live, 1x50 trial, 250-USDC max-budget and 24/7 monitoring behavior; identify stale or contradictory product claims.",
+      "handoff": ["A10"],
+      "required_focus": ["requirements", "docs-code-parity", "release-limitations", "version-parity-monitoring"]
+    },
+    "A02": {
+      "objective": "Revalidate exact-three-year portfolio evidence and isolated 10x250 research while proving that research never becomes the Live sizing source.",
+      "handoff": ["A08", "A10"],
+      "required_focus": ["exact-3y", "portfolio-backtest", "10x250-research-separation", "execution-realism"]
+    },
+    "A03": {
+      "objective": "Prove Paper/Backtest/Live signal and allocator parity, restart persistence, ledger ownership and no adoption of pre-existing Binance balances.",
+      "handoff": ["A06", "A10"],
+      "required_focus": ["paper-live-parity", "ledger-ownership", "restart", "slot-reuse", "state-persistence"]
+    },
+    "A04": {
+      "objective": "Verify the shipped UI exposes one editable max_capital_usdc field, safe Binance credential handling, 1x50 trial, Live controls and the Live/24x7 report without stale assets.",
+      "handoff": ["A06", "A10"],
+      "required_focus": ["ui-backend-contract", "shipped-bundle", "credential-surface", "live-report-surface"]
+    },
+    "A05": {
+      "objective": "Audit 24/7 runtime liveness, stale-loop detection, data freshness, reconnect/recovery, process-version drift and safe restart behavior.",
+      "handoff": ["A03", "A06", "A07", "A10"],
+      "required_focus": ["24x7-liveness", "data-freshness", "recovery", "process-version-parity", "incident-reporting"]
+    },
+    "A06": {
+      "objective": "Run the full integration failure matrix including duplicate submit, retry, timeout, restart, budget changes, EXIT_ONLY behavior and stale-version fail-closed gates.",
+      "handoff": ["A10"],
+      "required_focus": ["full-regression", "runaway-order-guard", "retry-timeout", "exit-only", "version-drift"]
+    },
+    "A07": {
+      "objective": "Verify current Binance Spot USDC universe, filters, notional/quantity constraints and reconciliation assumptions for all ten symbols without private credentials.",
+      "handoff": ["A06", "A10"],
+      "required_focus": ["binance-usdc", "exchange-filters", "fills-reconciliation", "market-order-constraints"]
+    },
+    "A08": {
+      "objective": "Verify canonical V6 strategy/risk/capital semantics, 250 -> 2x125 ranked_repeat, 5% UTC daily pause and strategy-version parity across all execution modes.",
+      "handoff": ["A02", "A10"],
+      "required_focus": ["strategy-parity", "risk", "capital-plan", "version-parity"]
+    },
+    "A09": {
+      "objective": "Independently QA only a single exact pinned commit after A10 reports complete fresh evidence; reject mixed-commit or stale evidence.",
+      "handoff": ["A11"],
+      "required_focus": ["independent-qa", "commit-pin", "ui-build", "full-python-suite"]
+    },
+    "A10": {
+      "objective": "Act as dispatcher: collect A01-A08 results, name the responsible repair owner for every defect, invalidate downstream evidence after patches and never accept mixed commits or rounds.",
+      "handoff": ["A09"],
+      "required_focus": ["task-routing", "evidence-contract", "repair-routing", "freshness", "commit-pin"]
+    },
+    "A11": {
+      "objective": "Audit A01-A10 and A10 itself, reject stalled/mixed/stale evidence and issue governance pass only for one exact commit with fresh QA_PASS.",
+      "handoff": [],
+      "required_focus": ["governance", "agent-audit", "commit-pin", "stale-evidence-rejection"]
+    }
+  }
+}
