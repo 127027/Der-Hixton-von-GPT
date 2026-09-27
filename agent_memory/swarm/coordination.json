@@ -82,7 +82,8 @@
         "trial-state-machine",
         "ledger-ownership",
         "account-baseline",
-        "restart-persistence"
+        "restart-persistence",
+        "legacy-local-upgrade"
       ]
     },
     "A04": {
@@ -97,7 +98,8 @@
         "trial-button",
         "live-button",
         "error-surface",
-        "bundle-freshness"
+        "bundle-freshness",
+        "legacy-local-upgrade"
       ]
     },
     "A05": {
@@ -125,7 +127,8 @@
         "integration-repair",
         "failure-matrix",
         "idempotency",
-        "circular-gates"
+        "circular-gates",
+        "legacy-local-upgrade"
       ]
     },
     "A07": {
@@ -181,7 +184,8 @@
         "blocker-chain",
         "repair-routing",
         "evidence-freshness",
-        "commit-pin"
+        "commit-pin",
+        "legacy-local-upgrade"
       ]
     },
     "A11": {
@@ -192,8 +196,34 @@
         "agent-audit",
         "repair-loop",
         "commit-pin",
-        "no-live-overclaim"
+        "no-live-overclaim",
+        "legacy-local-upgrade"
       ]
     }
+  },
+  "owner_context": {
+    "local_installed_build": "older intermediate build: UI already shows max 250 USDC -> 2x125 ranked_repeat, but still shows obsolete Paper soak blocker 30 days / 20 trades and the old generic controlled-trial preparation error",
+    "local_binance_preflight": "PASS",
+    "local_free_usdc": "1100.01301944",
+    "local_existing_spot_assets": [
+      "AMB",
+      "BTC",
+      "DREP",
+      "FOR",
+      "LTO",
+      "LUNC",
+      "PEPE",
+      "PERL",
+      "PNT",
+      "SNM",
+      "SNS",
+      "USDT",
+      "VDAO",
+      "VITE",
+      "WNXM",
+      "WTC"
+    ],
+    "observed_trial_ui": "trial says ready/waits for fresh signal, but clicking 1x50 start returns generic preparation failure before any order",
+    "migration_requirement": "Latest build must safely upgrade/reuse the old local SQLite/live-preparation state, preserve credentials, preserve pre-existing Spot baseline-only assets, and remove obsolete paper-soak gating."
   }
 }
