@@ -274,6 +274,29 @@ def test_controlled_trial_auto_checks_account_and_arms_without_sending_order(
     assert retried.json()["trial"]["state"] == "WAITING_SIGNAL"
 
 
+def test_production_live_snapshot_reuses_the_same_stable_account_snapshot_path(tmp_path: Path) -> None:
+    _client, _config, service = client_for(tmp_path)
+    expected = AccountSnapshot(
+        "fixture-account",
+        datetime.now(UTC),
+        {"USDC": (Decimal("250"), Decimal("0")), "BNB": (Decimal("0.03"), Decimal("0"))},
+        (),
+    )
+    calls = 0
+
+    def stable_snapshot() -> AccountSnapshot:
+        nonlocal calls
+        calls += 1
+        return expected
+
+    service._account_snapshot = stable_snapshot
+    live = service._live_snapshot()
+    assert calls == 1
+    assert live.account == expected.account
+    assert live.balances == expected.balances
+    assert live.open_orders == expected.open_orders
+
+
 def test_entry_pause_explains_why_controlled_trial_button_must_stay_locked(tmp_path: Path) -> None:
     client, _, service = client_for(tmp_path)
     unlock(client)
