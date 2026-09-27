@@ -34,10 +34,10 @@
     "id": "SWARM-003",
     "title": "Hixton 0.5.0 max-capital product release",
     "objective": "Release one coherent V6 system where UI, exact-three-year portfolio backtest, Paper and normal Live consume the same saved max_capital_usdc and CAPITAL-V1-2X50PCT allocator; preserve isolated 10x250 as coin research and the separate controlled 1x50 Binance round-trip; make Trial/Live execution continuously observable with Binance completion, timing, parity and patch/source identity evidence.",
-    "state": "IN_PROGRESS",
+    "state": "VERIFYING",
     "completion_mode": "continuous",
     "started_at_utc": "2026-09-25T19:35:00+00:00",
-    "last_transition_reason": "Owner required a complete 1x50-to-Live flow plus permanent 24/7 execution reporting, early/late entry/exit detection, Binance completion evidence, Paper-vs-Live parity and stale-patch protection across all A01-A11 duties.",
+    "last_transition_reason": "Coordinator round COORD-2026-09-27-LIVE-001 dispatched: A01-A11 must report against one exact pinned commit; mixed/stale evidence is invalid and any repair requires a new pinned run.",
     "owner_instruction_date": "2026-09-27",
     "primary_agents": [
       "A01",
@@ -117,7 +117,16 @@
         "GOVERNANCE_PASS"
       ],
       "actual_live_roundtrip_completed": false
-    }
+    },
+    "coordination_round": "COORD-2026-09-27-LIVE-001",
+    "coordination_file": "agent_memory/swarm/coordination.json",
+    "coordination_requirements": [
+      "Every A01-A11 report identifies the same coordination round and exact source commit.",
+      "A10 routes every failed or incomplete duty to a named owning agent and records the blocker; bare FAIL/PASS is insufficient.",
+      "A repair commit invalidates affected and downstream evidence; A09/A11 must not approve a mixed-commit run.",
+      "A09 QA and A11 governance execute only against fresh evidence for the exact pinned release candidate.",
+      "Cloud agents remain unable to send real/testnet orders; the real 1x50 trial is local and owner-started only."
+    ]
   },
   "queued_missions": [],
   "agent_runtime": {
