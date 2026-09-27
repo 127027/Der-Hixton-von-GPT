@@ -13,6 +13,7 @@ from fastapi.responses import FileResponse, JSONResponse
 from starlette.concurrency import run_in_threadpool
 
 from hixton.backtest.models import ExecutionRules
+from hixton.backtest.reporting import source_fingerprint
 from hixton.config import ProjectConfig
 from hixton.constants import SYMBOLS
 from hixton.data.storage import CandleStore
@@ -36,6 +37,7 @@ def install_live_routes(
         config.database_path.with_name("live-preparation.sqlite3"),
         vault if vault is not None else WindowsVault(config.database_path),
         execution_source_sha256=supervisor.execution_source_sha256,
+        source_is_current=lambda: source_fingerprint() == supervisor.execution_source_sha256,
     )
     app.state.live_preparation = service
 

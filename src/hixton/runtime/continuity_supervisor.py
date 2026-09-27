@@ -109,7 +109,7 @@ class RuntimeSupervisor(BaseRuntimeSupervisor):
                     candles_by_symbol=candles,
                     report_start_utc=report_start,
                     report_end_utc=report_end,
-                    starting_cash=self.config.paper_starting_cash_usdc,
+                    starting_cash=paper_settings.max_capital_usdc,
                     target_notional=paper_settings.target_notional_usdc,
                     slot_count=paper_settings.slot_count,
                     costs=costs,

@@ -42,7 +42,10 @@ export function portfolioBlocksText(portfolio?: Record<string, unknown>): string
     const cycles = typed.completed_trades;
     const slotTrades = typed.completed_slot_trades;
     if (typeof cycles === "number" && typeof slotTrades === "number") {
-      tradeAccounting = `Positionszyklen: ${cycles} · Slot-Trades (80-USDC-Kapazität): ${slotTrades}. `;
+      const notional = Number(portfolio.target_notional);
+      const tranche = Number.isFinite(notional) && notional > 0
+        ? ` (${notional.toLocaleString("de-DE", {maximumFractionDigits: 2})}-USDC-Tranchen)` : "";
+      tradeAccounting = `Positionszyklen: ${cycles} · Slot-Trades${tranche}: ${slotTrades}. `;
     }
   }
   return capacity + tradeAccounting + (items.length

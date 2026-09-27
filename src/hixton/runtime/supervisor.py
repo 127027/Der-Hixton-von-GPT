@@ -7,6 +7,7 @@ import json
 import subprocess
 import time
 from collections.abc import Callable
+from concurrent.futures import ThreadPoolExecutor
 from contextlib import suppress
 from datetime import UTC, datetime, timedelta
 
@@ -393,24 +394,32 @@ class RuntimeSupervisor:
         with CandleStore(self.config.database_path) as store:
             if not store.integrity_check():
                 raise RuntimeError("SQLite integrity check failed")
-            for symbol in SYMBOLS:
+
+        def synchronize_market(symbol: str) -> None:
+            # Independent public reads can overlap; each worker owns its SQLite
+            # connection. Publish analysis only after the complete universe passes.
+            market_client = BinancePublicClient(base_url=self.config.binance_base_url)
+            with CandleStore(self.config.database_path) as store:
                 if symbol not in self._available_starts:
-                    self._available_starts[symbol] = client.first_available_open(
+                    self._available_starts[symbol] = market_client.first_available_open(
                         symbol, start=warmup_start, end_exclusive=report_end
                     )
                 synchronize_symbol(
-                    client=client,
+                    client=market_client,
                     store=store,
                     symbol=symbol,
                     start=max(warmup_start, self._available_starts[symbol]),
                     end_exclusive=report_end,
                 )
-                current_candles = client.fetch_klines(
+                current_candles = market_client.fetch_klines(
                     symbol, start=report_end, end_exclusive=report_end + TIMEFRAME_DELTA
                 )
                 if not any(candle.open_time_utc == report_end for candle in current_candles):
                     raise RuntimeError(f"{symbol}: next opening candle not yet available; retry")
                 store.put_candles(current_candles)
+        with ThreadPoolExecutor(max_workers=4, thread_name_prefix="hixton-public-sync") as pool:
+            # Exhaust map so every failure is propagated before state can be published.
+            list(pool.map(synchronize_market, SYMBOLS))
         points, quality = rebuild_analysis(
             self.config.database_path,
             start=warmup_start,
@@ -641,6 +650,24 @@ class RuntimeSupervisor:
                 self._closed_bar_event.clear()
                 try:
                     await self._sync_and_analyze(initial=False)
+                    refreshed = self.state.points()
+                    if refreshed:
+                        oldest_close = min(
+                            values[-1].candle.close_time_utc
+                            for values in refreshed.values() if values
+                        )
+                        delay = (datetime.now(UTC) - oldest_close).total_seconds()
+                        if delay > 90:
+                            self.state.log(
+                                level="WARNING",
+                                component="runtime",
+                                event_code="CLOSED_BAR_PROCESSING_LATE",
+                                message=(
+                                    f"Stundenkerzen erst nach {delay:.1f} Sekunden geprüft; "
+                                    "das 90-Sekunden-Fenster für neue Live-Einstiege "
+                                    "ist abgelaufen."
+                                ),
+                            )
                 except Exception as error:
                     self.state.set_status(
                         health="DEGRADED",
@@ -666,4 +693,9 @@ class RuntimeSupervisor:
                         rest_recovery_hour = current_hour
                     except Exception as error:
                         self.state.set_status(last_error=str(error))
-            await asyncio.sleep(self.config.paper_poll_seconds)
+            # A closed-bar event wakes the watchdog immediately instead of waiting
+            # up to another polling interval before starting the all-market audit.
+            with suppress(TimeoutError):
+                await asyncio.wait_for(
+                    self._closed_bar_event.wait(), timeout=self.config.paper_poll_seconds
+                )

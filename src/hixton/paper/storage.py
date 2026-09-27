@@ -851,6 +851,7 @@ class PaperStore:
         with self._connection:
             self._connection.executescript(
                 """
+                BEGIN IMMEDIATE;
                 CREATE TABLE IF NOT EXISTS paper_account (
                     singleton INTEGER PRIMARY KEY CHECK (singleton=1),
                     cash_text TEXT NOT NULL,

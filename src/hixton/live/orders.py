@@ -437,13 +437,19 @@ class TrialOrderExecutor:
         self.exchange = exchange
         self.pre_submit = pre_submit
 
-    def execute(self, intent_id: str) -> str:
+    def execute(
+        self, intent_id: str, *, before_submit: Callable[[], bool] | None = None
+    ) -> str:
         intent, state = self.journal.load(intent_id)
         if state != "CREATED":
             return self.reconcile(intent_id)
         # This injected gate must verify explicit consent, account, fresh book and owned quantity.
         # There is no permissive production default and no UI wiring to this primitive.
         if not self.pre_submit(intent):
+            return "BLOCKED"
+        # Network preflight can outlive the signal or change the local release.
+        # Recheck immediately before claiming the irreversible submit entitlement.
+        if before_submit is not None and not before_submit():
             return "BLOCKED"
         if not self.journal.claim_submit(intent_id):
             return self.reconcile(intent_id)

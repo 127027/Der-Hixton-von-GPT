@@ -173,6 +173,7 @@ def build_execution_report(
     execution_source_sha256: str,
     strategy_version: str,
     allocator_version: str,
+    source_is_current: bool = True,
 ) -> dict[str, object]:
     """Build a read-only report. API keys/secrets are never read or emitted."""
     incidents: list[dict[str, object]] = []
@@ -183,9 +184,17 @@ def build_execution_report(
             "execution_source_sha256": execution_source_sha256,
             "strategy_version": strategy_version,
             "allocator_version": allocator_version,
+            "source_matches_disk": source_is_current,
         },
     }
 
+    if not source_is_current:
+        _incident(
+            incidents,
+            severity="ERROR",
+            code="RUNTIME_SOURCE_CHANGED",
+            detail="Python-Code seit Botstart geändert; neue Echtgeld-Einstiege sind gesperrt.",
+        )
     paper_events: dict[str, dict[str, object]] = {}
     paper_strategy_version: str | None = None
     if paper_database.exists():

@@ -31,3 +31,10 @@ test("research comparison stays internal and has no current UI mount", () => {
   assert.doesNotMatch(main, /#backtest-comparison/);
   assert.doesNotMatch(html, /Buy & Hold Ende/);
 });
+
+test("slot accounting uses the saved run tranche and never invents 80 USDC", () => {
+  const portfolio = {blocked_reasons:{}, metrics:{completed_trades:87, completed_slot_trades:140}};
+  assert.match(portfolioBlocksText({...portfolio, target_notional:"125.00"}), /125-USDC-Tranchen/);
+  assert.match(portfolioBlocksText({...portfolio, target_notional:"250.00"}), /250-USDC-Tranchen/);
+  assert.doesNotMatch(portfolioBlocksText(portfolio), /80|USDC-Tranchen/);
+});

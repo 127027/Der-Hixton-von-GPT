@@ -7,9 +7,10 @@ never imports Paper holdings or Paper fills. Operational acceptance remains open
 from __future__ import annotations
 
 import json
+import time
 from collections.abc import Callable, Mapping, Sequence
 from dataclasses import asdict
-from datetime import UTC, datetime
+from datetime import UTC, datetime, timedelta
 from decimal import ROUND_DOWN, Decimal
 from threading import RLock
 from typing import Any
@@ -55,6 +56,7 @@ class SignalTrial:
         application_version: str = "unknown",
         execution_source_sha256: str = "unknown",
         allocator_version: str = "unknown",
+        source_is_current: Callable[[], bool] | None = None,
     ) -> None:
         if executor.journal.path.resolve() != journal.path.resolve():
             raise ValueError("Trial and order journal must share the same ledger")
@@ -66,6 +68,7 @@ class SignalTrial:
         self.application_version = application_version
         self.execution_source_sha256 = execution_source_sha256
         self.allocator_version = allocator_version
+        self.source_is_current = source_is_current or (lambda: True)
         self.lock = RLock()
         with journal._connect() as connection:
             connection.execute("""
@@ -311,7 +314,37 @@ class SignalTrial:
             return quantity
         return (quantity / step).to_integral_value(rounding=ROUND_DOWN) * step
 
+    def _entry_submit_allowed(self, intent_id: str, now: datetime) -> bool:
+        row = self._row()
+        if row is None or row["state"] != "ENTRY_PENDING" or row["buy_id"] != intent_id:
+            return False
+        if (
+            row["execution_source_sha256"] != self.execution_source_sha256
+            or row["application_version"] != self.application_version
+            or row["allocator_version"] != self.allocator_version
+            or not self.source_is_current()
+        ):
+            self._set(
+                state="CANCELED",
+                reason="EXECUTION_SOURCE_CHANGED_BEFORE_ORDER",
+                entries_enabled=0,
+            )
+            return False
+        if row["strategy_json"] != _strategy_json(self.strategy):
+            self._set(reason="FROZEN_STRATEGY_MISMATCH", entries_enabled=0)
+            return False
+        signal = json.loads(row["entry_signal_json"])
+        age = (now - datetime.fromisoformat(signal["bar_close"])).total_seconds()
+        if not row["entries_enabled"] or not 0 <= age <= 90:
+            self._set(state="FAILED", reason="ENTRY_EXPIRED_OR_DISABLED", entries_enabled=0)
+            return False
+        if not self.release_check():
+            self._set(reason="RELEASE_REQUIRED")
+            return False
+        return True
+
     def _drive_order(self, row: dict[str, Any], now: datetime) -> None:
+        started = time.monotonic()
         entry = row["state"] == "ENTRY_PENDING"
         signal = json.loads(row["entry_signal_json"] if entry else row["exit_signal_json"])
         sell_quantity = Decimal(0)
@@ -340,15 +373,16 @@ class SignalTrial:
         )
         self.journal.create(intent)
         _, state = self.journal.load(intent.intent_id)
-        if state == "CREATED":
-            age = (now - datetime.fromisoformat(signal["bar_close"])).total_seconds()
-            if entry and (not row["entries_enabled"] or not 0 <= age <= 90):
-                self._set(state="FAILED", reason="ENTRY_EXPIRED_OR_DISABLED", entries_enabled=0)
-                return
-            if entry and not self.release_check():
-                self._set(reason="RELEASE_REQUIRED")
-                return
-        state = self.executor.execute(intent.intent_id)
+        if state == "CREATED" and entry and not self._entry_submit_allowed(intent.intent_id, now):
+            return
+        state = self.executor.execute(
+            intent.intent_id,
+            before_submit=lambda: not entry or self._entry_submit_allowed(
+                intent.intent_id, now + timedelta(seconds=time.monotonic() - started)
+            ),
+        )
+        if state == "BLOCKED":
+            return
         if state not in _ORDER_FINAL:
             self._set(reason="ORDER_" + state)
             return
@@ -436,8 +470,16 @@ class SignalTrial:
             if row["strategy_json"] != _strategy_json(self.strategy):
                 self._set(reason="FROZEN_STRATEGY_MISMATCH", entries_enabled=0)
                 return self.report()
-            source_changed = row["execution_source_sha256"] != self.execution_source_sha256
-            if source_changed and row["state"] == "WAITING_SIGNAL":
+            source_changed = (
+                row["execution_source_sha256"] != self.execution_source_sha256
+                or row["application_version"] != self.application_version
+                or row["allocator_version"] != self.allocator_version
+                or not self.source_is_current()
+            )
+            unsubmitted_entry = (
+                row["state"] == "ENTRY_PENDING" and self.journal_state(row) == "CREATED"
+            )
+            if source_changed and (row["state"] == "WAITING_SIGNAL" or unsubmitted_entry):
                 self._set(
                     state="CANCELED",
                     reason="EXECUTION_SOURCE_CHANGED_BEFORE_ORDER",

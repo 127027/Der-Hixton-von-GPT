@@ -50,6 +50,7 @@ class LivePreparation:
         application_version: str = __version__,
         execution_source_sha256: str = "unknown",
         allocator_version: str = ALLOCATOR_VERSION,
+        source_is_current: Callable[[], bool] | None = None,
     ) -> None:
         self.database = database
         self.credentials = CredentialService(vault)
@@ -59,6 +60,7 @@ class LivePreparation:
         self.application_version = application_version
         self.execution_source_sha256 = execution_source_sha256
         self.allocator_version = allocator_version
+        self.source_is_current = source_is_current or (lambda: True)
         self._check: dict[str, object] | None = None
         self._check_time = 0.0
         self._next_check = 0.0
@@ -202,11 +204,13 @@ class LivePreparation:
             TrialOrderExecutor(trial_journal, DeferredExchange(), self._trial_pre_submit),
             strategy,
             lambda: self._trial_authorized
-            and bool(self.credentials.status()["configured"]),
+            and bool(self.credentials.status()["configured"])
+            and not settings_provider()[1],
             rules_provider,
             application_version=self.application_version,
             execution_source_sha256=self.execution_source_sha256,
             allocator_version=self.allocator_version,
+            source_is_current=self.source_is_current,
         )
         self.runtime = TrialRuntime(self.trial, self.trial_reconciler, self._account_snapshot)
         self._trial_authorized = bool(self.trial.report().get("has_unsettled"))
@@ -231,6 +235,7 @@ class LivePreparation:
             lambda: bool(self.credentials.status()["configured"]),
             application_version=self.application_version,
             execution_source_sha256=self.execution_source_sha256,
+            source_is_current=self.source_is_current,
         )
         holder["controller"] = self.live
         self.live_runtime = LivePortfolioRuntime(self.live)
@@ -245,6 +250,7 @@ class LivePreparation:
             execution_source_sha256=self.execution_source_sha256,
             strategy_version=strategy_version,
             allocator_version=self.allocator_version,
+            source_is_current=self.source_is_current(),
         )
 
     def write_diagnostic_report(self, paper_database: Path) -> Path:

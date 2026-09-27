@@ -11,10 +11,11 @@ from __future__ import annotations
 import hashlib
 import json
 import sqlite3
+import time
 from collections.abc import Callable, Iterator, Mapping, Sequence
 from contextlib import contextmanager
 from dataclasses import dataclass
-from datetime import UTC, datetime
+from datetime import UTC, datetime, timedelta
 from decimal import ROUND_DOWN, Decimal
 from pathlib import Path
 from threading import Event, RLock
@@ -423,11 +424,15 @@ class LiveOrderExecutor:
         self.exchange = exchange
         self.pre_submit = pre_submit
 
-    def execute(self, intent_id: str) -> str:
+    def execute(
+        self, intent_id: str, *, before_submit: Callable[[], bool] | None = None
+    ) -> str:
         intent, state = self.journal.load(intent_id)
         if state != "CREATED":
             return self.reconcile(intent_id)
         if not self.pre_submit(intent):
+            return "BLOCKED"
+        if before_submit is not None and not before_submit():
             return "BLOCKED"
         if not self.journal.claim_submit(intent_id):
             return self.reconcile(intent_id)
@@ -591,6 +596,7 @@ class LivePortfolioController:
         *,
         application_version: str = "unknown",
         execution_source_sha256: str = "unknown",
+        source_is_current: Callable[[], bool] | None = None,
     ) -> None:
         self.database = database
         self.journal = journal
@@ -603,6 +609,7 @@ class LivePortfolioController:
         self.release_check = release_check
         self.application_version = application_version
         self.execution_source_sha256 = execution_source_sha256
+        self.source_is_current = source_is_current or (lambda: True)
         self.lock = RLock()
         with journal._connect() as connection:
             connection.executescript(
@@ -911,6 +918,7 @@ class LivePortfolioController:
                     control["state"] != "LIVE_ENABLED"
                     or not bool(control["entries_enabled"])
                     or control["execution_source_sha256"] != self.execution_source_sha256
+                    or not self.source_is_current()
                     or emergency
                     or intent.quote_budget != plan.target_notional_usdc * intent.slot_count
                 ):
@@ -1049,6 +1057,7 @@ class LivePortfolioController:
             )
 
     def _drive_pending(self, pending: sqlite3.Row, *, now: datetime) -> None:
+        started = time.monotonic()
         payload = json.loads(str(pending["payload_json"]))
         action = str(pending["action"])
         buy = action == "ENTER_LONG"
@@ -1070,8 +1079,11 @@ class LivePortfolioController:
         )
         self.journal.create(intent)
         _loaded, state = self.journal.load(intent.intent_id)
-        if buy and state == "CREATED":
-            age = (now - datetime.fromisoformat(str(payload["bar_close"]))).total_seconds()
+        def before_submit() -> bool:
+            if not buy:
+                return True
+            current_time = now + timedelta(seconds=time.monotonic() - started)
+            age = (current_time - datetime.fromisoformat(str(payload["bar_close"]))).total_seconds()
             if not 0 <= age <= 90:
                 self.journal.abandon_created(intent.intent_id, "ENTRY_EXPIRED")
                 with self.journal._connect() as connection:
@@ -1080,8 +1092,24 @@ class LivePortfolioController:
                         "WHERE signal_id=?",
                         (pending["signal_id"],),
                     )
-                return
-        state = self.executor.execute(intent.intent_id)
+                return False
+            fresh = self._control()
+            plan, emergency = self._current_plan()
+            return bool(
+                fresh is not None
+                and fresh["state"] == "LIVE_ENABLED"
+                and fresh["entries_enabled"]
+                and fresh["strategy_json"] == self._strategy_json()
+                and fresh["execution_source_sha256"] == self.execution_source_sha256
+                and fresh["capital_json"] == self._capital_json(plan)
+                and self.source_is_current()
+                and not emergency
+                and self.release_check()
+            )
+
+        if state == "CREATED" and not before_submit():
+            return
+        state = self.executor.execute(intent.intent_id, before_submit=before_submit)
         if state == "BLOCKED" or state not in FINAL_ORDER:
             return
         summary = self.journal.fill_summary(intent.intent_id)
@@ -1256,7 +1284,10 @@ class LivePortfolioController:
             if control["strategy_json"] != self._strategy_json():
                 self.fail_closed("FROZEN_STRATEGY_MISMATCH")
                 return self.report()
-            if control["execution_source_sha256"] != self.execution_source_sha256:
+            if (
+                control["execution_source_sha256"] != self.execution_source_sha256
+                or not self.source_is_current()
+            ):
                 positions = self._positions()
                 unresolved = self.journal.unresolved_ids()
                 with self.journal._connect() as connection:
