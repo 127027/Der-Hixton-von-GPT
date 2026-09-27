@@ -85,6 +85,7 @@ interface StatusResponse {
   strategy_key: string;
   runtime: RuntimePayload;
   paper: PaperPayload | null;
+  trading_settings: TradingSettings | null;
   trading_limits: TradingLimits;
   server_time_utc: string;
   ui_timezone: string;
@@ -232,14 +233,20 @@ function renderStatus(status: StatusResponse): void {
   text("#app-version-badge", `HIXTON v${status.application_version}`);
   text("#doc-app-version", status.application_version);
   text("#doc-strategy-version", status.strategy_version);
-  if (!status.paper) { tradingSettings.render(null, status.trading_limits); return; }
+  tradingSettings.render(status.trading_settings, status.trading_limits);
+  if (!status.paper) {
+    text("#metric-equity", "—");
+    text("#metric-cash", "—");
+    text("#metric-slots", "—");
+    text("#metric-drawdown", "—");
+    return;
+  }
   text("#metric-equity", formatNumber(status.paper.equity_usdc));
   text("#metric-cash", formatNumber(status.paper.cash_usdc));
   const usedSlots = status.paper.positions.reduce((sum, position) => sum + position.slot_count, 0);
   text("#metric-slots", String(Math.max(0, status.paper.settings.slot_count - usedSlots)));
   required("#metric-slots").nextElementSibling!.textContent = `von ${status.paper.settings.slot_count}`;
   text("#metric-drawdown", `${formatNumber(status.paper.drawdown_pct)} %`);
-  tradingSettings.render(status.paper.settings, status.trading_limits);
   renderPositions(status.paper.positions);
   renderSystem(status);
 }
