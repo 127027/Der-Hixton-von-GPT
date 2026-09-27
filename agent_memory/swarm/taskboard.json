@@ -34,10 +34,10 @@
     "id": "SWARM-003",
     "title": "Hixton 0.5.0 max-capital product release",
     "objective": "Release one coherent V6 system where UI, exact-three-year portfolio backtest, Paper and normal Live consume the same saved max_capital_usdc and CAPITAL-V1-2X50PCT allocator; preserve isolated 10x250 as coin research and the separate controlled 1x50 Binance round-trip; make Trial/Live execution continuously observable with Binance completion, timing, parity and patch/source identity evidence.",
-    "state": "VERIFYING",
+    "state": "IN_PROGRESS",
     "completion_mode": "continuous",
     "started_at_utc": "2026-09-25T19:35:00+00:00",
-    "last_transition_reason": "Coordinator round COORD-2026-09-27-LIVE-001 dispatched: A01-A11 must report against one exact pinned commit; mixed/stale evidence is invalid and any repair requires a new pinned run.",
+    "last_transition_reason": "Coordination round COORD-2026-09-27-LIVE-001 is active; the continuous mission remains IN_PROGRESS while A01-A11 verify one exact pinned commit and route any defect into a fresh repair/rerun.",
     "owner_instruction_date": "2026-09-27",
     "primary_agents": [
       "A01",
