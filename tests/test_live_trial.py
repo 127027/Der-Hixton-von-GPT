@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from concurrent.futures import ThreadPoolExecutor
+import json
 from dataclasses import replace
 from datetime import UTC, datetime, timedelta
 from decimal import Decimal as D
@@ -12,7 +13,13 @@ import pytest
 from hixton.backtest.models import ExecutionRules
 from hixton.constants import SYMBOLS
 from hixton.domain.versions import V6_COIN_STRATEGY as V6
-from hixton.live.orders import ExchangeFill, ExchangeOrder, OrderJournal, TrialOrderExecutor
+from hixton.live.orders import (
+    ExchangeFill,
+    ExchangeOrder,
+    OrderJournal,
+    TrialIntent,
+    TrialOrderExecutor,
+)
 from hixton.live.trial import SignalTrial
 from tests.test_paper_engine import _point
 
@@ -414,7 +421,19 @@ def test_submitted_or_uncertain_order_history_is_never_retry_reset(tmp_path):
     arm(controller)
     controller.advance(universe(), now=NOW, healthy=True)
     row = controller._row()
-    assert row is not None and row["buy_id"]
+    assert row is not None and row["buy_id"] and row["entry_signal_json"]
+    signal = json.loads(row["entry_signal_json"])
+    intent = TrialIntent(
+        row["buy_id"],
+        row["account"],
+        row["symbol"],
+        "BUY",
+        V6.version,
+        D(signal["reference_price"]),
+        quote_budget=D("50"),
+        base_quantity=D(0),
+    )
+    assert controller.journal.create(intent) is True
     assert controller.journal.claim_submit(row["buy_id"]) is True
     controller._set(state="FAILED", reason="TEST_UNCERTAIN", entries_enabled=0)
     assert controller.retryable_before_submit() is False
