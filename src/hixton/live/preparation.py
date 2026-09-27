@@ -594,6 +594,8 @@ class LivePreparation:
                 "trial_dispatch_available": trial_available,
                 "trial_retryable_before_submit": trial_retryable,
                 "trial_blockers": trial_blockers,
+                "runtime_health": "HEALTHY" if healthy else "DEGRADED",
+                "trial_order_execution_blocked_by_health": not healthy,
                 "trial_quote_asset": "USDC",
                 "trial_readiness": {
                     "automatic_preflight_on_start": True,
