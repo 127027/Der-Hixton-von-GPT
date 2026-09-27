@@ -17,8 +17,7 @@ from uuid import uuid4
 
 from hixton import __version__
 from hixton.backtest.models import ExecutionRules
-from hixton.domain.capital import ALLOCATOR_VERSION
-from hixton.domain.capital import capital_plan
+from hixton.domain.capital import ALLOCATOR_VERSION, capital_plan
 from hixton.domain.models import IndicatorPoint
 from hixton.domain.versions import StrategyDefinition
 from hixton.live.binance import BinanceCheckError, BinanceReadOnlyClient
