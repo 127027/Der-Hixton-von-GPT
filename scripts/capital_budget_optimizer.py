@@ -25,7 +25,7 @@ from hixton.runtime.supervisor import safe_closed_window
 from scripts.capital_100_simulation import _candidate_map, _profile_hashes
 from scripts.coin_optimization_cycle import _rules
 
-STUDY_ID = "FIXED_250_USDC_SLOT_LAYOUT_CHALLENGE"
+STUDY_ID = "FIXED_250_USDC_SLOT_LAYOUT_CHALLENGE"  # Exact-head research trigger.
 CAPITAL = D("250")
 MIN_TRANCHE = D("50")
 

@@ -16,6 +16,7 @@ import subprocess
 import sys
 import urllib.request
 from datetime import UTC, datetime, timedelta
+from decimal import Decimal
 from pathlib import Path
 from typing import Any
 
