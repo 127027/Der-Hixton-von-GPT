@@ -57,9 +57,10 @@ def _balances(payload: Any) -> dict[str, tuple[Decimal, Decimal]]:
 def read_account_snapshot(transport: SpotTransport, *, account: str) -> AccountSnapshot:
     """Read twice around openOrders: an inconsistent moving account cannot pass."""
     before = datetime.now(UTC)
-    first = _balances(transport.request("GET", "/api/v3/account", {}))
+    account_params = {"omitZeroBalances": "true"}
+    first = _balances(transport.request("GET", "/api/v3/account", account_params))
     orders = transport.request("GET", "/api/v3/openOrders", {})
-    second = _balances(transport.request("GET", "/api/v3/account", {}))
+    second = _balances(transport.request("GET", "/api/v3/account", account_params))
     if first != second or not isinstance(orders, list):
         raise ValueError("Account changed during snapshot; retry read-only")
     identities = []
