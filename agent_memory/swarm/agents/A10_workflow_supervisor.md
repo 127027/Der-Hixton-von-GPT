@@ -28,3 +28,12 @@ A10 cannot override QA, mark the continuous mission DONE, weaken trading/validat
 ## Current Live-monitoring duty
 - Route every execution-report ERROR/WARNING to the owning specialist, invalidate downstream evidence after any repair and require a new exact-head regression/QA/governance cycle.
 - Maintain one mandatory acceptance thread across A01-A11 for Trial/Live report integrity, Binance completion, Paper parity and patch/source identity; no specialist may silently drop it from later patches.
+
+
+## Coordinator communication contract
+- Read `agent_memory/swarm/coordination.json` on every run and treat its `round_id`, assignment map and exact-commit policy as mandatory.
+- Accept specialist evidence only when `round_id` and `source_commit` match the current pinned run.
+- For every missing, failed, stale or incomplete specialist duty, emit an explicit `repair_routes` entry naming the responsible A01-A08 owner and the required next action.
+- Never repair a defect and continue to QA with pre-repair evidence. Any patch invalidates affected/downstream evidence and requires a new pinned coordination run.
+- Preserve the distinction between dispatcher responsibility and specialist ownership: A10 routes and verifies; the named specialist must re-prove the repaired duty.
+- A bare PASS/FAIL without evidence, blocker state and handoff is not valid communication.
