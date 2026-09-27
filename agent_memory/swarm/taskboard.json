@@ -37,7 +37,7 @@
     "state": "IN_PROGRESS",
     "completion_mode": "continuous",
     "started_at_utc": "2026-09-25T19:35:00+00:00",
-    "last_transition_reason": "Owner reports Binance API key/secret already configured but controlled 1x50-USDC trial and subsequent Live cannot proceed. A01-A11 must reproduce the full blocker chain, repair root causes, rerun on one exact pinned commit, and leave real order execution local-only.",
+    "last_transition_reason": "50-USDC blocker investigation upgraded to a dedicated mandatory LIVE_TRIAL_BLOCKER_AUDIT. Generic Live PASS evidence is no longer sufficient.",
     "owner_instruction_date": "2026-09-27",
     "primary_agents": [
       "A01",
@@ -68,7 +68,8 @@
     "regression_cases": [
       "CURRENT_V6_PRODUCT",
       "LIVE_READINESS_AUDIT",
-      "COIN_IMPROVEMENT_AUDIT"
+      "COIN_IMPROVEMENT_AUDIT",
+      "LIVE_TRIAL_BLOCKER_AUDIT"
     ],
     "constraints": [
       "UI exposes one editable capital value only: max_capital_usdc. Slot count, tranche size, reserve and allocation policy are derived and not separate user truths.",
