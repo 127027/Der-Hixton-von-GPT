@@ -37,7 +37,7 @@
     "state": "IN_PROGRESS",
     "completion_mode": "continuous",
     "started_at_utc": "2026-09-25T19:35:00+00:00",
-    "last_transition_reason": "Coordination round COORD-2026-09-27-LIVE-001 is active; the continuous mission remains IN_PROGRESS while A01-A11 verify one exact pinned commit and route any defect into a fresh repair/rerun.",
+    "last_transition_reason": "Owner reports Binance API key/secret already configured but controlled 1x50-USDC trial and subsequent Live cannot proceed. A01-A11 must reproduce the full blocker chain, repair root causes, rerun on one exact pinned commit, and leave real order execution local-only.",
     "owner_instruction_date": "2026-09-27",
     "primary_agents": [
       "A01",
@@ -118,14 +118,14 @@
       ],
       "actual_live_roundtrip_completed": false
     },
-    "coordination_round": "COORD-2026-09-27-LIVE-001",
+    "coordination_round": "COORD-2026-09-27-LIVEBLOCK-002",
     "coordination_file": "agent_memory/swarm/coordination.json",
     "coordination_requirements": [
-      "Every A01-A11 report identifies the same coordination round and exact source commit.",
-      "A10 routes every failed or incomplete duty to a named owning agent and records the blocker; bare FAIL/PASS is insufficient.",
-      "A repair commit invalidates affected and downstream evidence; A09/A11 must not approve a mixed-commit run.",
-      "A09 QA and A11 governance execute only against fresh evidence for the exact pinned release candidate.",
-      "Cloud agents remain unable to send real/testnet orders; the real 1x50 trial is local and owner-started only."
+      "Use the latest gpt/usdc-audit product head, never an older release/main bootstrap state.",
+      "Trace and repair every gate from UI credential status through authenticated-preflight boundary, trial state, runtime/version identity, fresh signal, risk/capital, order/fill/reconciliation and production Live eligibility.",
+      "Cloud remains key-free and order-free; any condition that needs real Binance credentials must end in a precise local diagnostic, not a guessed PASS.",
+      "Any patch invalidates affected/downstream evidence and requires a fresh pinned run.",
+      "A10 must name the repair owner for every blocker; A09/A11 must reject mixed/stale evidence."
     ]
   },
   "queued_missions": [],
