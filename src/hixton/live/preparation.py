@@ -6,6 +6,7 @@ import json
 import sqlite3
 import time
 from collections.abc import Callable, Mapping
+from contextlib import suppress
 from datetime import UTC, datetime
 from decimal import Decimal
 from functools import partial
@@ -286,11 +287,9 @@ class LivePreparation:
         details: dict[str, object] | None = None,
     ) -> None:
         """Never report a durable state change as failed only because auxiliary audit I/O failed."""
-        try:
+        # Trial/order journals and live_control are the authoritative durable records.
+        with suppress(sqlite3.Error):
             self.audit(action, details)
-        except sqlite3.Error:
-            # Trial/order journals and live_control are the authoritative durable records.
-            pass
 
     def invalidate_check(self) -> None:
         self._check = None
