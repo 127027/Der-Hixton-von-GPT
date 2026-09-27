@@ -166,11 +166,13 @@ def install_live_routes(
         return get_status(service.access.authorized(request.cookies.get(_COOKIE)))
 
     @app.get("/api/live/report")
+    @app.post("/api/live/report")
     def live_report(request: Request) -> dict[str, object]:
         require_session(request)
         return service.diagnostic_report(config.database_path)
 
     @app.get("/api/live/report/download")
+    @app.post("/api/live/report/download")
     def live_report_download(request: Request) -> FileResponse:
         require_session(request)
         path = service.write_diagnostic_report(config.database_path)

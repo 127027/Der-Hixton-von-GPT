@@ -78,3 +78,46 @@ def test_closed_bar_wakes_watchdog_without_waiting_for_poll_interval(tmp_path, m
                 await task
 
     asyncio.run(scenario())
+
+
+def test_signal_readiness_is_logged_before_slow_paper_bookkeeping(tmp_path, monkeypatch):
+    from dataclasses import replace
+    from datetime import timedelta
+
+    import hixton.runtime.supervisor as runtime_module
+
+    boundary = datetime(2026, 9, 27, 19, tzinfo=UTC)
+    clock = [boundary + timedelta(seconds=10)]
+
+    class Clock(datetime):
+        @classmethod
+        def now(cls, tz=None):
+            return clock[0]
+
+    supervisor = RuntimeSupervisor(config_for(tmp_path))
+    points = {symbol: (_point(symbol, boundary),) for symbol in SYMBOLS}
+    prior = {
+        symbol: (replace(values[0], candle=replace(
+            values[0].candle,
+            open_time_utc=values[0].candle.open_time_utc - timedelta(hours=1),
+            close_time_utc=values[0].candle.close_time_utc - timedelta(hours=1),
+        )),) for symbol, values in points.items()
+    }
+    quality = {
+        symbol: audit_candles([values[0].candle], expected_symbol=symbol)
+        for symbol, values in points.items()
+    }
+    supervisor.state.replace_analysis(prior, quality)
+    monkeypatch.setattr(runtime_module, "datetime", Clock)
+    monkeypatch.setattr(supervisor, "_synchronous_sync", lambda: (points, quality, {}))
+
+    def slow_paper(*_):
+        assert any(log.event_code == "CLOSED_BAR_SIGNALS_READY" for log in supervisor.state.logs())
+        clock[0] = boundary + timedelta(seconds=120)
+        return ()
+
+    monkeypatch.setattr(supervisor, "_process_paper", slow_paper)
+    asyncio.run(supervisor._sync_and_analyze(initial=False))
+    logs = supervisor.state.logs()
+    assert not any(log.event_code == "CLOSED_BAR_PROCESSING_LATE" for log in logs)
+    assert any("10.0 Sekunden" in log.message for log in logs)

@@ -715,19 +715,27 @@ def test_first_enrollment_does_not_take_over_existing_key() -> None:
         LocalAccess(vault).unlock(PASSWORD, PASSWORD)
 
 
-def test_execution_report_is_authenticated_downloadable_and_secret_free(tmp_path: Path) -> None:
+@pytest.mark.parametrize("method", ["get", "post"])
+def test_execution_report_is_authenticated_downloadable_and_secret_free(
+    tmp_path: Path, method: str,
+) -> None:
     client, _, _service = client_for(tmp_path)
-    denied = client.get("/api/live/report", headers=HEADERS)
+    denied = client.request(method, "/api/live/report", headers=HEADERS)
     assert denied.status_code == 401
     unlock(client)
     save_key(client)
-    report = client.get("/api/live/report", headers=HEADERS)
+    for path in ("/api/live/report", "/api/live/report/download"):
+        assert client.request(method, path).status_code == 403
+        assert client.request(
+            method, path, headers={**HEADERS, "Origin": "https://foreign.example"},
+        ).status_code == 403
+    report = client.request(method, "/api/live/report", headers=HEADERS)
     assert report.status_code == 200
     payload = report.json()
     assert payload["runtime_identity"]["strategy_version"]
     assert payload["summary"]["status"] in {"OK", "WARNING", "ERROR"}
     assert KEY not in report.text and SECRET not in report.text
-    download = client.get("/api/live/report/download", headers=HEADERS)
+    download = client.request(method, "/api/live/report/download", headers=HEADERS)
     assert download.status_code == 200
     assert "Hixton-Live-Bericht.json" in download.headers["content-disposition"]
     assert KEY.encode() not in download.content and SECRET.encode() not in download.content

@@ -15,6 +15,7 @@ from hixton.backtest.engine import run_isolated_batch, run_single_backtest
 from hixton.backtest.models import CURRENT_COSTS, ExecutionRules
 from hixton.backtest.portfolio import run_shared_portfolio_backtest
 from hixton.backtest.reporting import RunResult, source_fingerprint, write_report_bundle
+from hixton.constants import TIMEFRAME_DELTA
 from hixton.data.storage import CandleStore
 from hixton.domain.models import IndicatorPoint
 from hixton.domain.versions import V6_COIN_STRATEGY, strategy_definition
@@ -34,8 +35,10 @@ class RuntimeSupervisor(BaseRuntimeSupervisor):
             return ()
         with CandleStore(self.config.database_path) as store:
             execution = {
-                symbol: store.load_candles(
-                    symbol, start=values[0].candle.open_time_utc, closed_only=False
+                symbol: [point.candle for point in values] + store.load_candles(
+                    symbol,
+                    start=values[-1].candle.open_time_utc + TIMEFRAME_DELTA,
+                    closed_only=False,
                 )
                 for symbol, values in points.items()
             }

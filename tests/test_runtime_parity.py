@@ -243,3 +243,50 @@ def test_coin_parameter_map_requires_all_ten_symbols() -> None:
             report_end_utc=datetime(2026, 1, 1, tzinfo=UTC),
             strategy_parameters_by_symbol={"BTCUSDC": V2_RESEARCH_STRATEGY.parameters},
         )
+
+
+def test_supervisors_reuse_closed_history_and_fill_only_at_real_next_open(tmp_path):
+    from hixton.data.storage import CandleStore
+    from hixton.runtime.continuity_supervisor import RuntimeSupervisor as Continuity
+    from hixton.runtime.supervisor import RuntimeSupervisor
+    from tests.test_live_preparation import config_for
+
+    start = datetime(2026, 1, 1, tzinfo=UTC)
+    for number, supervisor_type in enumerate((RuntimeSupervisor, Continuity)):
+        config = config_for(tmp_path / str(number))
+        supervisor = supervisor_type(config)
+        strategy = supervisor.strategy
+        initial = {
+            symbol: tuple(
+                replace(_point(symbol, start - timedelta(hours=24-offset)),
+                        strategy_version=strategy.version)
+                for offset in range(25)
+            ) for symbol in SYMBOLS
+        }
+        initialize_paper_at_latest(
+            str(config.database_path), initial, at=start,
+            strategy_key=strategy.key, strategy_version=strategy.version,
+        )
+        at = start + timedelta(hours=1)
+        points = {
+            symbol: initial[symbol] + (replace(
+                _point(symbol, at, flip_up=symbol == SYMBOLS[0], strength=1),
+                strategy_version=strategy.version,
+            ),)
+            for symbol in SYMBOLS
+        }
+        # The database contains only the provisional execution bar. The validated
+        # closed history must come from the analysis snapshot, including recovery bars.
+        with CandleStore(config.database_path) as store:
+            store.put_candles([
+                replace(
+                    values[-1].candle, open_time_utc=at,
+                    close_time_utc=at + timedelta(hours=1),
+                    open=150, high=151, low=149, close=150, closed=False,
+                ) for values in points.values()
+            ])
+        events = supervisor._process_paper(points, _rules())
+        assert len(events) == 1
+        assert events[0].reference_price == Decimal("150")
+        assert events[0].execution_price == Decimal("150.075")
+        assert supervisor._process_paper(points, _rules()) == ()

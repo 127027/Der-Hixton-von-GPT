@@ -150,6 +150,18 @@ class CandleStore:
                 revised += 1
         return StoreResult(inserted=inserted, unchanged=unchanged, revised=revised)
 
+    def load_open_times(
+        self, symbol: str, *, start: datetime, end_exclusive: datetime,
+    ) -> list[datetime]:
+        """Find gaps without decoding every historical OHLCV row (including open bars)."""
+        rows = self._connection.execute(
+            "SELECT open_time_ms FROM candles WHERE exchange=? AND symbol=? "
+            "AND timeframe=? AND open_time_ms>=? AND open_time_ms<? ORDER BY open_time_ms",
+            (EXCHANGE, symbol.replace("/", "").upper(), TIMEFRAME,
+             _to_epoch_ms(start), _to_epoch_ms(end_exclusive)),
+        )
+        return [_from_epoch_ms(row[0]) for row in rows]
+
     def load_candles(
         self,
         symbol: str,

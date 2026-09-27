@@ -85,17 +85,16 @@ def synchronize_symbol(
     if not rules.tradable_for_v1:
         raise ValueError(f"{normalized} is not tradable for Binance Spot V1")
 
-    local = store.load_candles(
+    local_open_times = store.load_open_times(
         normalized,
         start=start,
         end_exclusive=end_exclusive,
-        closed_only=False,
     )
     ranges = (
         [(start, end_exclusive)]
         if full_refresh
         else _missing_ranges(
-            [candle.open_time_utc for candle in local],
+            local_open_times,
             start=start,
             end_exclusive=end_exclusive,
         )

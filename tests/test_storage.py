@@ -71,3 +71,15 @@ def test_closed_only_excludes_provisional_candle(tmp_path) -> None:
         store.put_candles([candles[0], provisional])
         assert len(store.load_candles("BNBUSDC")) == 1
         assert len(store.load_candles("BNBUSDC", closed_only=False)) == 2
+
+
+def test_gap_scan_matches_candle_times_with_gaps_provisional_and_exclusive_end(tmp_path):
+    candles = deterministic_candles("BTCUSDC", 6)
+    kept = [candles[0], candles[2], replace(candles[4], closed=False), candles[5]]
+    with CandleStore(tmp_path / "market.sqlite3") as store:
+        store.put_candles(kept)
+        start, end = candles[1].open_time_utc, candles[5].open_time_utc
+        actual = store.load_open_times("BTC/USDC", start=start, end_exclusive=end)
+        full = store.load_candles("BTCUSDC", start=start, end_exclusive=end, closed_only=False)
+        assert actual == [candle.open_time_utc for candle in full]
+        assert actual == [candles[2].open_time_utc, candles[4].open_time_utc]

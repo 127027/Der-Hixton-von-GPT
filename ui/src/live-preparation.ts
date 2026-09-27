@@ -45,6 +45,7 @@ export function initializeLivePreparation(sharedSettingsBlocker: () => string | 
     "live-off",
     "live-lock",
     "live-report-refresh",
+    "live-report-download",
   ];
   const message = (id: string, value: string): void => { element(id).textContent = value; };
   const clearSecrets = (): void => {
@@ -71,9 +72,6 @@ export function initializeLivePreparation(sharedSettingsBlocker: () => string | 
     }
     message("live-request", enabled ? "● Live ist an" : "Live an");
     message("live-off", disabled ? "● Live ist aus" : "Live aus");
-    const reportLink = element<HTMLAnchorElement>("live-report-download");
-    reportLink.setAttribute("aria-disabled", String(!last?.authenticated));
-    reportLink.tabIndex = last?.authenticated ? 0 : -1;
   };
   const render = (status: LiveStatus): void => {
     if (last?.authenticated && !status.authenticated) {
@@ -164,15 +162,7 @@ export function initializeLivePreparation(sharedSettingsBlocker: () => string | 
   };
   const refreshReport = async (): Promise<void> => {
     requireAuth();
-    const response = await fetch("/api/live/report", {
-      cache:"no-store", credentials:"same-origin",
-    });
-    const report = await response.json() as Record<string, unknown>;
-    if (!response.ok) {
-      throw new Error(
-        typeof report.detail === "string" ? report.detail : "Live-Bericht konnte nicht geladen werden.",
-      );
-    }
+    const report = await request("report", {});
     const summary = report.summary as Record<string, unknown> | undefined;
     const trial = report.trial as Record<string, unknown> | undefined;
     const live = report.live as Record<string, unknown> | undefined;
@@ -269,6 +259,28 @@ export function initializeLivePreparation(sharedSettingsBlocker: () => string | 
   });
   bind("live-report-refresh", "click", "live-report-summary", async () => {
     await refreshReport();
+  });
+  bind("live-report-download", "click", "live-report-summary", async () => {
+    requireAuth();
+    // POST supplies the browser Origin and the explicit local-action header.
+    // Errors stay on this page, preserving the bot's presence connection.
+    const response = await fetch("/api/live/report/download", {
+      method:"POST", cache:"no-store", credentials:"same-origin",
+      headers:{"Content-Type":"application/json", "X-Hixton-Action":"local-ui-v1"}, body:"{}",
+    });
+    if (!response.ok) {
+      const result = await response.json() as Record<string, unknown>;
+      throw new Error(typeof result.detail === "string" ? result.detail : "Bericht konnte nicht heruntergeladen werden.");
+    }
+    const url = URL.createObjectURL(await response.blob());
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = "Hixton-Live-Bericht.json";
+    document.body.append(link);
+    link.click();
+    link.remove();
+    window.setTimeout(() => URL.revokeObjectURL(url), 60_000);
+    message("live-report-summary", "JSON-Bericht heruntergeladen. Der Bot läuft weiter.");
   });
   bind("live-lock", "click", "live-auth-result", async () => {
     requireAuth(); await request("lock", {}); last = null; clearSecrets();

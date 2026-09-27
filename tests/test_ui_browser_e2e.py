@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import json
 import os
 import socket
 import threading
@@ -17,6 +18,7 @@ from hixton.live.reconciliation import AccountSnapshot
 from hixton.paper.storage import PaperStore
 from hixton.runtime.supervisor import RuntimeSupervisor
 from hixton.ui.api import create_app
+from hixton.ui.lifecycle import VisibleSession
 
 pytestmark = pytest.mark.skipif(
     os.environ.get("HIXTON_BROWSER_E2E") != "1",
@@ -124,7 +126,11 @@ def test_real_browser_settings_and_trial_user_flow(tmp_path: Path) -> None:
             starting_cash_usdc=Decimal("250"),
         )
 
-    app = create_app(config, supervisor, live_vault=MemoryVault())
+    session = VisibleSession(
+        installation="browser-test-only", token="fake-launcher-token",
+        terminal_alive=lambda: True, request_exit=lambda: setattr(server, "should_exit", True),
+    )
+    app = create_app(config, supervisor, live_vault=MemoryVault(), session=session)
     service = app.state.live_preparation
     service.client_factory = FakeReadOnlyClient
     service._account_snapshot = lambda: AccountSnapshot(
@@ -146,10 +152,13 @@ def test_real_browser_settings_and_trial_user_flow(tmp_path: Path) -> None:
 
     try:
         with sync_playwright() as playwright:
-            browser = playwright.chromium.launch(headless=True)
+            browser = playwright.chromium.launch(
+                headless=True, channel=os.environ.get("HIXTON_BROWSER_CHANNEL") or None,
+            )
             page = browser.new_page()
             page.goto(f"http://127.0.0.1:{port}/", wait_until="networkidle")
             page.get_by_role("button", name="Einstellungen").click()
+            expect(page.locator("#live-report-download")).to_be_disabled()
 
             expect(page.locator("#settings-saved")).to_contain_text("Gespeichert: Max. 250,00 USDC")
             expect(page.locator("#entry-pause-input")).to_be_enabled()
@@ -183,6 +192,42 @@ def test_real_browser_settings_and_trial_user_flow(tmp_path: Path) -> None:
             # Normal 250-USDC live stays locked until the real roundtrip is completed.
             expect(page.locator("#live-request")).to_be_disabled()
             expect(page.locator("#live-blockers")).to_contain_text("1x50-Roundtrip")
+
+            # Exercise the real lifecycle watchdog: a page navigation used to
+            # disconnect presence and stop the bot after its five-second grace.
+            original_url = page.url
+            page.locator("#live-report-refresh").click()
+            expect(page.locator("#live-report-summary")).to_contain_text("Status:")
+            expect(page.locator("#live-report-output")).to_contain_text("WAITING_SIGNAL")
+            expect(page.locator("#live-report-download")).to_be_enabled()
+            with page.expect_download() as event:
+                page.locator("#live-report-download").click()
+            download = event.value
+            assert download.suggested_filename == "Hixton-Live-Bericht.json"
+            downloaded = Path(download.path()).read_text(encoding="utf-8")
+            assert json.loads(downloaded)["trial"]["state"] == "WAITING_SIGNAL"
+            assert _KEY not in downloaded and _SECRET not in downloaded
+            page.wait_for_timeout(6000)
+            assert page.url == original_url
+            assert len(session.lease.clients) == 1
+            assert not session.stopping and thread.is_alive()
+            assert service.trial.report()["state"] == "WAITING_SIGNAL"
+            expect(page.locator("#live-report-download")).to_be_enabled()
+
+            # Expire the server session between UI polling and the click. A 401
+            # must stay inline, with no download, navigation or bot shutdown.
+            service.access.logout()
+            page.locator("#live-report-download").click()
+            expect(page.locator("#live-report-summary")).to_contain_text("Passwort entsperren")
+            page.wait_for_timeout(6000)
+            assert page.url == original_url
+            assert len(session.lease.clients) == 1
+            assert not session.stopping and thread.is_alive()
+            assert service.trial.report()["state"] == "WAITING_SIGNAL"
+            expect(page.locator("#live-report-download")).to_be_disabled()
+            page.locator("#live-password").fill(_PASSWORD)
+            page.locator("#live-unlock").click()
+            expect(page.locator("#live-auth-result")).to_contain_text("Entsperrt")
 
             class CompletedTrial:
                 def report(self) -> dict[str, object]:

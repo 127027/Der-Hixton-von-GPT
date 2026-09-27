@@ -89,8 +89,10 @@ class RuntimeSupervisor:
         # It never enters the indicator or the closed-bar quality audit.
         with CandleStore(self.config.database_path) as store:
             execution = {
-                symbol: store.load_candles(
-                    symbol, start=values[0].candle.open_time_utc, closed_only=False
+                symbol: [point.candle for point in values] + store.load_candles(
+                    symbol,
+                    start=values[-1].candle.open_time_utc + TIMEFRAME_DELTA,
+                    closed_only=False,
                 )
                 for symbol, values in points.items()
             }
@@ -322,7 +324,28 @@ class RuntimeSupervisor:
                 points, quality, rules = await asyncio.to_thread(self._synchronous_sync)
                 if self._stop.is_set():
                     return
+                previous = self.state.points()
                 self.state.replace_analysis(points, quality)
+                oldest_close = min(values[-1].candle.close_time_utc for values in points.values())
+                if not initial and any(
+                    not previous.get(symbol)
+                    or previous[symbol][-1].candle.close_time_utc < oldest_close
+                    for symbol in SYMBOLS
+                ):
+                    delay = (datetime.now(UTC) - oldest_close).total_seconds()
+                    # Measure publication for the independent live loop, before Paper
+                    # bookkeeping. Its completion time is not the signal arrival time.
+                    self.state.log(
+                        level="WARNING" if delay > 90 else "INFO",
+                        component="runtime",
+                        event_code=("CLOSED_BAR_PROCESSING_LATE" if delay > 90
+                                    else "CLOSED_BAR_SIGNALS_READY"),
+                        message=(
+                            f"Geprüfte Stundenkerzen nach {delay:.1f} Sekunden bereit. "
+                            + ("90-Sekunden-Fenster für neue Live-Einstiege abgelaufen."
+                               if delay > 90 else "Signalprüfung innerhalb des Einstiegsfensters.")
+                        ),
+                    )
                 if initial:
                     first_start = await asyncio.to_thread(
                         initialize_paper_at_latest,
@@ -650,24 +673,6 @@ class RuntimeSupervisor:
                 self._closed_bar_event.clear()
                 try:
                     await self._sync_and_analyze(initial=False)
-                    refreshed = self.state.points()
-                    if refreshed:
-                        oldest_close = min(
-                            values[-1].candle.close_time_utc
-                            for values in refreshed.values() if values
-                        )
-                        delay = (datetime.now(UTC) - oldest_close).total_seconds()
-                        if delay > 90:
-                            self.state.log(
-                                level="WARNING",
-                                component="runtime",
-                                event_code="CLOSED_BAR_PROCESSING_LATE",
-                                message=(
-                                    f"Stundenkerzen erst nach {delay:.1f} Sekunden geprüft; "
-                                    "das 90-Sekunden-Fenster für neue Live-Einstiege "
-                                    "ist abgelaufen."
-                                ),
-                            )
                 except Exception as error:
                     self.state.set_status(
                         health="DEGRADED",
