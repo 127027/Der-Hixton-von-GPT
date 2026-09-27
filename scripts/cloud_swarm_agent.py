@@ -217,6 +217,15 @@ def live_audit_enabled() -> bool:
     return LIVE_AUDIT_CASE in cases
 
 
+TRIAL_BLOCKER_AUDIT_CASE = "LIVE_TRIAL_BLOCKER_AUDIT"
+
+
+def trial_blocker_audit_enabled() -> bool:
+    mission = load_mission(ROOT)
+    cases = mission.get("regression_cases") or []
+    return TRIAL_BLOCKER_AUDIT_CASE in cases
+
+
 OPTIMIZATION_AUDIT_CASE = "COIN_IMPROVEMENT_AUDIT"
 
 
@@ -759,6 +768,377 @@ def live_audit_evidence(role: str, reports_dir: Path | None) -> list[dict[str, A
         "A09": lambda: _live_audit_a09(reports_dir),
         "A10": lambda: _live_audit_a10(reports_dir),
         "A11": lambda: _live_audit_a11(reports_dir),
+    }
+    return handlers[role]()
+
+
+
+
+def _trial_blocker_a01() -> list[dict[str, Any]]:
+    preparation = (ROOT / "src" / "hixton" / "live" / "preparation.py").read_text(
+        encoding="utf-8"
+    )
+    ui = (ROOT / "ui" / "src" / "live-preparation.ts").read_text(encoding="utf-8")
+    required = (
+        '"automatic_preflight_on_start": True',
+        '"manual_account_check_required": False',
+        '"paper_soak_required": False',
+        'if emergency_stop:',
+        'self.trial.report()["state"] != "COMPLETED"',
+        "trial_dispatch_available",
+        "trial_blockers",
+    )
+    missing = [item for item in required if item not in preparation + "\n" + ui]
+    if missing:
+        raise CheckFailure(f"trial/live gate contract incomplete: {missing}")
+    return [
+        {
+            "trial_gate_contract": {
+                "credentials_required": True,
+                "entry_pause_must_be_off": True,
+                "manual_account_check_required": False,
+                "automatic_authenticated_preflight_on_start": True,
+                "minimum_free_usdc_for_trial": "60.00",
+                "fresh_signal_after_arm_required": True,
+            },
+            "live_gate_contract": {
+                "trial_must_be_completed": True,
+                "paper_soak_required": False,
+                "saved_max_budget_is_live_source": True,
+            },
+        },
+        coverage("trial_gate_contract", "live_gate_contract"),
+    ]
+
+
+def _trial_blocker_a02() -> list[dict[str, Any]]:
+    source = (ROOT / "src" / "hixton" / "live" / "trial.py").read_text(encoding="utf-8")
+    required = (
+        'boundary > datetime.fromisoformat(row["armed_at"])',
+        "point.candle.closed",
+        "0 <= (now - boundary).total_seconds() <= 90",
+        "len(boundaries) != 1",
+    )
+    missing = [item for item in required if item not in source]
+    if missing:
+        raise CheckFailure(f"fresh-signal trial contract incomplete: {missing}")
+    tests = require_command(
+        [sys.executable, "-m", "pytest", "-q", "tests/test_live_trial.py"],
+        timeout=1200,
+    )
+    return [
+        tests,
+        {
+            "fresh_signal_after_arm": True,
+            "no_historical_replay": True,
+            "signal_freshness_window_seconds": 90,
+            "all_symbols_same_closed_boundary_required": True,
+        },
+        coverage("fresh_signal_after_arm", "no_historical_replay"),
+    ]
+
+
+def _trial_blocker_a03() -> list[dict[str, Any]]:
+    trial = (ROOT / "src" / "hixton" / "live" / "trial.py").read_text(encoding="utf-8")
+    prep = (ROOT / "src" / "hixton" / "live" / "preparation.py").read_text(encoding="utf-8")
+    reconciliation = (ROOT / "src" / "hixton" / "live" / "reconciliation.py").read_text(
+        encoding="utf-8"
+    )
+    required = (
+        "prepare_retry",
+        "capture(snapshot",
+        "ignore_intent_id=intent.intent_id",
+        "owned_quantity",
+        "baseline",
+    )
+    combined = "\n".join((trial, prep, reconciliation)).lower()
+    missing = [item for item in required if item.lower() not in combined]
+    if missing:
+        raise CheckFailure(f"trial state/ledger contract incomplete: {missing}")
+    tests = require_command(
+        [
+            sys.executable,
+            "-m",
+            "pytest",
+            "-q",
+            "tests/test_live_trial.py",
+            "tests/test_live_reconciliation_runtime.py",
+        ],
+        timeout=1500,
+    )
+    return [
+        tests,
+        {
+            "trial_state_machine": "NOT_STARTED->WAITING_SIGNAL->ENTRY_PENDING->OPEN->EXIT_PENDING->AWAITING_RECONCILIATION->COMPLETED",
+            "bot_owned_ledger": True,
+            "preexisting_balances_are_baseline_only": True,
+            "canceled_preorder_trial_can_be_retried": True,
+        },
+        coverage("trial_state_machine", "bot_owned_ledger"),
+    ]
+
+
+def _trial_blocker_a04() -> list[dict[str, Any]]:
+    ui = (ROOT / "ui" / "src" / "live-preparation.ts").read_text(encoding="utf-8")
+    routes = (ROOT / "src" / "hixton" / "ui" / "live.py").read_text(encoding="utf-8")
+    required = (
+        "trial_dispatch_available",
+        "trial_blockers",
+        "Noch gesperrt:",
+        "Kontovorprüfung blockiert:",
+        'confirmation:"TEST 50 USDC"',
+        '"/api/live/status"',
+        'service.start_trial',
+    )
+    combined = ui + "\n" + routes
+    missing = [item for item in required if item not in combined]
+    if missing:
+        raise CheckFailure(f"trial UI gate/error surface incomplete: {missing}")
+    return [
+        {
+            "trial_ui_gate_matrix": True,
+            "trial_error_surface": True,
+            "server_controls_button_state": True,
+            "credential_saved_is_not_equated_with_account_ready": True,
+        },
+        coverage("trial_ui_gate_matrix", "trial_error_surface"),
+    ]
+
+
+def _trial_blocker_a05() -> list[dict[str, Any]]:
+    runtime = (ROOT / "src" / "hixton" / "live" / "runtime.py").read_text(encoding="utf-8")
+    supervisor = (ROOT / "src" / "hixton" / "runtime" / "supervisor.py").read_text(
+        encoding="utf-8"
+    )
+    required = (
+        "entries_allowed: bool | None",
+        '"runtime_pause": "SETTINGS_UNAVAILABLE"',
+        "entries_allowed = None",
+        "execution_source_sha256",
+    )
+    combined = runtime + "\n" + supervisor
+    missing = [item for item in required if item not in combined]
+    if missing:
+        raise CheckFailure(
+            "runtime trial gating can still destroy or misidentify a recoverable armed test: "
+            + repr(missing)
+        )
+    return [
+        {
+            "runtime_identity_gate": True,
+            "trial_scheduler_gate": {
+                "lifecycle_tick_seconds": 2,
+                "transient_settings_failure": "PAUSE_NO_ORDER_KEEP_ARMED",
+                "explicit_entry_pause": "BLOCK_NEW_ENTRY",
+            },
+        },
+        coverage("runtime_identity_gate", "trial_scheduler_gate"),
+    ]
+
+
+def _trial_blocker_a06() -> list[dict[str, Any]]:
+    tests_source = (ROOT / "tests" / "test_live_reconciliation_runtime.py").read_text(
+        encoding="utf-8"
+    )
+    required_test = "test_transient_settings_read_failure_does_not_cancel_armed_trial"
+    if required_test not in tests_source:
+        raise CheckFailure(f"missing trial blocker regression: {required_test}")
+    tests = require_command(
+        [
+            sys.executable,
+            "-m",
+            "pytest",
+            "-q",
+            "tests/test_live_preparation.py",
+            "tests/test_live_trial.py",
+            "tests/test_live_reconciliation_runtime.py",
+            "tests/test_live_orders.py",
+            "tests/test_live_production.py",
+        ],
+        timeout=1800,
+    )
+    return [
+        tests,
+        {
+            "trial_failure_matrix": [
+                "credentials_missing_or_invalid",
+                "entry_pause_active",
+                "insufficient_usdc",
+                "binance_permission_or_ip_restriction",
+                "open_or_locked_account_state",
+                "stale_or_canceled_trial",
+                "transient_settings_read_failure",
+                "stale_source_or_strategy",
+                "duplicate_retry_timeout_restart",
+                "reconciliation_mismatch",
+            ],
+            "trial_gate_integration": True,
+        },
+        coverage("trial_failure_matrix", "trial_gate_integration"),
+    ]
+
+
+def _trial_blocker_a07() -> list[dict[str, Any]]:
+    source = (ROOT / "src" / "hixton" / "live" / "binance.py").read_text(encoding="utf-8")
+    required = (
+        "enableReading",
+        "enableSpotAndMarginTrading",
+        "ipRestrict",
+        "enableWithdrawals",
+        "account.get(\"canTrade\")",
+        "minimum_free",
+        "Offene Binance-Orders vorhanden",
+        "Gesperrte Guthaben vorhanden",
+    )
+    missing = [item for item in required if item not in source]
+    if missing:
+        raise CheckFailure(f"authenticated Binance preflight contract incomplete: {missing}")
+    tests = require_command(
+        [sys.executable, "-m", "pytest", "-q", "tests/test_binance_adapter.py"],
+        timeout=900,
+    )
+    return [
+        tests,
+        {
+            "authenticated_preflight_contract": {
+                "trial_minimum_free_usdc": "60.00",
+                "reading_required": True,
+                "spot_trading_required": True,
+                "trusted_ip_required": True,
+                "withdrawal_permission_required_off": True,
+                "no_open_orders_required": True,
+                "no_locked_balances_required": True,
+            },
+            "binance_permission_errors": True,
+            "private_credentials_used_in_cloud": False,
+        },
+        coverage("authenticated_preflight_contract", "binance_permission_errors"),
+    ]
+
+
+def _trial_blocker_a08() -> list[dict[str, Any]]:
+    prep = (ROOT / "src" / "hixton" / "live" / "preparation.py").read_text(encoding="utf-8")
+    production = (ROOT / "src" / "hixton" / "live" / "production.py").read_text(
+        encoding="utf-8"
+    )
+    required = (
+        'if emergency_stop:',
+        'self.trial.report()["state"] != "COMPLETED"',
+        "capital_plan(max_capital)",
+        "CAPITAL-V1-2X50PCT",
+    )
+    combined = prep + "\n" + production
+    missing = [item for item in required if item not in combined]
+    if missing:
+        raise CheckFailure(f"trial/live risk gate matrix incomplete: {missing}")
+    plan = capital_plan(DEFAULT_MAX_CAPITAL_USDC)
+    return [
+        {
+            "trial_risk_gate_matrix": {
+                "entry_pause_blocks_trial": True,
+                "trial_notional_usdc": "50.00",
+                "research_10x250_is_live_source": False,
+            },
+            "production_live_release_gate": {
+                "completed_trial_required": True,
+                "default_max_capital_usdc": str(plan.max_capital_usdc),
+                "slots": plan.slot_count,
+                "target_notional_usdc": str(plan.target_notional_usdc),
+                "allocator_version": plan.version,
+            },
+        },
+        coverage("trial_risk_gate_matrix", "production_live_release_gate"),
+    ]
+
+
+def _trial_blocker_a10(reports_dir: Path | None) -> list[dict[str, Any]]:
+    if reports_dir is None:
+        raise CheckFailure("trial blocker A10 audit requires reports")
+    reports = load_reports(reports_dir)
+    required = [f"A{i:02d}" for i in range(1, 9)]
+    identity = coordination_identity_defects(reports, required)
+    coverage_missing = coverage_defects(reports, required)
+    failed = [a for a in required if reports.get(a, {}).get("verdict") != "PASS"]
+    if identity or coverage_missing or failed:
+        raise CheckFailure(
+            f"trial blocker synthesis incomplete: failed={failed}, "
+            f"identity={identity}, evidence_missing={coverage_missing}"
+        )
+    return [
+        {
+            "trial_blocker_contract_complete": True,
+            "local_authenticated_preflight_required": True,
+            "cloud_can_prove_actual_binance_account_ready": False,
+            "local_blocker_chain": [
+                "entry_pause",
+                "credential_signature/account permissions/IP restriction",
+                "free USDC and account/open-order state",
+                "trial persisted state",
+                "runtime/source/strategy identity",
+                "fresh closed signal",
+                "order/fill/reconciliation",
+            ],
+        },
+        coverage("trial_blocker_synthesis"),
+    ]
+
+
+def _trial_blocker_a09(reports_dir: Path | None) -> list[dict[str, Any]]:
+    if reports_dir is None:
+        raise CheckFailure("trial blocker A09 audit requires reports")
+    reports = load_reports(reports_dir)
+    a10 = reports.get("A10", {})
+    if (
+        evidence_flag(a10, "trial_blocker_contract_complete") is not True
+        or evidence_flag(a10, "local_authenticated_preflight_required") is not True
+    ):
+        raise CheckFailure("QA refuses incomplete 50-USDC blocker investigation")
+    return [
+        {
+            "trial_blocker_qa": True,
+            "actual_binance_trial_claimed": False,
+            "local_authenticated_preflight_required": True,
+        },
+        coverage("trial_blocker_qa"),
+    ]
+
+
+def _trial_blocker_a11(reports_dir: Path | None) -> list[dict[str, Any]]:
+    if reports_dir is None:
+        raise CheckFailure("trial blocker A11 audit requires reports")
+    reports = load_reports(reports_dir)
+    a09 = reports.get("A09", {})
+    a10 = reports.get("A10", {})
+    if (
+        evidence_flag(a09, "trial_blocker_qa") is not True
+        or evidence_flag(a10, "trial_blocker_contract_complete") is not True
+    ):
+        raise CheckFailure("governance refuses incomplete 50-USDC blocker evidence")
+    return [
+        {
+            "trial_blocker_governance": True,
+            "cloud_real_order_performed": False,
+            "operational_readiness_requires_local_account_result": True,
+        },
+        coverage("trial_blocker_governance"),
+    ]
+
+
+def trial_blocker_audit_evidence(
+    role: str, reports_dir: Path | None
+) -> list[dict[str, Any]]:
+    handlers = {
+        "A01": lambda: _trial_blocker_a01(),
+        "A02": lambda: _trial_blocker_a02(),
+        "A03": lambda: _trial_blocker_a03(),
+        "A04": lambda: _trial_blocker_a04(),
+        "A05": lambda: _trial_blocker_a05(),
+        "A06": lambda: _trial_blocker_a06(),
+        "A07": lambda: _trial_blocker_a07(),
+        "A08": lambda: _trial_blocker_a08(),
+        "A09": lambda: _trial_blocker_a09(reports_dir),
+        "A10": lambda: _trial_blocker_a10(reports_dir),
+        "A11": lambda: _trial_blocker_a11(reports_dir),
     }
     return handlers[role]()
 
@@ -2120,6 +2500,11 @@ def execute(
             print(f"[swarm] {role}: live-readiness audit starting", flush=True)
             evidence.extend(live_audit_evidence(role, reports_dir))
             print(f"[swarm] {role}: live-readiness audit complete", flush=True)
+
+        if scope in ("full", "live") and trial_blocker_audit_enabled():
+            print(f"[swarm] {role}: 50-USDC blocker audit starting", flush=True)
+            evidence.extend(trial_blocker_audit_evidence(role, reports_dir))
+            print(f"[swarm] {role}: 50-USDC blocker audit complete", flush=True)
 
         if scope in ("full", "optimization") and optimization_audit_enabled():
             print(f"[swarm] {role}: coin-optimization audit starting", flush=True)
