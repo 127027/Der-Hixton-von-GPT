@@ -41,6 +41,7 @@ export function initializeLivePreparation(sharedSettingsBlocker: () => string | 
     "live-check",
     "live-off",
     "live-lock",
+    "live-report-refresh",
   ];
   const message = (id: string, value: string): void => { element(id).textContent = value; };
   const clearSecrets = (): void => {
@@ -67,6 +68,9 @@ export function initializeLivePreparation(sharedSettingsBlocker: () => string | 
     }
     message("live-request", enabled ? "● Live ist an" : "Live an");
     message("live-off", disabled ? "● Live ist aus" : "Live aus");
+    const reportLink = element<HTMLAnchorElement>("live-report-download");
+    reportLink.setAttribute("aria-disabled", String(!last?.authenticated));
+    reportLink.tabIndex = last?.authenticated ? 0 : -1;
   };
   const render = (status: LiveStatus): void => {
     if (last?.authenticated && !status.authenticated) {
@@ -151,6 +155,33 @@ export function initializeLivePreparation(sharedSettingsBlocker: () => string | 
       return false;
     }
   };
+  const refreshReport = async (): Promise<void> => {
+    requireAuth();
+    const response = await fetch("/api/live/report", {
+      cache:"no-store", credentials:"same-origin",
+    });
+    const report = await response.json() as Record<string, unknown>;
+    if (!response.ok) {
+      throw new Error(
+        typeof report.detail === "string" ? report.detail : "Live-Bericht konnte nicht geladen werden.",
+      );
+    }
+    const summary = report.summary as Record<string, unknown> | undefined;
+    const trial = report.trial as Record<string, unknown> | undefined;
+    const live = report.live as Record<string, unknown> | undefined;
+    message(
+      "live-report-summary",
+      "Status: " + String(summary?.status ?? "UNBEKANNT")
+        + " · Fehler: " + String(summary?.error_count ?? 0)
+        + " · Warnungen: " + String(summary?.warning_count ?? 0)
+        + " · 50-USDC-Roundtrip Binance-komplett: "
+        + String(summary?.trial_binance_roundtrip_complete ?? false)
+        + " · Live: " + String(live?.state ?? "LIVE_DISABLED")
+        + " · Trial: " + String(trial?.state ?? "NOT_STARTED"),
+    );
+    element("live-report-output").textContent = JSON.stringify(report, null, 2);
+  };
+
   const request = async (path: string, body: Record<string, unknown>): Promise<Record<string, unknown>> => {
     const response = await fetch(`/api/live/${path}`, {
       method:"POST", cache:"no-store", credentials:"same-origin",
@@ -228,6 +259,9 @@ export function initializeLivePreparation(sharedSettingsBlocker: () => string | 
           + ((result.blockers as string[] | undefined)?.join(" · ")
             || "Details unter technische Freigabe."),
     );
+  });
+  bind("live-report-refresh", "click", "live-report-summary", async () => {
+    await refreshReport();
   });
   bind("live-lock", "click", "live-auth-result", async () => {
     requireAuth(); await request("lock", {}); last = null; clearSecrets();
