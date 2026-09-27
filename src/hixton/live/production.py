@@ -778,8 +778,9 @@ class LivePortfolioController:
                 connection.execute(
                     "INSERT INTO live_control("
                     "singleton,account,strategy_json,capital_json,state,entries_enabled,"
-                    "enabled_at,updated_at,day_start_date,day_start_equity,reason"
-                    ") VALUES(1,?,?,?,?,?,?,?,?,?,?)",
+                    "enabled_at,updated_at,day_start_date,day_start_equity,reason,"
+                    "application_version,execution_source_sha256"
+                    ") VALUES(1,?,?,?,?,?,?,?,?,?,?,?,?)",
                     (
                         account,
                         self._strategy_json(),
@@ -791,6 +792,8 @@ class LivePortfolioController:
                         now.date().isoformat(),
                         str(free_usdc),
                         None,
+                        self.application_version,
+                        self.execution_source_sha256,
                     ),
                 )
                 connection.executemany(
@@ -832,8 +835,9 @@ class LivePortfolioController:
                 )
             connection.execute(
                 "UPDATE live_control SET state='LIVE_ENABLED',entries_enabled=1,"
-                "updated_at=?,reason=NULL WHERE singleton=1",
-                (now.isoformat(),),
+                "updated_at=?,reason=NULL,application_version=?,execution_source_sha256=? "
+                "WHERE singleton=1",
+                (now.isoformat(), self.application_version, self.execution_source_sha256),
             )
 
     def disable_entries(self) -> None:
@@ -906,6 +910,7 @@ class LivePortfolioController:
                 if (
                     control["state"] != "LIVE_ENABLED"
                     or not bool(control["entries_enabled"])
+                    or control["execution_source_sha256"] != self.execution_source_sha256
                     or emergency
                     or intent.quote_budget != plan.target_notional_usdc * intent.slot_count
                 ):
@@ -1251,6 +1256,24 @@ class LivePortfolioController:
             if control["strategy_json"] != self._strategy_json():
                 self.fail_closed("FROZEN_STRATEGY_MISMATCH")
                 return self.report()
+            if control["execution_source_sha256"] != self.execution_source_sha256:
+                positions = self._positions()
+                unresolved = self.journal.unresolved_ids()
+                with self.journal._connect() as connection:
+                    state = "EXIT_ONLY" if positions or unresolved else "LIVE_DISABLED"
+                    reason = (
+                        "PATCH_SOURCE_CHANGED_EXIT_ONLY"
+                        if state == "EXIT_ONLY"
+                        else "PATCH_SOURCE_CHANGED_REENABLE_REQUIRED"
+                    )
+                    connection.execute(
+                        "UPDATE live_control SET state=?,entries_enabled=0,reason=?,"
+                        "updated_at=? WHERE singleton=1",
+                        (state, reason, now.isoformat()),
+                    )
+                control = self._control()
+                if control is None or control["state"] == "LIVE_DISABLED":
+                    return self.report()
             pending = self._pending()
             if pending is not None:
                 self._drive_pending(pending, now=now)
@@ -1377,6 +1400,23 @@ class LivePortfolioController:
             "slot_count": plan.slot_count,
             "target_notional_usdc": str(plan.target_notional_usdc),
             "allocator_version": plan.version,
+            "execution_identity": {
+                "frozen_application_version": (
+                    control["application_version"] if control is not None else None
+                ),
+                "frozen_source_sha256": (
+                    control["execution_source_sha256"] if control is not None else None
+                ),
+                "current_application_version": self.application_version,
+                "current_source_sha256": self.execution_source_sha256,
+                "source_matches_current": (
+                    control is None
+                    or control["execution_source_sha256"] == self.execution_source_sha256
+                ),
+                "strategy_matches_current": (
+                    control is None or control["strategy_json"] == self._strategy_json()
+                ),
+            },
             "used_slots": used,
             "free_slots": max(0, plan.slot_count - used),
             "positions": [
