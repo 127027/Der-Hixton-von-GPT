@@ -8,6 +8,7 @@ interface LiveStatus {
   ready: boolean;
   order_dispatch_available: boolean;
   trial_dispatch_available: boolean;
+  trial_retryable_before_submit?: boolean;
   trial_blockers?: string[];
   account_check: {
     blockers: string[];
@@ -100,8 +101,8 @@ export function initializeLivePreparation(sharedSettingsBlocker: () => string | 
     message(
       "live-trial-status",
       status.trial?.state && status.trial.state !== "NOT_STARTED"
-        ? status.trial.state === "CANCELED"
-          ? "Vor einer Order abgebrochen · kann erneut gestartet werden."
+        ? status.trial_retryable_before_submit
+          ? `Vor einer Binance-Order beendet (${status.trial.state}) · sicher erneut startbar.`
           : `Test: ${status.trial.state}${status.trial.symbol ? " · " + status.trial.symbol : ""}`
         : status.trial_dispatch_available
           ? "Bereit: wartet nach Freigabe auf ein neues gültiges Signal."
