@@ -944,9 +944,16 @@ def _trial_blocker_a06() -> list[dict[str, Any]]:
     tests_source = (ROOT / "tests" / "test_live_reconciliation_runtime.py").read_text(
         encoding="utf-8"
     )
-    required_test = "test_transient_settings_read_failure_does_not_cancel_armed_trial"
-    if required_test not in tests_source:
-        raise CheckFailure(f"missing trial blocker regression: {required_test}")
+    required_tests = (
+        "test_transient_settings_read_failure_does_not_cancel_armed_trial",
+        "test_timeout_restart_recovers_by_id_without_another_buy",
+        "test_sell_timeout_restart_recovers_by_id_without_duplicate_sell",
+        "test_real_adapter_roundtrip_completes_with_base_fee_and_sub_step_residual",
+        "test_unexpected_account_change_prevents_completion_and_recovers_after_clarification",
+    )
+    missing_tests = [item for item in required_tests if item not in tests_source]
+    if missing_tests:
+        raise CheckFailure(f"missing trial blocker regressions: {missing_tests}")
     tests = require_command(
         [
             sys.executable,
@@ -957,7 +964,9 @@ def _trial_blocker_a06() -> list[dict[str, Any]]:
             "tests/test_live_trial.py",
             "tests/test_live_reconciliation_runtime.py",
             "tests/test_live_orders.py",
+            "tests/test_live_exchange.py",
             "tests/test_live_production.py",
+            "tests/test_live_submission_gates.py",
         ],
         timeout=1800,
     )
@@ -973,9 +982,14 @@ def _trial_blocker_a06() -> list[dict[str, Any]]:
                 "stale_or_canceled_trial",
                 "transient_settings_read_failure",
                 "stale_source_or_strategy",
-                "duplicate_retry_timeout_restart",
+                "buy_timeout_restart_without_duplicate_submit",
+                "sell_timeout_restart_without_duplicate_submit",
+                "partial_or_missing_fill_details",
+                "base_fee_and_sub_step_dust",
+                "foreign_balance_protection",
                 "reconciliation_mismatch",
             ],
+            "full_buy_sell_reconciliation_roundtrip": True,
             "trial_gate_integration": True,
         },
         coverage("trial_failure_matrix", "trial_gate_integration"),
@@ -983,8 +997,13 @@ def _trial_blocker_a06() -> list[dict[str, Any]]:
 
 
 def _trial_blocker_a07() -> list[dict[str, Any]]:
-    source = (ROOT / "src" / "hixton" / "live" / "binance.py").read_text(encoding="utf-8")
-    required = (
+    preflight = (ROOT / "src" / "hixton" / "live" / "binance.py").read_text(
+        encoding="utf-8"
+    )
+    exchange = (ROOT / "src" / "hixton" / "live" / "exchange.py").read_text(
+        encoding="utf-8"
+    )
+    preflight_required = (
         "enableReading",
         "enableSpotAndMarginTrading",
         "ipRestrict",
@@ -994,12 +1013,28 @@ def _trial_blocker_a07() -> list[dict[str, Any]]:
         "Offene Binance-Orders vorhanden",
         "Gesperrte Guthaben vorhanden",
     )
-    missing = [item for item in required if item not in source]
+    exchange_required = (
+        '"type": "MARKET"',
+        'params["quoteOrderQty"] = f"{intent.quote_budget:.2f}"',
+        'params["quantity"] = format(intent.base_quantity, "f")',
+        'self.transport.request("POST", "/api/v3/order", params)',
+        '"origClientOrderId": intent.client_order_id',
+        '"/api/v3/myTrades"',
+    )
+    missing = [item for item in preflight_required if item not in preflight]
+    missing += [item for item in exchange_required if item not in exchange]
     if missing:
-        raise CheckFailure(f"authenticated Binance preflight contract incomplete: {missing}")
+        raise CheckFailure(f"authenticated Binance order/preflight contract incomplete: {missing}")
     tests = require_command(
-        [sys.executable, "-m", "pytest", "-q", "tests/test_binance_adapter.py"],
-        timeout=900,
+        [
+            sys.executable,
+            "-m",
+            "pytest",
+            "-q",
+            "tests/test_binance_adapter.py",
+            "tests/test_live_exchange.py",
+        ],
+        timeout=1200,
     )
     return [
         tests,
@@ -1012,6 +1047,13 @@ def _trial_blocker_a07() -> list[dict[str, Any]]:
                 "withdrawal_permission_required_off": True,
                 "no_open_orders_required": True,
                 "no_locked_balances_required": True,
+            },
+            "binance_order_contract": {
+                "trial_buy": "POST /api/v3/order MARKET quoteOrderQty=50.00",
+                "owned_exit": "POST /api/v3/order MARKET explicit base quantity",
+                "order_recovery": "GET /api/v3/order by origClientOrderId",
+                "fill_recovery": "GET /api/v3/myTrades",
+                "automatic_post_retry_on_ambiguous_result": False,
             },
             "binance_permission_errors": True,
             "private_credentials_used_in_cloud": False,
