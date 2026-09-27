@@ -1,11 +1,18 @@
 {
   "schema_version": 1,
-  "round_id": "COORD-2026-09-27-LIVE-001",
+  "round_id": "COORD-2026-09-27-LIVEBLOCK-002",
   "status": "DISPATCHED",
-  "owner_objective": "Make Hixton operationally ready for the local controlled 1x50-USDC real-money roundtrip and the later 250-USDC max-budget Live mode, while preserving exact strategy/capital parity across Backtest, Paper and Live and enforcing complete 24/7 observability.",
+  "owner_objective": "Find and repair every reason why the locally configured Binance API key/secret cannot progress Hixton through the controlled 1x50-USDC trial and then normal 250-USDC Live. Cloud remains key-free and order-free; it must prove all code, state, UI and runtime gates up to the local authenticated boundary.",
   "target_branch": "gpt/usdc-audit",
   "commit_policy": "PIN_EXACT_COMMIT_AT_RUN_START",
   "repair_policy": "ANY_PATCH_INVALIDATES_AFFECTED_EVIDENCE_AND_REQUIRES_A_NEW_PINNED_RUN",
+  "acceptance": {
+    "controlled_trial": "A fresh local authenticated account preflight can arm exactly one 50-USDC trial without immediately submitting an old signal; the next fresh valid signal can progress through entry, fill, bot-owned ledger, strategy exit, sell fill and reconciliation.",
+    "production_live": "Only after a completed/reconciled controlled trial can normal saved max_capital_usdc Live become eligible; default 250 USDC maps to CAPITAL-V1-2X50PCT, two ranked-repeat tranches of 125 USDC.",
+    "ownership": "Pre-existing Binance balances are baseline-only and may never be sold unless tied to a Hixton-owned position/order ledger.",
+    "runtime_identity": "UI, backend, running process, strategy, source and allocator identity are explicitly checked; stale runtime blocks new entries and must surface a precise remediation.",
+    "cloud_boundary": "No GitHub/cloud job may read private Binance credentials or place real/testnet orders."
+  },
   "communication_rules": {
     "all_reports_must_include": [
       "round_id",
@@ -23,61 +30,170 @@
     "a11_must_reject_stale_or_mixed_evidence": true,
     "cloud_real_money_orders_allowed": false
   },
+  "diagnostic_chain": [
+    "UI control/state",
+    "credential storage/status",
+    "backend authenticated-preflight boundary",
+    "account baseline and bot-owned ledger",
+    "trial state machine",
+    "runtime/source/strategy/allocator identity",
+    "fresh signal requirement",
+    "risk/capital gates",
+    "order intent/idempotency",
+    "exchange filters",
+    "fill/reconciliation",
+    "trial completion gate",
+    "production Live eligibility"
+  ],
   "assignments": {
     "A01": {
-      "objective": "Audit README/DMS/runbooks against current Live, 1x50 trial, 250-USDC max-budget and 24/7 monitoring behavior; identify stale or contradictory product claims.",
-      "handoff": ["A10"],
-      "required_focus": ["requirements", "docs-code-parity", "release-limitations", "version-parity-monitoring"]
+      "objective": "Trace every documented and coded prerequisite for controlled 1x50 trial and later 250-USDC Live. Identify circular, obsolete or contradictory gates and stale documentation.",
+      "handoff": [
+        "A10"
+      ],
+      "required_focus": [
+        "trial-prerequisites",
+        "live-prerequisites",
+        "obsolete-gates",
+        "docs-code-parity"
+      ]
     },
     "A02": {
-      "objective": "Revalidate exact-three-year portfolio evidence and isolated 10x250 research while proving that research never becomes the Live sizing source.",
-      "handoff": ["A08", "A10"],
-      "required_focus": ["exact-3y", "portfolio-backtest", "10x250-research-separation", "execution-realism"]
+      "objective": "Verify strategy/backtest signal semantics permit the trial to wait for the next fresh valid signal and never replay an old signal. Identify signal-frequency, candle-close or timestamp conditions that can look like a broken trial.",
+      "handoff": [
+        "A03",
+        "A08",
+        "A10"
+      ],
+      "required_focus": [
+        "fresh-signal-only",
+        "closed-candle-semantics",
+        "signal-frequency",
+        "strategy-version"
+      ]
     },
     "A03": {
-      "objective": "Prove Paper/Backtest/Live signal and allocator parity, restart persistence, ledger ownership and no adoption of pre-existing Binance balances.",
-      "handoff": ["A06", "A10"],
-      "required_focus": ["paper-live-parity", "ledger-ownership", "restart", "slot-reuse", "state-persistence"]
+      "objective": "Audit Paper/Live parity, persistent state, account baseline, bot-owned ledger and every trial-state transition. Find stale armed/failed/completed states or ownership conflicts that can block a new 1x50 trial.",
+      "handoff": [
+        "A06",
+        "A10"
+      ],
+      "required_focus": [
+        "trial-state-machine",
+        "ledger-ownership",
+        "account-baseline",
+        "restart-persistence"
+      ]
     },
     "A04": {
-      "objective": "Verify the shipped UI exposes one editable max_capital_usdc field, safe Binance credential handling, 1x50 trial, Live controls and the Live/24x7 report without stale assets.",
-      "handoff": ["A06", "A10"],
-      "required_focus": ["ui-backend-contract", "shipped-bundle", "credential-surface", "live-report-surface"]
+      "objective": "Reproduce the operator flow in the shipped UI: credential status, account check, trial arm/start, error display and later Live enable. Find false disabled states, stale frontend bundle or missing confirmations.",
+      "handoff": [
+        "A06",
+        "A10"
+      ],
+      "required_focus": [
+        "ui-gates",
+        "credential-status",
+        "trial-button",
+        "live-button",
+        "error-surface",
+        "bundle-freshness"
+      ]
     },
     "A05": {
-      "objective": "Audit 24/7 runtime liveness, stale-loop detection, data freshness, reconnect/recovery, process-version drift and safe restart behavior.",
-      "handoff": ["A03", "A06", "A07", "A10"],
-      "required_focus": ["24x7-liveness", "data-freshness", "recovery", "process-version-parity", "incident-reporting"]
+      "objective": "Detect stale running processes, source/version drift, restart requirements, stale market data and scheduler inactivity that could leave a configured system unable to consume the next trial signal.",
+      "handoff": [
+        "A03",
+        "A06",
+        "A10"
+      ],
+      "required_focus": [
+        "process-version",
+        "runtime-freshness",
+        "scheduler",
+        "restart",
+        "stale-data"
+      ]
     },
     "A06": {
-      "objective": "Run the full integration failure matrix including duplicate submit, retry, timeout, restart, budget changes, EXIT_ONLY behavior and stale-version fail-closed gates.",
-      "handoff": ["A10"],
-      "required_focus": ["full-regression", "runaway-order-guard", "retry-timeout", "exit-only", "version-drift"]
+      "objective": "Reproduce the full failure path from configured credentials to controlled-trial eligibility with fake/auth-boundary tests. Extend the failure matrix for duplicate submit, timeout, retry, restart, budget change, stale version, EXIT_ONLY and circular gate failures. Repair integration defects.",
+      "handoff": [
+        "A10"
+      ],
+      "required_focus": [
+        "root-cause-reproduction",
+        "integration-repair",
+        "failure-matrix",
+        "idempotency",
+        "circular-gates"
+      ]
     },
     "A07": {
-      "objective": "Verify current Binance Spot USDC universe, filters, notional/quantity constraints and reconciliation assumptions for all ten symbols without private credentials.",
-      "handoff": ["A06", "A10"],
-      "required_focus": ["binance-usdc", "exchange-filters", "fills-reconciliation", "market-order-constraints"]
+      "objective": "Audit authenticated-preflight implementation and current Binance Spot USDC requirements: API permission/status handling, IP restriction errors, balance, filters, precision and reconciliation assumptions. Never use private credentials in cloud.",
+      "handoff": [
+        "A06",
+        "A10"
+      ],
+      "required_focus": [
+        "authenticated-boundary",
+        "binance-errors",
+        "spot-permission",
+        "usdc-balance",
+        "filters",
+        "reconciliation"
+      ]
     },
     "A08": {
-      "objective": "Verify canonical V6 strategy/risk/capital semantics, 250 -> 2x125 ranked_repeat, 5% UTC daily pause and strategy-version parity across all execution modes.",
-      "handoff": ["A02", "A10"],
-      "required_focus": ["strategy-parity", "risk", "capital-plan", "version-parity"]
+      "objective": "Audit every strategy/risk/capital/safety gate that can block the 50-USDC trial or subsequent Live: emergency stop, entry pause, daily loss pause, open bot positions, cash, version/source/allocator mismatch and 10x250 research separation.",
+      "handoff": [
+        "A02",
+        "A06",
+        "A10"
+      ],
+      "required_focus": [
+        "trial-risk-gates",
+        "capital-gates",
+        "version-parity",
+        "entry-pause",
+        "daily-loss-pause",
+        "exit-only"
+      ]
     },
     "A09": {
-      "objective": "Independently QA only a single exact pinned commit after A10 reports complete fresh evidence; reject mixed-commit or stale evidence.",
-      "handoff": ["A11"],
-      "required_focus": ["independent-qa", "commit-pin", "ui-build", "full-python-suite"]
+      "objective": "Independently QA the repaired exact commit only after A10 has complete fresh evidence. Reject any mixed-commit, stale, mocked-as-real or incomplete Live-readiness claim.",
+      "handoff": [
+        "A11"
+      ],
+      "required_focus": [
+        "independent-qa",
+        "commit-pin",
+        "full-tests",
+        "ui-build",
+        "live-readiness"
+      ]
     },
     "A10": {
-      "objective": "Act as dispatcher: collect A01-A08 results, name the responsible repair owner for every defect, invalidate downstream evidence after patches and never accept mixed commits or rounds.",
-      "handoff": ["A09"],
-      "required_focus": ["task-routing", "evidence-contract", "repair-routing", "freshness", "commit-pin"]
+      "objective": "Act as dispatcher and problem router. Build the exact blocker chain UI -> credentials -> authenticated preflight -> baseline/ledger -> trial state -> runtime/version -> fresh signal -> risk/capital -> order -> fill/reconciliation -> trial completion -> Live eligibility. Assign every defect to a named specialist and require a new pinned rerun after repairs.",
+      "handoff": [
+        "A09"
+      ],
+      "required_focus": [
+        "blocker-chain",
+        "repair-routing",
+        "evidence-freshness",
+        "commit-pin"
+      ]
     },
     "A11": {
-      "objective": "Audit A01-A10 and A10 itself, reject stalled/mixed/stale evidence and issue governance pass only for one exact commit with fresh QA_PASS.",
+      "objective": "Audit the complete repair process and A10 itself. Reject ownerless blockers, stale/mixed evidence, circular approvals and any claim that a real 50-USDC Binance roundtrip happened in cloud.",
       "handoff": [],
-      "required_focus": ["governance", "agent-audit", "commit-pin", "stale-evidence-rejection"]
+      "required_focus": [
+        "governance",
+        "agent-audit",
+        "repair-loop",
+        "commit-pin",
+        "no-live-overclaim"
+      ]
     }
   }
 }
