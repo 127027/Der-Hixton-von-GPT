@@ -2,16 +2,16 @@
   "schema_version": 1,
   "round_id": "COORD-2026-09-27-CAPITAL-REALLOC-003",
   "status": "DISPATCHED",
-  "owner_objective": "Challenge the current 250-USDC production capital split. Re-run an exact-three-year, same-profile, same-history, same-cost comparison of 2x125 versus higher-slot layouts, especially 5x50, and determine whether more slots materially improve trade activity/opportunity capture without unacceptable loss of profitability or robustness. Research only; no automatic Paper/Live mutation.",
+  "owner_objective": "Challenge the current 250-USDC production capital split. Compare 2x125 ranked_repeat not only against smaller ranked_repeat tranches but against a true one_per_symbol 5x50 model representing up to five different simultaneous coin positions. Use exact same three-year history, profiles, costs and risk rules; research only.",
   "target_branch": "gpt/usdc-audit",
   "commit_policy": "PIN_EXACT_COMMIT_AT_RUN_START",
   "repair_policy": "ANY_PATCH_INVALIDATES_AFFECTED_EVIDENCE_AND_REQUIRES_A_NEW_PINNED_RUN",
   "acceptance": {
     "capital_baseline": "Treat current 2x125 ranked_repeat as the production baseline, not as a presumed optimum.",
-    "required_layouts": "At minimum compare 2x125, 3x83.33, 4x62.50 and 5x50 using exactly 250 USDC total maximum capital.",
+    "required_layouts": "At minimum compare 2x125 ranked_repeat, 3x83.33 ranked_repeat, 4x62.50 ranked_repeat, 5x50 ranked_repeat and 5x50 one_per_symbol using exactly 250 USDC total maximum capital.",
     "controlled_variables": "Use identical current canonical V6 coin profiles, exact-three-year history, Binance execution filters, baseline/stress costs and risk semantics for every layout.",
     "activity_metrics": "Report position cycles, slot trades, NO_FREE_SLOT blocks, average/median/longest entry gaps, zero-position hours, full-slot hours and holding times in addition to PnL/return/drawdown.",
-    "governance": "No layout is promoted automatically. A10 must synthesize the direct 2x125-vs-5x50 evidence; A09 and A11 independently verify before any product allocator change."
+    "governance": "No layout is promoted automatically. A10 must synthesize both 2x125-vs-5x50-ranked_repeat and 2x125-vs-true-independent-5x50 evidence; A09 and A11 independently verify before any product allocator change."
   },
   "communication_rules": {
     "all_reports_must_include": [
@@ -35,10 +35,11 @@
     "same canonical V6 profiles",
     "same exact-three-year history",
     "same Binance execution rules and costs",
-    "2x125 baseline",
-    "3x83.33 comparison",
-    "4x62.50 comparison",
-    "5x50 comparison",
+    "2x125 ranked_repeat production baseline",
+    "3x83.33 ranked_repeat",
+    "4x62.50 ranked_repeat",
+    "5x50 ranked_repeat",
+    "5x50 one_per_symbol true independent-position model",
     "trade frequency and entry-gap analysis",
     "slot occupancy and NO_FREE_SLOT analysis",
     "baseline profitability and drawdown",
