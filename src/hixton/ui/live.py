@@ -9,7 +9,7 @@ from decimal import Decimal, InvalidOperation
 from typing import Any
 
 from fastapi import FastAPI, HTTPException, Request
-from fastapi.responses import JSONResponse
+from fastapi.responses import FileResponse, JSONResponse
 from starlette.concurrency import run_in_threadpool
 
 from hixton.backtest.models import ExecutionRules
@@ -65,6 +65,9 @@ def install_live_routes(
         rules_provider=execution_rules,
     )
     supervisor.live_runtime = service.live_runtime
+    supervisor.execution_reporter = lambda: service.write_diagnostic_report(
+        config.database_path
+    )
 
     def require_local(request: Request) -> None:
         # Unlike legacy read/Paper endpoints, private actions require an exact origin.
@@ -149,6 +152,22 @@ def install_live_routes(
     @app.get("/api/live/status")
     def live_status(request: Request) -> dict[str, object]:
         return get_status(service.access.authorized(request.cookies.get(_COOKIE)))
+
+    @app.get("/api/live/report")
+    def live_report(request: Request) -> dict[str, object]:
+        require_session(request)
+        return service.diagnostic_report(config.database_path)
+
+    @app.get("/api/live/report/download")
+    def live_report_download(request: Request) -> FileResponse:
+        require_session(request)
+        path = service.write_diagnostic_report(config.database_path)
+        return FileResponse(
+            path,
+            media_type="application/json",
+            filename="Hixton-Live-Bericht.json",
+            headers={"Cache-Control": "no-store"},
+        )
 
     @app.post("/api/live/unlock")
     async def unlock(request: Request) -> JSONResponse:
@@ -244,14 +263,18 @@ def install_live_routes(
                 emergency_stop=settings.emergency_stop,
             )
         except BinanceCheckError:
+            await run_in_threadpool(service.write_diagnostic_report, config.database_path)
             raise
         except (RuntimeError, ValueError, sqlite3.DatabaseError):
             await run_in_threadpool(service.audit, "PRODUCTION_LIVE_ENABLE_FAILED")
+            await run_in_threadpool(service.write_diagnostic_report, config.database_path)
             raise HTTPException(
                 409,
                 "Live-Freigabe fehlgeschlagen. Konto-/Ledger-Abgleich und technische "
-                "Freigaben prüfen; es wurde dadurch keine neue Order ausgelöst.",
+                "Freigaben prüfen; es wurde dadurch keine neue Order ausgelöst. "
+                "Der Live-Bericht wurde aktualisiert.",
             ) from None
+        await run_in_threadpool(service.write_diagnostic_report, config.database_path)
         return get_status(True)
 
     @app.post("/api/live/disable")
@@ -285,6 +308,7 @@ def install_live_routes(
                 emergency_stop=settings.emergency_stop,
             )
         except BinanceCheckError:
+            await run_in_threadpool(service.write_diagnostic_report, config.database_path)
             raise
         except (RuntimeError, ValueError, sqlite3.DatabaseError) as error:
             await run_in_threadpool(
@@ -292,12 +316,14 @@ def install_live_routes(
                 "CONTROLLED_TRIAL_START_FAILED",
                 {"error_type": type(error).__name__},
             )
+            await run_in_threadpool(service.write_diagnostic_report, config.database_path)
             raise HTTPException(
                 409,
                 "Der kontrollierte 50-USDC-Test konnte lokal nicht vorbereitet werden. "
                 "Es wurde keine neue Order ausgelöst; der Start kann vor einer Order erneut "
-                "versucht werden.",
+                "versucht werden. Der Live-Bericht wurde aktualisiert.",
             ) from None
+        await run_in_threadpool(service.write_diagnostic_report, config.database_path)
         return JSONResponse(get_status(True))
 
     @app.post("/api/live/trial/stop")
