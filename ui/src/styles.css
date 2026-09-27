@@ -170,6 +170,7 @@ td.mono { font-family: var(--mono); }
 #live-plan { border-left: 2px solid var(--green); padding-left: 12px; }
 #live-blockers { margin: 0; padding-left: 20px; color: var(--muted); font-size: .8rem; }
 #live-blockers li { margin: 8px 0; overflow-wrap: anywhere; }
+.live-report-output { max-height: 360px; overflow: auto; white-space: pre-wrap; overflow-wrap: anywhere; font-size: 12px; line-height: 1.45; }
 .danger-toggle { color: var(--red); border: 1px solid rgba(251,113,133,.24); background: rgba(251,113,133,.05); border-radius: 8px; padding: 12px; }
 .doc-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
 .doc-grid a { text-decoration: none; color: var(--text); border: 1px solid var(--border); background: var(--panel); border-radius: 12px; padding: 18px; }
