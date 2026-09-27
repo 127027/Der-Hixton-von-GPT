@@ -1727,9 +1727,12 @@ def capital100_audit_evidence(
 def _capital_budget_audit_a01() -> list[dict[str, Any]]:
     source = (ROOT / "scripts" / "capital_budget_optimizer.py").read_text(encoding="utf-8")
     required = (
-        'CAPITAL = D("1000")',
+        'CAPITAL = D("250")',
         'MIN_TRANCHE = D("50")',
-        "FULL_UTILIZATION_SLOT_RANGE",
+        'Layout(RANKED_REPEAT, 2, D("125"))',
+        'Layout(RANKED_REPEAT, 3, D("83.33"))',
+        'Layout(RANKED_REPEAT, 4, D("62.50"))',
+        'Layout(RANKED_REPEAT, 5, D("50"))',
         "Unused capital remains cash",
         '"activation_performed": False',
     )
@@ -1739,7 +1742,7 @@ def _capital_budget_audit_a01() -> list[dict[str, Any]]:
     return [
         {
             "capital_budget_methodology": {
-                "fixed_account_equity_usdc": "1000",
+                "fixed_account_equity_usdc": "250",
                 "searches_slots_tranche_policy_and_reserve": True,
                 "unused_budget_remains_cash": True,
                 "research_only": True,
@@ -1762,8 +1765,20 @@ def _capital_budget_audit_a02() -> list[dict[str, Any]]:
     payload = json.loads(output.read_text(encoding="utf-8"))
     if payload.get("research_only") is not True or payload.get("activation_performed") is not False:
         raise CheckFailure("capital-budget optimizer crossed research boundary")
-    if str(payload.get("maximum_account_capital_usdc")) != "1000":
-        raise CheckFailure("capital-budget search did not use fixed 1000-USDC account")
+    if str(payload.get("maximum_account_capital_usdc")) != "250":
+        raise CheckFailure("capital-budget search did not use fixed 250-USDC account")
+    required_layouts = {
+        "ranked_repeat:2x125",
+        "ranked_repeat:3x83.33",
+        "ranked_repeat:4x62.50",
+        "ranked_repeat:5x50",
+    }
+    references = payload.get("references", {})
+    if not isinstance(references, dict) or not required_layouts <= set(references):
+        raise CheckFailure(
+            f"capital-budget search missing required 250-USDC layouts: "
+            f"{sorted(required_layouts - set(references if isinstance(references, dict) else {}))}"
+        )
     return [
         command,
         {"capital_budget_result": payload},
@@ -1774,7 +1789,7 @@ def _capital_budget_audit_a02() -> list[dict[str, Any]]:
 def _capital_budget_audit_a03() -> list[dict[str, Any]]:
     source = (ROOT / "scripts" / "capital_budget_optimizer.py").read_text(encoding="utf-8")
     required = (
-        "_candidate_map(research=True)",
+        "_candidate_map(research=False)",
         "strategy_parameters_by_symbol=",
         "trade_policies_by_symbol=",
         "_profile_hashes(profiles)",
@@ -1785,7 +1800,7 @@ def _capital_budget_audit_a03() -> list[dict[str, Any]]:
     return [
         {
             "capital_budget_profile_contract": (
-                "ONE_RESEARCH_PROFILE_MAP_REUSED_ACROSS_ALL_LAYOUTS"
+                "CURRENT_CANONICAL_V6_PROFILE_MAP_REUSED_ACROSS_ALL_LAYOUTS"
             )
         },
         coverage("capital_budget_profile_consistency"),
@@ -1824,12 +1839,10 @@ def _capital_budget_audit_a05() -> list[dict[str, Any]]:
     interesting = [payload["best_baseline"], payload["best_robust"]]
     refs = payload.get("references", {})
     for key in (
-        "ranked_repeat:3x80",
+        "ranked_repeat:2x125",
+        "ranked_repeat:3x83.33",
+        "ranked_repeat:4x62.50",
         "ranked_repeat:5x50",
-        "ranked_repeat:4x250",
-        "ranked_repeat:10x100",
-        "ranked_repeat:12x80",
-        "ranked_repeat:20x50",
     ):
         item = refs.get(key)
         if isinstance(item, dict):
@@ -1843,6 +1856,10 @@ def _capital_budget_audit_a05() -> list[dict[str, Any]]:
             "blocked_no_free_slot": row["blocked_no_free_slot"],
             "capital_utilization_pct": row["capital_utilization_pct"],
             "max_drawdown_pct": row["max_drawdown_pct"],
+            "wins": row.get("wins"),
+            "losses": row.get("losses"),
+            "average_holding_hours": row.get("average_holding_hours"),
+            "trade_timing": row.get("trade_timing"),
         }
         for row in interesting
     }
@@ -1924,6 +1941,51 @@ def _capital_budget_audit_a10(reports_dir: Path | None) -> list[dict[str, Any]]:
     layout = evidence_flag(reports.get("A08", {}), "capital_budget_layout_assessment")
     if not isinstance(result, dict) or not isinstance(stress, dict) or not isinstance(layout, dict):
         raise CheckFailure("capital-budget specialist evidence incomplete")
+    references = result.get("references", {})
+    two = references.get("ranked_repeat:2x125") if isinstance(references, dict) else None
+    five = references.get("ranked_repeat:5x50") if isinstance(references, dict) else None
+    stress_rows = {
+        str(row.get("layout")): row
+        for row in result.get("stress_results", [])
+        if isinstance(row, dict)
+    }
+    if not isinstance(two, dict) or not isinstance(five, dict):
+        raise CheckFailure("capital-budget synthesis requires both 2x125 and 5x50")
+    stress_two = stress_rows.get("ranked_repeat:2x125")
+    stress_five = stress_rows.get("ranked_repeat:5x50")
+    if not isinstance(stress_two, dict) or not isinstance(stress_five, dict):
+        raise CheckFailure("capital-budget synthesis requires stress evidence for 2x125 and 5x50")
+
+    comparison = {
+        "baseline": {
+            "2x125": two,
+            "5x50": five,
+            "ending_equity_delta_5x50_minus_2x125": str(
+                Decimal(str(five["ending_equity"])) - Decimal(str(two["ending_equity"]))
+            ),
+            "position_cycle_delta_5x50_minus_2x125": (
+                int(five["position_cycles"]) - int(two["position_cycles"])
+            ),
+            "no_free_slot_delta_5x50_minus_2x125": (
+                int(five["blocked_no_free_slot"]) - int(two["blocked_no_free_slot"])
+            ),
+        },
+        "stress": {
+            "2x125": stress_two,
+            "5x50": stress_five,
+            "ending_equity_delta_5x50_minus_2x125": str(
+                Decimal(str(stress_five["ending_equity"]))
+                - Decimal(str(stress_two["ending_equity"]))
+            ),
+            "position_cycle_delta_5x50_minus_2x125": (
+                int(stress_five["position_cycles"]) - int(stress_two["position_cycles"])
+            ),
+            "no_free_slot_delta_5x50_minus_2x125": (
+                int(stress_five["blocked_no_free_slot"])
+                - int(stress_two["blocked_no_free_slot"])
+            ),
+        },
+    }
     return [
         {
             "capital_budget_synthesis": {
@@ -1933,6 +1995,7 @@ def _capital_budget_audit_a10(reports_dir: Path | None) -> list[dict[str, Any]]:
                 "candidate_layout_count": result.get("candidate_layout_count"),
                 "stress_assessment": stress,
                 "layout_assessment": layout,
+                "direct_2x125_vs_5x50": comparison,
                 "research_only": True,
                 "automatic_product_change": False,
             }
@@ -1940,14 +2003,20 @@ def _capital_budget_audit_a10(reports_dir: Path | None) -> list[dict[str, Any]]:
         coverage("capital_budget_synthesis"),
     ]
 
-
 def _capital_budget_audit_a09(reports_dir: Path | None) -> list[dict[str, Any]]:
     if reports_dir is None:
         raise CheckFailure("capital-budget A09 requires reports")
     reports = load_reports(reports_dir)
     synthesis = evidence_flag(reports.get("A10", {}), "capital_budget_synthesis")
-    if not isinstance(synthesis, dict) or synthesis.get("research_only") is not True:
-        raise CheckFailure("capital-budget QA rejects non-research result")
+    comparison = synthesis.get("direct_2x125_vs_5x50") if isinstance(synthesis, dict) else None
+    if (
+        not isinstance(synthesis, dict)
+        or synthesis.get("research_only") is not True
+        or not isinstance(comparison, dict)
+        or not isinstance(comparison.get("baseline"), dict)
+        or not isinstance(comparison.get("stress"), dict)
+    ):
+        raise CheckFailure("capital-budget QA rejects incomplete/non-research comparison")
     return [
         {"capital_budget_qa": "PASS_RESEARCH_ONLY"},
         coverage("capital_budget_qa"),
