@@ -234,6 +234,8 @@ def build_execution_report(
     }
     parity_rows: list[dict[str, object]] = []
     cycles: list[dict[str, object]] = []
+    live_open_positions_count = 0
+    live_unresolved_count = 0
 
     if live_database.exists():
         with sqlite3.connect(live_database) as live:
@@ -551,6 +553,16 @@ def build_execution_report(
                             opened[symbol] = item
                         elif item["action"] == "EXIT_LONG":
                             entry = opened.pop(symbol, None)
+                            entry_order = entry.get("order") if entry is not None else None
+                            exit_order = item.get("order")
+                            entry_filled = bool(
+                                isinstance(entry_order, dict)
+                                and entry_order.get("binance_filled") is True
+                            )
+                            exit_filled = bool(
+                                isinstance(exit_order, dict)
+                                and exit_order.get("binance_filled") is True
+                            )
                             cycles.append(
                                 {
                                     "symbol": symbol,
@@ -558,27 +570,17 @@ def build_execution_report(
                                         entry["signal_id"] if entry is not None else None
                                     ),
                                     "exit_signal_id": item["signal_id"],
-                                    "binance_entry_filled": bool(
-                                        entry
-                                        and entry["order"]
-                                        and entry["order"]["binance_filled"]
-                                    ),
-                                    "binance_exit_filled": bool(
-                                        item["order"] and item["order"]["binance_filled"]
-                                    ),
-                                    "complete": bool(
-                                        entry
-                                        and entry["order"]
-                                        and entry["order"]["binance_filled"]
-                                        and item["order"]
-                                        and item["order"]["binance_filled"]
-                                    ),
+                                    "binance_entry_filled": entry_filled,
+                                    "binance_exit_filled": exit_filled,
+                                    "complete": entry is not None and entry_filled and exit_filled,
                                 }
                             )
 
                     source_matches = frozen_source == execution_source_sha256
                     strategy_matches = strategy.get("version") == strategy_version
                     allocator_matches = capital.get("allocator_version") == allocator_version
+                    live_open_positions_count = len(positions)
+                    live_unresolved_count = len(unresolved)
                     live_payload = {
                         "state": control["state"],
                         "reason": control["reason"],
@@ -667,14 +669,8 @@ def build_execution_report(
             isinstance(trial_payload, dict)
             and trial_payload.get("binance_roundtrip_complete") is True
         ),
-        "live_open_positions": len(
-            live_payload.get("positions", []) if isinstance(live_payload, dict) else []
-        ),
-        "live_unresolved_intents": len(
-            live_payload.get("unresolved_intents", [])
-            if isinstance(live_payload, dict)
-            else []
-        ),
+        "live_open_positions": live_open_positions_count,
+        "live_unresolved_intents": live_unresolved_count,
     }
     return report
 
