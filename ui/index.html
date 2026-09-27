@@ -221,6 +221,16 @@
                 <p id="live-trial-result" role="alert"></p>
               </details>
               <details><summary>Technische Freigabe prüfen</summary><ul id="live-blockers"></ul></details>
+              <details open>
+                <summary>Live-Abnahme- & 24/7-Bericht</summary>
+                <p>Der Bericht enthält Trial-/Live-Zustand, Binance-Fills, offene oder ungeklärte Orders, Entry-/Exit-Verzögerungen, Paper-vs-Live-Signalabgleich und die tatsächlich gebundene Strategie-/Patch-/Allocator-Version. API-Key und Secret werden nie aufgenommen.</p>
+                <div class="settings-fields">
+                  <button id="live-report-refresh" type="button" class="button secondary">Bericht aktualisieren</button>
+                  <a id="live-report-download" class="button secondary" href="/api/live/report/download">JSON-Bericht herunterladen</a>
+                </div>
+                <p id="live-report-summary" role="status">Bericht noch nicht geladen.</p>
+                <pre id="live-report-output" class="live-report-output">—</pre>
+              </details>
             </article>
           </div>
         </section>
