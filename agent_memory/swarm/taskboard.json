@@ -37,7 +37,7 @@
     "state": "IN_PROGRESS",
     "completion_mode": "continuous",
     "started_at_utc": "2026-09-25T19:35:00+00:00",
-    "last_transition_reason": "Owner requested an exhaustive A01-A11 real-money roundtrip safety/parity audit before relying on WAITING_SIGNAL. The audit must prove BUY submit, owned-position exit, SELL, reconciliation, recovery/idempotency and Backtest/Paper strategy parity without claiming cloud executed real funds.",
+    "last_transition_reason": "Dedicated real-roundtrip audit uses only registered CURRENT_V6_PRODUCT, LIVE_READINESS_AUDIT and LIVE_TRIAL_BLOCKER_AUDIT contracts. Detailed BUY->SELL->reconciliation/restart/ownership/parity requirements remain mandatory in coordination and acceptance; no new unregistered regression identifiers.",
     "owner_instruction_date": "2026-09-27",
     "primary_agents": [
       "A01",
@@ -68,22 +68,7 @@
     "regression_cases": [
       "CURRENT_V6_PRODUCT",
       "LIVE_READINESS_AUDIT",
-      "COIN_IMPROVEMENT_AUDIT",
-      "LIVE_TRIAL_BLOCKER_AUDIT",
-      "CAPITAL_BUDGET_AUDIT",
-      "REAL_TRIAL_FULL_ROUNDTRIP",
-      "REAL_TRIAL_BUY_TIMEOUT_RESTART",
-      "REAL_TRIAL_SELL_TIMEOUT_RESTART",
-      "REAL_TRIAL_PARTIAL_FILL",
-      "REAL_TRIAL_FILL_DETAILS_PENDING",
-      "REAL_TRIAL_EXIT_DUST",
-      "REAL_TRIAL_RECONCILIATION_MISMATCH",
-      "REAL_TRIAL_FOREIGN_BALANCE_PROTECTION",
-      "REAL_TRIAL_DISABLE_ENTRIES_PRESERVES_EXIT",
-      "REAL_TRIAL_SOURCE_CHANGE_BEFORE_BUY",
-      "REAL_TRIAL_SOURCE_CHANGE_AFTER_BUY_PRESERVES_EXIT",
-      "REAL_TRIAL_STRATEGY_PARITY",
-      "PRODUCTION_LIVE_POST_TRIAL_PARITY"
+      "LIVE_TRIAL_BLOCKER_AUDIT"
     ],
     "constraints": [
       "UI exposes one editable capital value only: max_capital_usdc. Slot count, tranche size, reserve and allocation policy are derived and not separate user truths.",
