@@ -43,7 +43,7 @@ class TrialRuntime:
         *,
         now: datetime,
         healthy: bool,
-        entries_allowed: bool,
+        entries_allowed: bool | None,
     ) -> dict[str, object]:
         with self.lock:
             if self.stopped.is_set():
@@ -53,6 +53,11 @@ class TrialRuntime:
                 report = self.trial.report()
                 if not report["has_unsettled"]:
                     return report  # No keys/account calls for an inactive test.
+                if entries_allowed is None:
+                    # Fail closed on a transient settings/storage read failure without
+                    # destroying a safely armed pre-order trial. No order can be selected
+                    # until settings are readable again.
+                    return {**report, "runtime_pause": "SETTINGS_UNAVAILABLE"}
                 if not entries_allowed:
                     self.trial.disable_entries()
                 # A separate 2-second lifecycle tick is crucial: selection and send
