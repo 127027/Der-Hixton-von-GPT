@@ -110,20 +110,61 @@ class SignalTrial:
             row = connection.execute("SELECT * FROM signal_trial WHERE singleton=1").fetchone()
         return dict(row) if row is not None else None
 
+    def retryable_before_submit(self) -> bool:
+        """Return true only when a terminal pre-entry trial provably never reached Binance."""
+        with self.lock, self.journal._connect() as connection:
+            row = connection.execute("SELECT * FROM signal_trial WHERE singleton=1").fetchone()
+            if row is None or row["state"] not in {"CANCELED", "FAILED"}:
+                return False
+            intents = connection.execute("SELECT * FROM trial_intents").fetchall()
+            for intent in intents:
+                if (
+                    intent["state"] != "CREATED"
+                    or intent["order_id"] is not None
+                    or intent["exchange_state"] is not None
+                    or Decimal(str(intent["executed_quantity"])) != 0
+                    or Decimal(str(intent["cumulative_quote"])) != 0
+                ):
+                    return False
+                fill = connection.execute(
+                    "SELECT 1 FROM trial_fills WHERE intent_id=? LIMIT 1",
+                    (intent["intent_id"],),
+                ).fetchone()
+                if fill is not None:
+                    return False
+            return True
+
     def prepare_retry(self) -> bool:
-        """Reset only a canceled pre-order trial; never erase any order history."""
+        """Reset only a terminal trial proven to have never reached Binance."""
         with self.lock, self.journal._connect() as connection:
             connection.execute("BEGIN IMMEDIATE")
             row = connection.execute("SELECT * FROM signal_trial WHERE singleton=1").fetchone()
-            if row is None:
+            if row is None or row["state"] not in {"CANCELED", "FAILED"}:
                 return False
-            if row["state"] != "CANCELED":
-                return False
-            if connection.execute("SELECT 1 FROM trial_intents LIMIT 1").fetchone() is not None:
-                raise RuntimeError(
-                    "Canceled trial has order history and cannot be reset automatically"
-                )
+            intents = connection.execute("SELECT * FROM trial_intents").fetchall()
+            for intent in intents:
+                if (
+                    intent["state"] != "CREATED"
+                    or intent["order_id"] is not None
+                    or intent["exchange_state"] is not None
+                    or Decimal(str(intent["executed_quantity"])) != 0
+                    or Decimal(str(intent["cumulative_quote"])) != 0
+                    or connection.execute(
+                        "SELECT 1 FROM trial_fills WHERE intent_id=? LIMIT 1",
+                        (intent["intent_id"],),
+                    ).fetchone()
+                    is not None
+                ):
+                    raise RuntimeError(
+                        "Terminal trial has submitted/uncertain order history and cannot "
+                        "be reset automatically"
+                    )
             old_id = str(row["trial_id"])
+            for intent in intents:
+                self.journal._audit(
+                    connection, str(intent["intent_id"]), "INTENT_ABANDONED_BEFORE_SUBMIT"
+                )
+            connection.execute("DELETE FROM trial_intents")
             connection.execute("DELETE FROM signal_trial WHERE singleton=1")
             self.journal._audit(connection, old_id, "TRIAL_RESET_BEFORE_ORDER")
             return True
