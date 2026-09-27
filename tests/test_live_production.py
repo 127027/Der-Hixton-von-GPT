@@ -141,7 +141,7 @@ def enable_now(
     )
 
 
-def controller(tmp_path: Path):
+def controller(tmp_path: Path, *, source_sha256: str = "test-source-v1"):
     database = tmp_path / "live.sqlite3"
     account = Account()
     exchange = ApplyingExchange(account)
@@ -164,6 +164,7 @@ def controller(tmp_path: Path):
         lambda: rules,
         V6,
         lambda: True,
+        execution_source_sha256=source_sha256,
     )
     holder["c"] = c
     return c, exchange, account, settings
@@ -308,6 +309,31 @@ def test_timeout_restart_reconciles_without_duplicate_submit(tmp_path: Path) -> 
         c.advance(points, now=NOW, healthy=True)
     assert len(exchange.submits) == 1
     assert c.report()["used_slots"] == 2
+
+
+def test_patch_change_blocks_new_entries_but_allows_owned_exit(tmp_path: Path) -> None:
+    c, exchange, account, _settings = controller(tmp_path, source_sha256="patch-v1")
+    enable_now(c, account, universe(NOW - timedelta(hours=1)))
+    entry = universe(NOW, enter=("SOLUSDC",))
+    for _ in range(4):
+        c.advance(entry, now=NOW, healthy=True)
+    assert c.report()["used_slots"] == 2
+    c.execution_source_sha256 = "patch-v2"
+    after_patch = c.advance(
+        universe(NOW + timedelta(hours=1), enter=("BTCUSDC",)),
+        now=NOW + timedelta(hours=1),
+        healthy=True,
+    )
+    assert after_patch["state"] == "EXIT_ONLY"
+    assert after_patch["reason"] == "PATCH_SOURCE_CHANGED_EXIT_ONLY"
+    assert after_patch["execution_identity"]["source_matches_current"] is False
+    assert [intent.side for intent in exchange.submits] == ["BUY"]
+    exit_time = NOW + timedelta(hours=2)
+    exit_points = universe(exit_time, exit_symbol="SOLUSDC")
+    for _ in range(5):
+        c.advance(exit_points, now=exit_time, healthy=True)
+    assert [intent.side for intent in exchange.submits] == ["BUY", "SELL"]
+    assert c.report()["state"] == "LIVE_DISABLED"
 
 
 def test_settings_change_or_emergency_stop_blocks_new_live_entry(tmp_path: Path) -> None:
