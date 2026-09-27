@@ -184,6 +184,14 @@ def test_real_browser_settings_and_trial_user_flow(tmp_path: Path) -> None:
             expect(page.locator("#live-request")).to_be_disabled()
             expect(page.locator("#live-blockers")).to_contain_text("1x50-Roundtrip")
 
+            class CompletedTrial:
+                def report(self) -> dict[str, object]:
+                    return {"state": "COMPLETED", "has_unsettled": False}
+
+            service.trial = CompletedTrial()  # type: ignore[assignment]
+            page.wait_for_timeout(5500)
+            expect(page.locator("#live-request")).to_be_enabled()
+
             supervisor.state.set_status(
                 health="DEGRADED",
                 message="Browser-E2E: Warmup/Marktdaten unvollständig",
