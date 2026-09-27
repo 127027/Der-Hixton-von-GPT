@@ -243,15 +243,16 @@ def build_execution_report(
                     "SELECT * FROM signal_trial WHERE singleton=1"
                 ).fetchone()
                 if trial is not None:
+                    trial_columns = set(trial.keys())
                     strategy = _json(str(trial["strategy_json"]))
                     trial_source = (
                         str(trial["execution_source_sha256"])
-                        if "execution_source_sha256" in trial
+                        if "execution_source_sha256" in trial_columns
                         else "legacy"
                     )
                     trial_allocator = (
                         str(trial["allocator_version"])
-                        if "allocator_version" in trial
+                        if "allocator_version" in trial_columns
                         else "legacy"
                     )
                     entry_signal = _json(trial["entry_signal_json"])
@@ -287,7 +288,7 @@ def build_execution_report(
                         "frozen_identity": {
                             "application_version": (
                                 trial["application_version"]
-                                if "application_version" in trial
+                                if "application_version" in trial_columns
                                 else "legacy"
                             ),
                             "execution_source_sha256": trial_source,
@@ -386,16 +387,17 @@ def build_execution_report(
                     "SELECT * FROM live_control WHERE singleton=1"
                 ).fetchone()
                 if control is not None:
+                    control_columns = set(control.keys())
                     strategy = _json(str(control["strategy_json"]))
                     capital = _json(str(control["capital_json"]))
                     frozen_source = (
                         str(control["execution_source_sha256"])
-                        if "execution_source_sha256" in control
+                        if "execution_source_sha256" in control_columns
                         else "legacy"
                     )
                     frozen_app = (
                         str(control["application_version"])
-                        if "application_version" in control
+                        if "application_version" in control_columns
                         else "legacy"
                     )
                     positions = []
