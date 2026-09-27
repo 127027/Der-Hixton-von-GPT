@@ -1,2 +1,8 @@
 # Keep the hashed owner Pine reference byte-stable on Windows and CI.
 strategy/pine/*.pine text eol=lf
+
+# Keep UI source and shipped browser bundle byte-stable across Windows and Linux.
+ui/index.html text eol=lf
+src/hixton/ui/static/index.html text eol=lf
+src/hixton/ui/static/assets/*.js text eol=lf
+src/hixton/ui/static/assets/*.css text eol=lf
