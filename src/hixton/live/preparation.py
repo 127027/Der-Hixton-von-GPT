@@ -372,13 +372,19 @@ class LivePreparation:
             if emergency_stop:
                 raise BinanceCheckError("Einstiegspause ist aktiv; 50-USDC-Test bleibt gesperrt")
             state = str(self.trial.report()["state"])
-            if state == "CANCELED":
+            if state in {"CANCELED", "FAILED"}:
                 try:
-                    self.trial.prepare_retry()
+                    reset = self.trial.prepare_retry()
                 except RuntimeError as error:
                     raise BinanceCheckError(
-                        "Abgebrochener Test enthält bereits Orderhistorie und benötigt Abgleich."
+                        "Beendeter Test enthält bereits gesendete oder ungeklärte "
+                        "Orderhistorie und benötigt zuerst einen sicheren Abgleich."
                     ) from error
+                if not reset:
+                    raise BinanceCheckError(
+                        f"Der kontrollierte 50-USDC-Test im Zustand {state} "
+                        "kann nicht sicher automatisch zurückgesetzt werden."
+                    )
                 state = str(self.trial.report()["state"])
             if state != "NOT_STARTED":
                 raise BinanceCheckError(
@@ -519,6 +525,11 @@ class LivePreparation:
                 production_plan is not None and emergency_stop is False
             )
             trial_state = str(trial.get("state", "NOT_STARTED"))
+            trial_retryable = bool(
+                self.trial is not None
+                and trial_state in {"CANCELED", "FAILED"}
+                and self.trial.retryable_before_submit()
+            )
             trial_blockers: list[str] = []
             if not credential_status["configured"]:
                 trial_blockers.append("Binance API-Schlüssel fehlt.")
@@ -527,7 +538,7 @@ class LivePreparation:
                     "Gemeinsame Einstiegspause ist aktiv. "
                     "In Einstellungen deaktivieren und übernehmen."
                 )
-            if trial_state not in {"NOT_STARTED", "CANCELED"}:
+            if trial_state != "NOT_STARTED" and not trial_retryable:
                 trial_blockers.append(f"50-USDC-Test ist bereits im Zustand {trial_state}.")
             if live.get("state") != "LIVE_DISABLED":
                 trial_blockers.append("Normaler Livebetrieb ist nicht vollständig deaktiviert.")
@@ -581,6 +592,7 @@ class LivePreparation:
                 "blockers": blockers,
                 "account_check": fresh if authenticated else None,
                 "trial_dispatch_available": trial_available,
+                "trial_retryable_before_submit": trial_retryable,
                 "trial_blockers": trial_blockers,
                 "trial_quote_asset": "USDC",
                 "trial_readiness": {
