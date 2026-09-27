@@ -67,3 +67,7 @@ See `registry.json`, `protocol.md`, `taskboard.json`, `agents/`, `scripts/swarm_
 ## Current strategy truth
 
 For active V6 engineering, `taskboard.json` and the current DMS contract are normative: one canonical ten-coin USDC strategy, one saved `max_capital_usdc` with `CAPITAL-V1-2X50PCT` (default 250 → 2×125 `ranked_repeat`), no permanent portfolio drawdown halt, a separate controlled 1×50-USDC local Live trial, and 10×250 only as per-coin diagnostic/optimization laboratory. Historical backtest READMEs may contain superseded USDT, `one_per_symbol` or 20-percent-halt evidence and must never be interpreted as active runtime requirements.
+
+## Mandatory Live acceptance thread for all A01-A11
+
+The current release mission includes a local Live-capable product, while the cloud swarm itself remains key-free and order-free. Every role must carry the following acceptance thread through future patches: automatic action-time Binance preflight for the 1×50 trial and normal Live enable; true Binance BUY/SELL terminal-fill and reconciliation evidence; signal-to-order timing including early/late entry and exit detection; Paper-vs-Live signal/version parity; persistent application/source/strategy/allocator identity; stale-patch prevention for new entries; EXIT_ONLY handling for already-owned positions; and a secret-free live-execution-report.json refreshed on state changes and at the 24/7 heartbeat. A later patch invalidates prior evidence and forces the affected downstream checks to rerun on the new exact head.

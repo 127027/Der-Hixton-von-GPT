@@ -30,11 +30,11 @@ Every active regression case has a machine-readable evidence matrix assigning re
 
 Operational Paper evidence uses real public Binance USDC market data. Deterministic fixtures are permitted for unit/regression tests only.
 
-## 6. Paper-only security boundary
+## 6. Key-free cloud / local Live security boundary
 
-The project phase is Paper-only. Cloud jobs receive no Binance private credentials and do not call authenticated order endpoints. Real and testnet orders are forbidden. The existing protected UI/vault area for a future owner-supplied Binance API key remains separate and is not needed by Paper or by the swarm.
+Cloud jobs receive no Binance private credentials and do not call authenticated order endpoints. Real and testnet orders are forbidden in A01-A11/CI. The shipped application may use an owner-supplied local Binance Spot key through the protected Windows vault for the explicit 1×50-USDC trial and, only after a fully reconciled BUY+SELL roundtrip, separately enabled max-budget Live.
 
-The future presence of a Binance key must never change the default cloud swarm into a trading actor. Productive real-order release remains a separate explicit release problem.
+The presence of a local Binance key must never change the default cloud swarm into a trading actor. The swarm validates code, deterministic adapters, reports and state-machine evidence; only the owner-side local runtime can produce actual real-money fill evidence.
 
 ## 7. Mandatory cross-checks
 
@@ -61,3 +61,7 @@ The default-branch dispatcher runs the key-free swarm on schedule and on manual 
 ## 12. Research versus repair
 
 A08 may identify strategy/risk hypotheses and A02 may evaluate them through existing research/backtest machinery. They must never relabel strategy optimization as bug repair. A successful research candidate is not automatically activated. Strategy/risk activation requires a separate explicit owner decision and applicable release evidence.
+
+## 13. Mandatory Trial/Live observability contract
+
+All A01-A11 runs must preserve and audit the same execution-observability contract. The local application records a secret-free 24/7 report containing current and frozen application/source/strategy/allocator identity, Trial and Live state, signal timestamps, Binance submit/terminal/fill evidence, unresolved intents, completed roundtrips, reconciliation state and Paper-vs-Live signal parity. The report is refreshed on execution-state changes and on a five-minute heartbeat. A source patch may not open new positions under an old fingerprint: a flat settled session disables and requires explicit re-enable, while an owned/unresolved session becomes EXIT_ONLY so exits/reconciliation can finish. Strategy mismatch remains fail-closed. Any patch touching these paths invalidates prior downstream evidence and requires exact-head reruns.
