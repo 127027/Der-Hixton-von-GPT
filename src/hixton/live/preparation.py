@@ -24,6 +24,7 @@ from hixton.domain.versions import StrategyDefinition
 from hixton.live.binance import BinanceCheckError, BinanceReadOnlyClient
 from hixton.live.credentials import CredentialService, LocalAccess, Vault
 from hixton.live.exchange import BinanceSpotExchange, BinanceSpotTransport
+from hixton.live.monitoring import build_execution_report, write_execution_report
 from hixton.live.orders import ExchangeOrder, OrderJournal, TrialIntent, TrialOrderExecutor
 from hixton.live.production import (
     LiveAccountSnapshot,
@@ -235,6 +236,23 @@ class LivePreparation:
         holder["controller"] = self.live
         self.live_runtime = LivePortfolioRuntime(self.live)
         return self.runtime
+
+    def diagnostic_report(self, paper_database: Path) -> dict[str, object]:
+        strategy_version = self.trial.strategy.version if self.trial is not None else "unknown"
+        return build_execution_report(
+            self.database,
+            paper_database,
+            application_version=self.application_version,
+            execution_source_sha256=self.execution_source_sha256,
+            strategy_version=strategy_version,
+            allocator_version=self.allocator_version,
+        )
+
+    def write_diagnostic_report(self, paper_database: Path) -> Path:
+        report = self.diagnostic_report(paper_database)
+        target = self.database.with_name("live-execution-report.json")
+        write_execution_report(target, report)
+        return target
 
     def require_settled_for_key_change(self) -> None:
         if self.trial is not None and self.trial.report()["has_unsettled"]:
