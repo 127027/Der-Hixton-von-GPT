@@ -27,6 +27,8 @@ env:
 jobs:
   lifecycle-guard:
     runs-on: ubuntu-latest
+    outputs:
+      target_sha: ${{ steps.pin.outputs.target_sha }}
     timeout-minutes: 10
     steps:
       - uses: actions/checkout@v4
@@ -64,15 +66,25 @@ jobs:
           git commit -m "state(swarm): auto-repair stale NEW mission lifecycle"
           git remote set-url origin "https://x-access-token:${GH_TOKEN}@github.com/${GITHUB_REPOSITORY}.git"
           git push origin "HEAD:${BASE_BRANCH}"
+      - name: Pin exact engineering commit for this complete agent round
+        id: pin
+        shell: bash
+        run: |
+          set -euo pipefail
+          target_sha="$(git rev-parse HEAD)"
+          echo "target_sha=${target_sha}" >> "$GITHUB_OUTPUT"
+          echo "Pinned A01-A11 coordination round to ${target_sha}"
 
   prepare-state:
     needs: lifecycle-guard
     runs-on: ubuntu-latest
+    outputs:
+      target_sha: ${{ needs.lifecycle-guard.outputs.target_sha }}
     timeout-minutes: 10
     steps:
       - uses: actions/checkout@v4
         with:
-          ref: ${{ env.BASE_BRANCH }}
+          ref: ${{ needs.lifecycle-guard.outputs.target_sha }}
           fetch-depth: 0
           persist-credentials: false
       - name: Restore durable Paper state for independent agent inspection
@@ -102,7 +114,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
-          ref: ${{ env.BASE_BRANCH }}
+          ref: ${{ needs.prepare-state.outputs.target_sha }}
           fetch-depth: 0
           persist-credentials: false
       - uses: actions/setup-python@v5
@@ -170,7 +182,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
-          ref: ${{ env.BASE_BRANCH }}
+          ref: ${{ needs.prepare-state.outputs.target_sha }}
           fetch-depth: 0
           persist-credentials: false
       - uses: actions/setup-python@v5
@@ -272,14 +284,14 @@ jobs:
           if-no-files-found: error
 
   supervisor-a10:
-    needs: [specialists, a02-aggregate]
+    needs: [prepare-state, specialists, a02-aggregate]
     if: always() && needs.specialists.result != 'cancelled' && needs.a02-aggregate.result != 'cancelled'
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
       - uses: actions/checkout@v4
         with:
-          ref: ${{ env.BASE_BRANCH }}
+          ref: ${{ needs.prepare-state.outputs.target_sha }}
           persist-credentials: false
       - uses: actions/setup-python@v5
         with:
@@ -349,14 +361,14 @@ jobs:
           git push origin "HEAD:${BASE_BRANCH}"
 
   qa-a09:
-    needs: [specialists, supervisor-a10]
+    needs: [prepare-state, specialists, supervisor-a10]
     if: always() && needs.supervisor-a10.result != 'cancelled'
     runs-on: ubuntu-latest
     timeout-minutes: 50
     steps:
       - uses: actions/checkout@v4
         with:
-          ref: ${{ env.BASE_BRANCH }}
+          ref: ${{ needs.prepare-state.outputs.target_sha }}
           fetch-depth: 0
           persist-credentials: false
       - uses: actions/setup-python@v5
@@ -409,14 +421,14 @@ jobs:
           if-no-files-found: error
 
   governance-a11:
-    needs: [specialists, supervisor-a10, qa-a09]
+    needs: [prepare-state, specialists, supervisor-a10, qa-a09]
     if: always() && needs.qa-a09.result != 'cancelled'
     runs-on: ubuntu-latest
     timeout-minutes: 15
     steps:
       - uses: actions/checkout@v4
         with:
-          ref: ${{ env.BASE_BRANCH }}
+          ref: ${{ needs.prepare-state.outputs.target_sha }}
           persist-credentials: false
       - uses: actions/setup-python@v5
         with:
