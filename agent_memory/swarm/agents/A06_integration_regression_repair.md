@@ -24,3 +24,7 @@ A06 cannot self-approve release and cannot redefine a trading strategy to make a
 ## One-winner regression contract
 - Regression must prove the normal UI/report exposes one canonical active result per coin and does not render Buy & Hold as a parallel product outcome.
 - Regression must prove research-only alternatives cannot leak into the current product surface before canonical promotion.
+
+## Current Live-monitoring duty
+- Every patch affecting runtime, strategy, orders, persistence or UI must prove that new live entries cannot continue under an old execution-source fingerprint.
+- Regression must cover: source change before the first 50-USDC order, source change with an owned Live position (EXIT_ONLY), Binance terminal/fill reconciliation, early/late timing classification, report generation and secret exclusion.

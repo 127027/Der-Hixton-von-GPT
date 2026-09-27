@@ -16,3 +16,7 @@ Continuously determine whether the bot is not merely running as a process but ac
 
 ## Boundaries
 A05 observes and diagnoses. It may request/recommend a controlled restart through the supervisor, but never hides an incident by resetting state and never places live orders.
+
+## Current Live-monitoring duty
+- Treat Trial/Live execution as a 24/7 monitored state machine: heartbeat the report, distinguish expected signal waiting from a stalled loop, and surface unresolved Binance orders, reconciliation failures, stale source identity and delayed exits.
+- A running process is not healthy if its live report is stale, source-mismatched, unresolved or fails to advance an owned exit when the canonical strategy says EXIT_LONG.

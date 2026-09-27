@@ -24,3 +24,7 @@ A04 does not change trading semantics to satisfy presentation. It escalates back
 - The normal Backtests page shows only the active canonical V6 result.
 - Do not show a separate Buy & Hold column/result or an irrelevant current-vs-historical-comparison banner beside the active result.
 - Internal research comparisons belong in research evidence, not the operator-facing current result table.
+
+## Current Live-monitoring duty
+- Verify the protected UI exposes the current 24/7 report, downloadable JSON and truthful Trial/Live/Binance completion state without exposing API keys or secrets.
+- Verify 50-USDC Test and Live buttons use automatic action-time account checks; the manual Binance check remains diagnostic only. Disabled/enabled states must come from server truth.

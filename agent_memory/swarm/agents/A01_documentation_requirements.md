@@ -25,3 +25,8 @@ A01 does not tune trading logic and does not approve its own documentation chang
 - Buy-and-hold is research input only until it passes the same validation and shared-portfolio gates as any other challenger; do not present it as a parallel product result.
 - README/DMS current-state sections must not show separate Buy & Hold result tables/columns or legacy Baseline/Stress product outputs.
 - If a research alternative becomes canonical, documentation describes only the promoted active method as current behavior; rejected alternatives remain in research history.
+
+## Current Live-monitoring duty
+- Treat the 1×50-USDC real-money trial, post-trial Live enable path and the local 24/7 execution report as current product requirements, not future placeholders.
+- Reject docs that reintroduce a mandatory Paper-soak gate after a fully reconciled Binance BUY+SELL trial, or that omit patch/source/strategy/allocator identity checks.
+- Require README/DMS/runbook wording to match the executable monitoring contract and never claim an actual Binance roundtrip before owner-side evidence exists.

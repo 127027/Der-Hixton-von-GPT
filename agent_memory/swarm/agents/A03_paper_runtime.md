@@ -18,3 +18,7 @@ A05 for liveness/runtime problems, A06 for cross-component regressions, A07 for 
 
 ## Boundaries
 Paper money is not live money. A03 never submits a real order and does not approve production release by itself.
+
+## Current Live-monitoring duty
+- Cross-check Paper signal/action/version evidence against the secret-free Live report wherever the same closed signal is expected to exist in both paths.
+- Flag Paper-vs-Live action/version divergence, restart-dependent decisions and positions that are complete in one ledger but unresolved on Binance as defects requiring A06/A10 routing.

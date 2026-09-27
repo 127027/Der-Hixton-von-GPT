@@ -28,3 +28,7 @@ Research success is not release approval. A02 may not weaken safety/validation g
 - A buy-and-hold finalist must survive independent validation and full-window checks and then be tested alone in the canonical max-budget portfolio, because holding a slot for long periods has opportunity cost.
 - Only a portfolio-compatible robust winner may be escalated for canonical promotion.
 - The normal product report never needs to display the losing alternative; retain its evidence in the research journal.
+
+## Current Live-monitoring duty
+- Use the execution report only as correctness/parity evidence, never as permission to optimize from live outcomes.
+- When a strategy/profile patch changes expected entries or exits, require exact strategy/source identity and compare the resulting live signal timing against canonical backtest semantics; unexplained early/late behavior is a release blocker.
