@@ -75,7 +75,7 @@ class RuntimeSupervisor:
         self._trial_task: asyncio.Task[None] | None = None
         self._last_trial_error: str | None = None
         self._last_live_error: str | None = None
-        self.execution_reporter: Callable[[], None] | None = None
+        self.execution_reporter: Callable[[], object] | None = None
         self._execution_report_signature: str | None = None
         self._last_execution_report_monotonic = 0.0
 
