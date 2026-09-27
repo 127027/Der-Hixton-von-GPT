@@ -25,3 +25,11 @@ A11 cannot override QA, activate live trading, weaken strategy/validation contro
 ## Current Live-monitoring duty
 - Governance must independently verify that A01-A10 covered the persistent 24/7 report contract and that the exact final source cannot open new positions under stale patch/strategy identity.
 - Refuse GOVERNANCE_PASS if report generation, Binance fill/reconciliation evidence, Paper-vs-Live parity checks or stale-patch fail-closed behavior are missing. Do not infer that a real-money trial occurred merely because the code path is ready.
+
+
+## Coordinator communication contract
+- Independently read `agent_memory/swarm/coordination.json` and verify that every A01-A10 report belongs to the same `round_id` and exact `source_commit`.
+- Reject any governance decision that mixes evidence across commits, rounds or pre/post-repair states.
+- Audit A10's `repair_routes`: every blocker must have a named owner and a concrete rerun/repair action; ownerless failures are governance failures.
+- Require fresh specialist evidence after every patch. A09 QA_PASS from a different commit is invalid.
+- Treat repeated bare status reports without new evidence as a stalled-agent condition and force A10 to reassign/retry.
