@@ -145,12 +145,16 @@ class RuntimeSupervisor:
         if self._stop.is_set():
             return
         healthy = self.state.snapshot().health == "HEALTHY"
+        entries_allowed: bool | None
         try:
             with PaperStore(self.config.database_path) as store:
                 settings = store.load_settings()
             entries_allowed = not settings.emergency_stop
         except Exception:
-            entries_allowed = False
+            # A transient settings/storage read failure must fail closed without
+            # destroying an already armed pre-order 50-USDC trial. TrialRuntime
+            # treats None as a temporary pause and submits nothing.
+            entries_allowed = None
         trial_error = None
         live_error = None
         report: dict[str, object] = {"state": "NOT_STARTED"}
