@@ -323,6 +323,16 @@ def test_no_inactive_or_stopped_runtime_network_and_immutable_baseline(tmp_path)
     assert fixture.calls == []
 
 
+def test_account_reader_uses_omit_zero_balances_for_stable_snapshot():
+    fixture = SpotFixture()
+    read_account_snapshot(fixture, account="fixture")
+    account_calls = [params for _, path, params in fixture.calls if path == "/api/v3/account"]
+    assert account_calls == [
+        {"omitZeroBalances": "true"},
+        {"omitZeroBalances": "true"},
+    ]
+
+
 def test_account_reader_reads_around_orders_and_rejects_changes():
     fixture = SpotFixture()
     result = read_account_snapshot(fixture, account="fixture")
