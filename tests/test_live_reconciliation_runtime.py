@@ -289,6 +289,22 @@ def test_reconciliation_never_accepts_unproved_balances(tmp_path, case):
             assert proof["balances_match"] is True
 
 
+def test_transient_settings_read_failure_does_not_cancel_armed_trial(tmp_path):
+    fixture = SpotFixture()
+    runtime = make_runtime(tmp_path / "trial-settings-pause.sqlite3", fixture)
+    runtime.reconciler.capture(fixture.snapshot(), now=NOW)
+    runtime.trial.arm(str(uuid4()), "fixture", now=NOW - timedelta(seconds=2), notional=D(50))
+
+    paused = runtime.tick(universe(), now=NOW, healthy=True, entries_allowed=None)
+    assert paused["state"] == "WAITING_SIGNAL"
+    assert paused["entries_enabled"] is True
+    assert paused["runtime_pause"] == "SETTINGS_UNAVAILABLE"
+    assert [call for call in fixture.calls if call[0] == "POST"] == []
+
+    resumed = runtime.tick(universe(), now=NOW, healthy=True, entries_allowed=True)
+    assert resumed["state"] == "ENTRY_PENDING"
+
+
 def test_no_inactive_or_stopped_runtime_network_and_immutable_baseline(tmp_path):
     fixture = SpotFixture()
     runtime = make_runtime(tmp_path / "trial.sqlite3", fixture)
