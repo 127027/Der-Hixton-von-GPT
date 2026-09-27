@@ -35,6 +35,7 @@ def install_live_routes(
     service = LivePreparation(
         config.database_path.with_name("live-preparation.sqlite3"),
         vault if vault is not None else WindowsVault(config.database_path),
+        execution_source_sha256=supervisor.execution_source_sha256,
     )
     app.state.live_preparation = service
 
