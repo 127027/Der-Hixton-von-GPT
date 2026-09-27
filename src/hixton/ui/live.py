@@ -106,7 +106,12 @@ def install_live_routes(
         shared: dict[str, object] | None = None
         try:
             with PaperStore(config.database_path) as store:
-                soak_ready = store.load_soak_progress().ready
+                store.initialize(
+                    strategy_key=supervisor.strategy.key,
+                    strategy_version=supervisor.strategy.version,
+                    starting_cash_usdc=config.paper_starting_cash_usdc,
+                )
+                store.require_strategy(supervisor.strategy.key, supervisor.strategy.version)
                 settings = store.load_settings()
                 preview = {
                     "max_capital_usdc": str(settings.max_capital_usdc),
@@ -117,6 +122,11 @@ def install_live_routes(
                     "allocator_version": settings.plan.version,
                 }
                 shared = {**preview, "emergency_stop": settings.emergency_stop}
+        except (RuntimeError, sqlite3.DatabaseError, KeyError):
+            pass
+        try:
+            with PaperStore(config.database_path) as store:
+                soak_ready = store.load_soak_progress().ready
         except (RuntimeError, sqlite3.DatabaseError, KeyError):
             pass
         max_capital = (
