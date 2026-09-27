@@ -258,8 +258,12 @@ def test_disable_waiting_or_reserved_entry_never_sends(tmp_path):
     assert controller.advance(universe(), now=NOW, healthy=True)["state"] == "CANCELED"
     assert not exchange.submits
     restarted, _ = trial(tmp_path, exchange)
-    with pytest.raises(RuntimeError, match="bereits angelegt"):
-        arm(restarted)
+    assert restarted.retryable_before_submit() is True
+    assert restarted.prepare_retry() is True
+    assert restarted.report()["state"] == "NOT_STARTED"
+    arm(restarted)
+    assert restarted.report()["state"] == "WAITING_SIGNAL"
+    assert not exchange.submits
 
 
 def test_disable_open_position_preserves_exit_and_completion_survives_restart(tmp_path):
@@ -397,6 +401,25 @@ def test_unfilled_expired_reservation_is_not_replaced(tmp_path):
         controller.advance(universe(), now=NOW + timedelta(seconds=91), healthy=True)["state"]
         == "FAILED"
     )
+    assert not exchange.submits
+    assert controller.retryable_before_submit() is True
+    assert controller.prepare_retry() is True
+    assert controller.report()["state"] == "NOT_STARTED"
+    arm(controller)
+    assert controller.report()["state"] == "WAITING_SIGNAL"
+
+
+def test_submitted_or_uncertain_order_history_is_never_retry_reset(tmp_path):
+    controller, exchange = trial(tmp_path)
+    arm(controller)
+    controller.advance(universe(), now=NOW, healthy=True)
+    row = controller._row()
+    assert row is not None and row["buy_id"]
+    assert controller.journal.claim_submit(row["buy_id"]) is True
+    controller._set(state="FAILED", reason="TEST_UNCERTAIN", entries_enabled=0)
+    assert controller.retryable_before_submit() is False
+    with pytest.raises(RuntimeError, match="submitted/uncertain"):
+        controller.prepare_retry()
     assert not exchange.submits
 
 
