@@ -81,7 +81,8 @@ class SignalTrial:
             }
             if "residual_quantity" not in columns:
                 connection.execute(
-                    "ALTER TABLE signal_trial ADD COLUMN residual_quantity TEXT NOT NULL DEFAULT '0'"
+                    "ALTER TABLE signal_trial ADD COLUMN residual_quantity TEXT NOT NULL "
+                    "DEFAULT '0'"
                 )
 
     def _row(self) -> dict[str, Any] | None:
