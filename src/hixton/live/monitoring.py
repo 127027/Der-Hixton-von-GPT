@@ -246,12 +246,12 @@ def build_execution_report(
                     strategy = _json(str(trial["strategy_json"]))
                     trial_source = (
                         str(trial["execution_source_sha256"])
-                        if "execution_source_sha256" in trial.keys()
+                        if "execution_source_sha256" in trial
                         else "legacy"
                     )
                     trial_allocator = (
                         str(trial["allocator_version"])
-                        if "allocator_version" in trial.keys()
+                        if "allocator_version" in trial
                         else "legacy"
                     )
                     entry_signal = _json(trial["entry_signal_json"])
@@ -287,7 +287,7 @@ def build_execution_report(
                         "frozen_identity": {
                             "application_version": (
                                 trial["application_version"]
-                                if "application_version" in trial.keys()
+                                if "application_version" in trial
                                 else "legacy"
                             ),
                             "execution_source_sha256": trial_source,
@@ -312,7 +312,11 @@ def build_execution_report(
                     if not source_matches:
                         _incident(
                             incidents,
-                            severity="ERROR" if trial["state"] not in ("COMPLETED", "CANCELED") else "WARNING",
+                            severity=(
+                                "ERROR"
+                                if trial["state"] not in ("COMPLETED", "CANCELED")
+                                else "WARNING"
+                            ),
                             code="TRIAL_EXECUTION_SOURCE_STALE",
                             detail="50-USDC-Test stammt aus einer anderen Patch-/Quellversion.",
                             symbol=trial["symbol"],
@@ -322,7 +326,10 @@ def build_execution_report(
                             incidents,
                             severity="ERROR",
                             code="TRIAL_STRATEGY_VERSION_STALE",
-                            detail="50-USDC-Test und aktuelle Strategieversion stimmen nicht überein.",
+                            detail=(
+                                "50-USDC-Test und aktuelle Strategieversion stimmen nicht "
+                                "überein."
+                            ),
                             symbol=trial["symbol"],
                         )
                     for item in (buy, sell):
@@ -343,7 +350,10 @@ def build_execution_report(
                                 incidents,
                                 severity="ERROR",
                                 code="TRIAL_ENTRY_LATE",
-                                detail="50-USDC-Einstieg wurde mehr als 90 Sekunden nach Signal gesendet.",
+                                detail=(
+                                    "50-USDC-Einstieg wurde mehr als 90 Sekunden nach Signal "
+                                    "gesendet."
+                                ),
                                 symbol=trial["symbol"],
                                 intent_id=str(item["intent_id"]),
                             )
@@ -352,7 +362,10 @@ def build_execution_report(
                                 incidents,
                                 severity="WARNING",
                                 code="TRIAL_EXIT_LATE",
-                                detail="50-USDC-Ausstieg wurde mehr als 90 Sekunden nach Exit-Signal gesendet.",
+                                detail=(
+                                    "50-USDC-Ausstieg wurde mehr als 90 Sekunden nach "
+                                    "Exit-Signal gesendet."
+                                ),
                                 symbol=trial["symbol"],
                                 intent_id=str(item["intent_id"]),
                             )
@@ -361,7 +374,10 @@ def build_execution_report(
                             incidents,
                             severity="ERROR",
                             code="TRIAL_REQUIRES_REVIEW",
-                            detail=f"50-USDC-Test ist im Zustand {trial['state']}: {trial['reason']}",
+                            detail=(
+                                f"50-USDC-Test ist im Zustand {trial['state']}: "
+                                f"{trial['reason']}"
+                            ),
                             symbol=trial["symbol"],
                         )
 
@@ -374,12 +390,12 @@ def build_execution_report(
                     capital = _json(str(control["capital_json"]))
                     frozen_source = (
                         str(control["execution_source_sha256"])
-                        if "execution_source_sha256" in control.keys()
+                        if "execution_source_sha256" in control
                         else "legacy"
                     )
                     frozen_app = (
                         str(control["application_version"])
-                        if "application_version" in control.keys()
+                        if "application_version" in control
                         else "legacy"
                     )
                     positions = []
@@ -455,7 +471,10 @@ def build_execution_report(
                                     incidents,
                                     severity="ERROR",
                                     code="LIVE_ORDER_BEFORE_SIGNAL_CLOSE",
-                                    detail="Live-Order liegt zeitlich vor dem geschlossenen Signal.",
+                                    detail=(
+                                        "Live-Order liegt zeitlich vor dem geschlossenen "
+                                        "Signal."
+                                    ),
                                     symbol=str(event["symbol"]),
                                     signal_id=str(event["signal_id"]),
                                     intent_id=str(intent["intent_id"]),
@@ -465,7 +484,10 @@ def build_execution_report(
                                     incidents,
                                     severity="ERROR",
                                     code="LIVE_ENTRY_LATE",
-                                    detail="Live-Einstieg wurde mehr als 90 Sekunden nach Signal gesendet.",
+                                    detail=(
+                                        "Live-Einstieg wurde mehr als 90 Sekunden nach "
+                                        "Signal gesendet."
+                                    ),
                                     symbol=str(event["symbol"]),
                                     signal_id=str(event["signal_id"]),
                                     intent_id=str(intent["intent_id"]),
@@ -475,7 +497,10 @@ def build_execution_report(
                                     incidents,
                                     severity="WARNING",
                                     code="LIVE_EXIT_LATE",
-                                    detail="Live-Ausstieg wurde mehr als 90 Sekunden nach Signal gesendet.",
+                                    detail=(
+                                        "Live-Ausstieg wurde mehr als 90 Sekunden nach "
+                                        "Signal gesendet."
+                                    ),
                                     symbol=str(event["symbol"]),
                                     signal_id=str(event["signal_id"]),
                                     intent_id=str(intent["intent_id"]),
@@ -506,7 +531,10 @@ def build_execution_report(
                                 incidents,
                                 severity="ERROR",
                                 code="PAPER_LIVE_ACTION_MISMATCH",
-                                detail="Gleiche Signal-ID hat in Paper und Live unterschiedliche Aktion.",
+                                detail=(
+                                    "Gleiche Signal-ID hat in Paper und Live unterschiedliche "
+                                    "Aktion."
+                                ),
                                 symbol=str(event["symbol"]),
                                 signal_id=str(event["signal_id"]),
                             )
@@ -575,28 +603,40 @@ def build_execution_report(
                             incidents,
                             severity="ERROR" if positions or unresolved else "WARNING",
                             code="LIVE_EXECUTION_SOURCE_STALE",
-                            detail="Aktive/gespeicherte Live-Sitzung stammt aus einer anderen Patch-Version.",
+                            detail=(
+                                "Aktive/gespeicherte Live-Sitzung stammt aus einer anderen "
+                                "Patch-Version."
+                            ),
                         )
                     if not strategy_matches:
                         _incident(
                             incidents,
                             severity="ERROR",
                             code="LIVE_STRATEGY_VERSION_STALE",
-                            detail="Live-Ledger und aktuelle Strategieversion stimmen nicht überein.",
+                            detail=(
+                                "Live-Ledger und aktuelle Strategieversion stimmen nicht "
+                                "überein."
+                            ),
                         )
                     if not allocator_matches:
                         _incident(
                             incidents,
                             severity="ERROR",
                             code="LIVE_ALLOCATOR_VERSION_STALE",
-                            detail="Live-Ledger und aktueller Kapital-Allocator stimmen nicht überein.",
+                            detail=(
+                                "Live-Ledger und aktueller Kapital-Allocator stimmen nicht "
+                                "überein."
+                            ),
                         )
                     if unresolved:
                         _incident(
                             incidents,
                             severity="ERROR",
                             code="LIVE_UNRESOLVED_BINANCE_ORDERS",
-                            detail=f"{len(unresolved)} Live-Order(s) sind noch nicht terminal abgeglichen.",
+                            detail=(
+                                f"{len(unresolved)} Live-Order(s) sind noch nicht terminal "
+                                "abgeglichen."
+                            ),
                         )
                     if control["state"] == "NEEDS_REVIEW":
                         _incident(
