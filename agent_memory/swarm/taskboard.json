@@ -37,7 +37,7 @@
     "state": "IN_PROGRESS",
     "completion_mode": "continuous",
     "started_at_utc": "2026-09-25T19:35:00+00:00",
-    "last_transition_reason": "Capital study refined after first results showed ranked_repeat 5x50 can stack multiple slots onto one signal. Owner intent requires an additional true five-independent-position one_per_symbol 5x50 comparison.",
+    "last_transition_reason": "Owner requested an exhaustive A01-A11 real-money roundtrip safety/parity audit before relying on WAITING_SIGNAL. The audit must prove BUY submit, owned-position exit, SELL, reconciliation, recovery/idempotency and Backtest/Paper strategy parity without claiming cloud executed real funds.",
     "owner_instruction_date": "2026-09-27",
     "primary_agents": [
       "A01",
@@ -70,7 +70,20 @@
       "LIVE_READINESS_AUDIT",
       "COIN_IMPROVEMENT_AUDIT",
       "LIVE_TRIAL_BLOCKER_AUDIT",
-      "CAPITAL_BUDGET_AUDIT"
+      "CAPITAL_BUDGET_AUDIT",
+      "REAL_TRIAL_FULL_ROUNDTRIP",
+      "REAL_TRIAL_BUY_TIMEOUT_RESTART",
+      "REAL_TRIAL_SELL_TIMEOUT_RESTART",
+      "REAL_TRIAL_PARTIAL_FILL",
+      "REAL_TRIAL_FILL_DETAILS_PENDING",
+      "REAL_TRIAL_EXIT_DUST",
+      "REAL_TRIAL_RECONCILIATION_MISMATCH",
+      "REAL_TRIAL_FOREIGN_BALANCE_PROTECTION",
+      "REAL_TRIAL_DISABLE_ENTRIES_PRESERVES_EXIT",
+      "REAL_TRIAL_SOURCE_CHANGE_BEFORE_BUY",
+      "REAL_TRIAL_SOURCE_CHANGE_AFTER_BUY_PRESERVES_EXIT",
+      "REAL_TRIAL_STRATEGY_PARITY",
+      "PRODUCTION_LIVE_POST_TRIAL_PARITY"
     ],
     "constraints": [
       "UI exposes one editable capital value only: max_capital_usdc. Slot count, tranche size, reserve and allocation policy are derived and not separate user truths.",
@@ -94,7 +107,14 @@
       "Capital-layout evidence must report net PnL/return, max drawdown, completed position cycles, slot trades, wins/losses, average holding time, median/average/longest entry gap, hours with zero/partial/full slot occupancy, NO_FREE_SLOT blocks and baseline/stress results.",
       "The audit must explicitly test whether 5x50 converts materially more of the ten-coin signal opportunity into executed trades than 2x125 without unacceptable degradation in net performance or drawdown.",
       "No capital-layout candidate is automatically promoted to Paper or Live. Any change from 2x125 requires A10 synthesis, A09 independent QA, A11 governance and a fresh exact-head release-validation round.",
-      "CAPITAL_BUDGET_AUDIT must include a true 5x50 one_per_symbol layout so the owner question means up to five different simultaneous coin positions, not merely five ranked_repeat slots that can stack on one signal."
+      "CAPITAL_BUDGET_AUDIT must include a true 5x50 one_per_symbol layout so the owner question means up to five different simultaneous coin positions, not merely five ranked_repeat slots that can stack on one signal.",
+      "A controlled 50-USDC trial PASS requires proving the complete BUY->owned OPEN->SELL->account reconciliation lifecycle, not merely proving a BUY route exists.",
+      "No test may count Binance ACK as a fill; actual order status plus persisted myTrades fill details are required for simulated success.",
+      "Disabling new entries, losing entry release, or becoming DEGRADED after an owned BUY must not silently liquidate foreign assets and must not prevent the canonical owned-position exit path.",
+      "Any ambiguous submitted BUY or SELL must be queried by durable clientOrderId and must never be automatically resubmitted.",
+      "COMPLETED requires fresh reconciliation of balances, open orders, locked balances and residual quantity after SELL.",
+      "Backtest/Paper/Trial/Live strategy parity means the same canonical strategy/profile/signal/exit semantics; it does not mean identical live fill price, fees, slippage or PnL.",
+      "A11 must reject any cloud statement that a real Binance order was filled; only the local authenticated runtime can establish that fact."
     ],
     "acceptance": [
       "A01 proves README/DMS/AGENTS/swarm docs describe max_capital_usdc, CAPITAL-V1-2X50PCT, 10x250 research separation, automatic action-time preflight, the separate 1x50 trial and the mandatory 24x7 Live execution report without stale product gates.",
@@ -113,7 +133,13 @@
       "A05/A08 quantify whether long holds and slot saturation explain low portfolio turnover, including NO_FREE_SLOT opportunity loss and zero-position/full-slot time for each layout.",
       "A10 must challenge the prior 2x125 conclusion rather than inherit it: synthesize profitability, drawdown, turnover, utilization and robustness evidence and state whether evidence supports retaining 2x125 or promoting a different research candidate.",
       "A09 and A11 independently reject any capital-layout conclusion that is based only on higher trade count or only on headline return; exact same-history/risk/cost comparability and robustness are mandatory.",
-      "A02/A05/A08 must compare the production baseline 2x125 ranked_repeat directly against 5x50 one_per_symbol as the owner's intended five-independent-position model, in addition to ranked_repeat slot-count variants."
+      "A02/A05/A08 must compare the production baseline 2x125 ranked_repeat directly against 5x50 one_per_symbol as the owner's intended five-independent-position model, in addition to ranked_repeat slot-count variants.",
+      "A06 supplies a successful simulated full 1x50 BUY+SELL+reconciliation roundtrip and failure/restart evidence for timeout, partial fill, missing fills, duplicate advance and residual mismatch.",
+      "A07 proves the concrete Binance adapter sends MARKET BUY with quoteOrderQty=50.00 and MARKET SELL with explicit owned quantity, then queries /api/v3/order and /api/v3/myTrades.",
+      "A02/A08 prove canonical Backtest/Paper/Trial/Live entry and exit semantics are aligned and explicitly document unavoidable execution-model differences.",
+      "A03 proves pre-existing account balances are baseline-only and never become bot-owned sellable quantity.",
+      "A04 proves the real browser operator flow does not enable normal Live before trial COMPLETED and surfaces unresolved/reconciliation states.",
+      "A10/A09/A11 all pass on the exact same commit with no missing roundtrip evidence."
     ],
     "release_candidate": {
       "version": "0.5.0",
@@ -132,7 +158,7 @@
       ],
       "actual_live_roundtrip_completed": false
     },
-    "coordination_round": "COORD-2026-09-27-CAPITAL-REALLOC-003",
+    "coordination_round": "COORD-2026-09-27-REALROUNDTRIP-004",
     "coordination_file": "agent_memory/swarm/coordination.json",
     "coordination_requirements": [
       "Use the latest gpt/usdc-audit product head, never an older release/main bootstrap state.",
