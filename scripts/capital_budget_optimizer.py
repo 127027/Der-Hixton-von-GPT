@@ -19,7 +19,7 @@ from typing import Any
 from hixton.backtest.continuity import load_continuity_history
 from hixton.backtest.models import BASELINE_COSTS, STRESS_COSTS
 from hixton.backtest.portfolio import run_shared_portfolio_backtest
-from hixton.domain.allocation import RANKED_REPEAT
+from hixton.domain.allocation import ONE_PER_SYMBOL, RANKED_REPEAT
 from hixton.domain.versions import V6_COIN_STRATEGY
 from hixton.runtime.supervisor import safe_closed_window
 from scripts.capital_100_simulation import _candidate_map, _profile_hashes
@@ -53,6 +53,7 @@ def _layouts() -> tuple[Layout, ...]:
         Layout(RANKED_REPEAT, 3, D("83.33")),
         Layout(RANKED_REPEAT, 4, D("62.50")),
         Layout(RANKED_REPEAT, 5, D("50")),
+        Layout(ONE_PER_SYMBOL, 5, D("50")),
     )
 
 
@@ -296,8 +297,9 @@ def main() -> None:
         "best_robust": robust_ranked[0],
         "references": references,
         "selection_rule": (
-            "Compare 2x125, 3x83.33, 4x62.50 and 5x50 ranked_repeat under identical "
-            "canonical V6 profiles/history/risk/cost assumptions. No automatic promotion."
+            "Compare current 2x125 ranked_repeat against higher-slot ranked_repeat layouts "
+            "and a true one-per-symbol 5x50 layout under identical canonical V6 profiles, "
+            "history, risk and cost assumptions. No automatic promotion."
         ),
         "limitations": [
             "Historical simulation is not a forecast or guaranteed live result.",
