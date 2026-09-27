@@ -656,6 +656,24 @@ def test_first_enrollment_does_not_take_over_existing_key() -> None:
         LocalAccess(vault).unlock(PASSWORD, PASSWORD)
 
 
+def test_execution_report_is_authenticated_downloadable_and_secret_free(tmp_path: Path) -> None:
+    client, _, _service = client_for(tmp_path)
+    denied = client.get("/api/live/report", headers=HEADERS)
+    assert denied.status_code == 401
+    unlock(client)
+    save_key(client)
+    report = client.get("/api/live/report", headers=HEADERS)
+    assert report.status_code == 200
+    payload = report.json()
+    assert payload["runtime_identity"]["strategy_version"]
+    assert payload["summary"]["status"] in {"OK", "WARNING", "ERROR"}
+    assert KEY not in report.text and SECRET not in report.text
+    download = client.get("/api/live/report/download", headers=HEADERS)
+    assert download.status_code == 200
+    assert "Hixton-Live-Bericht.json" in download.headers["content-disposition"]
+    assert KEY.encode() not in download.content and SECRET.encode() not in download.content
+
+
 def test_size_limit_does_not_echo_secrets(tmp_path: Path) -> None:
     client, _, _ = client_for(tmp_path)
     result = client.post("/api/live/unlock", headers=HEADERS, content=KEY * 100)
