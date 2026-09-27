@@ -37,7 +37,7 @@
     "state": "IN_PROGRESS",
     "completion_mode": "continuous",
     "started_at_utc": "2026-09-25T19:35:00+00:00",
-    "last_transition_reason": "Owner requested a fresh all-agent capital-allocation challenge: current 250-USDC 2x125 is baseline only and must be re-compared against higher-slot layouts, especially 5x50, for profitability, activity, utilization and robustness before any allocation change.",
+    "last_transition_reason": "Capital study refined after first results showed ranked_repeat 5x50 can stack multiple slots onto one signal. Owner intent requires an additional true five-independent-position one_per_symbol 5x50 comparison.",
     "owner_instruction_date": "2026-09-27",
     "primary_agents": [
       "A01",
@@ -93,7 +93,8 @@
       "Every compared layout must use the identical exact-three-year window, canonical V6 coin profiles, costs, execution model, Binance filters and risk assumptions so slot layout is the controlled variable.",
       "Capital-layout evidence must report net PnL/return, max drawdown, completed position cycles, slot trades, wins/losses, average holding time, median/average/longest entry gap, hours with zero/partial/full slot occupancy, NO_FREE_SLOT blocks and baseline/stress results.",
       "The audit must explicitly test whether 5x50 converts materially more of the ten-coin signal opportunity into executed trades than 2x125 without unacceptable degradation in net performance or drawdown.",
-      "No capital-layout candidate is automatically promoted to Paper or Live. Any change from 2x125 requires A10 synthesis, A09 independent QA, A11 governance and a fresh exact-head release-validation round."
+      "No capital-layout candidate is automatically promoted to Paper or Live. Any change from 2x125 requires A10 synthesis, A09 independent QA, A11 governance and a fresh exact-head release-validation round.",
+      "CAPITAL_BUDGET_AUDIT must include a true 5x50 one_per_symbol layout so the owner question means up to five different simultaneous coin positions, not merely five ranked_repeat slots that can stack on one signal."
     ],
     "acceptance": [
       "A01 proves README/DMS/AGENTS/swarm docs describe max_capital_usdc, CAPITAL-V1-2X50PCT, 10x250 research separation, automatic action-time preflight, the separate 1x50 trial and the mandatory 24x7 Live execution report without stale product gates.",
@@ -111,7 +112,8 @@
       "A02 produces a fresh controlled 250-USDC capital-layout comparison including at least 2x125, 3x~83.33, 4x62.50 and 5x50, with exact-three-year baseline and stress evidence plus activity/utilization metrics.",
       "A05/A08 quantify whether long holds and slot saturation explain low portfolio turnover, including NO_FREE_SLOT opportunity loss and zero-position/full-slot time for each layout.",
       "A10 must challenge the prior 2x125 conclusion rather than inherit it: synthesize profitability, drawdown, turnover, utilization and robustness evidence and state whether evidence supports retaining 2x125 or promoting a different research candidate.",
-      "A09 and A11 independently reject any capital-layout conclusion that is based only on higher trade count or only on headline return; exact same-history/risk/cost comparability and robustness are mandatory."
+      "A09 and A11 independently reject any capital-layout conclusion that is based only on higher trade count or only on headline return; exact same-history/risk/cost comparability and robustness are mandatory.",
+      "A02/A05/A08 must compare the production baseline 2x125 ranked_repeat directly against 5x50 one_per_symbol as the owner's intended five-independent-position model, in addition to ranked_repeat slot-count variants."
     ],
     "release_candidate": {
       "version": "0.5.0",
