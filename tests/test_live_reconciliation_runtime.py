@@ -261,6 +261,42 @@ def test_timeout_restart_recovers_by_id_without_another_buy(tmp_path):
     assert sum(method == "POST" for method, _, _ in fixture.calls) == 1
 
 
+def test_sell_timeout_restart_recovers_by_id_without_duplicate_sell(tmp_path):
+    fixture = SpotFixture()
+    path = tmp_path / "trial-sell-timeout.sqlite3"
+    at = NOW
+    runtime = make_runtime(path, fixture, clock=lambda: at)
+    runtime.reconciler.capture(fixture.snapshot(), now=NOW)
+    runtime.trial.arm(str(uuid4()), "fixture", now=NOW - timedelta(seconds=2), notional=D(50))
+
+    entry = universe(buy_symbol="SOLUSDC")
+    assert runtime.tick(entry, now=NOW, healthy=True, entries_allowed=True)["state"] == "ENTRY_PENDING"
+    assert runtime.tick(entry, now=NOW, healthy=True, entries_allowed=True)["state"] == "OPEN"
+
+    at = NOW + timedelta(hours=1)
+    exit_points = universe(at, buy_symbol=None, sell_symbol="SOLUSDC")
+    assert (
+        runtime.tick(exit_points, now=at, healthy=True, entries_allowed=False)["state"]
+        == "EXIT_PENDING"
+    )
+
+    fixture.timeout = True
+    unresolved = runtime.tick(exit_points, now=at, healthy=True, entries_allowed=False)
+    assert unresolved["state"] == "EXIT_PENDING"
+
+    restarted = make_runtime(path, fixture, clock=lambda: at)
+    result = restarted.tick(
+        exit_points,
+        now=at,
+        healthy=False,
+        entries_allowed=False,
+    )
+    assert result["state"] == "COMPLETED"
+    posts = [params for method, _, params in fixture.calls if method == "POST"]
+    assert [params["side"] for params in posts] == ["BUY", "SELL"]
+    assert len(posts) == 2
+
+
 @pytest.mark.parametrize("case", ["balance", "open_order", "account", "stale", "locked"])
 def test_reconciliation_never_accepts_unproved_balances(tmp_path, case):
     fixture = SpotFixture()
