@@ -270,7 +270,10 @@ def test_sell_timeout_restart_recovers_by_id_without_duplicate_sell(tmp_path):
     runtime.trial.arm(str(uuid4()), "fixture", now=NOW - timedelta(seconds=2), notional=D(50))
 
     entry = universe(buy_symbol="SOLUSDC")
-    assert runtime.tick(entry, now=NOW, healthy=True, entries_allowed=True)["state"] == "ENTRY_PENDING"
+    assert (
+        runtime.tick(entry, now=NOW, healthy=True, entries_allowed=True)["state"]
+        == "ENTRY_PENDING"
+    )
     assert runtime.tick(entry, now=NOW, healthy=True, entries_allowed=True)["state"] == "OPEN"
 
     at = NOW + timedelta(hours=1)
