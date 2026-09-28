@@ -37,8 +37,8 @@
     "state": "IN_PROGRESS",
     "completion_mode": "continuous",
     "started_at_utc": "2026-09-25T19:35:00+00:00",
-    "last_transition_reason": "Final exact-head real-roundtrip release validation after adding explicit ambiguous SELL timeout/restart recovery coverage and Binance MARKET BUY/SELL adapter evidence. Freeze product and audit code until Preflight plus A01-A11 complete on this head.",
-    "owner_instruction_date": "2026-09-27",
+    "last_transition_reason": "Owner requested a fresh latest-head A01-A11 coin-by-coin optimization loop for all ten USDC markets, starting from prior Top-8/loss-cluster evidence and continuing bounded research without holdout leakage or automatic Live/Paper promotion.",
+    "owner_instruction_date": "2026-09-28",
     "primary_agents": [
       "A01",
       "A02",
@@ -67,8 +67,7 @@
     ],
     "regression_cases": [
       "CURRENT_V6_PRODUCT",
-      "LIVE_READINESS_AUDIT",
-      "LIVE_TRIAL_BLOCKER_AUDIT"
+      "COIN_IMPROVEMENT_AUDIT"
     ],
     "constraints": [
       "UI exposes one editable capital value only: max_capital_usdc. Slot count, tranche size, reserve and allocation policy are derived and not separate user truths.",
@@ -99,7 +98,11 @@
       "Any ambiguous submitted BUY or SELL must be queried by durable clientOrderId and must never be automatically resubmitted.",
       "COMPLETED requires fresh reconciliation of balances, open orders, locked balances and residual quantity after SELL.",
       "Backtest/Paper/Trial/Live strategy parity means the same canonical strategy/profile/signal/exit semantics; it does not mean identical live fill price, fees, slippage or PnL.",
-      "A11 must reject any cloud statement that a real Binance order was filled; only the local authenticated runtime can establish that fact."
+      "A11 must reject any cloud statement that a real Binance order was filled; only the local authenticated runtime can establish that fact.",
+      "Coin optimization remains research-only and must not disturb the locally armed controlled 1x50-USDC trial.",
+      "Every coin is judged separately; aggregate portfolio improvement cannot hide an individual coin regression.",
+      "A target of improving all ten coins is aspirational, not permission to weaken validation/full-window/stress/drawdown gates or select on the holdout.",
+      "Use prior Top-8, robust finalists and loss clusters to construct bounded second-stage searches for unresolved coins rather than unbounded brute force."
     ],
     "acceptance": [
       "A01 proves README/DMS/AGENTS/swarm docs describe max_capital_usdc, CAPITAL-V1-2X50PCT, 10x250 research separation, automatic action-time preflight, the separate 1x50 trial and the mandatory 24x7 Live execution report without stale product gates.",
@@ -124,7 +127,11 @@
       "A02/A08 prove canonical Backtest/Paper/Trial/Live entry and exit semantics are aligned and explicitly document unavoidable execution-model differences.",
       "A03 proves pre-existing account balances are baseline-only and never become bot-owned sellable quantity.",
       "A04 proves the real browser operator flow does not enable normal Live before trial COMPLETED and surfaces unresolved/reconciliation states.",
-      "A10/A09/A11 all pass on the exact same commit with no missing roundtrip evidence."
+      "A10/A09/A11 all pass on the exact same commit with no missing roundtrip evidence.",
+      "A02 produces a fresh latest-head exact-three-year baseline/stress result for all ten coins and reports Top-8 and robust finalists per coin.",
+      "A05/A06 provide bounded evidence-led second-stage search proposals or implemented research-only candidate neighborhoods for every coin that lacks a robust finalist.",
+      "A10 reports an explicit ten-row coin status: current result, best robust challenger if any, validation/full/stress deltas, drawdown effect, portfolio compatibility and next action.",
+      "A09/A11 reject any statement that all ten improved unless all ten independently satisfy the unchanged robust coin gate."
     ],
     "release_candidate": {
       "version": "0.5.0",
@@ -143,7 +150,7 @@
       ],
       "actual_live_roundtrip_completed": false
     },
-    "coordination_round": "COORD-2026-09-27-REALROUNDTRIP-004",
+    "coordination_round": "COORD-2026-09-28-COINOPT-005",
     "coordination_file": "agent_memory/swarm/coordination.json",
     "coordination_requirements": [
       "Use the latest gpt/usdc-audit product head, never an older release/main bootstrap state.",
