@@ -335,9 +335,9 @@ def candidate_catalog(symbol: str) -> tuple[Candidate, ...]:
                 ),
             )
         for slope, smoothing, momentum in (
-            (12, 6, 20),
-            (18, 6, 20),
-            (18, 8, 18),
+            (0, 6, 20),
+            (0, 8, 18),
+            (0, 6, 18),
         ):
             add(
                 f"local_slope{slope}_smooth{smoothing}_mom{momentum}",

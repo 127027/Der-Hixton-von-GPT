@@ -151,7 +151,7 @@ def test_distinct_training_shortlist_skips_current_equivalent_behaviour() -> Non
 def test_coin_optimization_catalog_contains_training_led_second_stage_neighbourhoods() -> None:
     expected = {
         "BTCUSDC": {"local_smooth10_band_p20", "local_atr135_band_p03"},
-        "ETHUSDC": {"local_smooth7_mom18", "local_slope18_smooth6_mom20"},
+        "ETHUSDC": {"local_smooth7_mom18", "local_slope0_smooth6_mom20"},
         "BNBUSDC": {"local_vidya9_mom18", "local_atr135_mom19"},
         "SOLUSDC": {"local_mom18_smooth12", "local_mom19_smooth13"},
         "XRPUSDC": {"local_mom21", "local_mom22_band_p05"},
