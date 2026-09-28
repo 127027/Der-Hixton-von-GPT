@@ -1,22 +1,22 @@
 {
   "schema_version": 1,
-  "round_id": "COORD-2026-09-27-REALROUNDTRIP-004",
+  "round_id": "COORD-2026-09-28-COINOPT-005",
   "status": "DISPATCHED",
-  "owner_objective": "Independently prove the complete locally authenticated Binance Spot lifecycle for the controlled 1x50-USDC trial and subsequent normal Live: WAITING_SIGNAL -> fresh closed-1h canonical signal -> durable idempotent MARKET BUY -> actual fill query -> bot-owned position -> canonical strategy exit -> durable MARKET SELL -> fill query -> account/order reconciliation -> COMPLETED -> production Live eligibility. Verify restart/timeout/partial-fill/dust/error behavior and Paper/Backtest strategy parity. Cloud remains key-free/order-free and must never claim a real Binance fill.",
+  "owner_objective": "Using the latest gpt/usdc-audit head, run a fresh isolated Python virtual environment and exact rolling three-year Binance-public backtests for BTC, ETH, BNB, SOL, XRP, ADA, LINK, AVAX, DOT and DOGE individually. Review prior optimization evidence and continue bounded evidence-led search per coin until every coin has either a robust holdout improvement or an explicitly documented unresolved research blocker. Never force a false improvement, never select on the holdout, and never mutate active Paper/Live or canonical V6 automatically. Once robust per-coin candidates exist, test each one marginally and then together in the canonical max-budget portfolio.",
   "target_branch": "gpt/usdc-audit",
   "commit_policy": "PIN_EXACT_COMMIT_AT_RUN_START",
   "repair_policy": "ANY_PATCH_INVALIDATES_AFFECTED_EVIDENCE_AND_REQUIRES_A_NEW_PINNED_RUN",
   "acceptance": {
-    "waiting_signal": "Arming performs a fresh authenticated account/baseline preflight but never submits an old signal. Only a fresh valid closed-1h signal from the ten canonical USDC markets may reserve the one 50-USDC BUY.",
-    "real_submit_boundary": "The bound production transport must POST /api/v3/order type=MARKET with quoteOrderQty=50.00 for BUY and explicit bot-owned base quantity for SELL, using durable clientOrderId and no automatic retry of ambiguous submissions.",
-    "buy_fill": "ACK alone is never treated as fill. Order state and myTrades fills must be queried and persisted; partial/unknown/incomplete fill details remain unsettled.",
-    "ownership": "Only quantity proven from Hixton's own persisted BUY fills may be sold. Existing Binance holdings remain baseline-only.",
-    "exit": "After an owned entry, canonical strategy exit rules continue even if new entries/release are disabled. The SELL must be rounded down only to current Binance step size and may not exceed owned quantity.",
-    "completion": "A SELL fill alone is insufficient. Trial reaches COMPLETED only after fresh account reconciliation proves no open orders, no locked balances, expected balances and no tradable residual; otherwise NEEDS_REVIEW/AWAITING_RECONCILIATION persists.",
-    "recovery": "Restart, network timeout, ambiguous Binance response, duplicate advance, partial fill and process interruption may not create a duplicate BUY/SELL. Submitted or uncertain history is reconciled, never reset as a new entitlement.",
-    "parity": "Trial and production Live must bind the same canonical StrategyDefinition/coin profiles/closed-candle semantics as current V6 backtest/Paper. Real fills/fees/slippage may differ from modeled backtests and no identical PnL is claimed.",
-    "production": "Normal budget-controlled Live remains disabled until the 1x50 BUY+SELL roundtrip is fully reconciled; normal Live must preserve the same ownership, pre-submit, reconciliation and exit-safety principles.",
-    "cloud_boundary": "No cloud/agent job may read private Binance credentials or place real/testnet orders. A real Binance fill can only be proven locally by authenticated order/fill/reconciliation evidence."
+    "exact_head": "All research evidence is produced from one exact latest gpt/usdc-audit commit in a freshly created isolated venv.",
+    "all_ten_fresh": "Fresh exact-three-year baseline and stress evidence exists for each of the ten USDC coins with the current V6 profile.",
+    "history_review": "Prior Top-8 candidates, robust finalists, rejects and loss clusters are used to design the next bounded search rather than repeating the same grid blindly.",
+    "selection_integrity": "Candidate ranking uses training windows only. Validation/full windows can reject but cannot introduce or rank a new candidate.",
+    "robust_coin_improvement": "A coin counts as improved only if the challenger is non-regressive versus current in independent validation baseline/stress and full-three-year baseline/stress, improves at least one return measure, and stays within the drawdown gate.",
+    "search_iteration": "Coins with no robust finalist receive a bounded second-stage local search around their prior Top-8 parameter neighborhoods and measured losing-trade regimes. Search must remain finite and reproducible.",
+    "no_forced_winner": "If a coin still has no robust improvement, agents must report that fact and the concrete blocker; they may not weaken gates or reuse validation as training merely to satisfy the owner's target.",
+    "portfolio_gate": "Every robust per-coin finalist is tested one-at-a-time in the canonical saved-max-budget portfolio under baseline and stress costs. Combination testing occurs only after isolated holdout gates.",
+    "no_auto_promotion": "Research does not alter versions.py, Paper state, Live runtime, local WAITING_SIGNAL trial, credentials or active strategy.",
+    "full_agents": "A01-A08 produce specialist evidence; A10 synthesizes and routes unresolved coins; A09 independently QA-checks exact-head evidence; A11 rejects overfit/stale/mixed or automatically promoted results."
   },
   "communication_rules": {
     "all_reports_must_include": [
@@ -36,195 +36,193 @@
     "cloud_real_money_orders_allowed": false
   },
   "diagnostic_chain": [
-    "UI WAITING_SIGNAL and operator consent",
-    "credential binding and account fingerprint",
-    "fresh authenticated preflight and stable baseline",
-    "ten-market closed-1h data freshness",
-    "canonical strategy/profile identity",
-    "fresh ENTER_LONG selection and ranking",
-    "entry reservation/idempotency before submit",
-    "source/release/health/settings recheck immediately before submit",
-    "Binance signed MARKET BUY quoteOrderQty=50.00",
-    "ACK -> order query -> myTrades fill persistence",
-    "restart/timeout/partial-fill recovery without resubmit",
-    "bot-owned quantity calculation including base-asset fees",
-    "canonical strategy exit while entries may be disabled",
-    "Binance SELL explicit owned base quantity and filter rounding",
-    "SELL fill details and residual/dust validation",
-    "fresh account/open-order/locked-balance reconciliation",
-    "trial COMPLETED gate",
-    "normal Live eligibility and parity",
-    "24/7 diagnostic evidence without secrets"
+    "pin latest engineering head and build isolated venv",
+    "load exact three-year closed 1h Binance-public history plus warmup",
+    "reproduce current V6 per-coin baseline and stress",
+    "load prior Top-8/robust/reject/loss-cluster evidence",
+    "training-only bounded candidate discovery per coin",
+    "freeze Top-K per coin",
+    "independent validation baseline/stress",
+    "full-three-year baseline/stress rejection gate",
+    "drawdown and trade-count sanity checks",
+    "loss-cluster analysis for unresolved coins",
+    "bounded second-stage local search for unresolved coins",
+    "marginal canonical portfolio compatibility per robust coin",
+    "combined candidate portfolio baseline/stress",
+    "profile hash parity across isolated and portfolio runners",
+    "A10 synthesis and named repair/search routing",
+    "A09 independent QA",
+    "A11 governance; research only"
   ],
   "assignments": {
     "A01": {
-      "objective": "Trace docs, UI text and code for the complete 1x50 BUY->SELL->reconciliation lifecycle. Identify any wording that implies a fill/completion before Binance evidence exists or any obsolete gate.",
+      "objective": "Audit prior coin-optimization history, methodology and candidate-space changes. Identify repeated/dead search regions and ensure the new round does not reuse validation for selection.",
       "handoff": [
+        "A02",
+        "A05",
         "A10"
       ],
       "required_focus": [
-        "trial-prerequisites",
-        "live-prerequisites",
-        "obsolete-gates",
-        "docs-code-parity"
+        "methodology",
+        "history",
+        "search-space",
+        "overfit"
       ]
     },
     "A02": {
-      "objective": "Prove strategy parity: the trial and production Live consume the same canonical ten-coin StrategyDefinition, coin profiles, closed-1h semantics, entry ranking and exit rules as current Backtest/Paper. Exercise fresh-signal-only and missed-exit/current-reference behavior.",
+      "objective": "Run the fresh latest-head coin-by-coin three-year optimization in an isolated venv. Produce complete per-coin current metrics, Top-8 training shortlist, validation/full baseline+stress results, robust finalists and marginal/combined portfolio evidence.",
       "handoff": [
         "A03",
+        "A05",
         "A08",
         "A10"
       ],
       "required_focus": [
-        "fresh-signal-only",
-        "closed-candle-semantics",
-        "signal-frequency",
-        "strategy-version"
+        "10-coins",
+        "three-year",
+        "baseline-stress",
+        "top-k",
+        "robust-finalists",
+        "portfolio"
       ]
     },
     "A03": {
-      "objective": "Audit durable state, account baseline, bot-owned ledger, restart recovery and every trial transition WAITING_SIGNAL->ENTRY_PENDING->OPEN->EXIT_PENDING->AWAITING_RECONCILIATION->COMPLETED/NEEDS_REVIEW. Prove foreign holdings cannot be sold.",
+      "objective": "Verify engine/profile parity and deterministic reproduction between isolated single-coin runner and canonical portfolio runner. Reject any candidate whose parameter or policy hash drifts.",
       "handoff": [
         "A06",
         "A10"
       ],
       "required_focus": [
-        "trial-state-machine",
-        "ledger-ownership",
-        "account-baseline",
-        "restart-persistence",
-        "legacy-local-upgrade"
+        "parity",
+        "determinism",
+        "profile-hash",
+        "runner-equivalence"
       ]
     },
     "A04": {
-      "objective": "Run the real Chromium operator flow through credentials/status, automatic preflight on arm, WAITING_SIGNAL, visible BUY/OPEN/EXIT/reconciliation states under fake exchange evidence, and Live enable only after COMPLETED. Verify shipped bundle freshness.",
+      "objective": "Keep optimization research isolated from shipped UI/Paper/Live. Verify no research candidate is silently presented as active or written to the local live trial.",
       "handoff": [
-        "A06",
         "A10"
       ],
       "required_focus": [
-        "ui-gates",
-        "credential-status",
-        "trial-button",
-        "live-button",
-        "error-surface",
-        "bundle-freshness",
-        "legacy-local-upgrade",
-        "real-browser-user-flow"
+        "research-only",
+        "ui-separation",
+        "no-live-mutation"
       ]
     },
     "A05": {
-      "objective": "Audit 24/7 scheduler, closed-bar wake-up, runtime HEALTHY/DEGRADED handling, source/version drift and process restart. Prove an OPEN owned position remains exit-capable and is not stranded by entry-disable/release changes.",
-      "handoff": [
-        "A03",
-        "A06",
-        "A10"
-      ],
-      "required_focus": [
-        "process-version",
-        "runtime-freshness",
-        "scheduler",
-        "restart",
-        "stale-data"
-      ]
-    },
-    "A06": {
-      "objective": "Execute full integration/failure matrix with fake authenticated exchange: successful BUY+SELL, timeout after accepted BUY, timeout after accepted SELL, partial fills, missing fill details, restart between reservation/submit/query, duplicate calls, definitive rejection, API/network errors, residual quantity and reconciliation mismatch. No duplicate order may occur.",
-      "handoff": [
-        "A10"
-      ],
-      "required_focus": [
-        "root-cause-reproduction",
-        "integration-repair",
-        "failure-matrix",
-        "idempotency",
-        "circular-gates",
-        "legacy-local-upgrade"
-      ]
-    },
-    "A07": {
-      "objective": "Audit the concrete Binance Spot adapter and current official API requirements: signed POST /api/v3/order MARKET BUY quoteOrderQty, MARKET SELL quantity, origClientOrderId lookup, myTrades fill lookup, permissions, filters, precision, account/openOrders snapshot. No private credential use in cloud.",
-      "handoff": [
-        "A06",
-        "A10"
-      ],
-      "required_focus": [
-        "authenticated-boundary",
-        "binance-errors",
-        "spot-permission",
-        "usdc-balance",
-        "filters",
-        "reconciliation"
-      ]
-    },
-    "A08": {
-      "objective": "Audit all safety/risk/capital gates immediately before entry and exit. Confirm HEALTHY/release/source/settings gates block new BUY safely but never strand a proven bot-owned exit; verify minQty/stepSize/dust and 50-USDC exact budget.",
+      "objective": "Analyze losing trades and unresolved coins using ATR regime, breakout strength, holding-time clusters and prior Top-8 neighborhoods. Propose bounded second-stage candidate neighborhoods per unresolved coin.",
       "handoff": [
         "A02",
         "A06",
         "A10"
       ],
       "required_focus": [
-        "trial-risk-gates",
-        "capital-gates",
-        "version-parity",
-        "entry-pause",
-        "daily-loss-pause",
-        "exit-only"
+        "loss-clusters",
+        "per-coin-search",
+        "holding-time",
+        "ATR",
+        "breakout"
+      ]
+    },
+    "A06": {
+      "objective": "Enforce anti-overfit rules and test the bounded second-stage search. Never weaken holdout/full-window gates. Add regression tests for any new candidate-generation logic and make the search deterministic and finite.",
+      "handoff": [
+        "A02",
+        "A10"
+      ],
+      "required_focus": [
+        "overfit",
+        "bounded-search",
+        "regressions",
+        "determinism"
+      ]
+    },
+    "A07": {
+      "objective": "Verify all ten current Binance USDC markets and execution filters remain valid for the backtest execution model; no private credentials or orders.",
+      "handoff": [
+        "A02",
+        "A10"
+      ],
+      "required_focus": [
+        "binance-public",
+        "filters",
+        "USDC",
+        "no-orders"
+      ]
+    },
+    "A08": {
+      "objective": "Evaluate opportunity cost after isolated improvements: marginally insert each robust coin into the canonical max-budget portfolio under baseline/stress, then test compatible combinations. Do not use portfolio outcome to discover candidates.",
+      "handoff": [
+        "A10"
+      ],
+      "required_focus": [
+        "portfolio-gate",
+        "slot-opportunity-cost",
+        "baseline-stress",
+        "combination"
       ]
     },
     "A09": {
-      "objective": "Independently QA the exact commit after A10. Require complete evidence for the full simulated roundtrip, real Chromium, full tests, strategy parity, idempotency/restart, exit/reconciliation and no cloud-real-fill overclaim.",
+      "objective": "Independently QA exact-head research. Reject stale metrics, holdout-selected candidates, missing stress evidence, non-deterministic runs or claims that all ten improved when evidence does not show it.",
       "handoff": [
         "A11"
       ],
       "required_focus": [
         "independent-qa",
-        "commit-pin",
-        "full-tests",
-        "ui-build",
-        "live-readiness",
-        "real-browser-user-flow"
+        "exact-head",
+        "holdout",
+        "all-ten"
       ]
     },
     "A10": {
-      "objective": "Synthesize the exact blocker chain from WAITING_SIGNAL to COMPLETED and normal Live. Reject PASS if BUY can be sent but SELL/reconciliation/restart/ownership proof is incomplete; route every defect to a named specialist.",
+      "objective": "Synthesize per-coin outcomes. For every coin without a robust improvement, name the failed gate and route a specific bounded next-search task to A02/A05/A06. Do not declare the mission complete merely because aggregate portfolio return improves.",
       "handoff": [
         "A09"
       ],
       "required_focus": [
-        "blocker-chain",
+        "per-coin-status",
         "repair-routing",
-        "evidence-freshness",
-        "commit-pin",
-        "legacy-local-upgrade",
-        "real-browser-user-flow"
+        "search-loop",
+        "aggregate"
       ]
     },
     "A11": {
-      "objective": "Govern the entire round. Reject stale/mixed commits, mocked-as-real claims, missing real-browser evidence, duplicate-submit risk, foreign-balance liquidation risk, or any statement that cloud proved a real Binance fill.",
+      "objective": "Govern the research loop. Require exact-commit A01-A10 evidence and prohibit gate weakening, holdout leakage, automatic canonical promotion or interference with the armed local 1x50 trial.",
       "handoff": [],
       "required_focus": [
         "governance",
-        "agent-audit",
-        "repair-loop",
-        "commit-pin",
-        "no-live-overclaim",
-        "legacy-local-upgrade",
-        "real-browser-user-flow"
+        "no-overfit",
+        "no-promotion",
+        "local-trial-isolation"
       ]
     }
   },
   "owner_context": {
-    "observed_local_trial_state": "WAITING_SIGNAL",
-    "operator_statement": "API key/secret are stored locally; UI says controlled 1x50 trial armed, baseline/account checks passed, no order sent yet.",
-    "operator_questions": [
-      "Will a real Binance Spot order actually be submitted when a fresh valid signal occurs?",
-      "Will the bot later close that exact bot-owned position automatically instead of leaving it open indefinitely?",
-      "Does the real execution use the same strategy/exit logic as the backtests, subject to real market fills/fees/slippage?",
-      "Can restarts, timeouts, partial fills, dust, account changes or disabled entries strand or duplicate the position?"
+    "target_symbols": [
+      "BTCUSDC",
+      "ETHUSDC",
+      "BNBUSDC",
+      "SOLUSDC",
+      "XRPUSDC",
+      "ADAUSDC",
+      "LINKUSDC",
+      "AVAXUSDC",
+      "DOTUSDC",
+      "DOGEUSDC"
     ],
-    "required_local_boundary": "Cloud may prove code and simulated exchange behavior only. Actual real-order/fill proof must come from the local authenticated runtime and must include Binance order/fill IDs plus reconciliation, without exposing API key/secret."
+    "prior_robust_summary": {
+      "BTCUSDC": "none",
+      "ETHUSDC": "none",
+      "BNBUSDC": "none",
+      "SOLUSDC": "momentum18,smoothing12",
+      "XRPUSDC": "momentum22",
+      "ADAUSDC": "vidya8_band_m0_1,vidya8,vidya9,momentum14,vidya8_band_0_1",
+      "LINKUSDC": "none",
+      "AVAXUSDC": "none",
+      "DOTUSDC": "none",
+      "DOGEUSDC": "smoothing17_momentum16"
+    },
+    "local_trial": "A separate locally authenticated 1x50-USDC trial may remain WAITING_SIGNAL; optimization must not require restart/update and must not use private credentials."
   }
 }
