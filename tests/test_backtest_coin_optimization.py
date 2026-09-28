@@ -9,6 +9,7 @@ from scripts.coin_optimization_cycle import (
     aggregate_promotion_gate,
     candidate_catalog,
     choose_training_candidate,
+    freeze_distinct_training_shortlist,
     rank_training_candidates,
 )
 
@@ -128,3 +129,44 @@ def test_runner_profile_hashes_are_independent_and_sensitive_to_inputs() -> None
     third = _runner_profile_hashes(changed, policies)
     assert third["BTCUSDC"] == first["BTCUSDC"]
     assert third["ETHUSDC"] != first["ETHUSDC"]
+
+def test_distinct_training_shortlist_skips_current_equivalent_behaviour() -> None:
+    ordered = ("same_as_current", "current", "first", "same_as_first", "second")
+    behavior = {
+        "current": ("current-behaviour",),
+        "same_as_current": ("current-behaviour",),
+        "first": ("first-behaviour",),
+        "same_as_first": ("first-behaviour",),
+        "second": ("second-behaviour",),
+    }
+    selected, skipped = freeze_distinct_training_shortlist(
+        ordered,
+        behavior,
+        limit=2,
+    )
+    assert selected == ("first", "second")
+    assert skipped == ("same_as_current", "same_as_first")
+
+
+def test_coin_optimization_catalog_contains_training_led_second_stage_neighbourhoods() -> None:
+    expected = {
+        "BTCUSDC": {"local_smooth10_band_p20", "local_atr135_band_p03"},
+        "ETHUSDC": {"local_smooth7_mom18", "local_slope18_smooth6_mom20"},
+        "BNBUSDC": {"local_vidya9_mom18", "local_atr135_mom19"},
+        "SOLUSDC": {"local_mom18_smooth12", "local_mom19_smooth13"},
+        "XRPUSDC": {"local_mom21", "local_mom22_band_p05"},
+        "ADAUSDC": {"local_vidya8_mom14", "local_vidya8_band_m05"},
+        "LINKUSDC": {"local_mom21", "local_vidya9_mom22"},
+        "AVAXUSDC": {"local_mom21", "local_vidya9_band_p10"},
+        "DOTUSDC": {"local_vidya5_band_p15", "local_vidya8_cmo20"},
+        "DOGEUSDC": {"local_smooth16_mom16", "local_smooth17_mom15"},
+    }
+    for symbol, names in expected.items():
+        catalog = candidate_catalog(symbol)
+        found = {candidate.name for candidate in catalog}
+        assert names <= found
+        assert len(catalog) <= 128
+        assert len({(candidate.parameters, candidate.policy) for candidate in catalog}) == len(
+            catalog
+        )
+

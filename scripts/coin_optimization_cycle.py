@@ -287,6 +287,262 @@ def candidate_catalog(symbol: str) -> tuple[Candidate, ...]:
                 momentum_length=momentum_near[0],
             ),
         )
+
+    # Stage-2 local neighbourhoods are fixed from prior TRAINING rankings only.
+    # They deliberately interpolate around training leaders without consulting the
+    # independent validation/full-window outcome for candidate discovery.
+    if symbol == "BTCUSDC":
+        for smoothing in (9, 10, 11):
+            for offset in (0.2, 0.3):
+                add(
+                    f"local_smooth{smoothing}_band_p{int(offset * 100):02d}",
+                    parameters=replace(
+                        base_parameters,
+                        smoothing_length=smoothing,
+                        band_multiplier=round(base_parameters.band_multiplier + offset, 2),
+                    ),
+                )
+        add(
+            "local_atr135_band_p03",
+            parameters=replace(
+                base_parameters,
+                atr_length=135,
+                band_multiplier=round(base_parameters.band_multiplier + 0.3, 2),
+            ),
+        )
+        add(
+            "local_vidya4_smooth10",
+            parameters=replace(base_parameters, vidya_length=4, smoothing_length=10),
+        )
+
+    elif symbol == "ETHUSDC":
+        for smoothing, momentum in ((5, 18), (6, 19), (7, 18), (7, 19)):
+            add(
+                f"local_smooth{smoothing}_mom{momentum}",
+                parameters=replace(
+                    base_parameters,
+                    smoothing_length=smoothing,
+                    momentum_length=momentum,
+                ),
+            )
+        for atr, momentum in ((45, 18), (45, 19), (30, 19)):
+            add(
+                f"local_atr{atr}_mom{momentum}",
+                parameters=replace(
+                    base_parameters,
+                    atr_length=atr,
+                    momentum_length=momentum,
+                ),
+            )
+        for slope, smoothing, momentum in (
+            (12, 6, 20),
+            (18, 6, 20),
+            (18, 8, 18),
+        ):
+            add(
+                f"local_slope{slope}_smooth{smoothing}_mom{momentum}",
+                parameters=replace(
+                    base_parameters,
+                    smoothing_length=smoothing,
+                    momentum_length=momentum,
+                ),
+                policy=replace(base_policy, slope_bars=slope),
+            )
+
+    elif symbol == "BNBUSDC":
+        for vidya, momentum in ((9, 18), (9, 19)):
+            add(
+                f"local_vidya{vidya}_mom{momentum}",
+                parameters=replace(
+                    base_parameters,
+                    vidya_length=vidya,
+                    momentum_length=momentum,
+                ),
+            )
+        for vidya, atr in ((9, 135), (9, 150)):
+            add(
+                f"local_vidya{vidya}_atr{atr}",
+                parameters=replace(
+                    base_parameters,
+                    vidya_length=vidya,
+                    atr_length=atr,
+                ),
+            )
+        for atr, momentum in ((135, 18), (135, 19), (150, 19)):
+            add(
+                f"local_atr{atr}_mom{momentum}",
+                parameters=replace(
+                    base_parameters,
+                    atr_length=atr,
+                    momentum_length=momentum,
+                ),
+            )
+        for smoothing, momentum in ((7, 18), (7, 19)):
+            add(
+                f"local_smooth{smoothing}_mom{momentum}",
+                parameters=replace(
+                    base_parameters,
+                    smoothing_length=smoothing,
+                    momentum_length=momentum,
+                ),
+            )
+        add(
+            "local_mom17",
+            parameters=replace(base_parameters, momentum_length=17),
+        )
+
+    elif symbol == "SOLUSDC":
+        for momentum, smoothing in ((18, 12), (18, 13), (19, 12), (19, 13)):
+            add(
+                f"local_mom{momentum}_smooth{smoothing}",
+                parameters=replace(
+                    base_parameters,
+                    momentum_length=momentum,
+                    smoothing_length=smoothing,
+                ),
+            )
+
+    elif symbol == "XRPUSDC":
+        for momentum in (21, 23):
+            add(
+                f"local_mom{momentum}",
+                parameters=replace(base_parameters, momentum_length=momentum),
+            )
+        for momentum, offset in ((22, -0.05), (22, 0.05), (21, 0.05), (23, 0.05)):
+            suffix = "m05" if offset < 0 else "p05"
+            add(
+                f"local_mom{momentum}_band_{suffix}",
+                parameters=replace(
+                    base_parameters,
+                    momentum_length=momentum,
+                    band_multiplier=round(base_parameters.band_multiplier + offset, 2),
+                ),
+            )
+
+    elif symbol == "ADAUSDC":
+        for vidya in (7, 8, 9):
+            add(
+                f"local_vidya{vidya}_mom14",
+                parameters=replace(
+                    base_parameters,
+                    vidya_length=vidya,
+                    momentum_length=14,
+                ),
+            )
+        for vidya, offset in ((8, -0.05), (8, 0.05), (9, -0.05)):
+            suffix = "m05" if offset < 0 else "p05"
+            add(
+                f"local_vidya{vidya}_band_{suffix}",
+                parameters=replace(
+                    base_parameters,
+                    vidya_length=vidya,
+                    band_multiplier=round(base_parameters.band_multiplier + offset, 2),
+                ),
+            )
+
+    elif symbol == "LINKUSDC":
+        for momentum in (21, 23):
+            add(
+                f"local_mom{momentum}",
+                parameters=replace(base_parameters, momentum_length=momentum),
+            )
+        for momentum, offset in ((22, -0.05), (22, 0.05), (23, -0.05), (23, 0.05)):
+            suffix = "m05" if offset < 0 else "p05"
+            add(
+                f"local_mom{momentum}_band_{suffix}",
+                parameters=replace(
+                    base_parameters,
+                    momentum_length=momentum,
+                    band_multiplier=round(base_parameters.band_multiplier + offset, 2),
+                ),
+            )
+        for vidya, momentum in ((9, 22), (10, 22), (11, 22), (9, 23)):
+            add(
+                f"local_vidya{vidya}_mom{momentum}",
+                parameters=replace(
+                    base_parameters,
+                    vidya_length=vidya,
+                    momentum_length=momentum,
+                ),
+            )
+
+    elif symbol == "AVAXUSDC":
+        for momentum in (21, 23):
+            add(
+                f"local_mom{momentum}",
+                parameters=replace(base_parameters, momentum_length=momentum),
+            )
+        for vidya in (8, 9, 10, 11):
+            add(
+                f"local_vidya{vidya}_mom22",
+                parameters=replace(
+                    base_parameters,
+                    vidya_length=vidya,
+                    momentum_length=22,
+                ),
+            )
+        for vidya in (9, 10):
+            for offset in (0.1, 0.2):
+                add(
+                    f"local_vidya{vidya}_band_p{int(offset * 100):02d}",
+                    parameters=replace(
+                        base_parameters,
+                        vidya_length=vidya,
+                        band_multiplier=round(base_parameters.band_multiplier + offset, 2),
+                    ),
+                )
+
+    elif symbol == "DOTUSDC":
+        for vidya in (5, 7):
+            for offset in (-0.05, 0.05, 0.1, 0.15, 0.2):
+                suffix = (
+                    f"m{abs(int(offset * 100)):02d}"
+                    if offset < 0
+                    else f"p{int(offset * 100):02d}"
+                )
+                add(
+                    f"local_vidya{vidya}_band_{suffix}",
+                    parameters=replace(
+                        base_parameters,
+                        vidya_length=vidya,
+                        band_multiplier=round(base_parameters.band_multiplier + offset, 2),
+                    ),
+                )
+        for offset in (-0.05, 0.05):
+            suffix = "m05" if offset < 0 else "p05"
+            add(
+                f"local_vidya8_band_{suffix}",
+                parameters=replace(
+                    base_parameters,
+                    vidya_length=8,
+                    band_multiplier=round(base_parameters.band_multiplier + offset, 2),
+                ),
+            )
+        for vidya in (7, 8):
+            add(
+                f"local_vidya{vidya}_cmo20",
+                parameters=replace(base_parameters, vidya_length=vidya),
+                policy=replace(base_policy, cmo_floor=0.2),
+            )
+
+    elif symbol == "DOGEUSDC":
+        for smoothing, momentum in (
+            (16, 16),
+            (18, 16),
+            (17, 15),
+            (17, 17),
+            (16, 17),
+            (18, 15),
+        ):
+            add(
+                f"local_smooth{smoothing}_mom{momentum}",
+                parameters=replace(
+                    base_parameters,
+                    smoothing_length=smoothing,
+                    momentum_length=momentum,
+                ),
+            )
+
     return tuple(candidates)
 
 
@@ -311,6 +567,57 @@ def rank_training_candidates(
         reverse=True,
     )
     return tuple(ordered[:limit])
+
+
+
+def _training_behavior_key(result: BacktestResult) -> tuple[object, ...]:
+    """Fingerprint observable training behaviour, not parameter identity."""
+
+    trades = tuple(
+        (
+            trade.entry_time_utc.isoformat(),
+            trade.exit_time_utc.isoformat(),
+            trade.entry_signal_id,
+            trade.exit_signal_id,
+            str(trade.realized_pnl),
+        )
+        for trade in result.trades
+    )
+    return (
+        str(result.metrics.return_pct),
+        str(result.metrics.max_drawdown_pct),
+        trades,
+    )
+
+
+def freeze_distinct_training_shortlist(
+    ordered: tuple[str, ...],
+    behavior_keys: dict[str, tuple[object, ...]],
+    *,
+    limit: int = 8,
+    current_name: str = "current",
+) -> tuple[tuple[str, ...], tuple[str, ...]]:
+    """Freeze Top-K unique training behaviours without consulting holdout data."""
+
+    if limit <= 0:
+        raise ValueError("training shortlist limit must be positive")
+    if current_name not in behavior_keys:
+        raise KeyError(current_name)
+    chosen: list[str] = []
+    skipped: list[str] = []
+    seen = {behavior_keys[current_name]}
+    for name in ordered:
+        if name == current_name:
+            continue
+        behavior = behavior_keys[name]
+        if behavior in seen:
+            skipped.append(name)
+            continue
+        seen.add(behavior)
+        chosen.append(name)
+        if len(chosen) == limit:
+            break
+    return tuple(chosen), tuple(skipped)
 
 
 def choose_training_candidate(
@@ -769,6 +1076,7 @@ def run_cycle(output: Path) -> dict[str, object]:
         catalog = catalog_by_symbol[symbol]
         training: dict[str, dict[str, object]] = {}
         scores: dict[str, tuple[Decimal, Decimal, Decimal]] = {}
+        behavior_keys: dict[str, tuple[object, ...]] = {}
         for name, candidate in catalog.items():
             train_results = []
             for window_name in ("train_a", "train_b"):
@@ -792,13 +1100,22 @@ def run_cycle(output: Path) -> dict[str, object]:
                     train_results[1].metrics.max_drawdown_pct,
                 ),
             )
+            behavior_keys[name] = tuple(
+                _training_behavior_key(result) for result in train_results
+            )
             training[name] = {
                 "train_a_stress": _result_summary(train_results[0]),
                 "train_b_stress": _result_summary(train_results[1]),
             }
 
         ordered = rank_training_candidates(scores, limit=len(scores))
-        shortlist_names = tuple(name for name in ordered if name != "current")[:8]
+        shortlist_names, behavior_duplicates_skipped = (
+            freeze_distinct_training_shortlist(
+                ordered,
+                behavior_keys,
+                limit=8,
+            )
+        )
         current = catalog["current"]
         low, high = windows["validation"]
         current_validation_base = _run_single(
@@ -919,6 +1236,7 @@ def run_cycle(output: Path) -> dict[str, object]:
             "current_profile": _payload(current),
             "training_candidates": training,
             "training_ranked": list(ordered),
+            "training_behavior_duplicates_skipped": list(behavior_duplicates_skipped),
             "training_top_k_challengers": list(shortlist_names),
             "validation_current_baseline": _result_summary(current_validation_base),
             "validation_current_stress": _result_summary(current_validation_stress),
