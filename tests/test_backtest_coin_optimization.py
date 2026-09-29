@@ -155,7 +155,7 @@ def test_coin_optimization_catalog_contains_training_led_second_stage_neighbourh
         "BNBUSDC": {"local_vidya9_mom18", "local_atr135_mom19"},
         "SOLUSDC": {"local_mom18_smooth12", "local_mom19_smooth13"},
         "XRPUSDC": {"local_mom21", "local_mom22_band_p05"},
-        "ADAUSDC": {"local_vidya8_mom14", "local_vidya8_band_m05"},
+        "ADAUSDC": {"local_vidya9_mom14", "local_vidya8_band_m05"},
         "LINKUSDC": {"local_mom21", "local_vidya9_mom22"},
         "AVAXUSDC": {"local_mom21", "local_vidya9_band_p10"},
         "DOTUSDC": {"local_vidya5_band_p15", "local_vidya8_cmo20"},
