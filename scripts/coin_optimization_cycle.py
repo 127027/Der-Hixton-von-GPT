@@ -1189,10 +1189,12 @@ def run_cycle(
                 }
             continue
 
-        catalog = dict(base_catalog)
-        identities = {
-            (candidate.parameters, candidate.policy) for candidate in catalog.values()
-        }
+        # Generation 0 already exhausted the static catalogue. Later generations
+        # must not burn compute repeating the same grid: they compare only current
+        # versus the newly generated training-led neighbourhood.
+        current = base_catalog["current"]
+        catalog = {"current": current}
+        identities = {(current.parameters, current.policy)}
         for candidate in adaptive:
             identity = (candidate.parameters, candidate.policy)
             if identity in identities:
