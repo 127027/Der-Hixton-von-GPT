@@ -199,7 +199,7 @@ _V6_PROFILES = (
     CoinProfile(
         "ADAUSDC",
         StrategyParameters(
-            vidya_length=6,
+            vidya_length=8,
             momentum_length=20,
             smoothing_length=8,
             atr_length=60,
@@ -238,7 +238,7 @@ _V6_PROFILES = (
             vidya_length=6,
             momentum_length=20,
             smoothing_length=8,
-            atr_length=60,
+            atr_length=120,
             band_multiplier=3.8,
             warmup_bars=400,
         ),
