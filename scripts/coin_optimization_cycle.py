@@ -806,8 +806,12 @@ def candidate_catalog(symbol: str) -> tuple[Candidate, ...]:
         for momentum in (18, 20):
             for cmo in (0.10, 0.20):
                 for stop in (3.5, 4.5):
+                    stop_label = str(stop).replace(".", "_")
                     add(
-                        f"profit_xrp_m{momentum}_cmo{int(cmo * 100):02d}_stop{str(stop).replace('.', '_')}",
+                        (
+                            f"profit_xrp_m{momentum}_cmo{int(cmo * 100):02d}"
+                            f"_stop{stop_label}"
+                        ),
                         parameters=replace(base_parameters, momentum_length=momentum),
                         policy=replace(base_policy, cmo_floor=cmo, stop_atr=stop),
                     )
