@@ -1258,8 +1258,9 @@ def _optimization_audit_a02() -> list[dict[str, Any]]:
         }
         if raw.get("mission_frozen_promoted") is True:
             suggestions[symbol] = (
-                "Already promoted into the canonical V6 baseline for this mission and intentionally "
-                "frozen; do not reopen parameter search unless a later owner instruction unfreezes it."
+                "Already promoted into the canonical V6 baseline for this mission "
+                "and intentionally frozen; do not reopen parameter search unless a "
+                "later owner instruction unfreezes it."
             )
         elif accepted:
             suggestions[symbol] = (
