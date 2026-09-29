@@ -746,7 +746,7 @@ def candidate_catalog(symbol: str) -> tuple[Candidate, ...]:
                     ),
                     policy=replace(base_policy, cmo_floor=cmo),
                 )
-        for slope in (0, 12, 24):
+        for slope in (0, 24, 72):
             add(
                 f"profit_eth_m18_cmo15_slope{slope}",
                 parameters=replace(base_parameters, momentum_length=18),
