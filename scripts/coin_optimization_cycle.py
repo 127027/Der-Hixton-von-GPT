@@ -728,6 +728,127 @@ def candidate_catalog(symbol: str) -> tuple[Candidate, ...]:
                 ),
             )
 
+
+    # Profit-first hypothesis pack derived from the 2026-09-29 deep-research review.
+    # These are fixed, bounded hypotheses. They do not use validation/full-window
+    # outcomes to rank or generate candidates; the existing train-only Top-K freeze
+    # remains the only discovery mechanism.
+    if symbol == "ETHUSDC":
+        for cmo in (0.10, 0.15):
+            for offset in (-0.2, 0.0, 0.2):
+                suffix = "m20" if offset < 0 else ("p20" if offset > 0 else "base")
+                add(
+                    f"profit_eth_m18_cmo{int(cmo * 100):02d}_band_{suffix}",
+                    parameters=replace(
+                        base_parameters,
+                        momentum_length=18,
+                        band_multiplier=round(base_parameters.band_multiplier + offset, 2),
+                    ),
+                    policy=replace(base_policy, cmo_floor=cmo),
+                )
+        for slope in (0, 12, 24):
+            add(
+                f"profit_eth_m18_cmo15_slope{slope}",
+                parameters=replace(base_parameters, momentum_length=18),
+                policy=replace(base_policy, cmo_floor=0.15, slope_bars=slope),
+            )
+
+    elif symbol == "BTCUSDC":
+        for cmo in (0.15, 0.20, 0.25):
+            for offset in (-0.2, 0.2):
+                suffix = "m20" if offset < 0 else "p20"
+                add(
+                    f"profit_btc_cmo{int(cmo * 100):02d}_band_{suffix}",
+                    parameters=replace(
+                        base_parameters,
+                        band_multiplier=round(base_parameters.band_multiplier + offset, 2),
+                    ),
+                    policy=replace(base_policy, cmo_floor=cmo),
+                )
+
+    elif symbol == "SOLUSDC":
+        for cmo in (0.10, 0.15, 0.20):
+            add(
+                f"profit_sol_cmo{int(cmo * 100):02d}",
+                policy=replace(base_policy, cmo_floor=cmo),
+            )
+            add(
+                f"profit_sol_m18_s12_cmo{int(cmo * 100):02d}",
+                parameters=replace(
+                    base_parameters,
+                    momentum_length=18,
+                    smoothing_length=12,
+                ),
+                policy=replace(base_policy, cmo_floor=cmo),
+            )
+        for offset in (-0.2, 0.2):
+            suffix = "m20" if offset < 0 else "p20"
+            add(
+                f"profit_sol_m18_s12_band_{suffix}",
+                parameters=replace(
+                    base_parameters,
+                    momentum_length=18,
+                    smoothing_length=12,
+                    band_multiplier=round(base_parameters.band_multiplier + offset, 2),
+                ),
+            )
+
+    elif symbol == "LINKUSDC":
+        for momentum in (18, 22):
+            for cmo in (0.10, 0.15, 0.20):
+                add(
+                    f"profit_link_m{momentum}_cmo{int(cmo * 100):02d}_slope24",
+                    parameters=replace(base_parameters, momentum_length=momentum),
+                    policy=replace(base_policy, cmo_floor=cmo, slope_bars=24),
+                )
+
+    elif symbol == "XRPUSDC":
+        for momentum in (18, 20):
+            for cmo in (0.10, 0.20):
+                for stop in (3.5, 4.5):
+                    add(
+                        f"profit_xrp_m{momentum}_cmo{int(cmo * 100):02d}_stop{str(stop).replace('.', '_')}",
+                        parameters=replace(base_parameters, momentum_length=momentum),
+                        policy=replace(base_policy, cmo_floor=cmo, stop_atr=stop),
+                    )
+
+    elif symbol == "AVAXUSDC":
+        for band in (5.0, 5.4):
+            add(
+                f"profit_avax_band_{str(band).replace('.', '_')}",
+                parameters=replace(base_parameters, band_multiplier=band),
+            )
+
+    elif symbol == "DOGEUSDC":
+        for cmo in (0.15, 0.25):
+            for band in (4.2, 4.6):
+                add(
+                    f"profit_doge_m18_cmo{int(cmo * 100):02d}_band_{str(band).replace('.', '_')}",
+                    parameters=replace(
+                        base_parameters,
+                        momentum_length=18,
+                        band_multiplier=band,
+                    ),
+                    policy=replace(base_policy, cmo_floor=cmo),
+                )
+
+    elif symbol == "BNBUSDC":
+        for band in (4.8, 5.2):
+            add(
+                f"profit_bnb_band_{str(band).replace('.', '_')}",
+                parameters=replace(base_parameters, band_multiplier=band),
+            )
+        for stop in (2.0, 3.0):
+            add(
+                f"profit_bnb_stop_{str(stop).replace('.', '_')}",
+                policy=replace(base_policy, stop_atr=stop),
+            )
+        for trail in (2.0, 3.0):
+            add(
+                f"profit_bnb_trail_{str(trail).replace('.', '_')}",
+                policy=replace(base_policy, trail_atr=trail),
+            )
+
     return tuple(candidates)
 
 
@@ -920,6 +1041,59 @@ def _loss_signal_clusters(result: BacktestResult) -> dict[str, object]:
     }
 
 
+def _winner_signal_clusters(result: BacktestResult) -> dict[str, object]:
+    """Mirror loss clustering for winners so filters are judged by avoided loss vs lost alpha."""
+
+    signal_by_id = {signal.signal_id: signal for signal in result.signals}
+    volatility = {"ATR_LT_1PCT": 0, "ATR_1_TO_2PCT": 0, "ATR_GE_2PCT": 0}
+    breakout = {"LT_0_5": 0, "0_5_TO_1": 0, "GE_1": 0, "MISSING": 0}
+    holding = {"LE_24H": 0, "25_TO_72H": 0, "GT_72H": 0}
+    wins = [trade for trade in result.trades if trade.realized_pnl > 0]
+    for trade in wins:
+        signal = signal_by_id.get(trade.entry_signal_id)
+        if signal is not None and signal.close > 0:
+            atr_pct = D(str(signal.atr)) / D(str(signal.close)) * D("100")
+            if atr_pct < D("1"):
+                volatility["ATR_LT_1PCT"] += 1
+            elif atr_pct < D("2"):
+                volatility["ATR_1_TO_2PCT"] += 1
+            else:
+                volatility["ATR_GE_2PCT"] += 1
+            strength = signal.breakout_strength
+            if strength is None:
+                breakout["MISSING"] += 1
+            elif strength < 0.5:
+                breakout["LT_0_5"] += 1
+            elif strength < 1.0:
+                breakout["0_5_TO_1"] += 1
+            else:
+                breakout["GE_1"] += 1
+        if trade.holding_hours <= D("24"):
+            holding["LE_24H"] += 1
+        elif trade.holding_hours <= D("72"):
+            holding["25_TO_72H"] += 1
+        else:
+            holding["GT_72H"] += 1
+
+    best = sorted(wins, key=lambda item: item.realized_pnl, reverse=True)[:10]
+    return {
+        "winning_trades": len(wins),
+        "volatility_regime_proxy": volatility,
+        "breakout_strength_proxy": breakout,
+        "holding_time_clusters": holding,
+        "best_win_examples": [
+            {
+                "entry_utc": trade.entry_time_utc.isoformat(),
+                "exit_utc": trade.exit_time_utc.isoformat(),
+                "pnl": str(trade.realized_pnl),
+                "return_pct": str(trade.realized_return_pct),
+                "holding_hours": str(trade.holding_hours),
+            }
+            for trade in best
+        ],
+    }
+
+
 def _rules() -> dict[str, ExecutionRules]:
     public = BinancePublicClient(base_url="https://data-api.binance.vision")
     result: dict[str, ExecutionRules] = {}
@@ -969,9 +1143,40 @@ def _worst_losses(result: BacktestResult, limit: int = 5) -> list[dict[str, obje
 
 def _result_summary(result: BacktestResult) -> dict[str, object]:
     metrics = result.metrics
+    duration_hours = D(
+        str((result.report_end_utc - result.report_start_utc).total_seconds() / 3_600)
+    )
+    duration_days = duration_hours / D("24") if duration_hours > 0 else D("0")
+    total_position_hours = sum((trade.holding_hours for trade in result.trades), D("0"))
+    ordered_holds = sorted(trade.holding_hours for trade in result.trades)
+    median_holding_hours: Decimal | None = None
+    if ordered_holds:
+        middle = len(ordered_holds) // 2
+        if len(ordered_holds) % 2:
+            median_holding_hours = ordered_holds[middle]
+        else:
+            median_holding_hours = (ordered_holds[middle - 1] + ordered_holds[middle]) / D("2")
+
+    def time_to_return_hours(target_pct: Decimal) -> str | None:
+        target = metrics.starting_equity * (D("1") + target_pct / D("100"))
+        for point in result.equity_curve:
+            if point.equity >= target:
+                hours = D(
+                    str(
+                        (point.time_utc - result.report_start_utc).total_seconds()
+                        / 3_600
+                    )
+                )
+                return str(max(D("0"), hours))
+        return None
+
     return {
         "ending_equity": str(metrics.ending_equity),
+        "net_pnl": str(metrics.net_pnl),
         "return_pct": str(metrics.return_pct),
+        "annualized_return_pct": (
+            None if metrics.annualized_return_pct is None else str(metrics.annualized_return_pct)
+        ),
         "completed_trades": metrics.completed_trades,
         "winning_trades": metrics.winning_trades,
         "losing_trades": metrics.losing_trades,
@@ -983,6 +1188,21 @@ def _result_summary(result: BacktestResult) -> dict[str, object]:
         "average_holding_hours": (
             None if metrics.average_holding_hours is None else str(metrics.average_holding_hours)
         ),
+        "median_holding_hours": (
+            None if median_holding_hours is None else str(median_holding_hours)
+        ),
+        "total_position_hours": str(total_position_hours),
+        "profit_per_calendar_day": (
+            None if duration_days <= 0 else str(metrics.net_pnl / duration_days)
+        ),
+        "profit_per_position_hour": (
+            None if total_position_hours <= 0 else str(metrics.net_pnl / total_position_hours)
+        ),
+        "time_to_25pct_hours": time_to_return_hours(D("25")),
+        "time_to_50pct_hours": time_to_return_hours(D("50")),
+        "sharpe": None if metrics.sharpe is None else str(metrics.sharpe),
+        "sortino": None if metrics.sortino is None else str(metrics.sortino),
+        "calmar": None if metrics.calmar is None else str(metrics.calmar),
         "blocked_reasons": _blocked_counts(result),
         "worst_losses": _worst_losses(result),
     }
@@ -1493,6 +1713,7 @@ def run_cycle(
             "full_accepted_baseline": _result_summary(full_current),
         }
         per_coin[symbol]["loss_cluster_analysis"] = _loss_signal_clusters(full_current)
+        per_coin[symbol]["winner_cluster_analysis"] = _winner_signal_clusters(full_current)
         robust_names = ",".join(name for name, _candidate in robust) or "none"
         print(
             f"{symbol}: top8={','.join(shortlist_names)}; robust={robust_names}",

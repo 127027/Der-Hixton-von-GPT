@@ -148,6 +148,31 @@ def test_distinct_training_shortlist_skips_current_equivalent_behaviour() -> Non
     assert skipped == ("same_as_current", "same_as_first")
 
 
+def test_profit_first_hypothesis_pack_is_bounded_and_present() -> None:
+    expected = {
+        "ETHUSDC": {
+            "profit_eth_m18_cmo15_band_base",
+            "profit_eth_m18_cmo15_slope0",
+            "profit_eth_m18_cmo15_slope24",
+        },
+        "BTCUSDC": {"profit_btc_cmo20_band_m20", "profit_btc_cmo20_band_p20"},
+        "SOLUSDC": {"profit_sol_cmo15", "profit_sol_m18_s12_cmo15"},
+        "LINKUSDC": {"profit_link_m18_cmo15_slope24"},
+        "XRPUSDC": {"profit_xrp_m18_cmo10_stop3_5"},
+        "AVAXUSDC": {"profit_avax_band_5_0", "profit_avax_band_5_4"},
+        "DOGEUSDC": {"profit_doge_m18_cmo15_band_4_2"},
+        "BNBUSDC": {"profit_bnb_band_4_8", "profit_bnb_stop_2_0"},
+    }
+    for symbol, names in expected.items():
+        catalog = candidate_catalog(symbol)
+        found = {candidate.name for candidate in catalog}
+        assert names <= found
+        assert len(catalog) <= 128
+        assert len({(candidate.parameters, candidate.policy) for candidate in catalog}) == len(
+            catalog
+        )
+
+
 def test_coin_optimization_catalog_contains_training_led_second_stage_neighbourhoods() -> None:
     expected = {
         "BTCUSDC": {"local_smooth10_band_p20", "local_atr135_band_p03"},

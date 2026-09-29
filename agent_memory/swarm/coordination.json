@@ -2,7 +2,7 @@
   "schema_version": 1,
   "round_id": "COORD-2026-09-28-COINOPT-005",
   "status": "DISPATCHED",
-  "owner_objective": "Using the latest gpt/usdc-audit head, run a fresh isolated Python virtual environment and exact rolling three-year Binance-public backtests for BTC, ETH, BNB, SOL, XRP, ADA, LINK, AVAX, DOT and DOGE individually. Review prior optimization evidence and continue bounded evidence-led search per coin until every coin has either a robust holdout improvement or an explicitly documented unresolved research blocker. Never force a false improvement, never select on the holdout, and never mutate active Paper/Live or canonical V6 automatically. Once robust per-coin candidates exist, test each one marginally and then together in the canonical max-budget portfolio.",
+  "owner_objective": "Continue the exact-head ten-coin Hixton 0.5.0 research using the 2026-09-29 deep-research findings: keep CAPITAL-V1-2X50PCT and the 250-USDC shared portfolio frozen; prioritize profit-first isolated alpha, profit velocity and capital efficiency while retaining drawdown/stress as hard gates. Test the fixed bounded hypothesis pack for ETH/BTC/SOL first and smaller evidence-led neighborhoods for LINK/XRP/AVAX/DOGE/BNB. Preserve ADA and DOT as mission-frozen promoted champions. A05 must compare winner and loser clusters so any filter is judged by avoided losses versus lost winners. A10 must diagnose slot opportunity cost for any isolated robust candidate and accept only positive baseline+stress marginal portfolio alpha. Never use validation/full/portfolio outcomes to rank new training candidates.",
   "target_branch": "gpt/usdc-audit",
   "commit_policy": "PIN_EXACT_COMMIT_AT_RUN_START",
   "repair_policy": "ANY_PATCH_INVALIDATES_AFFECTED_EVIDENCE_AND_REQUIRES_A_NEW_PINNED_RUN",
@@ -40,14 +40,14 @@
     "load exact three-year closed 1h Binance-public history plus warmup",
     "reproduce current V6 per-coin baseline and stress",
     "load prior Top-8/robust/reject/loss-cluster evidence",
-    "training-only bounded candidate discovery per coin",
-    "freeze Top-K per coin",
+    "run bounded profit-first hypothesis pack with training-only ranking",
+    "freeze Top-K per coin before independent validation",
+    "report profit velocity, profit per occupied hour, Sharpe/Sortino/Calmar and time-to-25/50 percent",
     "independent validation baseline/stress",
     "full-three-year baseline/stress rejection gate",
-    "drawdown and trade-count sanity checks",
-    "loss-cluster analysis for unresolved coins",
-    "bounded second-stage local search for unresolved coins",
+    "compare winner clusters against loser clusters before recommending stricter filters",
     "marginal canonical portfolio compatibility per robust coin",
+    "diagnose per-coin slot opportunity cost for rejected robust finalists",
     "combined candidate portfolio baseline/stress",
     "profile hash parity across isolated and portfolio runners",
     "A10 synthesis and named repair/search routing",
@@ -70,7 +70,7 @@
       ]
     },
     "A02": {
-      "objective": "Run the fresh latest-head coin-by-coin three-year optimization in an isolated venv. Produce complete per-coin current metrics, Top-8 training shortlist, validation/full baseline+stress results, robust finalists and marginal/combined portfolio evidence.",
+      "objective": "Run the fresh latest-head ten-coin three-year optimization in an isolated venv using the bounded profit-first hypothesis pack. Ranking remains training-only. Report current metrics, Top-8, profit velocity/capital efficiency, independent validation/full baseline+stress, robust finalists and marginal/combined portfolio evidence.",
       "handoff": [
         "A03",
         "A05",
@@ -111,7 +111,7 @@
       ]
     },
     "A05": {
-      "objective": "Analyze losing trades and unresolved coins using ATR regime, breakout strength, holding-time clusters and prior Top-8 neighborhoods. Propose bounded second-stage candidate neighborhoods per unresolved coin.",
+      "objective": "Analyze both winning and losing trades for every unresolved coin using ATR regime, breakout strength and holding-time clusters. Quantify whether a proposed filter removes more loss than winner alpha. Use profit velocity/capital-efficiency diagnostics to propose only bounded next-stage hypotheses.",
       "handoff": [
         "A02",
         "A06",
@@ -176,7 +176,7 @@
       ]
     },
     "A10": {
-      "objective": "Synthesize per-coin outcomes. For every coin without a robust improvement, name the failed gate and route a specific bounded next-search task to A02/A05/A06. Do not declare the mission complete merely because aggregate portfolio return improves.",
+      "objective": "Synthesize all ten coins with priority on net OOS USDC and profit velocity. For every robust isolated candidate rejected by the 250-USDC portfolio, identify slot/opportunity-cost effects and route a bounded timing hypothesis. Aggregate improvement may never hide an unresolved individual coin.",
       "handoff": [
         "A09"
       ],
