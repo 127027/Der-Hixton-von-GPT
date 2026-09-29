@@ -153,7 +153,7 @@ def test_profit_first_hypothesis_pack_is_bounded_and_present() -> None:
         "ETHUSDC": {
             "profit_eth_m18_cmo15_band_base",
             "profit_eth_m18_cmo15_slope0",
-            "profit_eth_m18_cmo15_slope24",
+            "profit_eth_m18_cmo15_slope72",
         },
         "BTCUSDC": {"profit_btc_cmo20_band_m20", "profit_btc_cmo20_band_p20"},
         "SOLUSDC": {"profit_sol_cmo15", "profit_sol_m18_s12_cmo15"},
