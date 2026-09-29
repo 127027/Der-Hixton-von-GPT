@@ -58,6 +58,7 @@ def _candidate_hash(candidate: Candidate) -> str:
 
 MAX_ADAPTIVE_GENERATIONS = 3
 ADAPTIVE_ANCHORS_PER_SYMBOL = 2
+MISSION_FROZEN_PROMOTED_SYMBOLS = frozenset({"ADAUSDC", "DOTUSDC"})
 
 
 def _candidate_from_payload(name: str, payload: dict[str, object]) -> Candidate:
@@ -1153,6 +1154,9 @@ def run_cycle(
         base_catalog = {
             candidate.name: candidate for candidate in candidate_catalog(symbol)
         }
+        if symbol in MISSION_FROZEN_PROMOTED_SYMBOLS:
+            catalog_by_symbol[symbol] = {"current": base_catalog["current"]}
+            continue
         if previous_evidence is None:
             catalog_by_symbol[symbol] = base_catalog
             continue
@@ -1483,6 +1487,7 @@ def run_cycle(
             "full_current_stress": _result_summary(full_current_stress),
             "finalists": finalists,
             "robust_finalists": [name for name, _candidate in robust],
+            "mission_frozen_promoted": symbol in MISSION_FROZEN_PROMOTED_SYMBOLS,
             "accepted": False,
             "accepted_profile": _payload(current),
             "full_accepted_baseline": _result_summary(full_current),
@@ -1735,11 +1740,20 @@ def _iteration_summary(evidence: dict[str, object]) -> dict[str, object]:
     accepted = sorted(
         symbol
         for symbol, raw in per_coin.items()
-        if isinstance(raw, dict) and raw.get("accepted") is True
+        if isinstance(raw, dict)
+        and (
+            raw.get("accepted") is True
+            or raw.get("mission_frozen_promoted") is True
+        )
     )
     unresolved: dict[str, str] = {}
     for symbol, raw in per_coin.items():
-        if not isinstance(raw, dict) or raw.get("accepted") is True:
+        if not isinstance(raw, dict):
+            continue
+        if (
+            raw.get("accepted") is True
+            or raw.get("mission_frozen_promoted") is True
+        ):
             continue
         robust = raw.get("robust_finalists")
         unresolved[str(symbol)] = (

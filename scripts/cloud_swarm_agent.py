@@ -1250,12 +1250,18 @@ def _optimization_audit_a02() -> list[dict[str, Any]]:
             "completed_trades": current.get("completed_trades"),
             "training_top_k_challengers": raw.get("training_top_k_challengers", []),
             "robust_finalists": robust,
+            "mission_frozen_promoted": bool(raw.get("mission_frozen_promoted")),
             "accepted": accepted,
             "accepted_candidate_name": raw.get("accepted_candidate_name", "current"),
             "portfolio_selected": marginal.get("selected_for_combination", "current"),
             "loss_cluster_analysis": raw.get("loss_cluster_analysis", {}),
         }
-        if accepted:
+        if raw.get("mission_frozen_promoted") is True:
+            suggestions[symbol] = (
+                "Already promoted into the canonical V6 baseline for this mission and intentionally "
+                "frozen; do not reopen parameter search unless a later owner instruction unfreezes it."
+            )
+        elif accepted:
             suggestions[symbol] = (
                 "Research assembly improved both canonical models; candidate is eligible only "
                 "for a separate audited canonical-profile promotion."
