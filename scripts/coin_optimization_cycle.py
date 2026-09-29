@@ -56,6 +56,190 @@ def _candidate_hash(candidate: Candidate) -> str:
     return hashlib.sha256(raw).hexdigest()
 
 
+MAX_ADAPTIVE_GENERATIONS = 3
+ADAPTIVE_ANCHORS_PER_SYMBOL = 2
+
+
+def _candidate_from_payload(name: str, payload: dict[str, object]) -> Candidate:
+    """Rebuild a research candidate from previously emitted evidence."""
+
+    parameters_raw = payload.get("parameters")
+    policy_raw = payload.get("trade_policy")
+    if not isinstance(parameters_raw, dict) or not isinstance(policy_raw, dict):
+        raise ValueError(f"{name}: malformed candidate payload")
+    parameters = StrategyParameters(
+        vidya_length=int(parameters_raw["vidya_length"]),
+        momentum_length=int(parameters_raw["momentum_length"]),
+        smoothing_length=int(parameters_raw["smoothing_length"]),
+        atr_length=int(parameters_raw["atr_length"]),
+        band_multiplier=float(parameters_raw["band_multiplier"]),
+        warmup_bars=int(parameters_raw["warmup_bars"]),
+    )
+    policy = TradePolicy(
+        cmo_floor=float(policy_raw["cmo_floor"]),
+        slope_bars=int(policy_raw["slope_bars"]),
+        stop_atr=float(policy_raw["stop_atr"]),
+        trail_atr=float(policy_raw["trail_atr"]),
+    )
+    return Candidate(name=name, parameters=parameters, policy=policy)
+
+
+def _adaptive_candidates_from_previous(
+    symbol: str,
+    previous_evidence: dict[str, object],
+    generation: int,
+) -> tuple[Candidate, ...]:
+    """Build the next bounded neighbourhood from prior TRAINING-ranked evidence only.
+
+    Accepted profiles are carried forward unchanged (frozen). For unresolved coins,
+    new candidates are symmetric local perturbations around the prior training Top-K.
+    Validation/full-window and portfolio outcomes never choose a new direction.
+    """
+
+    per_coin = previous_evidence.get("per_coin")
+    if not isinstance(per_coin, dict):
+        return ()
+    coin = per_coin.get(symbol)
+    if not isinstance(coin, dict):
+        return ()
+
+    accepted_profile = coin.get("accepted_profile")
+    if coin.get("accepted") is True and isinstance(accepted_profile, dict):
+        return (
+            _candidate_from_payload(
+                f"g{generation}_frozen_{coin.get('accepted_candidate_name', 'winner')}",
+                accepted_profile,
+            ),
+        )
+
+    shortlist = coin.get("training_top_k_challengers")
+    finalists = coin.get("finalists")
+    if not isinstance(shortlist, list) or not isinstance(finalists, dict):
+        return ()
+
+    radius = max(1, min(generation, 3))
+    vidya_step = radius
+    momentum_step = radius
+    smoothing_step = radius
+    atr_step = 15 * radius
+    band_step = round(0.05 * radius, 2)
+    cmo_step = round(0.05 * radius, 2)
+
+    generated: list[Candidate] = []
+    seen: set[tuple[StrategyParameters, TradePolicy]] = set()
+
+    def add(candidate: Candidate) -> None:
+        identity = (candidate.parameters, candidate.policy)
+        if identity in seen:
+            return
+        seen.add(identity)
+        generated.append(candidate)
+
+    for anchor_index, raw_name in enumerate(shortlist[:ADAPTIVE_ANCHORS_PER_SYMBOL]):
+        name = str(raw_name)
+        finalist = finalists.get(name)
+        if not isinstance(finalist, dict):
+            continue
+        profile = finalist.get("profile")
+        if not isinstance(profile, dict):
+            continue
+        anchor = _candidate_from_payload(f"g{generation}_a{anchor_index}_{name}", profile)
+        add(anchor)
+
+        p = anchor.parameters
+        policy = anchor.policy
+        prefix = f"g{generation}_a{anchor_index}"
+
+        for sign, suffix in ((-1, "m"), (1, "p")):
+            add(
+                Candidate(
+                    f"{prefix}_vidya_{suffix}{vidya_step}",
+                    replace(p, vidya_length=max(2, p.vidya_length + sign * vidya_step)),
+                    policy,
+                )
+            )
+            add(
+                Candidate(
+                    f"{prefix}_mom_{suffix}{momentum_step}",
+                    replace(
+                        p,
+                        momentum_length=max(4, p.momentum_length + sign * momentum_step),
+                    ),
+                    policy,
+                )
+            )
+            add(
+                Candidate(
+                    f"{prefix}_smooth_{suffix}{smoothing_step}",
+                    replace(
+                        p,
+                        smoothing_length=max(2, p.smoothing_length + sign * smoothing_step),
+                    ),
+                    policy,
+                )
+            )
+            add(
+                Candidate(
+                    f"{prefix}_atr_{suffix}{atr_step}",
+                    replace(p, atr_length=max(15, min(240, p.atr_length + sign * atr_step))),
+                    policy,
+                )
+            )
+            add(
+                Candidate(
+                    f"{prefix}_band_{suffix}{int(band_step * 100):02d}",
+                    replace(
+                        p,
+                        band_multiplier=max(
+                            0.5,
+                            round(p.band_multiplier + sign * band_step, 2),
+                        ),
+                    ),
+                    policy,
+                )
+            )
+            add(
+                Candidate(
+                    f"{prefix}_cmo_{suffix}{int(cmo_step * 100):02d}",
+                    p,
+                    replace(
+                        policy,
+                        cmo_floor=max(
+                            0.0,
+                            min(1.0, round(policy.cmo_floor + sign * cmo_step, 2)),
+                        ),
+                    ),
+                )
+            )
+            add(
+                Candidate(
+                    f"{prefix}_mom_smooth_{suffix}",
+                    replace(
+                        p,
+                        momentum_length=max(4, p.momentum_length + sign * momentum_step),
+                        smoothing_length=max(2, p.smoothing_length + sign * smoothing_step),
+                    ),
+                    policy,
+                )
+            )
+            add(
+                Candidate(
+                    f"{prefix}_vidya_band_{suffix}",
+                    replace(
+                        p,
+                        vidya_length=max(2, p.vidya_length + sign * vidya_step),
+                        band_multiplier=max(
+                            0.5,
+                            round(p.band_multiplier + sign * band_step, 2),
+                        ),
+                    ),
+                    policy,
+                )
+            )
+
+    return tuple(generated)
+
+
 def candidate_catalog(symbol: str) -> tuple[Candidate, ...]:
     """Return a frozen, bounded neighbourhood around the active coin profile."""
 
@@ -936,7 +1120,12 @@ def aggregate_promotion_gate(
     }
 
 
-def run_cycle(output: Path) -> dict[str, object]:
+def run_cycle(
+    output: Path,
+    *,
+    previous_evidence: dict[str, object] | None = None,
+    generation: int = 0,
+) -> dict[str, object]:
     definition = V6_COIN_STRATEGY
     _, report_start, report_end = safe_closed_window()
     rules = _rules()
@@ -959,10 +1148,58 @@ def run_cycle(output: Path) -> dict[str, object]:
         "full": (report_start, report_end),
     }
 
-    catalog_by_symbol = {
-        symbol: {candidate.name: candidate for candidate in candidate_catalog(symbol)}
-        for symbol in definition.symbols
-    }
+    catalog_by_symbol: dict[str, dict[str, Candidate]] = {}
+    for symbol in definition.symbols:
+        base_catalog = {
+            candidate.name: candidate for candidate in candidate_catalog(symbol)
+        }
+        if previous_evidence is None:
+            catalog_by_symbol[symbol] = base_catalog
+            continue
+
+        adaptive = _adaptive_candidates_from_previous(
+            symbol,
+            previous_evidence,
+            generation,
+        )
+        previous_per_coin = previous_evidence.get("per_coin")
+        previous_coin = (
+            previous_per_coin.get(symbol)
+            if isinstance(previous_per_coin, dict)
+            else None
+        )
+
+        # Once a candidate has cleared the independent coin gate and the canonical
+        # portfolio gate in an earlier generation, freeze that coin for the rest
+        # of this research run. It is still revalidated against the same immutable
+        # three-year window, but no new parameters are searched for that symbol.
+        if (
+            isinstance(previous_coin, dict)
+            and previous_coin.get("accepted") is True
+            and adaptive
+        ):
+            current = base_catalog["current"]
+            frozen = adaptive[0]
+            if (frozen.parameters, frozen.policy) == (current.parameters, current.policy):
+                catalog_by_symbol[symbol] = {"current": current}
+            else:
+                catalog_by_symbol[symbol] = {
+                    "current": current,
+                    frozen.name: frozen,
+                }
+            continue
+
+        catalog = dict(base_catalog)
+        identities = {
+            (candidate.parameters, candidate.policy) for candidate in catalog.values()
+        }
+        for candidate in adaptive:
+            identity = (candidate.parameters, candidate.policy)
+            if identity in identities:
+                continue
+            catalog[candidate.name] = candidate
+            identities.add(identity)
+        catalog_by_symbol[symbol] = catalog
     catalog_digest = hashlib.sha256(
         json.dumps(
             {
@@ -1434,6 +1671,11 @@ def run_cycle(output: Path) -> dict[str, object]:
         "schema_version": 3,
         "study": "coin-by-coin-v6-topk-marginal-optimization",
         "research_only": True,
+        "search_generation": generation,
+        "adaptive_source_used": previous_evidence is not None,
+        "candidate_count_by_symbol": {
+            symbol: len(catalog) for symbol, catalog in catalog_by_symbol.items()
+        },
         "activation_performed": False,
         "active_strategy_version": definition.version,
         "research_version": research_version,
@@ -1484,9 +1726,101 @@ def run_cycle(output: Path) -> dict[str, object]:
     return evidence
 
 
+def _iteration_summary(evidence: dict[str, object]) -> dict[str, object]:
+    per_coin = evidence.get("per_coin")
+    if not isinstance(per_coin, dict):
+        raise RuntimeError("adaptive optimization evidence is missing per_coin")
+    accepted = sorted(
+        symbol
+        for symbol, raw in per_coin.items()
+        if isinstance(raw, dict) and raw.get("accepted") is True
+    )
+    unresolved: dict[str, str] = {}
+    for symbol, raw in per_coin.items():
+        if not isinstance(raw, dict) or raw.get("accepted") is True:
+            continue
+        robust = raw.get("robust_finalists")
+        unresolved[str(symbol)] = (
+            "PORTFOLIO_OPPORTUNITY_COST"
+            if isinstance(robust, list) and robust
+            else "NO_ROBUST_HOLDOUT_FINALIST"
+        )
+    portfolios = evidence.get("portfolio_max_budget")
+    candidate_equity = None
+    candidate_stress_equity = None
+    if isinstance(portfolios, dict):
+        baseline = portfolios.get("candidate_baseline")
+        stress = portfolios.get("candidate_stress")
+        if isinstance(baseline, dict):
+            candidate_equity = baseline.get("ending_equity")
+        if isinstance(stress, dict):
+            candidate_stress_equity = stress.get("ending_equity")
+    return {
+        "generation": evidence.get("search_generation"),
+        "accepted_symbols": accepted,
+        "unresolved": unresolved,
+        "candidate_count_by_symbol": evidence.get("candidate_count_by_symbol"),
+        "portfolio_candidate_ending_equity": candidate_equity,
+        "portfolio_candidate_stress_ending_equity": candidate_stress_equity,
+    }
+
+
+def run_adaptive_cycle(
+    output: Path,
+    *,
+    max_generations: int = MAX_ADAPTIVE_GENERATIONS,
+) -> dict[str, object]:
+    """Run bounded training-led generations until all coins improve or blockers remain."""
+
+    if max_generations <= 0:
+        raise ValueError("max_generations must be positive")
+
+    previous: dict[str, object] | None = None
+    history: list[dict[str, object]] = []
+    final: dict[str, object] | None = None
+    stop_reason = "MAX_GENERATIONS_REACHED"
+
+    for generation in range(max_generations):
+        generation_output = output.with_name(
+            f"{output.stem}-g{generation}{output.suffix}"
+        )
+        final = run_cycle(
+            generation_output,
+            previous_evidence=previous,
+            generation=generation,
+        )
+        summary = _iteration_summary(final)
+        history.append(summary)
+        unresolved = summary["unresolved"]
+        if isinstance(unresolved, dict) and not unresolved:
+            stop_reason = "ALL_TEN_ROBUST_PORTFOLIO_IMPROVEMENTS"
+            break
+        previous = final
+
+    if final is None:
+        raise RuntimeError("adaptive optimization produced no evidence")
+
+    final["study"] = "coin-by-coin-v6-adaptive-topk-marginal-optimization"
+    final["adaptive_search"] = {
+        "max_generations": max_generations,
+        "generations_completed": len(history),
+        "stop_reason": stop_reason,
+        "history": history,
+        "final": history[-1],
+        "selection_integrity": (
+            "generation N+1 is created only from generation N training Top-K profiles; "
+            "validation/full-window/portfolio evidence can reject or freeze a winner but "
+            "never selects a new search direction"
+        ),
+    }
+    output.parent.mkdir(parents=True, exist_ok=True)
+    output.write_text(json.dumps(final, indent=2, default=str) + "\n", encoding="utf-8")
+    return final
+
+
 def main() -> None:
     output = Path("evidence") / "coin-optimization-cycle.json"
-    evidence = run_cycle(output)
+    evidence = run_adaptive_cycle(output)
     print(json.dumps(evidence, indent=2, default=str))
 
 
