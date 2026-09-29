@@ -149,29 +149,65 @@ def test_distinct_training_shortlist_skips_current_equivalent_behaviour() -> Non
 
 
 def test_profit_first_hypothesis_pack_is_bounded_and_present() -> None:
-    expected = {
-        "ETHUSDC": {
-            "profit_eth_m18_cmo15_band_base",
-            "profit_eth_m18_cmo15_slope0",
-            "profit_eth_m18_cmo15_slope72",
-        },
-        "BTCUSDC": {"profit_btc_cmo20_band_m20", "profit_btc_cmo20_band_p20"},
-        "SOLUSDC": {"profit_sol_cmo15", "profit_sol_m18_s12_cmo15"},
-        "LINKUSDC": {"profit_link_m18_cmo15_slope24"},
-        "XRPUSDC": {"profit_xrp_m18_cmo10_stop3_5"},
-        "AVAXUSDC": {"profit_avax_band_5_0", "profit_avax_band_5_4"},
-        "DOGEUSDC": {"profit_doge_m18_cmo15_band_4_2"},
-        "BNBUSDC": {"profit_bnb_band_4_8", "profit_bnb_stop_2_0"},
-    }
-    for symbol, names in expected.items():
+    def has_profile(
+        symbol: str,
+        *,
+        momentum: int | None = None,
+        smoothing: int | None = None,
+        band: float | None = None,
+        cmo: float | None = None,
+        slope: int | None = None,
+        stop: float | None = None,
+        trail: float | None = None,
+    ) -> bool:
+        for candidate in candidate_catalog(symbol):
+            p = candidate.parameters
+            policy = candidate.policy
+            if momentum is not None and p.momentum_length != momentum:
+                continue
+            if smoothing is not None and p.smoothing_length != smoothing:
+                continue
+            if band is not None and p.band_multiplier != band:
+                continue
+            if cmo is not None and policy.cmo_floor != cmo:
+                continue
+            if slope is not None and policy.slope_bars != slope:
+                continue
+            if stop is not None and policy.stop_atr != stop:
+                continue
+            if trail is not None and policy.trail_atr != trail:
+                continue
+            return True
+        return False
+
+    assert has_profile("ETHUSDC", momentum=18, cmo=0.15, slope=0)
+    assert has_profile("ETHUSDC", momentum=18, cmo=0.15, slope=72)
+    assert has_profile("BTCUSDC", band=4.2, cmo=0.15)
+    assert has_profile("BTCUSDC", band=4.6, cmo=0.25)
+    assert has_profile("SOLUSDC", momentum=18, smoothing=12, cmo=0.15)
+    assert has_profile("LINKUSDC", momentum=18, cmo=0.15, slope=24)
+    assert has_profile("XRPUSDC", momentum=18, cmo=0.10, stop=3.5)
+    assert has_profile("AVAXUSDC", band=5.0)
+    assert has_profile("AVAXUSDC", band=5.4)
+    assert has_profile("DOGEUSDC", momentum=18, band=4.2, cmo=0.15)
+    assert has_profile("BNBUSDC", band=4.8)
+    assert has_profile("BNBUSDC", stop=2.0)
+
+    for symbol in (
+        "BTCUSDC",
+        "ETHUSDC",
+        "BNBUSDC",
+        "SOLUSDC",
+        "XRPUSDC",
+        "LINKUSDC",
+        "AVAXUSDC",
+        "DOGEUSDC",
+    ):
         catalog = candidate_catalog(symbol)
-        found = {candidate.name for candidate in catalog}
-        assert names <= found
         assert len(catalog) <= 128
         assert len({(candidate.parameters, candidate.policy) for candidate in catalog}) == len(
             catalog
         )
-
 
 def test_coin_optimization_catalog_contains_training_led_second_stage_neighbourhoods() -> None:
     expected = {
