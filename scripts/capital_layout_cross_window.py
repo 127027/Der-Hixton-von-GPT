@@ -123,7 +123,14 @@ def evaluate(evidence: dict[str, Any]) -> dict[str, object]:
             "cross_window_pass": False,
             "reason": "no_strict_frequency_candidate",
         }
-    candidate = _parse_layout(str(strict[0]))
+    best_robust = evidence.get("best_robust")
+    best_layout = (
+        str(best_robust.get("layout"))
+        if isinstance(best_robust, dict)
+        else ""
+    )
+    selected = best_layout if best_layout in {str(value) for value in strict} else str(strict[0])
+    candidate = _parse_layout(selected)
 
     _, start, end = safe_closed_window()
     rules = _rules()
