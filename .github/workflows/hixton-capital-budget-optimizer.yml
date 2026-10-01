@@ -6,6 +6,7 @@ on:
     branches: [gpt/trade-frequency-250-001]
     paths:
       - "scripts/capital_budget_optimizer.py"
+      - "scripts/capital_layout_cross_window.py"
       - ".github/workflows/hixton-capital-budget-optimizer.yml"
 
 permissions:
