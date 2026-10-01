@@ -1,0 +1,29 @@
+{
+  "schema_version": 1,
+  "mode": "PERSISTENT_ROLE_SWARM",
+  "roles": {
+    "A01": "Continuously maintain requirements, experiment ledger, rejected regions and exact reproducibility contracts.",
+    "A02": "Continuously search and backtest new profit/trade-opportunity candidates for all ten coins and the shared 250-USDC portfolio.",
+    "A03": "Continuously verify Backtest/Paper/Trial/Live semantic parity and detect state/version drift.",
+    "A04": "Continuously verify UI/API truthfulness and ensure research candidates never masquerade as promoted product state.",
+    "A05": "Continuously diagnose idle time, holding duration, slot saturation, loss/winner clusters and runtime opportunity loss.",
+    "A06": "Continuously regression-test candidate patches, determinism and cross-component behavior; repair known defects.",
+    "A07": "Continuously validate public Binance USDC market/filter/data assumptions without private credentials or orders.",
+    "A08": "Continuously challenge strategy, allocator, ranking and risk assumptions under fixed 250-USDC capital.",
+    "A09": "Independently reject stale, overfit, non-reproducible or technically regressive candidates; only exact-head QA_PASS can advance.",
+    "A10": "Continuously dispatch the next evidence-led research/repair task, never stopping at a negative experiment.",
+    "A11": "Continuously audit A01-A10, anti-overfit integrity and promotion evidence; only GOVERNANCE_PASS can authorize engineering promotion."
+  },
+  "loop": [
+    "observe current evidence",
+    "identify highest-value bottleneck",
+    "form bounded hypothesis",
+    "run deterministic research",
+    "reject or escalate unknown work",
+    "cross-window anti-overfit check",
+    "build candidate patch when justified",
+    "run exact-head A01-A11",
+    "promote engineering candidate only after QA_PASS and GOVERNANCE_PASS",
+    "record result and immediately choose next hypothesis"
+  ]
+}
