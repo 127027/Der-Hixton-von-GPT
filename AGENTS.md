@@ -57,3 +57,7 @@ Never send real Binance orders from CI, agents or an automated optimization run.
 ## Mandatory Live execution observability
 
 Every material patch must preserve one end-to-end observability contract for the local 1×50-USDC trial and normal Live: the running application binds application/source/strategy/allocator identity, blocks new entries when that identity is stale, records Binance terminal/fill evidence, records signal-to-submit timing, reconciles completed exits, compares Paper and Live signal evidence, and writes a secret-free local 24/7 JSON report. Open owned positions may use EXIT_ONLY after a source patch so they can be managed safely; a stale source may never open a new position. A01-A11 must each evaluate the part of this contract owned by their role. Cloud jobs remain key-free and never place orders.
+
+## Experimental master orchestrator
+
+The optional `scripts/master_orchestrator.py` layer is currently **SHADOW_ONLY**. It may read the A01-A11 contracts/evidence and emit a cost-capped routing plan, but it is not an authoritative release path and may not mutate strategy, Paper/Live state, GitHub branches, or Binance state. Its default AI/model budget is zero. A09 technical QA and A11 governance remain mandatory and non-replaceable. See `agent_memory/orchestrator/` for the policy and parity evidence.
