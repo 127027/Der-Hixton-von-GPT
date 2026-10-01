@@ -54,7 +54,7 @@ class AutonomousResearchSupervisorTests(unittest.TestCase):
         }
         result = build_decision(self.policy, None, layout)
         self.assertEqual(result["action"], "RUN_CROSS_WINDOW_ROBUSTNESS")
-        validated = build_decision(
+        cross_only = build_decision(
             self.policy,
             None,
             layout,
@@ -63,9 +63,62 @@ class AutonomousResearchSupervisorTests(unittest.TestCase):
                 "cross_window_pass": True,
             },
         )
+        self.assertEqual(cross_only["action"], "RUN_CROSS_WINDOW_ROBUSTNESS")
+        validated = build_decision(
+            self.policy,
+            None,
+            layout,
+            cross_window={
+                "candidate": "one_per_symbol:3x83.33",
+                "cross_window_pass": True,
+            },
+            shifted_window={
+                "layout": {
+                    "candidate": "one_per_symbol:3x83.33",
+                    "shifted_window_pass": True,
+                },
+                "coin_profile": {
+                    "accepted_symbols": [],
+                    "shifted_window_pass": False,
+                },
+            },
+        )
         self.assertEqual(
             validated["action"], "BUILD_ENGINEERING_CANDIDATE_AND_RUN_A01_A11"
         )
+
+    def test_coin_candidate_can_only_validate_with_matching_shifted_evidence(self) -> None:
+        coin = {
+            "aggregate_promotion_gate": {"promotable": True},
+            "profile_parity": {"current_match": True, "candidate_match": True},
+            "per_coin": {"AVAXUSDC": {"accepted": True}},
+        }
+        wrong = build_decision(
+            self.policy,
+            coin,
+            None,
+            shifted_window={
+                "layout": {"candidate": None, "shifted_window_pass": False},
+                "coin_profile": {
+                    "accepted_symbols": ["DOGEUSDC"],
+                    "shifted_window_pass": True,
+                },
+            },
+        )
+        self.assertEqual(wrong["action"], "RUN_CROSS_WINDOW_ROBUSTNESS")
+        good = build_decision(
+            self.policy,
+            coin,
+            None,
+            shifted_window={
+                "layout": {"candidate": None, "shifted_window_pass": False},
+                "coin_profile": {
+                    "accepted_symbols": ["AVAXUSDC"],
+                    "shifted_window_pass": True,
+                },
+            },
+        )
+        self.assertEqual(good["action"], "BUILD_ENGINEERING_CANDIDATE_AND_RUN_A01_A11")
 
     def test_real_money_activation_remains_forbidden(self) -> None:
         result = build_decision(self.policy, None, None)
