@@ -90,6 +90,7 @@ def build_decision(
     layout: dict[str, Any] | None,
     *,
     cross_window: dict[str, Any] | None = None,
+    shifted_window: dict[str, Any] | None = None,
 ) -> dict[str, Any]:
     if policy.get("mode") != "AUTONOMOUS_RESEARCH_AND_ENGINEERING":
         raise ResearchContractError("autonomy policy mode mismatch")
@@ -110,15 +111,43 @@ def build_decision(
         cross_layout = cross_window.get("candidate")
         cross_ok = cross_window.get("cross_window_pass") is True
 
+    shifted_layout = {}
+    shifted_coin = {}
+    if isinstance(shifted_window, dict):
+        raw_layout = shifted_window.get("layout")
+        raw_coin = shifted_window.get("coin_profile")
+        shifted_layout = raw_layout if isinstance(raw_layout, dict) else {}
+        shifted_coin = raw_coin if isinstance(raw_coin, dict) else {}
+
     for candidate in candidates:
-        if (
-            candidate["type"] == "CAPITAL_LAYOUT"
-            and cross_ok
-            and cross_layout in candidate.get("strict_frequency_improvements", [])
-        ):
-            validated.append(candidate)
-        else:
-            pending_robustness.append(candidate)
+        if candidate["type"] == "CAPITAL_LAYOUT":
+            strict = candidate.get("strict_frequency_improvements", [])
+            layout_key = shifted_layout.get("candidate")
+            if (
+                cross_ok
+                and cross_layout in strict
+                and shifted_layout.get("shifted_window_pass") is True
+                and layout_key in strict
+            ):
+                validated.append(candidate)
+            else:
+                pending_robustness.append(candidate)
+            continue
+
+        if candidate["type"] == "COIN_PROFILE":
+            expected = set(candidate.get("accepted_symbols", []))
+            observed = set(shifted_coin.get("accepted_symbols", []))
+            if (
+                shifted_coin.get("shifted_window_pass") is True
+                and expected
+                and expected == observed
+            ):
+                validated.append(candidate)
+            else:
+                pending_robustness.append(candidate)
+            continue
+
+        pending_robustness.append(candidate)
 
     if not candidates:
         action = "CONTINUE_RESEARCH"
@@ -159,6 +188,7 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--coin-evidence", type=Path)
     parser.add_argument("--layout-evidence", type=Path)
     parser.add_argument("--cross-window-evidence", type=Path)
+    parser.add_argument("--shifted-window-evidence", type=Path)
     parser.add_argument("--output", type=Path, required=True)
     args = parser.parse_args(argv)
     policy = load_json(args.policy)
@@ -169,6 +199,7 @@ def main(argv: list[str] | None = None) -> int:
         load_json(args.coin_evidence),
         load_json(args.layout_evidence),
         cross_window=load_json(args.cross_window_evidence),
+        shifted_window=load_json(args.shifted_window_evidence),
     )
     args.output.parent.mkdir(parents=True, exist_ok=True)
     args.output.write_text(json.dumps(decision, indent=2) + "\n", encoding="utf-8")
