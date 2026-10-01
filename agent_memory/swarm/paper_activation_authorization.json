@@ -2,8 +2,8 @@
   "schema_version": 1,
   "scope": "PAPER_ONLY_CONTROLLED_STRATEGY_ACTIVATION",
   "strategy_key": "v6",
-  "authorized_from_strategy_version": "HIXTON-V6-COIN-PAPER-1-fbd1b842f4f9",
-  "authorized_to_strategy_version": "HIXTON-V6-COIN-PAPER-1-b271d7952d15",
+  "authorized_from_strategy_version": "HIXTON-V6-COIN-PAPER-1-b271d7952d15",
+  "authorized_to_strategy_version": "HIXTON-V6-COIN-PAPER-1-c78c8cabf980",
   "confirmation": "AKTIVIEREN",
   "owner_instruction_date": "2026-10-01",
   "preserve_history": true,
@@ -11,5 +11,5 @@
   "close_open_simulated_positions_on_switch": true,
   "real_money_orders_allowed": false,
   "testnet_orders_allowed": false,
-  "note": "Owner-approved continuation on 2026-10-01: authorize only the exact preserved Paper transition fbd1b842f4f9 -> b271d7952d15 required by current gpt/usdc-audit. Preserve ledger history, no fresh reset, close open simulated positions on switch under the existing Paper activation contract, and keep real-money/testnet orders forbidden."
+  "note": "Owner-approved production-profile promotion after COORD-2026-10-01-PROFITOPP-006: authorize only the exact preserved Paper transition b271d7952d15 -> c78c8cabf980. This promotion changes AVAX ATR 60->150 and DOGE momentum 18->16, smoothing 15->14, band 4.4->4.3. Preserve Paper history, no fresh reset, and keep real-money/testnet orders forbidden."
 }

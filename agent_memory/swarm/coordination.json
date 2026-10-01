@@ -1,8 +1,8 @@
 {
   "schema_version": 1,
-  "round_id": "COORD-2026-10-01-PROFITOPP-006",
+  "round_id": "COORD-2026-10-01-PROMOTE-007",
   "status": "DISPATCHED",
-  "owner_objective": "First restore the stale preserved Paper runtime by the exact owner-authorized fbd1b842f4f9 -> b271d7952d15 Paper-only activation without reset. Then continue exact-head Hixton 0.5.0 research toward higher 250-USDC net profit and capital velocity. Do not repeat the latest local parameter grids unchanged. Treat ETH momentum19-vs20 as the first counterfactual slot-collision case; require isolated plus shared-portfolio base/stress evidence, trade deltas, occupied-slot-hour deltas and displaced-coin opportunity cost. Keep ADA/DOT production profiles frozen while allowing shadow research. Separate coin changes from allocator/ranking experiments.",
+  "owner_objective": "Promote only the two research winners proven in COORD-2026-10-01-PROFITOPP-006 into canonical V6: AVAX ATR 150 and DOGE momentum 16 / smoothing 14 / ATR 120 / band 4.3 with CMO 0.20. Expected V6 strategy version is HIXTON-V6-COIN-PAPER-1-c78c8cabf980. Independently verify that Backtest, Paper, UI/runtime strategy identity and all A01-A11 evidence use this exact new version; reject stale b271d7952d15 evidence. No other coin profile or allocator may change.",
   "target_branch": "gpt/usdc-audit",
   "commit_policy": "PIN_EXACT_COMMIT_AT_RUN_START",
   "repair_policy": "ANY_PATCH_INVALIDATES_AFFECTED_EVIDENCE_AND_REQUIRES_A_NEW_PINNED_RUN",
@@ -23,7 +23,12 @@
     "candidate_gate": "Every serious challenger must report isolated baseline/stress and canonical 250-USDC portfolio baseline/stress plus added/removed/shifted trades, occupied-slot-hour delta and displaced-coin PnL.",
     "search_direction": "BTC/BNB emphasize capital binding and timing; SOL/LINK/AVAX emphasize opportunity expansion and timing; XRP emphasizes entry timing; DOGE emphasizes volatility reaction; ADA/DOT remain production-frozen shadow research.",
     "portfolio_separation": "Only after coin profiles are frozen may allocator/ranking research compare 2x125 against alternative equal-250-USDC layouts or opportunity-cost ranking. Coin parameters and allocator rules may not change in the same causal experiment.",
-    "promotion": "A09/A11 reject any promotion without exact-head reproducibility, holdout integrity, base/stress evidence and positive shared-portfolio marginal contribution."
+    "promotion": "A09/A11 reject any promotion without exact-head reproducibility, holdout integrity, base/stress evidence and positive shared-portfolio marginal contribution.",
+    "promoted_profiles_exact": "Canonical V6 must contain AVAX 6/20/8/150/5.2 and DOGE 6/16/14/120/4.3 with DOGE CMO 0.20; all eight other production profiles remain byte-equivalent in behavior.",
+    "expected_strategy_version": "Every strategy identity check must resolve HIXTON-V6-COIN-PAPER-1-c78c8cabf980 and reject stale HIXTON-V6-COIN-PAPER-1-b271d7952d15 as current.",
+    "fresh_validation": "Preflight, exact-three-year dashboard E2E, coin optimization/recheck and A01-A11 must all run on the exact promotion commit; A09 QA_PASS and A11 GOVERNANCE_PASS are required before distribution.",
+    "paper_transition": "Persistent Paper history must be preserved while exact owner authorization transitions b271d7952d15 -> c78c8cabf980; no reset and no real/testnet orders.",
+    "download_identity": "The downloadable ZIP must be pinned to the exact validated promotion commit, not merely a moving branch archive."
   },
   "communication_rules": {
     "all_reports_must_include": [
@@ -63,7 +68,7 @@
   ],
   "assignments": {
     "A01": {
-      "objective": "Audit and persist the coin experiment/patch ledger: tested parameter regions, run/commit, holdout/stress/portfolio outcome and rejection reason. Flag stale current-evidence and repeated search regions.",
+      "objective": "Audit the promotion diff and prove only AVAX and DOGE production profiles plus required orchestration/authorization metadata changed. Verify documentation/evidence identifies the exact new strategy version c78c8cabf980.",
       "handoff": [
         "A02",
         "A05",
@@ -77,7 +82,7 @@
       ]
     },
     "A02": {
-      "objective": "Run exact-head three-year profit-first coin research without repeating the latest grids unchanged. Prioritize ETH M19-vs-M20 counterfactual evidence, then coin-specific timing/capital-velocity hypotheses; require immediate canonical 250-USDC marginal checks for serious candidates.",
+      "objective": "Re-run fresh exact-three-year baseline/stress evidence on the promoted canonical map. Confirm AVAX 6/20/8/150/5.2 and DOGE 6/16/14/120/4.3 are active, the other eight profiles are unchanged, and compare promoted map against the prior b271d7952d15 map.",
       "handoff": [
         "A03",
         "A05",
@@ -94,7 +99,7 @@
       ]
     },
     "A03": {
-      "objective": "Verify deterministic engine/profile parity and produce ETH M19-vs-M20 trade-level differences: added/removed/shifted trades, entry/exit timing and occupied-slot-hour deltas. Reject profile-hash drift.",
+      "objective": "Verify Backtest/Paper/Trial/Live profile and strategy-version parity for c78c8cabf980. Reject stale or mixed profile hashes.",
       "handoff": [
         "A06",
         "A10"
@@ -107,7 +112,7 @@
       ]
     },
     "A04": {
-      "objective": "Keep all new research isolated from shipped UI/Paper/Live activation. Verify no shadow or challenger profile appears as active before explicit promotion.",
+      "objective": "Verify the shipped UI/runtime reports the promoted canonical strategy identity and no research-only challenger controls leaked into the UI.",
       "handoff": [
         "A10"
       ],
@@ -118,7 +123,7 @@
       ]
     },
     "A05": {
-      "objective": "First diagnose and verify recovery of the stale preserved Paper runtime and strategy-version transition. Once healthy, quantify holding-time, winner/loser and slot-saturation diagnostics needed for capital-velocity decisions.",
+      "objective": "Verify preserved Paper runtime transitions exactly b271d7952d15 -> c78c8cabf980, remains fresh/healthy, and performs no reset or real/testnet order.",
       "handoff": [
         "A02",
         "A06",
@@ -133,7 +138,7 @@
       ]
     },
     "A06": {
-      "objective": "Enforce anti-overfit, deterministic bounded search and regression safety for any new timing/stall/portfolio-delta research machinery. No holdout leakage or gate weakening.",
+      "objective": "Run regression and determinism checks for the exact AVAX/DOGE promotion. Confirm no unintended behavior change outside the two promoted coin profiles.",
       "handoff": [
         "A02",
         "A10"
@@ -146,7 +151,7 @@
       ]
     },
     "A07": {
-      "objective": "Verify all ten Binance USDC markets, public data continuity and execution-filter assumptions used by new research; remain key-free and order-free.",
+      "objective": "Re-verify public Binance USDC market/filter assumptions for the promoted exact-head map; remain key-free and order-free.",
       "handoff": [
         "A02",
         "A10"
@@ -159,7 +164,7 @@
       ]
     },
     "A08": {
-      "objective": "Measure canonical 250-USDC marginal portfolio contribution and slot opportunity cost for each serious challenger. Build collision/counterfactual evidence before separate allocator/ranking research.",
+      "objective": "Re-check 250-USDC portfolio risk/slot behavior and confirm the promoted AVAX/DOGE map preserves the positive base/stress marginal contribution without changing allocator semantics.",
       "handoff": [
         "A10"
       ],
@@ -171,7 +176,7 @@
       ]
     },
     "A09": {
-      "objective": "Independently QA exact-head runtime recovery and research: no stale/mixed evidence, no holdout-selected candidates, no repeated-grid claims, and no promotion lacking isolated+portfolio base/stress plus opportunity-cost evidence.",
+      "objective": "Independently QA the exact promotion commit. Emit QA_PASS only if the canonical V6 identity is c78c8cabf980, AVAX/DOGE exact parameters match the approved winners, all other profiles/allocator remain unchanged, and full tests pass.",
       "handoff": [
         "A11"
       ],
@@ -183,7 +188,7 @@
       ]
     },
     "A10": {
-      "objective": "Orchestrate runtime recovery first, then synthesize coin research by net OOS USDC and capital velocity. Route blockers to named owners; require trade/slot opportunity-cost evidence and keep coin-vs-allocator experiments causally separated.",
+      "objective": "Synthesize A01-A08 exact-head promotion evidence. Route any stale-version or profile mismatch back to the owning agent. Do not accept mixed b271d7952d15/c78c8cabf980 evidence.",
       "handoff": [
         "A09"
       ],
@@ -195,7 +200,7 @@
       ]
     },
     "A11": {
-      "objective": "Govern the repair/research loop. Require fresh A01-A10 evidence on one commit; forbid real/testnet cloud orders, automatic promotion, ledger reset, gate weakening or mixed coin+allocator causal experiments.",
+      "objective": "Govern final distribution. Emit GOVERNANCE_PASS only after fresh QA_PASS on the exact promotion commit and prove the downloadable commit is the validated c78c8cabf980 build.",
       "handoff": [],
       "required_focus": [
         "governance",
@@ -232,5 +237,6 @@
     },
     "local_trial": "A separate locally authenticated 1x50-USDC trial may remain WAITING_SIGNAL; optimization must not require restart/update and must not use private credentials."
   },
-  "research_brief_file": "agent_memory/swarm/research_brief_2026-10-01.md"
+  "research_brief_file": "agent_memory/swarm/research_brief_2026-10-01.md",
+  "promotion_brief_file": "agent_memory/swarm/promotion_brief_2026-10-01.md"
 }

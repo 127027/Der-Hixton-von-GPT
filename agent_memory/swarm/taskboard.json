@@ -37,7 +37,7 @@
     "state": "IN_PROGRESS",
     "completion_mode": "continuous",
     "started_at_utc": "2026-09-25T19:35:00+00:00",
-    "last_transition_reason": "Owner approved continued A01-A11 work using the 2026-10-01 deep-research brief: recover stale Paper first, then optimize for higher 250-USDC net profit/capital velocity with ETH slot-collision counterfactuals, non-repeated coin-specific searches and separate allocator research.",
+    "last_transition_reason": "Owner approved promotion of the two COORD-2026-10-01-PROFITOPP-006 research winners into canonical V6, followed by a fresh exact-head A01-A11 validation and pinned downloadable ZIP verification.",
     "owner_instruction_date": "2026-10-01",
     "primary_agents": [
       "A01",
@@ -107,7 +107,11 @@
       "Do not repeat the latest documented local grids unchanged; new work must be evidence-led and coin-specific.",
       "A serious coin challenger must show isolated baseline/stress and canonical 250-USDC portfolio baseline/stress plus trade/slot deltas before promotion.",
       "ETH momentum19-vs20 must be explained counterfactually at slot-collision level before broader ETH search.",
-      "Coin-profile experiments and allocator/ranking experiments are separate causal workstreams and may not be changed together."
+      "Coin-profile experiments and allocator/ranking experiments are separate causal workstreams and may not be changed together.",
+      "Promote only AVAX ATR 150 and DOGE momentum16/smoothing14/ATR120/band4.3; no other coin profile or allocator change is allowed in the promotion commit.",
+      "The promoted canonical V6 strategy identity must be HIXTON-V6-COIN-PAPER-1-c78c8cabf980.",
+      "All distribution evidence must be regenerated on the exact promotion commit; stale b271d7952d15 evidence is invalid for release.",
+      "The final download must be pinned to the exact validated commit SHA rather than a moving branch archive."
     ],
     "acceptance": [
       "A01 proves README/DMS/AGENTS/swarm docs describe max_capital_usdc, CAPITAL-V1-2X50PCT, 10x250 research separation, automatic action-time preflight, the separate 1x50 trial and the mandatory 24x7 Live execution report without stale product gates.",
@@ -141,7 +145,12 @@
       "A01 records an experiment ledger/current evidence summary preventing silent repetition of previously rejected search regions.",
       "A02/A03/A08 produce ETH M19-vs-M20 trade and slot-collision counterfactual evidence before any new broad ETH grid.",
       "Every serious challenger reports isolated and 250-USDC portfolio baseline/stress plus added/removed/shifted trades, occupied-slot-hour delta and displaced-coin PnL.",
-      "Allocator/ranking research is run only with frozen coin profiles and fixed 250-USDC total capital."
+      "Allocator/ranking research is run only with frozen coin profiles and fixed 250-USDC total capital.",
+      "A01 proves the promotion diff is limited to the two approved coin profiles plus orchestration/authorization metadata.",
+      "A02 proves fresh exact-three-year base/stress results on the promoted canonical profile map.",
+      "A03/A05 prove Paper/runtime strategy identity is c78c8cabf980 with preserved history and no reset.",
+      "A09 emits QA_PASS and A11 emits GOVERNANCE_PASS on the exact same promotion commit.",
+      "The downloadable ZIP commit SHA is identical to the exact commit validated by A01-A11."
     ],
     "release_candidate": {
       "version": "0.5.0",
@@ -160,7 +169,7 @@
       ],
       "actual_live_roundtrip_completed": false
     },
-    "coordination_round": "COORD-2026-10-01-PROFITOPP-006",
+    "coordination_round": "COORD-2026-10-01-PROMOTE-007",
     "coordination_file": "agent_memory/swarm/coordination.json",
     "coordination_requirements": [
       "Use the latest gpt/usdc-audit product head, never an older release/main bootstrap state.",
