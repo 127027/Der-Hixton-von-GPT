@@ -1,0 +1,76 @@
+{
+  "schema_version": 1,
+  "name": "Hixton Continuous Improvement Policy",
+  "mode": "AUTONOMOUS_RESEARCH_AND_ENGINEERING",
+  "objective": {
+    "capital_usdc": "250.00",
+    "symbols": 10,
+    "primary": "increase robust net profit after costs",
+    "secondary": "increase valid completed trade opportunities and reduce avoidable idle/NO_FREE_SLOT time",
+    "never_optimize_for": [
+      "headline trade count alone",
+      "single-window profit alone",
+      "in-sample fit alone"
+    ]
+  },
+  "allowed_research": [
+    "per-coin strategy parameters",
+    "entry timing",
+    "exit timing",
+    "holding duration",
+    "stop and trailing policy",
+    "signal filters",
+    "slot count with fixed 250 USDC total capital",
+    "allocation and ranking policy",
+    "one-per-symbol versus ranked-repeat",
+    "opportunity-cost routing",
+    "risk controls",
+    "execution-cost robustness"
+  ],
+  "hard_constraints": {
+    "fixed_total_capital_usdc": "250.00",
+    "leverage_allowed": false,
+    "private_binance_credentials_in_cloud": false,
+    "real_money_orders_in_cloud": false,
+    "testnet_orders_in_cloud": false,
+    "historical_result_may_be_called_guaranteed": false
+  },
+  "anti_overfit": {
+    "training_only_may_rank_candidates": true,
+    "validation_may_reject_not_select": true,
+    "baseline_and_stress_required": true,
+    "full_three_year_required": true,
+    "cross_window_robustness_required_before_auto_apply": true,
+    "minimum_positive_cross_windows": 2,
+    "minimum_cross_windows": 3,
+    "profile_and_runner_hash_parity_required": true,
+    "paper_forward_evidence_required_before_live_activation": true
+  },
+  "promotion": {
+    "engineering_auto_apply_allowed": true,
+    "requires_exact_head_a01_a11": true,
+    "requires_qa_pass": true,
+    "requires_governance_pass": true,
+    "requires_non_regressive_baseline_equity": true,
+    "requires_non_regressive_stress_equity": true,
+    "trade_frequency_gain_is_sufficient_alone": false,
+    "paper_auto_activate": false,
+    "live_auto_activate": false,
+    "automatic_real_money_change": false
+  },
+  "continuity": {
+    "keep_researching_after_failure": true,
+    "record_negative_experiments": true,
+    "do_not_repeat_rejected_region_without_new_evidence": true,
+    "next_hypothesis_must_be_evidence_led": true,
+    "target_cycle_hours": 6
+  },
+  "intelligence_budget": {
+    "deterministic_first": true,
+    "model_calls_for_status": 0,
+    "model_calls_for_known_checks": 0,
+    "model_calls_for_known_repairs": 0,
+    "novel_hypothesis_escalation_only": true,
+    "max_novel_escalations_per_day": 1
+  }
+}
