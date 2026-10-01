@@ -37,7 +37,7 @@
     "state": "IN_PROGRESS",
     "completion_mode": "continuous",
     "started_at_utc": "2026-09-25T19:35:00+00:00",
-    "last_transition_reason": "Owner approved promotion of the two COORD-2026-10-01-PROFITOPP-006 research winners into canonical V6, followed by a fresh exact-head A01-A11 validation and pinned downloadable ZIP verification.",
+    "last_transition_reason": "The canonical AVAX/DOGE promotion is active as V6 c78c8cabf980; the stale DOGE product-contract assertion was repaired. Owner requires one final exact-head run where Preflight, Dashboard E2E, Coin Optimization and A01-A11 all validate the same downloadable commit before distribution.",
     "owner_instruction_date": "2026-10-01",
     "primary_agents": [
       "A01",
