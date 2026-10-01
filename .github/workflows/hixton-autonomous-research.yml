@@ -13,6 +13,7 @@ on:
       - "scripts/coin_optimization_cycle.py"
       - "scripts/capital_budget_optimizer.py"
       - "scripts/capital_layout_cross_window.py"
+      - "scripts/shifted_three_year_robustness.py"
       - "tests/test_autonomous_research_supervisor.py"
       - ".github/workflows/hixton-autonomous-research.yml"
 
@@ -54,12 +55,15 @@ jobs:
         run: python -m scripts.capital_budget_optimizer
       - name: Cross-window robustness for strict layout winner
         run: python -m scripts.capital_layout_cross_window
+      - name: Shifted full-three-year endpoint robustness
+        run: python -m scripts.shifted_three_year_robustness
       - name: Deterministic research synthesis
         run: |
           python -m scripts.autonomous_research_supervisor \
             --coin-evidence evidence/coin-optimization-cycle.json \
             --layout-evidence evidence/capital-budget-optimizer.json \
             --cross-window-evidence evidence/capital-layout-cross-window.json \
+            --shifted-window-evidence evidence/shifted-three-year-robustness.json \
             --output evidence/autonomous-research-decision.json
       - uses: actions/upload-artifact@v4
         with:
@@ -68,6 +72,7 @@ jobs:
             evidence/coin-optimization-cycle*.json
             evidence/capital-budget-optimizer.json
             evidence/capital-layout-cross-window.json
+            evidence/shifted-three-year-robustness.json
             evidence/autonomous-research-decision.json
           retention-days: 30
           if-no-files-found: error
