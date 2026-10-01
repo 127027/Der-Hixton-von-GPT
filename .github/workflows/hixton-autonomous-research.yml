@@ -1,0 +1,68 @@
+name: Hixton Autonomous Research Loop
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: "17 */6 * * *"
+  push:
+    branches:
+      - gpt/autonomous-research-v1
+    paths:
+      - "agent_memory/autonomy/**"
+      - "scripts/autonomous_research_supervisor.py"
+      - "scripts/coin_optimization_cycle.py"
+      - "scripts/capital_budget_optimizer.py"
+      - "tests/test_autonomous_research_supervisor.py"
+      - ".github/workflows/hixton-autonomous-research.yml"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: hixton-autonomous-research-v1
+  cancel-in-progress: true
+
+jobs:
+  contract:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: |
+          python -m py_compile scripts/autonomous_research_supervisor.py
+          python -m unittest discover -s tests -p "test_autonomous_research_supervisor.py" -v
+
+  research:
+    needs: contract
+    runs-on: ubuntu-24.04
+    timeout-minutes: 180
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: |
+          python -m pip install --upgrade pip
+          pip install -e '.[dev]'
+      - name: Run adaptive ten-coin research
+        run: python -m scripts.coin_optimization_cycle
+      - name: Run fixed-250 capital/opportunity research
+        run: python -m scripts.capital_budget_optimizer
+      - name: Deterministic research synthesis
+        run: |
+          python -m scripts.autonomous_research_supervisor \
+            --coin-evidence evidence/coin-optimization-cycle.json \
+            --layout-evidence evidence/capital-budget-optimizer.json \
+            --output evidence/autonomous-research-decision.json
+      - uses: actions/upload-artifact@v4
+        with:
+          name: hixton-autonomous-research-${{ github.run_id }}
+          path: |
+            evidence/coin-optimization-cycle*.json
+            evidence/capital-budget-optimizer.json
+            evidence/autonomous-research-decision.json
+          retention-days: 30
+          if-no-files-found: error
