@@ -53,6 +53,13 @@ def _layouts() -> tuple[Layout, ...]:
         Layout(RANKED_REPEAT, 3, D("83.33")),
         Layout(RANKED_REPEAT, 4, D("62.50")),
         Layout(RANKED_REPEAT, 5, D("50")),
+        # Frequency-focused candidates: keep total capital fixed while preventing
+        # repeat slots from stacking on the same symbol. Earlier research tested
+        # only the 5x50 endpoint; the intermediate geometries are the missing
+        # causal experiment for higher trade frequency.
+        Layout(ONE_PER_SYMBOL, 2, D("125")),
+        Layout(ONE_PER_SYMBOL, 3, D("83.33")),
+        Layout(ONE_PER_SYMBOL, 4, D("62.50")),
         Layout(ONE_PER_SYMBOL, 5, D("50")),
     )
 
@@ -210,6 +217,82 @@ def _rank(rows: list[dict[str, object]]) -> list[dict[str, object]]:
     return sorted(rows, key=lambda row: D(str(row["ending_equity"])), reverse=True)
 
 
+def _frequency_comparison(
+    baseline_rows: list[dict[str, object]],
+    stress_rows: list[dict[str, object]],
+) -> dict[str, object]:
+    baseline_by_key = {str(row["layout"]): row for row in baseline_rows}
+    stress_by_key = {str(row["layout"]): row for row in stress_rows}
+    reference = baseline_by_key["ranked_repeat:2x125"]
+    reference_stress = stress_by_key["ranked_repeat:2x125"]
+    reference_cycles = int(reference["position_cycles"])
+    reference_equity = D(str(reference["ending_equity"]))
+    reference_stress_equity = D(str(reference_stress["ending_equity"]))
+    reference_drawdown = D(str(reference["max_drawdown_pct"]))
+    reference_stress_drawdown = D(str(reference_stress["max_drawdown_pct"]))
+
+    rows: list[dict[str, object]] = []
+    strict: list[str] = []
+    for candidate in baseline_rows:
+        key = str(candidate["layout"])
+        if key == "ranked_repeat:2x125":
+            continue
+        stress = stress_by_key[key]
+        cycles = int(candidate["position_cycles"])
+        equity = D(str(candidate["ending_equity"]))
+        stress_equity = D(str(stress["ending_equity"]))
+        cycle_delta = cycles - reference_cycles
+        row = {
+            "layout": key,
+            "position_cycle_delta": cycle_delta,
+            "position_cycle_gain_pct": str(
+                D(cycle_delta) / D(reference_cycles) * D("100")
+            ),
+            "baseline_equity_delta_usdc": str(equity - reference_equity),
+            "stress_equity_delta_usdc": str(stress_equity - reference_stress_equity),
+            "baseline_drawdown_delta_pp": str(
+                D(str(candidate["max_drawdown_pct"])) - reference_drawdown
+            ),
+            "stress_drawdown_delta_pp": str(
+                D(str(stress["max_drawdown_pct"])) - reference_stress_drawdown
+            ),
+            "no_free_slot_delta": (
+                int(candidate["blocked_no_free_slot"])
+                - int(reference["blocked_no_free_slot"])
+            ),
+            "average_gap_hours_delta": (
+                float(candidate["trade_timing"]["average_gap_hours_including_window_edges"])
+                - float(reference["trade_timing"]["average_gap_hours_including_window_edges"])
+            ),
+            "strict_frequency_improvement": (
+                cycle_delta > 0
+                and equity >= reference_equity
+                and stress_equity >= reference_stress_equity
+            ),
+        }
+        if row["strict_frequency_improvement"]:
+            strict.append(key)
+        rows.append(row)
+
+    rows.sort(
+        key=lambda row: (
+            bool(row["strict_frequency_improvement"]),
+            int(row["position_cycle_delta"]),
+            D(str(row["stress_equity_delta_usdc"])),
+        ),
+        reverse=True,
+    )
+    return {
+        "reference_layout": "ranked_repeat:2x125",
+        "strict_gate": (
+            "more position cycles AND baseline ending equity >= reference "
+            "AND stress ending equity >= reference"
+        ),
+        "strict_frequency_improvements": strict,
+        "comparisons": rows,
+    }
+
+
 def main() -> None:
     _, start, end = safe_closed_window()
     rules = _rules()
@@ -277,6 +360,7 @@ def main() -> None:
         row["layout"]: row
         for row in baseline_rows
     }
+    frequency_comparison = _frequency_comparison(baseline_rows, stress_rows)
     output = {
         "schema_version": 2,
         "study": STUDY_ID,
@@ -296,10 +380,13 @@ def main() -> None:
         "best_stress": stress_ranked[0],
         "best_robust": robust_ranked[0],
         "references": references,
+        "frequency_comparison": frequency_comparison,
         "selection_rule": (
             "Compare current 2x125 ranked_repeat against higher-slot ranked_repeat layouts "
-            "and a true one-per-symbol 5x50 layout under identical canonical V6 profiles, "
-            "history, risk and cost assumptions. No automatic promotion."
+            "and one-per-symbol 2x125, 3x83.33, 4x62.50 and 5x50 layouts under identical "
+            "canonical V6 profiles, history, risk and cost assumptions. A strict frequency "
+            "improvement must add completed position cycles without reducing baseline or stress "
+            "ending equity. No automatic promotion."
         ),
         "limitations": [
             "Historical simulation is not a forecast or guaranteed live result.",
