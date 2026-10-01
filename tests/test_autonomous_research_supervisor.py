@@ -28,10 +28,14 @@ class AutonomousResearchSupervisorTests(unittest.TestCase):
         }
         result = build_decision(self.policy, coin, None)
         self.assertEqual(result["action"], "RUN_CROSS_WINDOW_ROBUSTNESS")
-        promoted = build_decision(self.policy, coin, None, cross_window_pass=True)
-        self.assertEqual(
-            promoted["action"], "BUILD_ENGINEERING_CANDIDATE_AND_RUN_A01_A11"
+        promoted = build_decision(
+            self.policy,
+            coin,
+            None,
+            cross_window={"candidate": "ranked_repeat:4x62.50", "cross_window_pass": True},
         )
+        self.assertEqual(promoted["action"], "RUN_CROSS_WINDOW_ROBUSTNESS")
+        self.assertEqual(promoted["validated_candidates"], [])
 
     def test_more_trades_alone_is_not_enough(self) -> None:
         layout = {
@@ -50,6 +54,18 @@ class AutonomousResearchSupervisorTests(unittest.TestCase):
         }
         result = build_decision(self.policy, None, layout)
         self.assertEqual(result["action"], "RUN_CROSS_WINDOW_ROBUSTNESS")
+        validated = build_decision(
+            self.policy,
+            None,
+            layout,
+            cross_window={
+                "candidate": "one_per_symbol:3x83.33",
+                "cross_window_pass": True,
+            },
+        )
+        self.assertEqual(
+            validated["action"], "BUILD_ENGINEERING_CANDIDATE_AND_RUN_A01_A11"
+        )
 
     def test_real_money_activation_remains_forbidden(self) -> None:
         result = build_decision(self.policy, None, None)
