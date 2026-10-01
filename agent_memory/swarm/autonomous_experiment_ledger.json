@@ -1,0 +1,76 @@
+{
+  "schema_version": 1,
+  "baseline_commit": "128b11ff92e07134f0fec88ebeacc27734df5d20",
+  "target": "fixed 250 USDC / 10 USDC spot coins",
+  "experiments": [
+    {
+      "id": "FREQ-2026-10-01-001",
+      "family": "capital_layout",
+      "hypothesis": "one_per_symbol higher slot counts may materially increase opportunity capture",
+      "status": "REJECTED_FOR_PROFIT_REGRESSION",
+      "evidence_run_id": 36890916361,
+      "results": {
+        "one_per_symbol:5x50": {
+          "position_cycle_delta": 192,
+          "baseline_equity_delta_usdc": "-356.90636414703280000000",
+          "stress_equity_delta_usdc": "-335.9998185856554000000"
+        },
+        "one_per_symbol:4x62.50": {
+          "position_cycle_delta": 149,
+          "baseline_equity_delta_usdc": "-325.64396865412995000000",
+          "stress_equity_delta_usdc": "-308.4727578923489000000"
+        },
+        "one_per_symbol:3x83.33": {
+          "position_cycle_delta": 104,
+          "baseline_equity_delta_usdc": "-222.34503089747400000000",
+          "stress_equity_delta_usdc": "-211.1890376321055000000"
+        }
+      },
+      "conclusion": "Large trade-count gains alone are unacceptable; do not repeat these exact layouts without new strategy evidence."
+    },
+    {
+      "id": "FREQ-2026-10-01-002",
+      "family": "capital_layout",
+      "hypothesis": "moderately higher ranked_repeat slot count may add opportunities without profit regression",
+      "status": "ROBUST_CANDIDATE_NOT_YET_PROMOTED",
+      "evidence_run_id": 36891991548,
+      "candidate": "ranked_repeat:3x83.33",
+      "full_window": {
+        "position_cycle_delta": 3,
+        "baseline_equity_delta_usdc": "3.39896887609850000000",
+        "stress_equity_delta_usdc": "3.7856808620813000000"
+      },
+      "cross_window": {
+        "positive_windows": 2,
+        "total_windows": 3,
+        "aggregate_baseline_equity_delta_usdc": "3.18907890204105000000",
+        "aggregate_stress_equity_delta_usdc": "3.8606030944896000000",
+        "max_drawdown_worsening_pp": "1.50719186379102084873811226",
+        "pass": true
+      },
+      "conclusion": "Keep as fallback robust improvement; do not promote until the stronger full-window 4x62.50 candidate is cross-window tested."
+    },
+    {
+      "id": "FREQ-2026-10-01-003",
+      "family": "capital_layout",
+      "hypothesis": "ranked_repeat 4x62.50 is the best full-window robust fixed-250 layout",
+      "status": "CROSS_WINDOW_TEST_IN_PROGRESS",
+      "evidence_run_id": 36894029490,
+      "candidate": "ranked_repeat:4x62.50",
+      "full_window": {
+        "position_cycle_delta": 4,
+        "position_cycle_gain_pct": "4.819277108433734939759036145",
+        "baseline_equity_delta_usdc": "5.87301660354655000000",
+        "stress_equity_delta_usdc": "6.3783194995896000000",
+        "baseline_drawdown_delta_pp": "0",
+        "stress_drawdown_delta_pp": "0"
+      }
+    }
+  ],
+  "next_rules": [
+    "Prefer robust profit improvement over trade count alone.",
+    "Do not repeat rejected exact one_per_symbol layouts unless coin-profile or exit behavior materially changes.",
+    "After capital-layout work, continue coin-profile, entry/exit timing and holding-duration research.",
+    "Any engineering promotion requires exact-head A01-A11, QA_PASS and GOVERNANCE_PASS."
+  ]
+}
