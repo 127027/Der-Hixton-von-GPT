@@ -1,8 +1,8 @@
 {
   "schema_version": 1,
-  "round_id": "COORD-2026-09-28-COINOPT-005",
+  "round_id": "COORD-2026-10-01-PROFITOPP-006",
   "status": "DISPATCHED",
-  "owner_objective": "Continue the exact-head ten-coin Hixton 0.5.0 research using the 2026-09-29 deep-research findings: keep CAPITAL-V1-2X50PCT and the 250-USDC shared portfolio frozen; prioritize profit-first isolated alpha, profit velocity and capital efficiency while retaining drawdown/stress as hard gates. Test the fixed bounded hypothesis pack for ETH/BTC/SOL first and smaller evidence-led neighborhoods for LINK/XRP/AVAX/DOGE/BNB. Preserve ADA and DOT as mission-frozen promoted champions. A05 must compare winner and loser clusters so any filter is judged by avoided losses versus lost winners. A10 must diagnose slot opportunity cost for any isolated robust candidate and accept only positive baseline+stress marginal portfolio alpha. Never use validation/full/portfolio outcomes to rank new training candidates.",
+  "owner_objective": "First restore the stale preserved Paper runtime by the exact owner-authorized fbd1b842f4f9 -> b271d7952d15 Paper-only activation without reset. Then continue exact-head Hixton 0.5.0 research toward higher 250-USDC net profit and capital velocity. Do not repeat the latest local parameter grids unchanged. Treat ETH momentum19-vs20 as the first counterfactual slot-collision case; require isolated plus shared-portfolio base/stress evidence, trade deltas, occupied-slot-hour deltas and displaced-coin opportunity cost. Keep ADA/DOT production profiles frozen while allowing shadow research. Separate coin changes from allocator/ranking experiments.",
   "target_branch": "gpt/usdc-audit",
   "commit_policy": "PIN_EXACT_COMMIT_AT_RUN_START",
   "repair_policy": "ANY_PATCH_INVALIDATES_AFFECTED_EVIDENCE_AND_REQUIRES_A_NEW_PINNED_RUN",
@@ -16,7 +16,14 @@
     "no_forced_winner": "If a coin still has no robust improvement, agents must report that fact and the concrete blocker; they may not weaken gates or reuse validation as training merely to satisfy the owner's target.",
     "portfolio_gate": "Every robust per-coin finalist is tested one-at-a-time in the canonical saved-max-budget portfolio under baseline and stress costs. Combination testing occurs only after isolated holdout gates.",
     "no_auto_promotion": "Research does not alter versions.py, Paper state, Live runtime, local WAITING_SIGNAL trial, credentials or active strategy.",
-    "full_agents": "A01-A08 produce specialist evidence; A10 synthesizes and routes unresolved coins; A09 independently QA-checks exact-head evidence; A11 rejects overfit/stale/mixed or automatically promoted results."
+    "full_agents": "A01-A08 produce specialist evidence; A10 synthesizes and routes unresolved coins; A09 independently QA-checks exact-head evidence; A11 rejects overfit/stale/mixed or automatically promoted results.",
+    "runtime_recovery": "A05 must become fresh and healthy on the preserved Paper ledger after the exact Paper-only strategy activation; no reset and no real/testnet order path.",
+    "experiment_ledger": "A01 must preserve an experiment ledger or immutable current-run summary so previously tested coin configurations and rejection reasons are not silently repeated.",
+    "eth_counterfactual": "A02/A03/A08 must explain ETH momentum19 versus momentum20 at trade and slot-collision level before any new broad ETH grid.",
+    "candidate_gate": "Every serious challenger must report isolated baseline/stress and canonical 250-USDC portfolio baseline/stress plus added/removed/shifted trades, occupied-slot-hour delta and displaced-coin PnL.",
+    "search_direction": "BTC/BNB emphasize capital binding and timing; SOL/LINK/AVAX emphasize opportunity expansion and timing; XRP emphasizes entry timing; DOGE emphasizes volatility reaction; ADA/DOT remain production-frozen shadow research.",
+    "portfolio_separation": "Only after coin profiles are frozen may allocator/ranking research compare 2x125 against alternative equal-250-USDC layouts or opportunity-cost ranking. Coin parameters and allocator rules may not change in the same causal experiment.",
+    "promotion": "A09/A11 reject any promotion without exact-head reproducibility, holdout integrity, base/stress evidence and positive shared-portfolio marginal contribution."
   },
   "communication_rules": {
     "all_reports_must_include": [
@@ -56,7 +63,7 @@
   ],
   "assignments": {
     "A01": {
-      "objective": "Audit prior coin-optimization history, methodology and candidate-space changes. Identify repeated/dead search regions and ensure the new round does not reuse validation for selection.",
+      "objective": "Audit and persist the coin experiment/patch ledger: tested parameter regions, run/commit, holdout/stress/portfolio outcome and rejection reason. Flag stale current-evidence and repeated search regions.",
       "handoff": [
         "A02",
         "A05",
@@ -70,7 +77,7 @@
       ]
     },
     "A02": {
-      "objective": "Run the fresh latest-head ten-coin three-year optimization in an isolated venv using the bounded profit-first hypothesis pack. Ranking remains training-only. Report current metrics, Top-8, profit velocity/capital efficiency, independent validation/full baseline+stress, robust finalists and marginal/combined portfolio evidence.",
+      "objective": "Run exact-head three-year profit-first coin research without repeating the latest grids unchanged. Prioritize ETH M19-vs-M20 counterfactual evidence, then coin-specific timing/capital-velocity hypotheses; require immediate canonical 250-USDC marginal checks for serious candidates.",
       "handoff": [
         "A03",
         "A05",
@@ -87,7 +94,7 @@
       ]
     },
     "A03": {
-      "objective": "Verify engine/profile parity and deterministic reproduction between isolated single-coin runner and canonical portfolio runner. Reject any candidate whose parameter or policy hash drifts.",
+      "objective": "Verify deterministic engine/profile parity and produce ETH M19-vs-M20 trade-level differences: added/removed/shifted trades, entry/exit timing and occupied-slot-hour deltas. Reject profile-hash drift.",
       "handoff": [
         "A06",
         "A10"
@@ -100,7 +107,7 @@
       ]
     },
     "A04": {
-      "objective": "Keep optimization research isolated from shipped UI/Paper/Live. Verify no research candidate is silently presented as active or written to the local live trial.",
+      "objective": "Keep all new research isolated from shipped UI/Paper/Live activation. Verify no shadow or challenger profile appears as active before explicit promotion.",
       "handoff": [
         "A10"
       ],
@@ -111,7 +118,7 @@
       ]
     },
     "A05": {
-      "objective": "Analyze both winning and losing trades for every unresolved coin using ATR regime, breakout strength and holding-time clusters. Quantify whether a proposed filter removes more loss than winner alpha. Use profit velocity/capital-efficiency diagnostics to propose only bounded next-stage hypotheses.",
+      "objective": "First diagnose and verify recovery of the stale preserved Paper runtime and strategy-version transition. Once healthy, quantify holding-time, winner/loser and slot-saturation diagnostics needed for capital-velocity decisions.",
       "handoff": [
         "A02",
         "A06",
@@ -126,7 +133,7 @@
       ]
     },
     "A06": {
-      "objective": "Enforce anti-overfit rules and test the bounded second-stage search. Never weaken holdout/full-window gates. Add regression tests for any new candidate-generation logic and make the search deterministic and finite.",
+      "objective": "Enforce anti-overfit, deterministic bounded search and regression safety for any new timing/stall/portfolio-delta research machinery. No holdout leakage or gate weakening.",
       "handoff": [
         "A02",
         "A10"
@@ -139,7 +146,7 @@
       ]
     },
     "A07": {
-      "objective": "Verify all ten current Binance USDC markets and execution filters remain valid for the backtest execution model; no private credentials or orders.",
+      "objective": "Verify all ten Binance USDC markets, public data continuity and execution-filter assumptions used by new research; remain key-free and order-free.",
       "handoff": [
         "A02",
         "A10"
@@ -152,7 +159,7 @@
       ]
     },
     "A08": {
-      "objective": "Evaluate opportunity cost after isolated improvements: marginally insert each robust coin into the canonical max-budget portfolio under baseline/stress, then test compatible combinations. Do not use portfolio outcome to discover candidates.",
+      "objective": "Measure canonical 250-USDC marginal portfolio contribution and slot opportunity cost for each serious challenger. Build collision/counterfactual evidence before separate allocator/ranking research.",
       "handoff": [
         "A10"
       ],
@@ -164,7 +171,7 @@
       ]
     },
     "A09": {
-      "objective": "Independently QA exact-head research. Reject stale metrics, holdout-selected candidates, missing stress evidence, non-deterministic runs or claims that all ten improved when evidence does not show it.",
+      "objective": "Independently QA exact-head runtime recovery and research: no stale/mixed evidence, no holdout-selected candidates, no repeated-grid claims, and no promotion lacking isolated+portfolio base/stress plus opportunity-cost evidence.",
       "handoff": [
         "A11"
       ],
@@ -176,7 +183,7 @@
       ]
     },
     "A10": {
-      "objective": "Synthesize all ten coins with priority on net OOS USDC and profit velocity. For every robust isolated candidate rejected by the 250-USDC portfolio, identify slot/opportunity-cost effects and route a bounded timing hypothesis. Aggregate improvement may never hide an unresolved individual coin.",
+      "objective": "Orchestrate runtime recovery first, then synthesize coin research by net OOS USDC and capital velocity. Route blockers to named owners; require trade/slot opportunity-cost evidence and keep coin-vs-allocator experiments causally separated.",
       "handoff": [
         "A09"
       ],
@@ -188,7 +195,7 @@
       ]
     },
     "A11": {
-      "objective": "Govern the research loop. Require exact-commit A01-A10 evidence and prohibit gate weakening, holdout leakage, automatic canonical promotion or interference with the armed local 1x50 trial.",
+      "objective": "Govern the repair/research loop. Require fresh A01-A10 evidence on one commit; forbid real/testnet cloud orders, automatic promotion, ledger reset, gate weakening or mixed coin+allocator causal experiments.",
       "handoff": [],
       "required_focus": [
         "governance",
@@ -224,5 +231,6 @@
       "DOGEUSDC": "smoothing17_momentum16"
     },
     "local_trial": "A separate locally authenticated 1x50-USDC trial may remain WAITING_SIGNAL; optimization must not require restart/update and must not use private credentials."
-  }
+  },
+  "research_brief_file": "agent_memory/swarm/research_brief_2026-10-01.md"
 }

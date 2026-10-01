@@ -2,14 +2,14 @@
   "schema_version": 1,
   "scope": "PAPER_ONLY_CONTROLLED_STRATEGY_ACTIVATION",
   "strategy_key": "v6",
-  "authorized_from_strategy_version": "HIXTON-V6-COIN-PAPER-1-6da9687bb531",
-  "authorized_to_strategy_version": "HIXTON-V6-COIN-PAPER-1-fbd1b842f4f9",
+  "authorized_from_strategy_version": "HIXTON-V6-COIN-PAPER-1-fbd1b842f4f9",
+  "authorized_to_strategy_version": "HIXTON-V6-COIN-PAPER-1-b271d7952d15",
   "confirmation": "AKTIVIEREN",
-  "owner_instruction_date": "2026-09-25",
+  "owner_instruction_date": "2026-10-01",
   "preserve_history": true,
   "fresh_start_allowed": false,
   "close_open_simulated_positions_on_switch": true,
   "real_money_orders_allowed": false,
   "testnet_orders_allowed": false,
-  "note": "Owner-authorized Paper-only activation from preserved V6 6da9687bb531 to the verified canonical 0.5.0 V6 fbd1b842f4f9, which includes the max-capital allocator release profile. Preserve history, no fresh reset, close open simulated positions on switch, fail closed for any other pair. Real-money and testnet orders remain forbidden."
+  "note": "Owner-approved continuation on 2026-10-01: authorize only the exact preserved Paper transition fbd1b842f4f9 -> b271d7952d15 required by current gpt/usdc-audit. Preserve ledger history, no fresh reset, close open simulated positions on switch under the existing Paper activation contract, and keep real-money/testnet orders forbidden."
 }

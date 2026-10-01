@@ -37,8 +37,8 @@
     "state": "IN_PROGRESS",
     "completion_mode": "continuous",
     "started_at_utc": "2026-09-25T19:35:00+00:00",
-    "last_transition_reason": "Owner requested a fresh latest-head A01-A11 coin-by-coin optimization loop for all ten USDC markets, starting from prior Top-8/loss-cluster evidence and continuing bounded research without holdout leakage or automatic Live/Paper promotion.",
-    "owner_instruction_date": "2026-09-28",
+    "last_transition_reason": "Owner approved continued A01-A11 work using the 2026-10-01 deep-research brief: recover stale Paper first, then optimize for higher 250-USDC net profit/capital velocity with ETH slot-collision counterfactuals, non-repeated coin-specific searches and separate allocator research.",
+    "owner_instruction_date": "2026-10-01",
     "primary_agents": [
       "A01",
       "A02",
@@ -102,7 +102,12 @@
       "Coin optimization remains research-only and must not disturb the locally armed controlled 1x50-USDC trial.",
       "Every coin is judged separately; aggregate portfolio improvement cannot hide an individual coin regression.",
       "A target of improving all ten coins is aspirational, not permission to weaken validation/full-window/stress/drawdown gates or select on the holdout.",
-      "Use prior Top-8, robust finalists and loss clusters to construct bounded second-stage searches for unresolved coins rather than unbounded brute force."
+      "Use prior Top-8, robust finalists and loss clusters to construct bounded second-stage searches for unresolved coins rather than unbounded brute force.",
+      "Recover the preserved stale Paper state before treating continuous runtime evidence as healthy; authorize only the exact fbd1b842f4f9 -> b271d7952d15 Paper-only transition, with no reset and no real/testnet orders.",
+      "Do not repeat the latest documented local grids unchanged; new work must be evidence-led and coin-specific.",
+      "A serious coin challenger must show isolated baseline/stress and canonical 250-USDC portfolio baseline/stress plus trade/slot deltas before promotion.",
+      "ETH momentum19-vs20 must be explained counterfactually at slot-collision level before broader ETH search.",
+      "Coin-profile experiments and allocator/ranking experiments are separate causal workstreams and may not be changed together."
     ],
     "acceptance": [
       "A01 proves README/DMS/AGENTS/swarm docs describe max_capital_usdc, CAPITAL-V1-2X50PCT, 10x250 research separation, automatic action-time preflight, the separate 1x50 trial and the mandatory 24x7 Live execution report without stale product gates.",
@@ -131,7 +136,12 @@
       "A02 produces a fresh latest-head exact-three-year baseline/stress result for all ten coins and reports Top-8 and robust finalists per coin.",
       "A05/A06 provide bounded evidence-led second-stage search proposals or implemented research-only candidate neighborhoods for every coin that lacks a robust finalist.",
       "A10 reports an explicit ten-row coin status: current result, best robust challenger if any, validation/full/stress deltas, drawdown effect, portfolio compatibility and next action.",
-      "A09/A11 reject any statement that all ten improved unless all ten independently satisfy the unchanged robust coin gate."
+      "A09/A11 reject any statement that all ten improved unless all ten independently satisfy the unchanged robust coin gate.",
+      "A05 proves the preserved Paper runtime is fresh again on the exact current strategy version without a ledger reset.",
+      "A01 records an experiment ledger/current evidence summary preventing silent repetition of previously rejected search regions.",
+      "A02/A03/A08 produce ETH M19-vs-M20 trade and slot-collision counterfactual evidence before any new broad ETH grid.",
+      "Every serious challenger reports isolated and 250-USDC portfolio baseline/stress plus added/removed/shifted trades, occupied-slot-hour delta and displaced-coin PnL.",
+      "Allocator/ranking research is run only with frozen coin profiles and fixed 250-USDC total capital."
     ],
     "release_candidate": {
       "version": "0.5.0",
@@ -150,7 +160,7 @@
       ],
       "actual_live_roundtrip_completed": false
     },
-    "coordination_round": "COORD-2026-09-28-COINOPT-005",
+    "coordination_round": "COORD-2026-10-01-PROFITOPP-006",
     "coordination_file": "agent_memory/swarm/coordination.json",
     "coordination_requirements": [
       "Use the latest gpt/usdc-audit product head, never an older release/main bootstrap state.",
