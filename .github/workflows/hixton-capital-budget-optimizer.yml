@@ -33,8 +33,12 @@ jobs:
       - run: python -m scripts.capital_budget_optimizer
         env:
           HIXTON_CAPITAL_BUDGET_USDC: ${{ matrix.capital_usdc }}
+      - name: Cross-window robustness gate for strict frequency winner
+        run: python -m scripts.capital_layout_cross_window
       - uses: actions/upload-artifact@v4
         with:
           name: hixton-capital-budget-optimizer-${{ matrix.capital_usdc }}
-          path: evidence/capital-budget-optimizer.json
+          path: |
+            evidence/capital-budget-optimizer.json
+            evidence/capital-layout-cross-window.json
           retention-days: 14
