@@ -9,12 +9,14 @@ on:
       - "scripts/master_orchestrator.py"
       - "tests/test_master_orchestrator.py"
       - ".github/workflows/hixton-master-orchestrator-shadow.yml"
+      - "AGENTS.md"
   pull_request:
     paths:
       - "agent_memory/orchestrator/**"
       - "scripts/master_orchestrator.py"
       - "tests/test_master_orchestrator.py"
       - ".github/workflows/hixton-master-orchestrator-shadow.yml"
+      - "AGENTS.md"
 
 permissions:
   contents: read
