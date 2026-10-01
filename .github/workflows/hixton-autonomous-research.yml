@@ -55,21 +55,10 @@ jobs:
         run: python -m scripts.capital_layout_cross_window
       - name: Deterministic research synthesis
         run: |
-          EXTRA=""
-          if python - <<'PY'
-          import json
-          from pathlib import Path
-          p=Path("evidence/capital-layout-cross-window.json")
-          d=json.loads(p.read_text())
-          raise SystemExit(0 if d.get("cross_window_pass") is True else 1)
-          PY
-          then
-            EXTRA="--cross-window-pass"
-          fi
           python -m scripts.autonomous_research_supervisor \
             --coin-evidence evidence/coin-optimization-cycle.json \
             --layout-evidence evidence/capital-budget-optimizer.json \
-            $EXTRA \
+            --cross-window-evidence evidence/capital-layout-cross-window.json \
             --output evidence/autonomous-research-decision.json
       - uses: actions/upload-artifact@v4
         with:
