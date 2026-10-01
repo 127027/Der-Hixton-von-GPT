@@ -12,6 +12,7 @@ on:
       - "scripts/autonomous_research_supervisor.py"
       - "scripts/coin_optimization_cycle.py"
       - "scripts/capital_budget_optimizer.py"
+      - "scripts/capital_layout_cross_window.py"
       - "tests/test_autonomous_research_supervisor.py"
       - ".github/workflows/hixton-autonomous-research.yml"
 
