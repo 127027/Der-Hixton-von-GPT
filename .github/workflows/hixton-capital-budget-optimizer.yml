@@ -3,7 +3,7 @@ name: Hixton Capital Budget Optimizer
 on:
   workflow_dispatch:
   push:
-    branches: [gpt/usdc-audit]
+    branches: [gpt/trade-frequency-250-001]
     paths:
       - "scripts/capital_budget_optimizer.py"
       - ".github/workflows/hixton-capital-budget-optimizer.yml"
