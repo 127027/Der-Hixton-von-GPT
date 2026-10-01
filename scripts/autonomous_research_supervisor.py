@@ -89,7 +89,7 @@ def build_decision(
     coin: dict[str, Any] | None,
     layout: dict[str, Any] | None,
     *,
-    cross_window_pass: bool = False,
+    cross_window: dict[str, Any] | None = None,
 ) -> dict[str, Any]:
     if policy.get("mode") != "AUTONOMOUS_RESEARCH_AND_ENGINEERING":
         raise ResearchContractError("autonomy policy mode mismatch")
@@ -102,6 +102,24 @@ def build_decision(
     if layout_signal["promotable"]:
         candidates.append({"type": "CAPITAL_LAYOUT", **layout_signal})
 
+    validated: list[dict[str, Any]] = []
+    pending_robustness: list[dict[str, Any]] = []
+    cross_layout = None
+    cross_ok = False
+    if isinstance(cross_window, dict):
+        cross_layout = cross_window.get("candidate")
+        cross_ok = cross_window.get("cross_window_pass") is True
+
+    for candidate in candidates:
+        if (
+            candidate["type"] == "CAPITAL_LAYOUT"
+            and cross_ok
+            and cross_layout in candidate.get("strict_frequency_improvements", [])
+        ):
+            validated.append(candidate)
+        else:
+            pending_robustness.append(candidate)
+
     if not candidates:
         action = "CONTINUE_RESEARCH"
         next_focus = [
@@ -109,18 +127,20 @@ def build_decision(
             "expand per-coin valid opportunities using winner/loss cluster evidence",
             "test exit/holding-time changes separately from entry changes",
         ]
-    elif not cross_window_pass:
-        action = "RUN_CROSS_WINDOW_ROBUSTNESS"
-        next_focus = ["confirm candidates across multiple non-overlapping market windows"]
-    else:
+    elif validated:
         action = "BUILD_ENGINEERING_CANDIDATE_AND_RUN_A01_A11"
-        next_focus = ["exact-head patch, full regression, QA_PASS, GOVERNANCE_PASS"]
+        next_focus = ["exact-head patch for validated candidate, full regression, QA_PASS, GOVERNANCE_PASS"]
+    else:
+        action = "RUN_CROSS_WINDOW_ROBUSTNESS"
+        next_focus = ["confirm each candidate type with its own independent robustness evidence"]
 
     return {
         "schema_version": 1,
         "mode": policy["mode"],
         "action": action,
         "candidates": candidates,
+        "validated_candidates": validated,
+        "pending_robustness": pending_robustness,
         "next_focus": next_focus,
         "anti_overfit_required": True,
         "engineering_auto_apply_allowed_after_gates": bool(
@@ -138,7 +158,7 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--policy", type=Path, default=DEFAULT_POLICY)
     parser.add_argument("--coin-evidence", type=Path)
     parser.add_argument("--layout-evidence", type=Path)
-    parser.add_argument("--cross-window-pass", action="store_true")
+    parser.add_argument("--cross-window-evidence", type=Path)
     parser.add_argument("--output", type=Path, required=True)
     args = parser.parse_args(argv)
     policy = load_json(args.policy)
@@ -148,7 +168,7 @@ def main(argv: list[str] | None = None) -> int:
         policy,
         load_json(args.coin_evidence),
         load_json(args.layout_evidence),
-        cross_window_pass=args.cross_window_pass,
+        cross_window=load_json(args.cross_window_evidence),
     )
     args.output.parent.mkdir(parents=True, exist_ok=True)
     args.output.write_text(json.dumps(decision, indent=2) + "\n", encoding="utf-8")
