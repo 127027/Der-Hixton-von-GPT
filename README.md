@@ -16,6 +16,10 @@ Der Hixton 0.5.0 ist ein lokaler deutschsprachiger Binance-Spot-Bot für zehn US
 - Die 5-%-UTC-Tagesverlustpause, Not-Aus, Daten-, Cash- und Exchange-Gates bleiben aktiv.
 - Echtgeld ist beim Start niemals automatisch aktiv.
 
+## Autonome Forschung vs. Produktvertrag
+
+Die oben beschriebenen zehn Märkte, die aktuelle V6 und der aktuelle Allocator sind der **freigegebene Produktstand**, nicht die Grenze des Research-Suchraums. Auf `gpt/autonomous-research-v1` dürfen die Dots neue Coin-Universen, Sekundär-/Micro-Harvest-Strategien, Entry/Exit-/Regime-/Routing-Ideen, point-in-time Eventfeatures und offline sogar Hebelmodelle untersuchen. Solche Experimente ändern Live/Paper nicht automatisch. Maßgeblich ist `DMS/24_AUTONOMOUS_RESEARCH_CHARTER.md`; Engineering-Promotion erfordert weiterhin exakten Kandidaten-Commit, A01–A11, A09 QA und A11 Governance.
+
 ## V6-Coin-Profile
 
 | Coin | VIDYA | Momentum | Smoothing | ATR | Band | Zusatzregel |
