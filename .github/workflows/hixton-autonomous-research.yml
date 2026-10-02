@@ -10,6 +10,11 @@ on:
     paths:
       - "agent_memory/autonomy/**"
       - "scripts/autonomous_research_supervisor.py"
+      - "scripts/autonomous_red_team.py"
+      - "scripts/engineering_candidate_builder.py"
+      - "scripts/eth_slot_collision_audit.py"
+      - "scripts/event_reaction_study.py"
+      - "scripts/hypothesis_scheduler.py"
       - "scripts/coin_optimization_cycle.py"
       - "scripts/capital_budget_optimizer.py"
       - "scripts/capital_layout_cross_window.py"
@@ -17,13 +22,6 @@ on:
       - "tests/test_autonomous_research_supervisor.py"
       - ".github/workflows/hixton-autonomous-research.yml"
       - ".github/workflows/hixton-cloud-swarm-reusable.yml"
-      - "agent_memory/autonomy/event_archive.json"
-      - "agent_memory/autonomy/hypothesis_queue.json"
-      - "scripts/hypothesis_scheduler.py"
-      - "scripts/event_reaction_study.py"
-      - "scripts/eth_slot_collision_audit.py"
-      - "scripts/engineering_candidate_builder.py"
-      - "scripts/autonomous_red_team.py"
 
 permissions:
   contents: write
@@ -42,8 +40,15 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
-      - run: |
-          python -m py_compile             scripts/autonomous_research_supervisor.py             scripts/autonomous_red_team.py             scripts/engineering_candidate_builder.py             scripts/eth_slot_collision_audit.py             scripts/event_reaction_study.py             scripts/hypothesis_scheduler.py
+      - name: Validate autonomous contracts
+        run: |
+          python -m py_compile \
+            scripts/autonomous_research_supervisor.py \
+            scripts/autonomous_red_team.py \
+            scripts/engineering_candidate_builder.py \
+            scripts/eth_slot_collision_audit.py \
+            scripts/event_reaction_study.py \
+            scripts/hypothesis_scheduler.py
           python -m unittest discover -s tests -p "test_autonomous_research_supervisor.py" -v
 
   research:
@@ -55,7 +60,8 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
-      - run: |
+      - name: Install research environment
+        run: |
           python -m pip install --upgrade pip
           pip install -e '.[dev]'
       - name: Run adaptive ten-coin research
@@ -108,7 +114,6 @@ jobs:
           retention-days: 30
           if-no-files-found: error
 
-
   build-candidate:
     needs: research
     runs-on: ubuntu-24.04
@@ -125,9 +130,9 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
-      - name: Preserve autonomous candidate builder
+      - name: Preserve candidate builder
         run: cp scripts/engineering_candidate_builder.py /tmp/engineering_candidate_builder.py
-      - name: Create clean candidate worktree from protected engineering baseline
+      - name: Create clean candidate branch from protected engineering baseline
         id: prepare
         shell: bash
         run: |
@@ -146,7 +151,7 @@ jobs:
         with:
           name: hixton-autonomous-research-${{ github.run_id }}
           path: evidence
-      - name: Materialize validated candidate
+      - name: Materialize validated coin-profile candidate
         env:
           HIXTON_REPO_ROOT: ${{ github.workspace }}
         run: |
@@ -158,7 +163,7 @@ jobs:
             --apply
       - name: Candidate contract smoke test
         run: python -m pytest -q tests/test_current_v6_product_contract.py
-      - name: Persist candidate branch only when an eligible patch exists
+      - name: Persist candidate branch only when eligible
         id: meta
         shell: bash
         env:
@@ -184,7 +189,7 @@ jobs:
             echo "::error::Candidate manifest says applied but no whitelisted source changed."
             exit 1
           fi
-          unexpected="$(git diff --name-only | grep -vE '^(src/hixton/domain/versions.py|tests/test_current_v6_product_contract.py)
+          unexpected="$(git diff --name-only | grep -vE '^(src/hixton/domain/versions.py|tests/test_current_v6_product_contract.py)$' || true)"
           if [ -n "$unexpected" ]; then
             echo "::error::Unexpected candidate changes:"
             echo "$unexpected"
@@ -195,7 +200,7 @@ jobs:
           git add src/hixton/domain/versions.py tests/test_current_v6_product_contract.py
           git commit -m "candidate(v6): materialize robust autonomous coin-profile winner"
           git remote set-url origin "https://x-access-token:${GH_TOKEN}@github.com/${GITHUB_REPOSITORY}.git"
-          git push --force-with-lease origin "HEAD:$candidate_branch"
+          git push origin "HEAD:$candidate_branch"
           echo "candidate_created=true" >> "$GITHUB_OUTPUT"
 
   validate-candidate:
@@ -205,61 +210,6 @@ jobs:
     with:
       mission: "AUTONOMOUS_CANDIDATE_EXACT_HEAD_VALIDATION"
       base_branch: ${{ needs.build-candidate.outputs.candidate_branch }}
-    secrets: inherit
-
-  promote-engineering:
-    needs: [build-candidate, validate-candidate]
-    if: needs.build-candidate.outputs.candidate_created == 'true' && needs.validate-candidate.result == 'success'
-    runs-on: ubuntu-24.04
-    timeout-minutes: 10
-    steps:
-      - uses: actions/checkout@v4
-        with:
-          ref: ${{ needs.build-candidate.outputs.candidate_branch }}
-          fetch-depth: 0
-      - name: Fast-forward protected engineering baseline after full A01-A11 success
-        shell: bash
-        env:
-          GH_TOKEN: ${{ github.token }}
-        run: |
-          set -euo pipefail
-          git fetch origin gpt/usdc-audit "${{ needs.build-candidate.outputs.candidate_branch }}"
-          expected="${{ needs.build-candidate.outputs.baseline_sha }}"
-          current="$(git rev-parse origin/gpt/usdc-audit)"
-          if [ "$current" != "$expected" ]; then
-            echo "::error::Engineering baseline changed during candidate validation: $current != $expected"
-            exit 1
-          fi
-          candidate="$(git rev-parse "origin/${{ needs.build-candidate.outputs.candidate_branch }}")"
-          if ! git merge-base --is-ancestor "$expected" "$candidate"; then
-            echo "::error::Candidate is not descended from the exact protected baseline."
-            exit 1
-          fi
-          git remote set-url origin "https://x-access-token:${GH_TOKEN}@github.com/${GITHUB_REPOSITORY}.git"
-          git push origin "$candidate:refs/heads/gpt/usdc-audit"
-          echo "Engineering promotion complete at $candidate; Paper/Live activation remains disabled."
- || true)"
-          if [ -n "$unexpected" ]; then
-            echo "::error::Unexpected candidate changes:"
-            echo "$unexpected"
-            exit 1
-          fi
-          git config user.name "hixton-autonomy[bot]"
-          git config user.email "hixton-autonomy@users.noreply.github.com"
-          git add src/hixton/domain/versions.py tests/test_current_v6_product_contract.py
-          git commit -m "candidate(v6): materialize robust autonomous coin-profile winner"
-          git remote set-url origin "https://x-access-token:${GH_TOKEN}@github.com/${GITHUB_REPOSITORY}.git"
-          git push --force-with-lease origin "HEAD:$candidate_branch"
-          echo "candidate_created=true" >> "$GITHUB_OUTPUT"
-
-  validate-candidate:
-    needs: build-candidate
-    if: needs.build-candidate.outputs.candidate_created == 'true'
-    uses: ./.github/workflows/hixton-cloud-swarm-reusable.yml
-    with:
-      mission: "AUTONOMOUS_CANDIDATE_EXACT_HEAD_VALIDATION"
-      base_branch: ${{ needs.build-candidate.outputs.candidate_branch }}
-    secrets: inherit
 
   promote-engineering:
     needs: [build-candidate, validate-candidate]
