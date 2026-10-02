@@ -179,12 +179,66 @@ jobs:
             echo "No validated coin-profile candidate to materialize."
             exit 0
           fi
-          changed="$(git status --porcelain -- src/hixton/domain/versions.py tests/test_current_v6_product_contract.py)"
+          changed="$(git diff --name-only -- src/hixton/domain/versions.py tests/test_current_v6_product_contract.py)"
           if [ -z "$changed" ]; then
             echo "::error::Candidate manifest says applied but no whitelisted source changed."
             exit 1
           fi
-          unexpected="$(git status --porcelain | grep -vE ' (src/hixton/domain/versions.py|tests/test_current_v6_product_contract.py)$' || true)"
+          unexpected="$(git diff --name-only | grep -vE '^(src/hixton/domain/versions.py|tests/test_current_v6_product_contract.py)
+          if [ -n "$unexpected" ]; then
+            echo "::error::Unexpected candidate changes:"
+            echo "$unexpected"
+            exit 1
+          fi
+          git config user.name "hixton-autonomy[bot]"
+          git config user.email "hixton-autonomy@users.noreply.github.com"
+          git add src/hixton/domain/versions.py tests/test_current_v6_product_contract.py
+          git commit -m "candidate(v6): materialize robust autonomous coin-profile winner"
+          git remote set-url origin "https://x-access-token:${GH_TOKEN}@github.com/${GITHUB_REPOSITORY}.git"
+          git push --force-with-lease origin "HEAD:$candidate_branch"
+          echo "candidate_created=true" >> "$GITHUB_OUTPUT"
+
+  validate-candidate:
+    needs: build-candidate
+    if: needs.build-candidate.outputs.candidate_created == 'true'
+    uses: ./.github/workflows/hixton-cloud-swarm-reusable.yml
+    with:
+      mission: "AUTONOMOUS_CANDIDATE_EXACT_HEAD_VALIDATION"
+      base_branch: ${{ needs.build-candidate.outputs.candidate_branch }}
+    secrets: inherit
+
+  promote-engineering:
+    needs: [build-candidate, validate-candidate]
+    if: needs.build-candidate.outputs.candidate_created == 'true' && needs.validate-candidate.result == 'success'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ needs.build-candidate.outputs.candidate_branch }}
+          fetch-depth: 0
+      - name: Fast-forward protected engineering baseline after full A01-A11 success
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          git fetch origin gpt/usdc-audit "${{ needs.build-candidate.outputs.candidate_branch }}"
+          expected="${{ needs.build-candidate.outputs.baseline_sha }}"
+          current="$(git rev-parse origin/gpt/usdc-audit)"
+          if [ "$current" != "$expected" ]; then
+            echo "::error::Engineering baseline changed during candidate validation: $current != $expected"
+            exit 1
+          fi
+          candidate="$(git rev-parse "origin/${{ needs.build-candidate.outputs.candidate_branch }}")"
+          if ! git merge-base --is-ancestor "$expected" "$candidate"; then
+            echo "::error::Candidate is not descended from the exact protected baseline."
+            exit 1
+          fi
+          git remote set-url origin "https://x-access-token:${GH_TOKEN}@github.com/${GITHUB_REPOSITORY}.git"
+          git push origin "$candidate:refs/heads/gpt/usdc-audit"
+          echo "Engineering promotion complete at $candidate; Paper/Live activation remains disabled."
+ || true)"
           if [ -n "$unexpected" ]; then
             echo "::error::Unexpected candidate changes:"
             echo "$unexpected"
