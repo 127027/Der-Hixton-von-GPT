@@ -91,6 +91,169 @@
         "walk_forward",
         "paper_forward"
       ]
+    },
+    {
+      "id": "HYP-BASE-001",
+      "family": "base_signal_harvesting",
+      "status": "READY",
+      "hypothesis": "Revisit the original Hixton VIDYA/ATR flip stream as a high-frequency opportunity sensor. Do not trade every flip; test whether a separately sized micro-opportunity layer can harvest small positive moves while the canonical V6 remains the core trend layer.",
+      "variables_to_test": [
+        "raw flip frequency",
+        "minimum excursion after flip",
+        "micro take-profit",
+        "tight time stop",
+        "micro allocation share",
+        "cooldown"
+      ],
+      "must_hold_fixed": [
+        "core V6 profile",
+        "250 USDC total capital",
+        "same costs/execution rules"
+      ],
+      "required_evidence": [
+        "raw_basis_signal_count",
+        "gross_vs_net_after_costs",
+        "baseline_and_stress",
+        "walk_forward",
+        "shifted_3y",
+        "slot_collision",
+        "red_team"
+      ],
+      "rejection_criteria": [
+        "net profit after stress costs <= core-only",
+        "drawdown materially worse",
+        "trade count rises without profit-density gain",
+        "edge vanishes outside training windows"
+      ]
+    },
+    {
+      "id": "HYP-UNIVERSE-001",
+      "family": "dynamic_market_universe",
+      "status": "READY",
+      "hypothesis": "Research additional liquid Binance USDC spot markets as opportunity providers when the current ten-coin universe is idle; additions must earn inclusion on out-of-sample portfolio contribution, not isolated headline profit.",
+      "variables_to_test": [
+        "candidate USDC symbols",
+        "liquidity floor",
+        "history availability",
+        "correlation with current portfolio",
+        "signal overlap",
+        "marginal portfolio contribution"
+      ],
+      "must_hold_fixed": [
+        "250 USDC total capital",
+        "no automatic live market expansion"
+      ],
+      "required_evidence": [
+        "public_exchange_info",
+        "minimum_history",
+        "liquidity_screen",
+        "isolated_research",
+        "marginal_portfolio_base_stress",
+        "cross_window",
+        "shifted_3y",
+        "red_team"
+      ],
+      "rejection_criteria": [
+        "insufficient three-year history",
+        "poor liquidity",
+        "profit only isolated but negative shared-portfolio contribution",
+        "higher idle reduction with profit regression"
+      ]
+    },
+    {
+      "id": "HYP-IDLE-001",
+      "family": "idle_capital_router",
+      "status": "READY",
+      "hypothesis": "When the core V6 has no high-conviction entry, route only otherwise-idle capital to a separately validated low-duration opportunity strategy rather than weakening the core entry filter.",
+      "variables_to_test": [
+        "idle-state definition",
+        "secondary strategy family",
+        "capital fraction",
+        "maximum holding time",
+        "handoff priority when core signal arrives"
+      ],
+      "must_hold_fixed": [
+        "core V6 entry rules",
+        "250 USDC total budget"
+      ],
+      "required_evidence": [
+        "idle_hours_reduced",
+        "profit_per_calendar_day",
+        "opportunity_cost",
+        "stress_costs",
+        "handoff_conflicts",
+        "walk_forward",
+        "red_team"
+      ],
+      "rejection_criteria": [
+        "secondary layer blocks profitable core entries",
+        "net stress profit <= core-only",
+        "drawdown worsens beyond gate"
+      ]
+    },
+    {
+      "id": "HYP-LEV-001",
+      "family": "research_only_leverage",
+      "status": "BLOCKED_UNTIL_SPOT_EDGE_ROBUST",
+      "hypothesis": "Only after a robust unlevered edge is established, simulate modest leverage/sizing multipliers on that exact edge to determine whether return improves faster than drawdown, liquidation and cost risk. This is research-only and must not alter Spot Live permissions.",
+      "variables_to_test": [
+        "1.0x",
+        "1.25x",
+        "1.5x",
+        "2.0x"
+      ],
+      "must_hold_fixed": [
+        "same entry/exit edge",
+        "same test windows",
+        "no live margin/futures activation"
+      ],
+      "required_evidence": [
+        "leveraged_accounting",
+        "liquidation_model",
+        "funding_or_borrow_cost_assumptions",
+        "stress_costs",
+        "max_drawdown",
+        "tail_loss",
+        "walk_forward",
+        "red_team"
+      ],
+      "rejection_criteria": [
+        "risk-adjusted gain deteriorates",
+        "tail loss unacceptable",
+        "edge disappears after financing costs",
+        "requires unsupported or unavailable live product"
+      ]
+    },
+    {
+      "id": "HYP-BASE-002",
+      "family": "dual_timescale_signal_layer",
+      "status": "READY",
+      "hypothesis": "Use the original fast flip stream as a lower-confidence sensor and the current filtered V6 as the high-confidence regime layer; only allow micro entries when both layers agree on direction or when fast flips occur inside an established V6 uptrend.",
+      "variables_to_test": [
+        "agreement rule",
+        "micro position fraction",
+        "time exit",
+        "take-profit",
+        "cooldown"
+      ],
+      "must_hold_fixed": [
+        "250 USDC total",
+        "long-only research first"
+      ],
+      "required_evidence": [
+        "raw_vs_filtered_signal_overlap",
+        "microtrade_net_pnl",
+        "trade_frequency",
+        "stress",
+        "walk_forward",
+        "shifted_3y",
+        "red_team"
+      ],
+      "rejection_criteria": [
+        "micro layer cannibalizes core PnL",
+        "fees dominate",
+        "edge depends on one window"
+      ]
     }
   ]
 }
