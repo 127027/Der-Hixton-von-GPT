@@ -35,7 +35,10 @@
     "private_binance_credentials_in_cloud": false,
     "real_money_orders_in_cloud": false,
     "testnet_orders_in_cloud": false,
-    "historical_result_may_be_called_guaranteed": false
+    "historical_result_may_be_called_guaranteed": false,
+    "research_only_leverage_simulation_allowed": true,
+    "live_margin_allowed": false,
+    "live_futures_allowed": false
   },
   "anti_overfit": {
     "training_only_may_rank_candidates": true,
@@ -81,5 +84,15 @@
     "model_calls_for_known_repairs": 0,
     "novel_hypothesis_escalation_only": true,
     "max_novel_escalations_per_day": 2
+  },
+  "research_scope": {
+    "product_contract_is_not_research_ceiling": true,
+    "research_may_challenge_current_coin_universe": true,
+    "research_may_challenge_current_allocator": true,
+    "research_may_test_secondary_strategy_layers": true,
+    "research_may_test_alternative_timeframes_offline": true,
+    "research_may_simulate_leverage_offline": true,
+    "live_market_universe_changes_require_full_promotion_and_owner_live_activation": true,
+    "live_margin_futures_leverage_remains_forbidden": true
   }
 }
