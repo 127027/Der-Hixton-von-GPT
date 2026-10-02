@@ -82,6 +82,13 @@ class AutonomousResearchSupervisorTests(unittest.TestCase):
                     "shifted_window_pass": False,
                 },
             },
+            red_team={
+                "capital_layout": {
+                    "candidate": "one_per_symbol:3x83.33",
+                    "pass": True,
+                },
+                "coin_profile": {"accepted_symbols": [], "pass": False},
+            },
         )
         self.assertEqual(
             validated["action"], "BUILD_ENGINEERING_CANDIDATE_AND_RUN_A01_A11"
@@ -117,8 +124,34 @@ class AutonomousResearchSupervisorTests(unittest.TestCase):
                     "shifted_window_pass": True,
                 },
             },
+            red_team={
+                "capital_layout": {"candidate": None, "pass": False},
+                "coin_profile": {
+                    "accepted_symbols": ["AVAXUSDC"],
+                    "pass": True,
+                },
+            },
         )
         self.assertEqual(good["action"], "BUILD_ENGINEERING_CANDIDATE_AND_RUN_A01_A11")
+
+    def test_red_team_is_mandatory_even_after_shifted_pass(self) -> None:
+        coin = {
+            "aggregate_promotion_gate": {"promotable": True},
+            "profile_parity": {"current_match": True, "candidate_match": True},
+            "per_coin": {"AVAXUSDC": {"accepted": True}},
+        }
+        result = build_decision(
+            self.policy,
+            coin,
+            None,
+            shifted_window={
+                "coin_profile": {
+                    "accepted_symbols": ["AVAXUSDC"],
+                    "shifted_window_pass": True,
+                }
+            },
+        )
+        self.assertEqual(result["action"], "RUN_CROSS_WINDOW_ROBUSTNESS")
 
     def test_real_money_activation_remains_forbidden(self) -> None:
         result = build_decision(self.policy, None, None)
