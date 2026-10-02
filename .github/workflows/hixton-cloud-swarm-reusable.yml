@@ -7,6 +7,10 @@ on:
         required: false
         type: string
         default: ""
+      base_branch:
+        required: false
+        type: string
+        default: "gpt/usdc-audit"
 
 permissions:
   contents: write
@@ -19,7 +23,7 @@ concurrency:
   cancel-in-progress: true
 
 env:
-  BASE_BRANCH: gpt/usdc-audit
+  BASE_BRANCH: ${{ inputs.base_branch }}
   STATE_BRANCH: paper-runtime-state
   PYTHON_VERSION: "3.12"
   NODE_VERSION: "22"
