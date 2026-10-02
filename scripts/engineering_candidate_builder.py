@@ -19,7 +19,7 @@ from decimal import Decimal
 from pathlib import Path
 from typing import Any
 
-ROOT = Path(__file__).resolve().parents[1]
+ROOT = Path(os.environ.get("HIXTON_REPO_ROOT", str(Path(__file__).resolve().parents[1]))).resolve()
 VERSIONS = ROOT / "src" / "hixton" / "domain" / "versions.py"
 PRODUCT_TEST = ROOT / "tests" / "test_current_v6_product_contract.py"
 
