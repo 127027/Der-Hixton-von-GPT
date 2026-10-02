@@ -15,15 +15,48 @@
     "A11": "Continuously audit A01-A10, anti-overfit integrity and promotion evidence; only GOVERNANCE_PASS can authorize engineering promotion."
   },
   "loop": [
-    "observe current evidence",
+    "observe current evidence and event archive",
     "identify highest-value bottleneck",
-    "form bounded hypothesis",
+    "select or create one bounded hypothesis",
     "run deterministic research",
-    "reject or escalate unknown work",
-    "cross-window anti-overfit check",
-    "build candidate patch when justified",
-    "run exact-head A01-A11",
-    "promote engineering candidate only after QA_PASS and GOVERNANCE_PASS",
-    "record result and immediately choose next hypothesis"
-  ]
+    "run ordinary cross-window and shifted full-three-year robustness",
+    "run independent red-team falsification",
+    "materialize validated candidate code on isolated branch",
+    "run exact-head A01-A11 against that candidate branch",
+    "promote engineering candidate only after successful A09/A11 validation",
+    "record accepted/rejected result",
+    "immediately select the next hypothesis"
+  ],
+  "specialized_dots": {
+    "D12": {
+      "name": "Hypothesis Architect Dot",
+      "objective": "Continuously introduce materially new, source-backed, bounded strategy/portfolio hypotheses when the deterministic queue is exhausted or stale.",
+      "constraints": [
+        "no blind parameter churn",
+        "one causal family per experiment",
+        "record sources and prior rejected regions",
+        "no future information"
+      ]
+    },
+    "D13": {
+      "name": "Event Intelligence Dot",
+      "objective": "Build an append-only point-in-time archive of high-impact crypto, regulatory and macro events and research whether event-aware risk throttles add robust value.",
+      "constraints": [
+        "publication timestamp is immutable",
+        "source URL required",
+        "no retrospective outcome labels",
+        "no direct live command without validated replay and paper-forward evidence"
+      ]
+    },
+    "D14": {
+      "name": "Engineering Promotion Dot",
+      "objective": "Turn validated research winners into whitelisted candidate code, run exact-head A01-A11, and promote only engineering state after A09/A11 success.",
+      "constraints": [
+        "candidate must descend from exact protected baseline",
+        "whitelisted files only",
+        "stable baseline must not change during validation",
+        "Paper/Live activation remains manual"
+      ]
+    }
+  }
 }
