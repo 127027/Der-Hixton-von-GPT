@@ -82,6 +82,7 @@ def _timing(result: Any, layout: Layout, start: datetime, end: datetime) -> dict
     occupancy = 0
     previous = start
     max_occupancy = 0
+    zero_streak_hours: list[float] = []
     for at in sorted(events):
         clipped = min(max(at, start), end)
         if clipped > previous:
@@ -89,7 +90,10 @@ def _timing(result: Any, layout: Layout, start: datetime, end: datetime) -> dict
                 raise RuntimeError(
                     f"{layout.key}: slot occupancy escaped 0..{layout.slots}: {occupancy}"
                 )
-            occupancy_hours[str(occupancy)] += (clipped - previous).total_seconds() / 3600
+            duration_hours = (clipped - previous).total_seconds() / 3600
+            occupancy_hours[str(occupancy)] += duration_hours
+            if occupancy == 0:
+                zero_streak_hours.append(duration_hours)
             previous = clipped
         occupancy += events[at]
         max_occupancy = max(max_occupancy, occupancy)
@@ -98,7 +102,20 @@ def _timing(result: Any, layout: Layout, start: datetime, end: datetime) -> dict
             raise RuntimeError(
                 f"{layout.key}: slot occupancy escaped 0..{layout.slots}: {occupancy}"
             )
-        occupancy_hours[str(occupancy)] += (end - previous).total_seconds() / 3600
+        duration_hours = (end - previous).total_seconds() / 3600
+        occupancy_hours[str(occupancy)] += duration_hours
+        if occupancy == 0:
+            zero_streak_hours.append(duration_hours)
+
+    total_hours = max(1.0, (end - start).total_seconds() / 3600)
+    occupied_slot_hours = sum(
+        int(slots) * hours for slots, hours in occupancy_hours.items()
+    )
+    average_occupied_slots = occupied_slot_hours / total_hours
+    slot_utilization_pct = average_occupied_slots / layout.slots * 100.0
+    average_deployed_notional = average_occupied_slots * float(layout.tranche)
+    zero_position_pct = occupancy_hours["0"] / total_hours * 100.0
+    full_slot_pct = occupancy_hours[str(layout.slots)] / total_hours * 100.0
 
     entries_by_year: dict[str, int] = {}
     for value in entries:
@@ -114,6 +131,12 @@ def _timing(result: Any, layout: Layout, start: datetime, end: datetime) -> dict
         "occupancy_hours_by_slots": occupancy_hours,
         "zero_position_hours": occupancy_hours["0"],
         "full_slot_hours": occupancy_hours[str(layout.slots)],
+        "zero_position_pct": zero_position_pct,
+        "full_slot_pct": full_slot_pct,
+        "average_occupied_slots": average_occupied_slots,
+        "slot_utilization_pct": slot_utilization_pct,
+        "average_deployed_notional_usdc": average_deployed_notional,
+        "longest_idle_hours": max(zero_streak_hours) if zero_streak_hours else 0.0,
     }
 
 
@@ -174,6 +197,10 @@ def _run(
         symbols=V6_COIN_STRATEGY.symbols,
     )
     no_free = sum(1 for item in result.blocked_signals if item.endswith(":NO_FREE_SLOT"))
+    duration_days = max(D("1"), D(str((end - start).total_seconds())) / D("86400"))
+    deployed_slot_hours = sum(
+        trade.holding_hours * D(int(trade.slot_count)) for trade in result.trades
+    )
     return {
         "layout": layout.key,
         "policy": layout.policy,
@@ -188,6 +215,12 @@ def _run(
         "max_drawdown_pct": str(result.metrics.max_drawdown_pct),
         "position_cycles": result.metrics.completed_trades,
         "slot_trades": result.metrics.completed_slot_trades,
+        "position_cycles_per_day": str(D(result.metrics.completed_trades) / duration_days),
+        "slot_trades_per_day": str(D(result.metrics.completed_slot_trades) / duration_days),
+        "profit_per_calendar_day_usdc": str(result.metrics.net_pnl / duration_days),
+        "profit_per_deployed_slot_hour_usdc": (
+            None if deployed_slot_hours <= 0 else str(result.metrics.net_pnl / deployed_slot_hours)
+        ),
         "wins": result.metrics.winning_trades,
         "losses": result.metrics.losing_trades,
         "win_rate_pct": (
@@ -230,9 +263,12 @@ def _frequency_comparison(
     reference_stress_equity = D(str(reference_stress["ending_equity"]))
     reference_drawdown = D(str(reference["max_drawdown_pct"]))
     reference_stress_drawdown = D(str(reference_stress["max_drawdown_pct"]))
+    reference_utilization = D(str(reference["trade_timing"]["slot_utilization_pct"]))
+    reference_zero_pct = D(str(reference["trade_timing"]["zero_position_pct"]))
 
     rows: list[dict[str, object]] = []
     strict: list[str] = []
+    activity: list[str] = []
     for candidate in baseline_rows:
         key = str(candidate["layout"])
         if key == "ranked_repeat:2x125":
@@ -242,6 +278,13 @@ def _frequency_comparison(
         equity = D(str(candidate["ending_equity"]))
         stress_equity = D(str(stress["ending_equity"]))
         cycle_delta = cycles - reference_cycles
+        utilization = D(str(candidate["trade_timing"]["slot_utilization_pct"]))
+        zero_pct = D(str(candidate["trade_timing"]["zero_position_pct"]))
+        activity_gain = (
+            cycle_delta > 0
+            or utilization > reference_utilization
+            or zero_pct < reference_zero_pct
+        )
         row = {
             "layout": key,
             "position_cycle_delta": cycle_delta,
@@ -264,6 +307,13 @@ def _frequency_comparison(
                 float(candidate["trade_timing"]["average_gap_hours_including_window_edges"])
                 - float(reference["trade_timing"]["average_gap_hours_including_window_edges"])
             ),
+            "slot_utilization_delta_pp": str(utilization - reference_utilization),
+            "zero_position_delta_pp": str(zero_pct - reference_zero_pct),
+            "activity_improvement": (
+                activity_gain
+                and equity >= reference_equity
+                and stress_equity >= reference_stress_equity
+            ),
             "strict_frequency_improvement": (
                 cycle_delta > 0
                 and equity >= reference_equity
@@ -272,6 +322,8 @@ def _frequency_comparison(
         }
         if row["strict_frequency_improvement"]:
             strict.append(key)
+        if row["activity_improvement"]:
+            activity.append(key)
         rows.append(row)
 
     rows.sort(
@@ -289,6 +341,15 @@ def _frequency_comparison(
             "AND stress ending equity >= reference"
         ),
         "strict_frequency_improvements": strict,
+        "activity_improvements": activity,
+        "reference_activity": {
+            "position_cycles_per_day": reference["position_cycles_per_day"],
+            "slot_trades_per_day": reference["slot_trades_per_day"],
+            "slot_utilization_pct": reference["trade_timing"]["slot_utilization_pct"],
+            "average_deployed_notional_usdc": reference["trade_timing"]["average_deployed_notional_usdc"],
+            "zero_position_pct": reference["trade_timing"]["zero_position_pct"],
+            "longest_idle_hours": reference["trade_timing"]["longest_idle_hours"],
+        },
         "comparisons": rows,
     }
 
