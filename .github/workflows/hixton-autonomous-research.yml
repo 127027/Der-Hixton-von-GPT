@@ -8,7 +8,9 @@ on:
     branches:
       - gpt/autonomous-research-v1
     paths:
-      - "agent_memory/autonomy/**"
+      - "agent_memory/autonomy/heartbeat.json"
+      - "agent_memory/autonomy/policy.json"
+      - "agent_memory/autonomy/roles.json"
       - "scripts/autonomous_research_supervisor.py"
       - "scripts/autonomous_red_team.py"
       - "scripts/engineering_candidate_builder.py"
