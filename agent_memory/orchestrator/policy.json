@@ -1,0 +1,47 @@
+{
+  "schema_version": 1,
+  "name": "Hixton Master Orchestrator V1",
+  "mode": "SHADOW_ONLY",
+  "source_of_truth": "github",
+  "cost_policy": {
+    "default_ai_enabled": false,
+    "default_max_ai_escalations_per_cycle": 0,
+    "hard_max_ai_escalations_per_cycle": 2,
+    "status_polling_may_use_ai": false,
+    "known_repairs_may_use_ai": false,
+    "missing_evidence_may_use_ai": false,
+    "owner_unlock_required_for_ai": true
+  },
+  "security": {
+    "binance_private_credentials_allowed": false,
+    "real_money_orders_allowed": false,
+    "testnet_orders_allowed": false,
+    "automatic_strategy_activation_allowed": false,
+    "automatic_merge_allowed": false
+  },
+  "independent_gates": {
+    "A09": {
+      "required": true,
+      "replaceable_by_master": false,
+      "ai_self_approval_allowed": false
+    },
+    "A11": {
+      "required": true,
+      "replaceable_by_master": false,
+      "ai_self_approval_allowed": false
+    }
+  },
+  "roles": {
+    "A01": {"mode": "DETERMINISTIC_FIRST", "ai_only_for": ["requirements_conflict", "novel_specification"]},
+    "A02": {"mode": "DETERMINISTIC_FIRST", "ai_only_for": ["novel_research_hypothesis", "unknown_backtest_failure"]},
+    "A03": {"mode": "DETERMINISTIC_FIRST", "ai_only_for": ["unknown_runtime_defect"]},
+    "A04": {"mode": "DETERMINISTIC_FIRST", "ai_only_for": ["novel_ui_change", "unknown_browser_defect"]},
+    "A05": {"mode": "DETERMINISTIC_ONLY", "ai_only_for": []},
+    "A06": {"mode": "DETERMINISTIC_FIRST", "ai_only_for": ["unknown_cross_component_repair"]},
+    "A07": {"mode": "DETERMINISTIC_ONLY", "ai_only_for": []},
+    "A08": {"mode": "DETERMINISTIC_FIRST", "ai_only_for": ["novel_strategy_hypothesis", "unknown_strategy_defect"]},
+    "A09": {"mode": "DETERMINISTIC_ONLY", "ai_only_for": []},
+    "A10": {"mode": "HYBRID_SHADOW", "ai_only_for": ["unknown_repair_plan"]},
+    "A11": {"mode": "DETERMINISTIC_ONLY", "ai_only_for": []}
+  }
+}

@@ -1,0 +1,31 @@
+{
+  "schema_version": 1,
+  "checked_at_utc": "2026-10-01T15:24:00Z",
+  "reference_release_commit": "128b11ff92e07134f0fec88ebeacc27734df5d20",
+  "reference_swarm_run_id": 36875565123,
+  "reference_outcome": {
+    "A10": {
+      "verdict": "PASS",
+      "repair_required": false,
+      "source_commit": "128b11ff92e07134f0fec88ebeacc27734df5d20"
+    },
+    "A09": {
+      "verdict": "PASS",
+      "gate": "QA_PASS",
+      "source_commit": "128b11ff92e07134f0fec88ebeacc27734df5d20"
+    },
+    "A11": {
+      "verdict": "PASS",
+      "gate": "GOVERNANCE_PASS",
+      "source_commit": "128b11ff92e07134f0fec88ebeacc27734df5d20"
+    }
+  },
+  "shadow_expected_decision": "GREEN_NO_ACTION",
+  "shadow_mutations_allowed": false,
+  "shadow_model_calls_allowed_by_default": 0,
+  "notes": [
+    "This parity record is descriptive evidence only; it does not replace A09 or A11.",
+    "The authoritative release decision remains the A01-A11 GitHub Actions chain.",
+    "No Binance private credentials or real/testnet order capability is introduced."
+  ]
+}

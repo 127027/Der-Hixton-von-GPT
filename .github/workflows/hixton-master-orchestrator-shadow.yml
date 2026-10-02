@@ -1,0 +1,54 @@
+name: Hixton Master Orchestrator Shadow CI
+
+on:
+  push:
+    branches:
+      - gpt/master-orchestrator-v1
+    paths:
+      - "agent_memory/orchestrator/**"
+      - "scripts/master_orchestrator.py"
+      - "tests/test_master_orchestrator.py"
+      - ".github/workflows/hixton-master-orchestrator-shadow.yml"
+      - "AGENTS.md"
+  pull_request:
+    paths:
+      - "agent_memory/orchestrator/**"
+      - "scripts/master_orchestrator.py"
+      - "tests/test_master_orchestrator.py"
+      - ".github/workflows/hixton-master-orchestrator-shadow.yml"
+      - "AGENTS.md"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: hixton-master-orchestrator-shadow-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  contract:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Compile shadow orchestrator
+        run: python -m compileall -q scripts/master_orchestrator.py tests/test_master_orchestrator.py
+      - name: Run zero-cost orchestrator unit tests
+        run: python -m unittest discover -s tests -p "test_master_orchestrator.py" -v
+      - name: Produce read-only shadow plan
+        run: |
+          python -m scripts.master_orchestrator --output /tmp/master-orchestrator-plan.json
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          plan = json.loads(Path("/tmp/master-orchestrator-plan.json").read_text())
+          assert plan["mode"] == "SHADOW_ONLY"
+          assert plan["mutations_performed"] is False
+          assert plan["model_calls_performed"] == 0
+          assert plan["ai_budget"]["authorized_max_escalations"] == 0
+          assert plan["security"]["real_money_orders_allowed"] is False
+          assert plan["security"]["binance_private_credentials_allowed"] is False
+          PY
