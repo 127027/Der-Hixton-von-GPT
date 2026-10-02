@@ -11,7 +11,8 @@
       "headline trade count alone",
       "single-window profit alone",
       "in-sample fit alone"
-    ]
+    ],
+    "future_readiness": "prefer mechanisms that survive plausible unseen regimes, execution degradation and newly arriving data over mechanisms that maximize historical fit"
   },
   "allowed_research": [
     "per-coin strategy parameters",
@@ -51,7 +52,11 @@
     "profile_and_runner_hash_parity_required": true,
     "paper_forward_evidence_required_before_live_activation": true,
     "shifted_full_three_year_required_before_auto_apply": true,
-    "independent_red_team_required_before_auto_apply": true
+    "independent_red_team_required_before_auto_apply": true,
+    "future_readiness_gate_required_before_auto_apply": true,
+    "recent_proxy_windows_are_rejection_only": true,
+    "recent_proxy_results_must_not_tune_next_candidate": true,
+    "extreme_execution_cost_gate_required": true
   },
   "promotion": {
     "engineering_auto_apply_allowed": true,
@@ -94,5 +99,13 @@
     "research_may_simulate_leverage_offline": true,
     "live_market_universe_changes_require_full_promotion_and_owner_live_activation": true,
     "live_margin_futures_leverage_remains_forbidden": true
+  },
+  "forward_evidence": {
+    "enabled": true,
+    "mode": "SHADOW_ONLY",
+    "optimization_from_forward_window_forbidden": true,
+    "purpose": "observe newly arriving closed bars after engineering promotion and compare actual Paper/public-market behavior with strategy expectations before any Live activation",
+    "minimum_observation_hours_before_live_review": 168,
+    "live_activation_automatic": false
   }
 }
