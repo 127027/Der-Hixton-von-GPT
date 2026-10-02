@@ -13,6 +13,8 @@ on:
       - "agent_memory/autonomy/roles.json"
       - "scripts/autonomous_research_supervisor.py"
       - "scripts/autonomous_red_team.py"
+      - "scripts/basis_signal_census.py"
+      - "scripts/universe_discovery.py"
       - "scripts/engineering_candidate_builder.py"
       - "scripts/eth_slot_collision_audit.py"
       - "scripts/event_reaction_study.py"
@@ -47,6 +49,8 @@ jobs:
           python -m py_compile \
             scripts/autonomous_research_supervisor.py \
             scripts/autonomous_red_team.py \
+            scripts/basis_signal_census.py \
+            scripts/universe_discovery.py \
             scripts/engineering_candidate_builder.py \
             scripts/eth_slot_collision_audit.py \
             scripts/event_reaction_study.py \
@@ -91,6 +95,10 @@ jobs:
             --shifted-window-evidence evidence/shifted-three-year-robustness.json \
             --red-team-evidence evidence/autonomous-red-team.json \
             --output evidence/autonomous-research-decision.json
+      - name: Original Hixton basis signal census
+        run: python -m scripts.basis_signal_census
+      - name: Additional Binance USDC universe discovery
+        run: python -m scripts.universe_discovery
       - name: ETH M19 shared-slot collision audit
         run: python -m scripts.eth_slot_collision_audit
       - name: Point-in-time event reaction study
@@ -113,6 +121,8 @@ jobs:
             evidence/eth-m19-slot-collision-audit.json
             evidence/event-reaction-study.json
             evidence/autonomous-next-hypothesis.json
+            evidence/basis-signal-census.json
+            evidence/universe-discovery.json
           retention-days: 30
           if-no-files-found: error
 
