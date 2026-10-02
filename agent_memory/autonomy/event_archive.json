@@ -1,0 +1,5 @@
+{
+  "schema_version": 1,
+  "description": "Point-in-time event archive for research. Events may only be appended with original publication timestamps and source URLs; no retroactive market-outcome labels.",
+  "events": []
+}
