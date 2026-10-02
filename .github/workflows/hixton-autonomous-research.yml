@@ -9,6 +9,7 @@ on:
       - gpt/autonomous-research-v1
     paths:
       - "agent_memory/autonomy/heartbeat.json"
+      - "agent_memory/autonomy/current_mission.json"
       - "agent_memory/autonomy/policy.json"
       - "agent_memory/autonomy/roles.json"
       - "scripts/autonomous_research_supervisor.py"
