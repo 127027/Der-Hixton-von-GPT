@@ -57,6 +57,26 @@
         "stable baseline must not change during validation",
         "Paper/Live activation remains manual"
       ]
+    },
+    "D15": {
+      "name": "Universe Discovery Dot",
+      "objective": "Continuously inspect public Binance USDC spot markets for additional liquid, sufficiently old, diversifying opportunity sources and nominate them for isolated and shared-portfolio research.",
+      "constraints": [
+        "no automatic live symbol addition",
+        "minimum history and liquidity required",
+        "marginal portfolio contribution required",
+        "point-in-time exchange filters only"
+      ]
+    },
+    "D16": {
+      "name": "Base Signal Mining Dot",
+      "objective": "Continuously mine the original high-frequency Hixton flip stream for statistically robust micro-opportunity structures without weakening the core V6 filter.",
+      "constraints": [
+        "never assume all raw flips are tradable",
+        "fees/slippage mandatory",
+        "micro layer must not cannibalize core signals",
+        "separate causal experiment family"
+      ]
     }
   }
 }
