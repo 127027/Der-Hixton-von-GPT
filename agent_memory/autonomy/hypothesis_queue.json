@@ -1,0 +1,96 @@
+{
+  "schema_version": 1,
+  "objective": "robustly improve fixed 250 USDC / 10 USDC spot portfolio",
+  "rules": {
+    "one_primary_variable_family_per_experiment": true,
+    "rejected_region_requires_new_evidence_before_retry": true,
+    "profit_after_costs_primary": true,
+    "trade_count_alone_never_sufficient": true,
+    "point_in_time_only_for_event_features": true
+  },
+  "hypotheses": [
+    {
+      "id": "HYP-ALLOC-001",
+      "family": "hybrid_slot_routing",
+      "status": "READY",
+      "hypothesis": "Use four 62.50-USDC ranked slots but cap concurrent repeats per symbol at two, preserving strong-coin concentration while reducing slot collision concentration.",
+      "required_evidence": [
+        "baseline",
+        "stress",
+        "cross_window",
+        "shifted_3y",
+        "red_team"
+      ]
+    },
+    {
+      "id": "HYP-EXIT-001",
+      "family": "holding_duration",
+      "status": "READY",
+      "hypothesis": "Test bounded time exits separately from entry logic because ~10-day average holding duration may create avoidable slot opportunity cost.",
+      "parameters_to_test": [
+        "72h",
+        "120h",
+        "168h"
+      ],
+      "required_evidence": [
+        "training_rank_only",
+        "holdout",
+        "baseline",
+        "stress",
+        "shared_portfolio"
+      ]
+    },
+    {
+      "id": "HYP-RANK-001",
+      "family": "opportunity_cost_ranking",
+      "status": "READY",
+      "hypothesis": "Rank simultaneous entries by expected opportunity value rather than breakout strength alone, using only features known at entry time.",
+      "required_evidence": [
+        "no_future_features",
+        "collision_audit",
+        "baseline",
+        "stress",
+        "shifted_3y"
+      ]
+    },
+    {
+      "id": "HYP-REGIME-001",
+      "family": "volatility_regime",
+      "status": "READY",
+      "hypothesis": "Condition entry strictness on point-in-time volatility regime so high-volatility periods require stronger confirmation without changing exit logic.",
+      "required_evidence": [
+        "walk_forward",
+        "baseline",
+        "stress",
+        "drawdown",
+        "trade_frequency"
+      ]
+    },
+    {
+      "id": "HYP-DIVERSIFY-001",
+      "family": "correlation_aware_slots",
+      "status": "READY",
+      "hypothesis": "Penalize highly correlated simultaneous positions when a similarly ranked uncorrelated opportunity exists, without enforcing one-per-symbol globally.",
+      "required_evidence": [
+        "point_in_time_correlation",
+        "shared_portfolio",
+        "baseline",
+        "stress",
+        "shifted_3y"
+      ]
+    },
+    {
+      "id": "HYP-EVENT-001",
+      "family": "event_risk_throttle",
+      "status": "BLOCKED_ON_EVENT_ARCHIVE",
+      "hypothesis": "Use timestamped high-impact crypto/macro/regulatory events as a temporary entry-risk throttle only if point-in-time replay shows robust post-event downside or volatility effects.",
+      "required_evidence": [
+        "timestamped_archive",
+        "minimum_sample",
+        "event_replay",
+        "walk_forward",
+        "paper_forward"
+      ]
+    }
+  ]
+}
