@@ -5,7 +5,7 @@
   "objective": {
     "capital_usdc": "250.00",
     "symbols": 10,
-    "primary": "increase robust net profit after costs while materially increasing meaningful deployment of the fixed 250 USDC",
+    "primary": "increase robust net profit after costs while increasing meaningful deployment of the fixed 250 USDC research budget",
     "secondary": "increase completed position cycles per calendar day, slot utilization and average deployed notional while reducing zero-position hours, longest idle stretches and avoidable NO_FREE_SLOT loss",
     "never_optimize_for": [
       "headline trade count alone",
@@ -114,7 +114,7 @@
   "activity_mission": {
     "id": "MISSION-CAPITAL-ACTIVITY-250",
     "target_account_capital_usdc": "250.00",
-    "preferred_outcome": "more frequent meaningful 50-250 USDC market deployment with non-regressive baseline/stress profit",
+    "preferred_outcome": "more frequent meaningful 50-250 USDC simulated deployment with non-regressive baseline/stress profit",
     "mandatory_metrics": [
       "position_cycles_per_day",
       "slot_trades_per_day",
