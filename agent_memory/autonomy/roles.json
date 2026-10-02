@@ -23,9 +23,11 @@
     "run independent red-team falsification",
     "materialize validated candidate code on isolated branch",
     "run exact-head A01-A11 against that candidate branch",
+    "run sealed future-readiness rejection gate without tuning from its detailed outcomes",
     "promote engineering candidate only after successful A09/A11 validation",
     "record accepted/rejected result",
-    "immediately select the next hypothesis"
+    "immediately select the next hypothesis",
+    "accumulate forward shadow evidence on newly arriving closed bars after promotion"
   ],
   "specialized_dots": {
     "D12": {
@@ -76,6 +78,17 @@
         "fees/slippage mandatory",
         "micro layer must not cannibalize core signals",
         "separate causal experiment family"
+      ]
+    },
+    "D17": {
+      "name": "Future Readiness & Forward Evidence Dot",
+      "objective": "Try to falsify promoted and candidate behavior under recent sealed proxy windows, harsher execution assumptions and newly arriving post-promotion data without tuning on that evidence.",
+      "constraints": [
+        "future cannot be predicted or claimed to match backtest",
+        "recent proxy windows are reject-only and may not select new parameters",
+        "new post-promotion data is shadow evidence, not an optimization target",
+        "Paper/Live semantic drift must fail closed",
+        "Live activation remains separate and non-automatic"
       ]
     }
   }
