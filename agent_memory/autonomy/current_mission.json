@@ -1,0 +1,48 @@
+{
+  "schema_version": 1,
+  "id": "MISSION-CAPITAL-ACTIVITY-250",
+  "status": "ACTIVE",
+  "objective": "Increase robust profitable market participation of the fixed 250 USDC account while reducing avoidable idle time.",
+  "priorities": [
+    "robust net profit after costs remains non-regressive",
+    "increase completed profitable opportunity frequency",
+    "increase average slot/capital utilization",
+    "reduce zero-position hours and longest idle stretches",
+    "reduce avoidable NO_FREE_SLOT opportunity loss",
+    "preserve future-readiness and anti-overfit gates"
+  ],
+  "anti_gaming": {
+    "tiny_order_counting_for_frequency_forbidden": true,
+    "minimum_research_tranche_usdc": "50.00",
+    "fixed_total_capital_usdc": "250.00",
+    "splitting_one_signal_into_many_tiny_orders_does_not_count_as_more_opportunities": true,
+    "trade_count_without_profit_or_utilization_gain_is_not_success": true
+  },
+  "required_metrics": [
+    "position_cycles_per_day",
+    "slot_trades_per_day",
+    "slot_utilization_pct",
+    "average_deployed_notional_usdc",
+    "zero_position_pct",
+    "full_slot_pct",
+    "longest_idle_hours",
+    "blocked_no_free_slot",
+    "profit_per_calendar_day_usdc",
+    "profit_per_position_hour_usdc",
+    "baseline_ending_equity",
+    "stress_ending_equity",
+    "max_drawdown_pct"
+  ],
+  "research_fronts": [
+    "holding-duration/time-exit experiments",
+    "idle-capital secondary strategy with >=50 USDC tranches",
+    "hybrid slot routing and handoff priority",
+    "original basis-signal filtering for meaningful notional trades",
+    "additional liquid Binance USDC markets",
+    "opportunity-cost ranking",
+    "regime-adaptive entry strictness",
+    "correlation-aware allocation",
+    "event-risk throttles only when replay-validated"
+  ],
+  "success_rule": "A candidate may improve activity only if baseline/stress profit remain non-regressive and future-readiness/red-team gates pass. Prefer fewer larger meaningful trades over many tiny trades."
+}
