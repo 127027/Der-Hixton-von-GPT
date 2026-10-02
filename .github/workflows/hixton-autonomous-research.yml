@@ -16,9 +16,18 @@ on:
       - "scripts/shifted_three_year_robustness.py"
       - "tests/test_autonomous_research_supervisor.py"
       - ".github/workflows/hixton-autonomous-research.yml"
+      - ".github/workflows/hixton-cloud-swarm-reusable.yml"
+      - "agent_memory/autonomy/event_archive.json"
+      - "agent_memory/autonomy/hypothesis_queue.json"
+      - "scripts/hypothesis_scheduler.py"
+      - "scripts/event_reaction_study.py"
+      - "scripts/eth_slot_collision_audit.py"
+      - "scripts/engineering_candidate_builder.py"
+      - "scripts/autonomous_red_team.py"
 
 permissions:
-  contents: read
+  contents: write
+  actions: read
 
 concurrency:
   group: hixton-autonomous-research-v1
@@ -34,7 +43,7 @@ jobs:
         with:
           python-version: "3.12"
       - run: |
-          python -m py_compile scripts/autonomous_research_supervisor.py
+          python -m py_compile             scripts/autonomous_research_supervisor.py             scripts/autonomous_red_team.py             scripts/engineering_candidate_builder.py             scripts/eth_slot_collision_audit.py             scripts/event_reaction_study.py             scripts/hypothesis_scheduler.py
           python -m unittest discover -s tests -p "test_autonomous_research_supervisor.py" -v
 
   research:
@@ -57,6 +66,14 @@ jobs:
         run: python -m scripts.capital_layout_cross_window
       - name: Shifted full-three-year endpoint robustness
         run: python -m scripts.shifted_three_year_robustness
+      - name: Independent red-team falsification
+        run: |
+          python -m scripts.autonomous_red_team \
+            --coin-evidence evidence/coin-optimization-cycle.json \
+            --layout-evidence evidence/capital-budget-optimizer.json \
+            --cross-window-evidence evidence/capital-layout-cross-window.json \
+            --shifted-window-evidence evidence/shifted-three-year-robustness.json \
+            --output evidence/autonomous-red-team.json
       - name: Deterministic research synthesis
         run: |
           python -m scripts.autonomous_research_supervisor \
@@ -64,7 +81,17 @@ jobs:
             --layout-evidence evidence/capital-budget-optimizer.json \
             --cross-window-evidence evidence/capital-layout-cross-window.json \
             --shifted-window-evidence evidence/shifted-three-year-robustness.json \
+            --red-team-evidence evidence/autonomous-red-team.json \
             --output evidence/autonomous-research-decision.json
+      - name: ETH M19 shared-slot collision audit
+        run: python -m scripts.eth_slot_collision_audit
+      - name: Point-in-time event reaction study
+        run: python -m scripts.event_reaction_study
+      - name: Select next evidence-led hypothesis
+        run: |
+          python -m scripts.hypothesis_scheduler \
+            --decision evidence/autonomous-research-decision.json \
+            --output evidence/autonomous-next-hypothesis.json
       - uses: actions/upload-artifact@v4
         with:
           name: hixton-autonomous-research-${{ github.run_id }}
@@ -73,6 +100,141 @@ jobs:
             evidence/capital-budget-optimizer.json
             evidence/capital-layout-cross-window.json
             evidence/shifted-three-year-robustness.json
+            evidence/autonomous-red-team.json
             evidence/autonomous-research-decision.json
+            evidence/eth-m19-slot-collision-audit.json
+            evidence/event-reaction-study.json
+            evidence/autonomous-next-hypothesis.json
           retention-days: 30
           if-no-files-found: error
+
+
+  build-candidate:
+    needs: research
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    outputs:
+      candidate_created: ${{ steps.meta.outputs.candidate_created }}
+      candidate_branch: ${{ steps.meta.outputs.candidate_branch }}
+      baseline_sha: ${{ steps.meta.outputs.baseline_sha }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: gpt/autonomous-research-v1
+          fetch-depth: 0
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Preserve autonomous candidate builder
+        run: cp scripts/engineering_candidate_builder.py /tmp/engineering_candidate_builder.py
+      - name: Create clean candidate worktree from protected engineering baseline
+        id: prepare
+        shell: bash
+        run: |
+          set -euo pipefail
+          git fetch origin gpt/usdc-audit
+          baseline_sha="$(git rev-parse origin/gpt/usdc-audit)"
+          candidate_branch="gpt/auto-candidate-${GITHUB_RUN_ID}"
+          git checkout -B "$candidate_branch" "$baseline_sha"
+          echo "baseline_sha=$baseline_sha" >> "$GITHUB_OUTPUT"
+          echo "candidate_branch=$candidate_branch" >> "$GITHUB_OUTPUT"
+      - name: Install candidate environment
+        run: |
+          python -m pip install --upgrade pip
+          pip install -e '.[dev]'
+      - uses: actions/download-artifact@v4
+        with:
+          name: hixton-autonomous-research-${{ github.run_id }}
+          path: evidence
+      - name: Materialize validated candidate
+        env:
+          HIXTON_REPO_ROOT: ${{ github.workspace }}
+        run: |
+          python /tmp/engineering_candidate_builder.py \
+            --decision evidence/autonomous-research-decision.json \
+            --coin-evidence evidence/coin-optimization-cycle.json \
+            --shifted-evidence evidence/shifted-three-year-robustness.json \
+            --manifest evidence/engineering-candidate.json \
+            --apply
+      - name: Candidate contract smoke test
+        run: python -m pytest -q tests/test_current_v6_product_contract.py
+      - name: Persist candidate branch only when an eligible patch exists
+        id: meta
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          baseline_sha="${{ steps.prepare.outputs.baseline_sha }}"
+          candidate_branch="${{ steps.prepare.outputs.candidate_branch }}"
+          applied="$(python - <<'PY'
+          import json
+          print(str(json.load(open("evidence/engineering-candidate.json"))["applied"]).lower())
+          PY
+          )"
+          echo "baseline_sha=$baseline_sha" >> "$GITHUB_OUTPUT"
+          echo "candidate_branch=$candidate_branch" >> "$GITHUB_OUTPUT"
+          if [ "$applied" != "true" ]; then
+            echo "candidate_created=false" >> "$GITHUB_OUTPUT"
+            echo "No validated coin-profile candidate to materialize."
+            exit 0
+          fi
+          changed="$(git status --porcelain -- src/hixton/domain/versions.py tests/test_current_v6_product_contract.py)"
+          if [ -z "$changed" ]; then
+            echo "::error::Candidate manifest says applied but no whitelisted source changed."
+            exit 1
+          fi
+          unexpected="$(git status --porcelain | grep -vE ' (src/hixton/domain/versions.py|tests/test_current_v6_product_contract.py)$' || true)"
+          if [ -n "$unexpected" ]; then
+            echo "::error::Unexpected candidate changes:"
+            echo "$unexpected"
+            exit 1
+          fi
+          git config user.name "hixton-autonomy[bot]"
+          git config user.email "hixton-autonomy@users.noreply.github.com"
+          git add src/hixton/domain/versions.py tests/test_current_v6_product_contract.py
+          git commit -m "candidate(v6): materialize robust autonomous coin-profile winner"
+          git remote set-url origin "https://x-access-token:${GH_TOKEN}@github.com/${GITHUB_REPOSITORY}.git"
+          git push --force-with-lease origin "HEAD:$candidate_branch"
+          echo "candidate_created=true" >> "$GITHUB_OUTPUT"
+
+  validate-candidate:
+    needs: build-candidate
+    if: needs.build-candidate.outputs.candidate_created == 'true'
+    uses: ./.github/workflows/hixton-cloud-swarm-reusable.yml
+    with:
+      mission: "AUTONOMOUS_CANDIDATE_EXACT_HEAD_VALIDATION"
+      base_branch: ${{ needs.build-candidate.outputs.candidate_branch }}
+    secrets: inherit
+
+  promote-engineering:
+    needs: [build-candidate, validate-candidate]
+    if: needs.build-candidate.outputs.candidate_created == 'true' && needs.validate-candidate.result == 'success'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ needs.build-candidate.outputs.candidate_branch }}
+          fetch-depth: 0
+      - name: Fast-forward protected engineering baseline after full A01-A11 success
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          git fetch origin gpt/usdc-audit "${{ needs.build-candidate.outputs.candidate_branch }}"
+          expected="${{ needs.build-candidate.outputs.baseline_sha }}"
+          current="$(git rev-parse origin/gpt/usdc-audit)"
+          if [ "$current" != "$expected" ]; then
+            echo "::error::Engineering baseline changed during candidate validation: $current != $expected"
+            exit 1
+          fi
+          candidate="$(git rev-parse "origin/${{ needs.build-candidate.outputs.candidate_branch }}")"
+          if ! git merge-base --is-ancestor "$expected" "$candidate"; then
+            echo "::error::Candidate is not descended from the exact protected baseline."
+            exit 1
+          fi
+          git remote set-url origin "https://x-access-token:${GH_TOKEN}@github.com/${GITHUB_REPOSITORY}.git"
+          git push origin "$candidate:refs/heads/gpt/usdc-audit"
+          echo "Engineering promotion complete at $candidate; Paper/Live activation remains disabled."
