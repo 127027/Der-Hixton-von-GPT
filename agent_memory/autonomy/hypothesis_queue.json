@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "objective": "robustly improve fixed 250 USDC portfolio profit while materially increasing meaningful capital deployment and reducing idle time",
+  "objective": "robustly improve the fixed 250 USDC research portfolio while increasing meaningful market participation and reducing idle time",
   "rules": {
     "one_primary_variable_family_per_experiment": true,
     "rejected_region_requires_new_evidence_before_retry": true,
