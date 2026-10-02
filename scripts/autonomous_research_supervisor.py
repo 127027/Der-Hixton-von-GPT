@@ -92,6 +92,7 @@ def build_decision(
     cross_window: dict[str, Any] | None = None,
     shifted_window: dict[str, Any] | None = None,
     red_team: dict[str, Any] | None = None,
+    future_readiness: dict[str, Any] | None = None,
 ) -> dict[str, Any]:
     if policy.get("mode") != "AUTONOMOUS_RESEARCH_AND_ENGINEERING":
         raise ResearchContractError("autonomy policy mode mismatch")
@@ -122,11 +123,18 @@ def build_decision(
 
     red_coin = {}
     red_layout = {}
+    future_coin = {}
+    future_layout = {}
     if isinstance(red_team, dict):
         raw_coin = red_team.get("coin_profile")
         raw_layout = red_team.get("capital_layout")
         red_coin = raw_coin if isinstance(raw_coin, dict) else {}
         red_layout = raw_layout if isinstance(raw_layout, dict) else {}
+    if isinstance(future_readiness, dict):
+        raw_coin = future_readiness.get("coin_profile")
+        raw_layout = future_readiness.get("capital_layout")
+        future_coin = raw_coin if isinstance(raw_coin, dict) else {}
+        future_layout = raw_layout if isinstance(raw_layout, dict) else {}
 
     for candidate in candidates:
         if candidate["type"] == "CAPITAL_LAYOUT":
@@ -139,6 +147,8 @@ def build_decision(
                 and layout_key in strict
                 and red_layout.get("pass") is True
                 and red_layout.get("candidate") == layout_key
+                and future_layout.get("future_readiness_pass") is True
+                and future_layout.get("candidate") == layout_key
             ):
                 validated.append(candidate)
             else:
@@ -154,6 +164,8 @@ def build_decision(
                 and expected == observed
                 and red_coin.get("pass") is True
                 and set(red_coin.get("accepted_symbols", [])) == expected
+                and future_coin.get("future_readiness_pass") is True
+                and set(future_coin.get("accepted_symbols", [])) == expected
             ):
                 validated.append(candidate)
             else:
@@ -203,6 +215,7 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--cross-window-evidence", type=Path)
     parser.add_argument("--shifted-window-evidence", type=Path)
     parser.add_argument("--red-team-evidence", type=Path)
+    parser.add_argument("--future-readiness-evidence", type=Path)
     parser.add_argument("--output", type=Path, required=True)
     args = parser.parse_args(argv)
     policy = load_json(args.policy)
@@ -215,6 +228,7 @@ def main(argv: list[str] | None = None) -> int:
         cross_window=load_json(args.cross_window_evidence),
         shifted_window=load_json(args.shifted_window_evidence),
         red_team=load_json(args.red_team_evidence),
+        future_readiness=load_json(args.future_readiness_evidence),
     )
     args.output.parent.mkdir(parents=True, exist_ok=True)
     args.output.write_text(json.dumps(decision, indent=2) + "\n", encoding="utf-8")
