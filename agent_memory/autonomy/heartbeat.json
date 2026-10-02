@@ -1,12 +1,12 @@
 {
-  "cycle": "overnight-03",
-  "timestamp_utc": "2026-10-02T02:04:14Z",
-  "reason": "continue_after_cycle02_validated_candidates",
+  "cycle": "day-04",
+  "timestamp_utc": "2026-10-02T10:30:00Z",
+  "reason": "continue_after_cycle03_validated_avax_candidate_promotion_write_blocked",
   "next_focus": [
-    "reproduce AVAX ATR90 band5.5 across exact-head shifted windows",
-    "quantify ETH M19 versus M20 shared-slot collision opportunity cost",
-    "separate capital-layout candidate from coin-profile candidate and do not combine without dedicated evidence",
-    "explore a materially different bounded opportunity-cost/ranking hypothesis after current evidence"
+    "preserve validated AVAX ATR90 band5.5 evidence; do not recombine it with allocator changes",
+    "run a materially different bounded opportunity-cost/ranking experiment while engineering candidate write remains blocked",
+    "quantify shared-slot collision displacement and profit-per-occupied-hour effects",
+    "retain shifted-three-year and baseline/stress gates for every candidate"
   ],
   "constraints": {
     "protected_engineering_branch": "gpt/usdc-audit",
