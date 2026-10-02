@@ -89,6 +89,16 @@ class AutonomousResearchSupervisorTests(unittest.TestCase):
                 },
                 "coin_profile": {"accepted_symbols": [], "pass": False},
             },
+            future_readiness={
+                "capital_layout": {
+                    "candidate": "one_per_symbol:3x83.33",
+                    "future_readiness_pass": True,
+                },
+                "coin_profile": {
+                    "accepted_symbols": [],
+                    "future_readiness_pass": False,
+                },
+            },
         )
         self.assertEqual(
             validated["action"], "BUILD_ENGINEERING_CANDIDATE_AND_RUN_A01_A11"
@@ -131,6 +141,16 @@ class AutonomousResearchSupervisorTests(unittest.TestCase):
                     "pass": True,
                 },
             },
+            future_readiness={
+                "capital_layout": {
+                    "candidate": None,
+                    "future_readiness_pass": False,
+                },
+                "coin_profile": {
+                    "accepted_symbols": ["AVAXUSDC"],
+                    "future_readiness_pass": True,
+                },
+            },
         )
         self.assertEqual(good["action"], "BUILD_ENGINEERING_CANDIDATE_AND_RUN_A01_A11")
 
@@ -148,6 +168,31 @@ class AutonomousResearchSupervisorTests(unittest.TestCase):
                 "coin_profile": {
                     "accepted_symbols": ["AVAXUSDC"],
                     "shifted_window_pass": True,
+                }
+            },
+        )
+        self.assertEqual(result["action"], "RUN_CROSS_WINDOW_ROBUSTNESS")
+
+    def test_future_readiness_is_mandatory_after_red_team(self) -> None:
+        coin = {
+            "aggregate_promotion_gate": {"promotable": True},
+            "profile_parity": {"current_match": True, "candidate_match": True},
+            "per_coin": {"AVAXUSDC": {"accepted": True}},
+        }
+        result = build_decision(
+            self.policy,
+            coin,
+            None,
+            shifted_window={
+                "coin_profile": {
+                    "accepted_symbols": ["AVAXUSDC"],
+                    "shifted_window_pass": True,
+                }
+            },
+            red_team={
+                "coin_profile": {
+                    "accepted_symbols": ["AVAXUSDC"],
+                    "pass": True,
                 }
             },
         )
