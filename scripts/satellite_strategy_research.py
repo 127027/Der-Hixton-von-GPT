@@ -19,6 +19,7 @@ from typing import Any
 from hixton.backtest.engine import run_single_backtest
 from hixton.backtest.models import BASELINE_COSTS, STRESS_COSTS, BacktestResult, ExecutionRules
 from hixton.data.binance import BinancePublicClient
+from hixton.data.quality import audit_candles
 from hixton.domain.models import Candle, StrategyParameters
 from hixton.domain.trade_policy import TradePolicy
 from hixton.domain.versions import V6_COIN_STRATEGY
@@ -186,7 +187,19 @@ def main() -> None:
         if not isinstance(raw, dict):
             continue
         symbol = str(raw["symbol"])
-        source_symbol = str(raw["history_source_for_research"])
+        discovered_source = str(raw["history_source_for_research"])
+        proxy_symbol = raw.get("proxy_symbol")
+        proxy_full = raw.get("proxy_three_year_history") is True
+        source_symbol = (
+            str(proxy_symbol)
+            if proxy_full and isinstance(proxy_symbol, str) and proxy_symbol
+            else discovered_source
+        )
+        training_source_reason = (
+            "PREFER_FULL_HISTORY_USDT_PROXY"
+            if source_symbol != discovered_source
+            else "DISCOVERY_SOURCE"
+        )
         usdc_first = _dt(raw["usdc_first_available_utc"])
         rules = _rules(client, symbol)
 
@@ -220,6 +233,30 @@ def main() -> None:
             start=holdout_start - warmup_bars * BAR,
             end_exclusive=report_end,
         )
+
+        try:
+            audit_candles(
+                train_candles,
+                expected_symbol=symbol,
+                expected_start=report_start - warmup_bars * BAR,
+                expected_end_exclusive=holdout_start,
+            ).require_valid()
+            audit_candles(
+                holdout_candles,
+                expected_symbol=symbol,
+                expected_start=holdout_start - warmup_bars * BAR,
+                expected_end_exclusive=report_end,
+            ).require_valid()
+        except ValueError as exc:
+            per_symbol[symbol] = {
+                "status": "REJECT_DATA_QUALITY",
+                "history_source_for_training": source_symbol,
+                "discovery_history_source": discovered_source,
+                "training_source_reason": training_source_reason,
+                "reason": str(exc),
+            }
+            rejected.append(symbol)
+            continue
 
         training_rows: list[dict[str, object]] = []
         ranked: list[
@@ -314,6 +351,8 @@ def main() -> None:
         per_symbol[symbol] = {
             "status": status,
             "history_source_for_training": source_symbol,
+            "discovery_history_source": discovered_source,
+            "training_source_reason": training_source_reason,
             "real_usdc_holdout_symbol": symbol,
             "training_window": {
                 "start_utc": report_start.isoformat(),
@@ -370,6 +409,8 @@ def main() -> None:
         },
         "safety": {
             "future_outcomes_used_for_entry_decisions": False,
+            "training_prefers_full_history_proxy_when_available": True,
+            "data_quality_failure_rejects_symbol_not_whole_run": True,
             "private_credentials_used": False,
             "orders_sent": False,
             "paper_or_live_activated": False,
