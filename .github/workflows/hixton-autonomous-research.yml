@@ -24,6 +24,7 @@ on:
       - "scripts/satellite_strategy_research.py"
       - "scripts/satellite_shared_portfolio_research.py"
       - "scripts/satellite_filler_router_research.py"
+      - "scripts/satellite_router_robustness.py"
       - "scripts/engineering_candidate_builder.py"
       - "scripts/eth_slot_collision_audit.py"
       - "scripts/event_reaction_study.py"
@@ -67,6 +68,7 @@ jobs:
             scripts/satellite_strategy_research.py \
             scripts/satellite_shared_portfolio_research.py \
             scripts/satellite_filler_router_research.py \
+            scripts/satellite_router_robustness.py \
             scripts/engineering_candidate_builder.py \
             scripts/eth_slot_collision_audit.py \
             scripts/event_reaction_study.py \
@@ -112,6 +114,9 @@ jobs:
       - name: Step 5B short-horizon Satellite filler router
         if: steps.stage.outputs.priority_stage == 'STEP5B_SHORT_HORIZON_FILLER_ROUTER'
         run: python -m scripts.satellite_filler_router_research
+      - name: Step 6 router-aware Satellite robustness
+        if: steps.stage.outputs.priority_stage == 'STEP6_ROUTER_AWARE_ROBUSTNESS'
+        run: python -m scripts.satellite_router_robustness
       - name: Run adaptive ten-coin research
         if: steps.stage.outputs.full_candidate_pipeline == 'true'
         run: python -m scripts.coin_optimization_cycle
@@ -194,6 +199,7 @@ jobs:
             evidence/satellite-strategy-research.json
             evidence/satellite-shared-portfolio-research.json
             evidence/satellite-filler-router-research.json
+            evidence/satellite-router-robustness.json
           retention-days: 30
           if-no-files-found: error
 
