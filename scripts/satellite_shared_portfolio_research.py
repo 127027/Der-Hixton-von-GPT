@@ -268,8 +268,19 @@ def _summary(
         sum((point.position_value for point in points), D("0")) / D(len(points))
         if points else D("0")
     )
+    per_symbol_realized_pnl = {
+        symbol: sum(
+            (trade.realized_pnl for trade in result.trades if trade.symbol == symbol),
+            D("0"),
+        )
+        for symbol in core_symbols + satellite_symbols
+    }
+    per_symbol_completed_cycles = {
+        symbol: sum(trade.symbol == symbol for trade in result.trades)
+        for symbol in core_symbols + satellite_symbols
+    }
     satellite_trade_pnl = sum(
-        (trade.realized_pnl for trade in result.trades if trade.symbol in satellite_symbols),
+        (per_symbol_realized_pnl[symbol] for symbol in satellite_symbols),
         D("0"),
     )
     core_trade_pnl = sum(
@@ -294,6 +305,10 @@ def _summary(
         "satellite_completed_cycles": satellite_cycles,
         "satellite_realized_trade_pnl": str(satellite_trade_pnl),
         "core_realized_trade_pnl": str(core_trade_pnl),
+        "per_symbol_realized_trade_pnl": {
+            symbol: str(value) for symbol, value in per_symbol_realized_pnl.items()
+        },
+        "per_symbol_completed_cycles": per_symbol_completed_cycles,
         "satellite_position_hours": str(satellite_hours),
         "zero_position_hours": zero_hours,
         "zero_position_pct": str(zero_pct),
@@ -415,7 +430,10 @@ def main() -> None:
                 int(base_cmp["zero_position_hours_reduced"]),
                 int(stress_cmp["zero_position_hours_reduced"]),
             )
-            advances = min_profit_delta > 0 and idle_reduction > 0
+            symbol_realized_base = _d(base["per_symbol_realized_trade_pnl"][symbol])
+            symbol_realized_stress = _d(stress["per_symbol_realized_trade_pnl"][symbol])
+            realized_positive = symbol_realized_base > 0 and symbol_realized_stress > 0
+            advances = min_profit_delta > 0 and idle_reduction > 0 and realized_positive
             candidates.append(
                 {
                     "symbol": symbol,
@@ -426,6 +444,9 @@ def main() -> None:
                     "stress_vs_current": stress_cmp,
                     "min_ending_equity_delta": str(min_profit_delta),
                     "min_zero_position_hours_reduced": idle_reduction,
+                    "added_symbol_realized_pnl_baseline": str(symbol_realized_base),
+                    "added_symbol_realized_pnl_stress": str(symbol_realized_stress),
+                    "added_symbol_realized_positive_after_costs": realized_positive,
                     "advance": advances,
                 }
             )
@@ -434,7 +455,10 @@ def main() -> None:
             key=lambda row: (
                 _d(row["min_ending_equity_delta"]),
                 int(row["min_zero_position_hours_reduced"]),
-                _d(row["baseline"]["satellite_realized_trade_pnl"]),
+                min(
+                    _d(row["added_symbol_realized_pnl_baseline"]),
+                    _d(row["added_symbol_realized_pnl_stress"]),
+                ),
             ),
             reverse=True,
         )
@@ -482,7 +506,8 @@ def main() -> None:
         "selection_method": (
             "Greedy forward shared-portfolio selection. Frozen Step-4 satellite profiles "
             "may advance only when adding the satellite improves ending equity under both "
-            "baseline and stress costs and reduces zero-position hours. Same-bar core "
+            "baseline and stress costs, reduces zero-position hours, and the added Satellite "
+            "has positive realized completed-trade PnL under both cost models. Same-bar core "
             "entries rank before satellites; an already-open satellite may still block a "
             "later core entry, which is measured for the future HOLD/SWITCH/TRIM router."
         ),
@@ -523,6 +548,8 @@ def main() -> None:
             "orders_sent": False,
             "paper_or_live_activated": False,
             "satellite_profiles_retuned_from_shared_outcome": False,
+            "endpoint_mark_to_market_alone_cannot_advance_satellite": True,
+            "positive_realized_completed_trade_pnl_required": True,
             "future_realized_outcome_used_for_entry_decision": False,
         },
     }
