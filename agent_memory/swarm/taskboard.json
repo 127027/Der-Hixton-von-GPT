@@ -57,11 +57,11 @@
   "active_mission": {
     "id": "SWARM-004",
     "title": "Hixton 10+5 shared-capital architecture",
-    "objective": "Starting from the protected ten-core V6 product, validate up to five complementary satellites, build a point-in-time HOLD/SWITCH/TRIM opportunity router, and evolve max_capital_usdc into the single user truth whose allocation is derived dynamically for 50/250/1000/5000/20000+ USDC.",
+    "objective": "Validate the short-horizon gap-filler architecture: Satellites use only free capacity, one reference slot each, never preempt an open Core, and may be exited when a materially stronger new Core opportunity clears point-in-time remaining value plus costs. Then continue automatically into Step 6 robustness if Step 5B passes.",
     "state": "IN_PROGRESS",
     "completion_mode": "continuous",
     "started_at_utc": "2026-10-03T19:00:00+00:00",
-    "current_stage": "STEP5_SHARED_PORTFOLIO",
+    "current_stage": "STEP5B_SHORT_HORIZON_FILLER_ROUTER",
     "step4_source_run_id": 37140989998,
     "step4_advancing_symbols": [
       "SUIUSDC",
@@ -91,26 +91,25 @@
       "D20"
     ],
     "constraints": [
-      "The protected gpt/usdc-audit product remains unchanged until a candidate passes the full promotion chain.",
-      "Step 4 profiles are frozen; shared-portfolio outcomes may reject them but may not retune them.",
-      "Step 5 uses one real shared account budget C, reference 250 USDC, across ten Core plus the frozen Satellite pool.",
-      "Isolated 15xC means fifteen independent diagnostic accounts and must never be presented as aggregate account capital.",
-      "No Core label has unconditional priority; later HOLD/SWITCH/TRIM routing must use only point-in-time normalized opportunity value after costs/risk/time/uncertainty.",
-      "Trade count alone is not success. Final architecture must improve or preserve robust shared-account profit while reducing avoidable idle capital.",
-      "max_capital_usdc is the single eventual user capital input; slot count/tranches/reserve are derived, not separate user truths.",
-      "Same normalized router semantics must scale across 50/250/1000/5000/20000+ USDC without fixed absolute-USDC switch thresholds.",
-      "No private Binance credentials in cloud, no real/testnet cloud orders, no automatic Paper/Live activation.",
-      "A09 QA_PASS and A11 GOVERNANCE_PASS remain mandatory before engineering promotion."
+      "Step 4 entry profiles remain frozen: SUIUSDC, NEARUSDC, UNIUSDC, AAVEUSDC, BCHUSDC.",
+      "Satellites are short-horizon gap-fillers, not a second primary strategy.",
+      "In Step 5B each Satellite can consume at most one reference slot and only when capacity is free.",
+      "Satellites never preempt an already-open Core position.",
+      "A new Core entry may preempt the weakest Satellite only when point-in-time score advantage exceeds normalized switch cost plus training-frozen hysteresis.",
+      "Router horizon/hysteresis and Satellite subset are selected on pre-holdout training only.",
+      "Real-USDC holdout, full-window checks and later robustness are rejection-only and cannot retune router/subset.",
+      "No private credentials, cloud orders, automatic Paper/Live activation, or A09/A11 weakening."
     ],
     "acceptance": [
-      "Step 5 proves which frozen Satellites add marginal baseline-and-stress shared-portfolio profit and reduce zero-position time.",
-      "Step 6 validates the selected Satellite set across cross-window, shifted-three-year, future-readiness and independent red-team gates.",
-      "Step 7 implements and validates point-in-time HOLD/SWITCH/TRIM without future leakage or unconditional Core preemption.",
-      "Step 8 proves scale invariance and dynamic allocation across representative account budgets.",
-      "Step 9 makes Backtest/UI/Paper/Trial/Live consume the same promoted 10+up-to-5 universe/router semantics.",
-      "Step 10 materializes a D14 engineering candidate and runs exact-head A01-A11.",
-      "Step 11 requires A09 QA_PASS, A11 GOVERNANCE_PASS and protected engineering promotion."
-    ]
+      "Step 5B router prototype produces deterministic HOLD/SWITCH evidence with no future-outcome decision leakage.",
+      "Step 5B shared 250-USDC reference account beats Core-only ending equity under baseline and stress, uses idle capacity productively and does not increase Core NO_FREE_SLOT blocks.",
+      "Selected Satellites have positive realized PnL under baseline/stress and remain short-horizon fillers.",
+      "Real-USDC holdout and full-three-year rejection checks pass without selection or retuning.",
+      "If Step 5B passes, Step 6 runs router-aware robustness for the frozen subset.",
+      "Step 7 hardens router semantics/state transitions; Step 8 proves scale invariance/dynamic allocation; Step 9 proves Backtest/UI/Paper/Trial/Live parity; Step 10 D14/A01-A11; Step 11 promotion."
+    ],
+    "step5_source_run_id": 37147668454,
+    "step5_result": "Conservative no-router replay completed successfully but failed portfolio gate because profitable NEAR/AAVE filler trades blocked stronger later Core opportunities; router dependency proven."
   },
   "queued_missions": [],
   "agent_runtime": {
