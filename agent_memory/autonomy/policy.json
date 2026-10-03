@@ -120,7 +120,12 @@
     "satellite_layer_may_only_use_free_core_capacity": true,
     "satellite_layer_must_yield_to_core": true,
     "target_satellite_markets": 5,
-    "proxy_history_requires_real_usdc_validation": true
+    "proxy_history_requires_real_usdc_validation": true,
+    "satellite_role": "IDLE_REPLACEMENT_ONLY",
+    "core_reclaim_priority_absolute": true,
+    "valid_core_trade_displacement_limit": 0,
+    "direct_usdc_routing_preferred": true,
+    "cross_quote_conversion_requires_separate_after_cost_evidence": true
   },
   "forward_evidence": {
     "enabled": true,
@@ -164,6 +169,28 @@
       ],
       "note": "Activity candidates may trade some historical ending equity for materially lower idle time, but collapse toward ~1000 from a ~1500-1560 incumbent is unacceptable."
     },
-    "continue_after_minimum_tier": true
+    "continue_after_minimum_tier": true,
+    "satellite_contract": {
+      "purpose": "Monetize only otherwise idle/free capital while preserving every valid ten-coin core opportunity.",
+      "allowed_states": [
+        "CORE_ACTIVE",
+        "CORE_IDLE",
+        "CORE_SIGNAL_ARRIVES",
+        "CORE_RECLAIMED"
+      ],
+      "core_displacement_limit": 0,
+      "reclaim_timing": "first executable runtime opportunity under identical Backtest/Paper/Live order semantics",
+      "accounting_required": [
+        "satellite gross and net pnl",
+        "fees",
+        "spread",
+        "slippage",
+        "forced handoff realized pnl",
+        "handoff latency",
+        "quote conversion cost if any"
+      ],
+      "quote_policy": "Prefer direct USDC Spot. USDT/other quote routing remains research-only until separately proven superior after all conversion costs and operational failure modes.",
+      "success_definition": "Satellite layer must add positive shared-portfolio net profit in baseline and stress while materially reducing idle time and displacing zero valid core trades."
+    }
   }
 }
