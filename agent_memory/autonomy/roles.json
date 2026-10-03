@@ -90,9 +90,33 @@
         "Paper/Live semantic drift must fail closed",
         "Live activation remains separate and non-automatic"
       ]
+    },
+    "D18": {
+      "name": "Protected Baseline Freshness Dot",
+      "objective": "Before every research cycle verify that all product-critical strategy/config files exactly match the latest protected gpt/usdc-audit engineering head; fail closed on any stale baseline and route a sync repair before further optimization.",
+      "constraints": [
+        "never silently research from an older protected strategy",
+        "protected engineering SHA must be recorded in evidence",
+        "critical product files must byte-match protected engineering",
+        "research-only helpers may differ but may not redefine the current product baseline",
+        "a stale-baseline failure blocks downstream claims and candidate promotion"
+      ]
+    },
+    "D19": {
+      "name": "Idle Satellite Market Dot",
+      "objective": "Research a pool of five additional Binance Spot markets that use otherwise idle 250-USDC capacity without weakening or replacing the ten-coin V6 core.",
+      "constraints": [
+        "core V6 entries always have priority over satellite positions",
+        "satellites may only consume genuinely free core capacity",
+        "satellite positions may be force-exited for a core entry and handoff losses must be modeled",
+        "minimum meaningful tranche remains 50 USDC",
+        "rank satellites by incremental shared-portfolio profit during core idle windows, not isolated headline profit",
+        "regional Binance availability, liquidity and exchange filters must pass before any live inclusion",
+        "no automatic live market expansion"
+      ]
     }
   },
-  "current_shared_mission": "MISSION-CAPITAL-ACTIVITY-250: reduce idle time and raise meaningful use of the fixed 250 USDC research budget without gaming frequency via tiny orders.",
+  "current_shared_mission": "MISSION-CAPITAL-ACTIVITY-250: reduce idle time and raise meaningful use of the fixed 250 USDC research budget without gaming frequency via tiny orders. Core V6 remains the protected primary strategy; satellites are idle-only and preemptible.",
   "activity_focus": {
     "A01": "Track activity metrics, rejected regions and exact evidence contracts.",
     "A02": "Search for higher position-cycle/day and utilization candidates under non-regressive profit gates.",
@@ -110,6 +134,8 @@
     "D14": "Advance only candidates that pass profit, future-readiness and governance gates.",
     "D15": "Expand the opportunity universe with liquid USDC markets that add marginal portfolio value.",
     "D16": "Mine the high-frequency basis sensor for subsets suitable for meaningful-notional research trades.",
-    "D17": "Check whether higher activity survives sealed recent windows, adverse costs and new forward data."
+    "D17": "Check whether higher activity survives sealed recent windows, adverse costs and new forward data.",
+    "D18": "Verify every research run uses the newest protected engineering bot and block stale-baseline work.",
+    "D19": "Find and validate five complementary Binance Spot satellite markets that monetize core idle windows while never displacing a valid core trade."
   }
 }
