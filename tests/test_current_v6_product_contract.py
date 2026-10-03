@@ -29,8 +29,8 @@ def test_promoted_profiles_are_the_active_canonical_map() -> None:
     assert avax.vidya_length == 6
     assert avax.momentum_length == 20
     assert avax.smoothing_length == 8
-    assert avax.atr_length == 150
-    assert avax.band_multiplier == 5.2
+    assert avax.atr_length == 90
+    assert avax.band_multiplier == 5.5
     assert doge.vidya_length == 6
     assert doge.momentum_length == 16
     assert doge.smoothing_length == 14
@@ -39,7 +39,7 @@ def test_promoted_profiles_are_the_active_canonical_map() -> None:
     assert V6_COIN_STRATEGY.policy_for("DOGEUSDC").cmo_floor == 0.2
     assert V6_COIN_STRATEGY.policy_for("XRPUSDC").cmo_floor == 0.15
     assert V6_COIN_STRATEGY.policy_for("DOTUSDC").cmo_floor == 0.35
-    assert V6_COIN_STRATEGY.version == "HIXTON-V6-COIN-PAPER-1-c78c8cabf980"
+    assert V6_COIN_STRATEGY.version == "HIXTON-V6-COIN-PAPER-1-6b12dc290869"
     assert len(V6_COIN_STRATEGY.coin_profiles) == 10
 
 
