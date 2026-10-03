@@ -13,6 +13,7 @@ on:
       - "agent_memory/autonomy/policy.json"
       - "agent_memory/autonomy/roles.json"
       - "agent_memory/autonomy/hypothesis_queue.json"
+      - "agent_memory/autonomy/satellite_step4_checkpoint.json"
       - "scripts/autonomous_research_supervisor.py"
       - "scripts/baseline_freshness_guard.py"
       - "scripts/autonomous_red_team.py"
@@ -21,6 +22,7 @@ on:
       - "scripts/universe_discovery.py"
       - "scripts/satellite_universe_discovery.py"
       - "scripts/satellite_strategy_research.py"
+      - "scripts/satellite_shared_portfolio_research.py"
       - "scripts/engineering_candidate_builder.py"
       - "scripts/eth_slot_collision_audit.py"
       - "scripts/event_reaction_study.py"
@@ -62,6 +64,7 @@ jobs:
             scripts/universe_discovery.py \
             scripts/satellite_universe_discovery.py \
             scripts/satellite_strategy_research.py \
+            scripts/satellite_shared_portfolio_research.py \
             scripts/engineering_candidate_builder.py \
             scripts/eth_slot_collision_audit.py \
             scripts/event_reaction_study.py \
@@ -73,6 +76,9 @@ jobs:
     needs: contract
     runs-on: ubuntu-24.04
     timeout-minutes: 180
+    outputs:
+      full_candidate_pipeline: ${{ steps.stage.outputs.full_candidate_pipeline }}
+      priority_stage: ${{ steps.stage.outputs.priority_stage }}
     steps:
       - uses: actions/checkout@v4
         with:
@@ -80,33 +86,51 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
+      - name: Detect current priority stage
+        id: stage
+        shell: bash
+        run: |
+          python - <<'PY' >> "$GITHUB_OUTPUT"
+          import json
+          mission = json.load(open("agent_memory/autonomy/current_mission.json", encoding="utf-8"))
+          stage = str(mission.get("current_stage", "LEGACY_FULL_PIPELINE"))
+          fast = stage.startswith(("STEP4_", "STEP5_"))
+          print(f"priority_stage={stage}")
+          print(f"full_candidate_pipeline={'false' if fast else 'true'}")
+          PY
       - name: Verify newest protected engineering baseline
         run: python -m scripts.baseline_freshness_guard
       - name: Install research environment
         run: |
           python -m pip install --upgrade pip
           pip install -e '.[dev]'
-      - name: Idle-satellite Binance universe discovery
-        run: python -m scripts.satellite_universe_discovery
-      - name: Step 4 satellite strategy and real-USDC holdout research
-        run: python -m scripts.satellite_strategy_research
+      - name: Step 5 shared 10-core + frozen-satellite portfolio research
+        if: steps.stage.outputs.priority_stage == 'STEP5_SHARED_10_PLUS_SATELLITE_PORTFOLIO'
+        run: python -m scripts.satellite_shared_portfolio_research
       - name: Run adaptive ten-coin research
+        if: steps.stage.outputs.full_candidate_pipeline == 'true'
         run: python -m scripts.coin_optimization_cycle
       - name: Run fixed-250 capital/opportunity research
+        if: steps.stage.outputs.full_candidate_pipeline == 'true'
         run: python -m scripts.capital_budget_optimizer
       - name: Run bounded holding-duration activity research
+        if: steps.stage.outputs.full_candidate_pipeline == 'true'
         run: python -m scripts.holding_duration_research
       - name: Cross-window robustness for strict layout winner
+        if: steps.stage.outputs.full_candidate_pipeline == 'true'
         run: python -m scripts.capital_layout_cross_window
       - name: Shifted full-three-year endpoint robustness
+        if: steps.stage.outputs.full_candidate_pipeline == 'true'
         run: python -m scripts.shifted_three_year_robustness
       - name: Sealed future-readiness rejection gate
+        if: steps.stage.outputs.full_candidate_pipeline == 'true'
         run: |
           python -m scripts.future_readiness_gate \
             --coin-evidence evidence/coin-optimization-cycle.json \
             --layout-evidence evidence/capital-budget-optimizer.json \
             --output evidence/future-readiness-gate.json
       - name: Independent red-team falsification
+        if: steps.stage.outputs.full_candidate_pipeline == 'true'
         run: |
           python -m scripts.autonomous_red_team \
             --coin-evidence evidence/coin-optimization-cycle.json \
@@ -115,6 +139,7 @@ jobs:
             --shifted-window-evidence evidence/shifted-three-year-robustness.json \
             --output evidence/autonomous-red-team.json
       - name: Deterministic research synthesis
+        if: steps.stage.outputs.full_candidate_pipeline == 'true'
         run: |
           python -m scripts.autonomous_research_supervisor \
             --coin-evidence evidence/coin-optimization-cycle.json \
@@ -125,14 +150,19 @@ jobs:
             --future-readiness-evidence evidence/future-readiness-gate.json \
             --output evidence/autonomous-research-decision.json
       - name: Original Hixton basis signal census
+        if: steps.stage.outputs.full_candidate_pipeline == 'true'
         run: python -m scripts.basis_signal_census
       - name: Additional Binance USDC universe discovery
+        if: steps.stage.outputs.full_candidate_pipeline == 'true'
         run: python -m scripts.universe_discovery
       - name: ETH M19 shared-slot collision audit
+        if: steps.stage.outputs.full_candidate_pipeline == 'true'
         run: python -m scripts.eth_slot_collision_audit
       - name: Point-in-time event reaction study
+        if: steps.stage.outputs.full_candidate_pipeline == 'true'
         run: python -m scripts.event_reaction_study
       - name: Select next evidence-led hypothesis
+        if: steps.stage.outputs.full_candidate_pipeline == 'true'
         run: |
           python -m scripts.hypothesis_scheduler \
             --decision evidence/autonomous-research-decision.json \
@@ -157,11 +187,13 @@ jobs:
             evidence/universe-discovery.json
             evidence/satellite-universe-discovery.json
             evidence/satellite-strategy-research.json
+            evidence/satellite-shared-portfolio-research.json
           retention-days: 30
           if-no-files-found: error
 
   build-candidate:
     needs: research
+    if: needs.research.outputs.full_candidate_pipeline == 'true'
     runs-on: ubuntu-24.04
     timeout-minutes: 20
     outputs:
