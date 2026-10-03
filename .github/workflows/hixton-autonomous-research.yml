@@ -18,6 +18,7 @@ on:
       - "scripts/future_readiness_gate.py"
       - "scripts/basis_signal_census.py"
       - "scripts/universe_discovery.py"
+      - "scripts/satellite_universe_discovery.py"
       - "scripts/engineering_candidate_builder.py"
       - "scripts/eth_slot_collision_audit.py"
       - "scripts/event_reaction_study.py"
@@ -57,6 +58,7 @@ jobs:
             scripts/future_readiness_gate.py \
             scripts/basis_signal_census.py \
             scripts/universe_discovery.py \
+            scripts/satellite_universe_discovery.py \
             scripts/engineering_candidate_builder.py \
             scripts/eth_slot_collision_audit.py \
             scripts/event_reaction_study.py \
@@ -119,6 +121,8 @@ jobs:
         run: python -m scripts.basis_signal_census
       - name: Additional Binance USDC universe discovery
         run: python -m scripts.universe_discovery
+      - name: Idle-satellite Binance universe discovery
+        run: python -m scripts.satellite_universe_discovery
       - name: ETH M19 shared-slot collision audit
         run: python -m scripts.eth_slot_collision_audit
       - name: Point-in-time event reaction study
@@ -146,6 +150,7 @@ jobs:
             evidence/autonomous-next-hypothesis.json
             evidence/basis-signal-census.json
             evidence/universe-discovery.json
+            evidence/satellite-universe-discovery.json
           retention-days: 30
           if-no-files-found: error
 
