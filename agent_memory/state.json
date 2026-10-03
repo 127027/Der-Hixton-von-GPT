@@ -1,11 +1,11 @@
 {
-  "mode": "V6_PRODUCT_CONTINUOUS",
+  "mode": "V6_PRODUCT_PLUS_SATELLITE_RESEARCH",
   "bootstrap_complete": true,
-  "progress_percent": 100,
-  "current_focus": "SWARM-003 is active: maintain one clean current V6 USDC product with one saved max_capital_usdc, CAPITAL-V1-2X50PCT (default 250 -> 2x125), a separate controlled local 1x50-USDC first real-money roundtrip, key-free A01-A11 verification, and isolated 10x250 coin research.",
-  "last_indexed_commit": "247ec4f3ed3fae547fbb486992bef820b05cb245",
+  "progress_percent": 55,
+  "current_focus": "SWARM-004 / Step 5: shared 10-Core + frozen Satellite portfolio evidence using one configured account C. Step 4 passed for SUI, NEAR, UNI, AAVE and BCH; product remains protected ten-core until full promotion.",
+  "last_indexed_commit": "f6497acf8d4d852aaac0b69878762fabb53155d4",
   "last_learning_round": 6,
-  "current_strategy": "V6 canonical coin profiles from src/hixton/domain/versions.py",
+  "current_strategy": "Protected V6 ten-core product plus research-only frozen Step-4 Satellite profiles",
   "current_reference": {
     "source_run_id": "35463131378",
     "isolated_10x250_baseline_usdc": "8217.00711069101365000000",
@@ -30,13 +30,34 @@
     "Binance public market-data endpoint availability and policy are external facts and must fail closed rather than trigger synthetic operational candles.",
     "Historical performance does not guarantee future profitability."
   ],
-  "notes": "Current A01-A11 roles live under agent_memory/swarm/. The active product uses the max-capital allocator; legacy 3x80 values in current_reference are historical research evidence only. Paper state is preserved across strategy activation. Cloud agents never submit real/testnet orders; local real-money execution remains fail-closed behind the explicit controlled 1x50 trial.",
+  "notes": "Protected product is still the validated ten-core V6 baseline. Step-4 Satellite profiles are frozen research evidence. Cloud agents remain key-free/order-free; no automatic Paper/Live activation.",
   "current_product": {
     "max_capital_source": "max_capital_usdc",
     "allocator_version": "CAPITAL-V1-2X50PCT",
     "default_max_capital_usdc": "250.00",
     "default_slot_count": 2,
     "default_target_notional_usdc": "125.00",
-    "first_live_trial": "1x50 USDC controlled roundtrip"
+    "status": "PROTECTED_CURRENT_PRODUCT_NOT_YET_10_PLUS_5"
+  },
+  "target_architecture": {
+    "universe": "10 Core + up to 5 validated Satellites",
+    "current_stage": "STEP5_SHARED_PORTFOLIO",
+    "step4_advancing_symbols": [
+      "SUIUSDC",
+      "NEARUSDC",
+      "UNIUSDC",
+      "AAVEUSDC",
+      "BCHUSDC"
+    ],
+    "single_user_capital_input": "max_capital_usdc",
+    "dynamic_allocator_required": true,
+    "representative_scale_usdc": [
+      "50",
+      "250",
+      "1000",
+      "5000",
+      "20000+"
+    ],
+    "router": "point-in-time HOLD/SWITCH/TRIM after normalized costs/risk/time/uncertainty"
   }
 }
