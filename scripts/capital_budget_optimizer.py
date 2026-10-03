@@ -173,6 +173,7 @@ def _run(
     end: datetime,
     layout: Layout,
     costs: Any,
+    research_max_holding_hours: int | None = None,
 ) -> dict[str, object]:
     result = run_shared_portfolio_backtest(
         candles_by_symbol=candles,
@@ -195,6 +196,7 @@ def _run(
         slot_allocation=layout.policy,
         apply_risk_limits=True,
         symbols=V6_COIN_STRATEGY.symbols,
+        research_max_holding_hours=research_max_holding_hours,
     )
     no_free = sum(1 for item in result.blocked_signals if item.endswith(":NO_FREE_SLOT"))
     duration_days = max(D("1"), D(str((end - start).total_seconds())) / D("86400"))
