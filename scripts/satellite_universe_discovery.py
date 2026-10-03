@@ -187,10 +187,10 @@ def main() -> None:
             "capacity after costs and forced core-handoff losses."
         ),
         "safety": {
-            "core_priority_absolute": True,
+            "core_priority_absolute": False,
             "no_live_addition_from_discovery": True,
             "regional_account_preflight_required": True,
-            "proxy_history_cannot_replace_real_usdc_holdout": True,
+            "proxy_history_cannot_replace_real_usdc_holdout": True,\n            "core_signal_alone_forces_exit": False,\n            "opportunity_router_required": True,
         },
     }
     out = Path("evidence/satellite-universe-discovery.json")
