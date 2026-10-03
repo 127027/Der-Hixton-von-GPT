@@ -1,16 +1,20 @@
 {
-  "cycle": "day-04",
-  "timestamp_utc": "2026-10-02T10:30:00Z",
-  "reason": "continue_after_cycle03_validated_avax_candidate_promotion_write_blocked",
+  "cycle": "activity-night-2026-10-03-0244",
+  "timestamp_utc": "2026-10-03T00:44:00Z",
+  "reason": "continue_activity_mission_after_completed_cycle_no_promotable_activity_candidate",
   "next_focus": [
-    "preserve validated AVAX ATR90 band5.5 evidence; do not recombine it with allocator changes",
-    "run a materially different bounded opportunity-cost/ranking experiment while engineering candidate write remains blocked",
-    "quantify shared-slot collision displacement and profit-per-occupied-hour effects",
-    "retain shifted-three-year and baseline/stress gates for every candidate"
+    "HYP-EXIT-001: isolate maximum holding duration at 72h, 120h, 168h with entries/coin profiles/allocation fixed",
+    "require >=157 genuine completed position cycles over three years for mission acceptance; prefer >=365 and stretch >=1095",
+    "measure baseline/stress ending equity, position_cycles_per_day, zero_position_pct, longest_idle_hours, slot utilization and average deployed notional",
+    "prefer <=10% incumbent equity regression at minimum tier; never allow more than 15% regression and retain drawdown/future-readiness/red-team gates",
+    "if bounded time exits fail, record rejected region and advance to HYP-IDLE-001 rather than repeating it"
   ],
   "constraints": {
     "protected_engineering_branch": "gpt/usdc-audit",
+    "fixed_total_capital_usdc": "250.00",
+    "minimum_research_tranche_usdc": "50.00",
     "paper_live_activation": false,
-    "real_orders": false
+    "real_orders": false,
+    "testnet_orders": false
   }
 }
