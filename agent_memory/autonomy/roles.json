@@ -104,31 +104,33 @@
     },
     "D19": {
       "name": "Idle Satellite Market Dot",
-      "objective": "Research a pool of five additional Binance Spot markets that use otherwise idle 250-USDC capacity without weakening or replacing the ten-coin V6 core.",
+      "objective": "Find, validate and maintain up to five Binance Spot satellite markets whose only job is to monetize capital that the ten-coin V6 core is not currently using, then surrender that capital immediately at the first executable opportunity whenever a valid core entry needs it.",
       "constraints": [
-        "core V6 entries always have priority over satellite positions",
+        "the ten-coin V6 core is the primary profit engine; satellites are never peers and never replace the core",
         "satellites may only consume genuinely free core capacity",
-        "satellite positions may be force-exited for a core entry and handoff losses must be modeled",
-        "minimum meaningful tranche remains 50 USDC",
-        "rank satellites by incremental shared-portfolio profit during core idle windows, not isolated headline profit",
+        "any core trade that would execute in core-only mode must still execute with satellites enabled; allowed displacement count is zero",
+        "when a valid core signal needs capital, cancel conflicting satellite entries and exit/trim satellite exposure at the first executable runtime opportunity",
+        "forced handoff fees, spread, slippage, latency and realized losses must be modeled against satellite gains",
+        "rank satellites by incremental shared-portfolio profit earned specifically during core idle windows, not isolated headline profit or raw trade count",
+        "prefer direct USDC pairs; any USDT/other quote conversion requires its own after-cost proof before product use",
         "regional Binance availability, liquidity and exchange filters must pass before any live inclusion",
         "no automatic live market expansion"
       ]
     }
   },
-  "current_shared_mission": "MISSION-CAPITAL-ACTIVITY-250: reduce idle time and raise meaningful use of the fixed 250 USDC research budget without gaming frequency via tiny orders. Core V6 remains the protected primary strategy; satellites are idle-only and preemptible.",
+  "current_shared_mission": "MISSION-CAPITAL-ACTIVITY-250: the ten-coin V6 core remains the protected primary profit engine. Up to five satellites are temporary idle-capital replacements only: use otherwise unused USDC, earn incremental after-cost profit, and surrender capital to any valid core entry with zero core-trade displacement.",
   "activity_focus": {
     "A01": "Track activity metrics, rejected regions and exact evidence contracts.",
     "A02": "Search for higher position-cycle/day and utilization candidates under non-regressive profit gates.",
     "A03": "Ensure Backtest/Paper/Live timing semantics stay identical as research activity rises.",
     "A04": "Expose truthful utilization metrics and never present raw order count as success.",
-    "A05": "Diagnose zero-position hours, longest idle streaks, holding-time opportunity cost and slot saturation.",
+    "A05": "Diagnose zero-position hours, longest idle streaks, holding-time opportunity cost, satellite handoff cost and any accidental core displacement.",
     "A06": "Regression-test activity-oriented patches for duplicate orders, timing races and state corruption.",
     "A07": "Research sufficiently liquid/history-qualified USDC markets that can add opportunities.",
-    "A08": "Challenge exit, routing, ranking, universe and regime logic for better capital participation.",
-    "A09": "Reject activity gains caused by tiny-order fragmentation, overfit, profit regression or worse future-readiness.",
+    "A08": "Challenge satellite strategy, exit, routing, reserve policy and quote conversion only when the result improves shared 250-USDC profit without displacing core.",
+    "A09": "Reject satellite activity gains caused by core displacement, handoff-cost omission, quote-conversion omission, tiny-order fragmentation, overfit, profit regression or worse future-readiness.",
     "A10": "Dispatch the highest-value activity bottleneck until a robust improvement is demonstrated.",
-    "A11": "Audit whether claimed activity gains are real portfolio improvements rather than metric gaming.",
+    "A11": "Audit that satellites are true idle replacements, all reclaim costs are accounted for, and no valid core trade is lost.",
     "D12": "Generate new evidence-led hypotheses for meaningful 50-250 USDC deployment and lower idle time.",
     "D13": "Research event-aware timing only when it improves entry/avoidance decisions, not order count for its own sake.",
     "D14": "Advance only candidates that pass profit, future-readiness and governance gates.",
@@ -136,6 +138,6 @@
     "D16": "Mine the high-frequency basis sensor for subsets suitable for meaningful-notional research trades.",
     "D17": "Check whether higher activity survives sealed recent windows, adverse costs and new forward data.",
     "D18": "Verify every research run uses the newest protected engineering bot and block stale-baseline work.",
-    "D19": "Find and validate five complementary Binance Spot satellite markets that monetize core idle windows while never displacing a valid core trade."
+    "D19": "Validate five complementary idle-only USDC satellites and the reclaim router: monetize free capital, model every handoff cost, and guarantee zero displaced valid core trades."
   }
 }
