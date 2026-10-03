@@ -389,53 +389,99 @@ def run_filler_router_portfolio(
                 )
             )
 
-            # When Core needs capacity, consider reclaiming the weakest running filler.
+            # Compute the Core allocation that would exist if filler slots were
+            # completely reclaimable. This preserves the protected Core ranked-repeat
+            # exposure whenever the Core signal is strong enough to justify the handoff.
+            core_used_slots = sum(
+                p.slots for p in positions.values() if not p.is_satellite
+            )
+            ideal_core_alloc = allocate_entry_slots(
+                [s.symbol for s in core_entries if s.symbol not in positions],
+                free_slots=max(0, slot_count - core_used_slots),
+                policy=RANKED_REPEAT,
+            )
+
             for core_signal in core_entries:
-                used_slots = sum(p.slots for p in positions.values())
-                if core_signal.symbol in positions or used_slots < slot_count:
+                if core_signal.symbol in positions:
+                    blocked.append(f"{core_signal.signal_id}:POSITION_ALREADY_OPEN")
                     continue
-                candidates = [
-                    (symbol, trade)
-                    for symbol, trade in positions.items()
-                    if trade.is_satellite
-                ]
-                if not candidates:
+                desired_slots = ideal_core_alloc.get(core_signal.symbol, 0)
+                if desired_slots <= 0:
+                    blocked.append(f"{core_signal.signal_id}:NO_FREE_SLOT")
                     continue
-                ranked_running: list[tuple[Decimal, str, OpenTrade, Decimal]] = []
-                for symbol, trade in candidates:
-                    point = last_points.get(symbol)
-                    remaining = _remaining_satellite_score(
-                        trade=trade,
-                        point=point,
-                        at=open_time,
-                        config=router_config,
+
+                # Reclaim as many one-slot fillers as required to restore the Core
+                # allocation, but only when this Core signal clears the value/cost margin.
+                while True:
+                    used_slots = sum(p.slots for p in positions.values())
+                    free_slots = max(0, slot_count - used_slots)
+                    if free_slots >= desired_slots:
+                        break
+                    candidates = [
+                        (symbol, trade)
+                        for symbol, trade in positions.items()
+                        if trade.is_satellite
+                    ]
+                    if not candidates:
+                        break
+                    ranked_running: list[
+                        tuple[Decimal, str, OpenTrade, Decimal]
+                    ] = []
+                    for symbol, trade in candidates:
+                        point = last_points.get(symbol)
+                        remaining = _remaining_satellite_score(
+                            trade=trade,
+                            point=point,
+                            at=open_time,
+                            config=router_config,
+                        )
+                        switch_cost = (
+                            _switch_cost_score(
+                                costs=costs,
+                                satellite_point=point,
+                                core_signal=core_signal,
+                            )
+                            if point is not None
+                            else D("999")
+                        )
+                        ranked_running.append(
+                            (remaining, symbol, trade, switch_cost)
+                        )
+                    ranked_running.sort(key=lambda row: row[0])
+                    remaining, sat_symbol, sat_trade, switch_cost = ranked_running[0]
+                    core_score = _candidate_core_score(core_signal)
+                    threshold = (
+                        remaining
+                        + switch_cost
+                        + router_config.hysteresis_atr
                     )
-                    switch_cost = _switch_cost_score(
-                        costs=costs,
-                        satellite_point=point,
-                        core_signal=core_signal,
-                    ) if point is not None else D("999")
-                    ranked_running.append((remaining, symbol, trade, switch_cost))
-                ranked_running.sort(key=lambda row: row[0])
-                remaining, sat_symbol, sat_trade, switch_cost = ranked_running[0]
-                core_score = _candidate_core_score(core_signal)
-                threshold = remaining + switch_cost + router_config.hysteresis_atr
-                decision = "SWITCH" if core_score > threshold else "HOLD"
-                event = {
-                    "time_utc": open_time.isoformat(),
-                    "satellite_symbol": sat_symbol,
-                    "core_candidate": core_signal.symbol,
-                    "satellite_remaining_score": str(remaining),
-                    "core_candidate_score": str(core_score),
-                    "normalized_switch_cost_score": str(switch_cost),
-                    "hysteresis_atr": str(router_config.hysteresis_atr),
-                    "decision": decision,
-                    "satellite_age_hours": str(
-                        D(str((open_time - sat_trade.fill.fill_time_utc).total_seconds() / 3600))
-                    ),
-                }
-                router_events.append(event)
-                if decision == "SWITCH":
+                    decision = "SWITCH" if core_score > threshold else "HOLD"
+                    router_events.append(
+                        {
+                            "time_utc": open_time.isoformat(),
+                            "satellite_symbol": sat_symbol,
+                            "core_candidate": core_signal.symbol,
+                            "desired_core_slots": desired_slots,
+                            "satellite_remaining_score": str(remaining),
+                            "core_candidate_score": str(core_score),
+                            "normalized_switch_cost_score": str(switch_cost),
+                            "hysteresis_atr": str(router_config.hysteresis_atr),
+                            "decision": decision,
+                            "satellite_age_hours": str(
+                                D(
+                                    str(
+                                        (
+                                            open_time
+                                            - sat_trade.fill.fill_time_utc
+                                        ).total_seconds()
+                                        / 3600
+                                    )
+                                )
+                            ),
+                        }
+                    )
+                    if decision != "SWITCH":
+                        break
                     close_position(
                         sat_symbol,
                         at=open_time,
@@ -443,27 +489,17 @@ def run_filler_router_portfolio(
                         reason_id=f"ROUTER_SWITCH::{core_signal.signal_id}",
                     )
 
-            # Core entries get first use of free slots. Their existing ranked-repeat behavior
-            # is preserved so router behavior is the controlled variable.
-            used_slots = sum(p.slots for p in positions.values())
-            core_alloc = allocate_entry_slots(
-                [s.symbol for s in core_entries if s.symbol not in positions],
-                free_slots=max(0, slot_count - used_slots),
-                policy=RANKED_REPEAT,
-            )
-            for signal in core_entries:
-                if signal.symbol in positions:
-                    blocked.append(f"{signal.signal_id}:POSITION_ALREADY_OPEN")
-                    continue
-                slots = core_alloc.get(signal.symbol, 0)
+                used_slots = sum(p.slots for p in positions.values())
+                free_slots = max(0, slot_count - used_slots)
+                slots = min(desired_slots, free_slots)
                 if slots <= 0:
-                    blocked.append(f"{signal.signal_id}:NO_FREE_SLOT")
+                    blocked.append(f"{core_signal.signal_id}:NO_FREE_SLOT")
                     continue
                 open_position(
-                    signal,
+                    core_signal,
                     slots=slots,
                     at=open_time,
-                    candle=candles[signal.symbol],
+                    candle=candles[core_signal.symbol],
                 )
 
             # Satellites are fillers only: they never displace Core and never take more
