@@ -5,7 +5,7 @@
   "objective": {
     "capital_usdc": "250.00",
     "symbols": 10,
-    "primary": "increase robust net profit after costs while increasing meaningful deployment of the fixed 250 USDC research budget",
+    "primary": "preserve robust core profit while adding incremental after-cost profit from otherwise idle 250-USDC capacity",
     "secondary": "increase completed position cycles per calendar day, slot utilization and average deployed notional while reducing zero-position hours, longest idle stretches and avoidable NO_FREE_SLOT loss",
     "never_optimize_for": [
       "headline trade count alone",
@@ -29,7 +29,10 @@
     "risk controls",
     "execution-cost robustness",
     "point-in-time event and news risk features",
-    "new strategy families proposed by the hypothesis dot"
+    "new strategy families proposed by the hypothesis dot",
+    "preemptible idle-satellite market layer",
+    "cross-quote historical proxy research with real-USDC holdout validation",
+    "forced satellite handoff to core signals"
   ],
   "hard_constraints": {
     "fixed_total_capital_usdc": "250.00",
@@ -66,8 +69,8 @@
     "requires_exact_head_a01_a11": true,
     "requires_qa_pass": true,
     "requires_governance_pass": true,
-    "requires_non_regressive_baseline_equity": false,
-    "requires_non_regressive_stress_equity": false,
+    "requires_non_regressive_baseline_equity": true,
+    "requires_non_regressive_stress_equity": true,
     "trade_frequency_gain_is_sufficient_alone": false,
     "paper_auto_activate": false,
     "live_auto_activate": false,
@@ -78,7 +81,14 @@
     "activity_candidate_min_equity_ratio_vs_incumbent": "0.85",
     "activity_candidate_minimum_cycles_3y": 157,
     "activity_candidate_preferred_max_equity_regression_pct": "10",
-    "activity_candidate_hard_max_equity_regression_pct": "15"
+    "activity_candidate_hard_max_equity_regression_pct": "15",
+    "activity_candidate_exception": {
+      "applies_only_to": "satellite/idle-capacity architecture candidates",
+      "min_equity_ratio_vs_incumbent": "0.85",
+      "minimum_cycles_3y": 157,
+      "core_trade_displacement_allowed": false,
+      "requires_incremental_satellite_profit_after_costs": true
+    }
   },
   "continuity": {
     "keep_researching_after_failure": true,
@@ -105,7 +115,12 @@
     "research_may_test_alternative_timeframes_offline": true,
     "research_may_simulate_leverage_offline": true,
     "live_market_universe_changes_require_full_promotion_and_owner_live_activation": true,
-    "live_margin_futures_leverage_remains_forbidden": true
+    "live_margin_futures_leverage_remains_forbidden": true,
+    "core_v6_is_primary_strategy": true,
+    "satellite_layer_may_only_use_free_core_capacity": true,
+    "satellite_layer_must_yield_to_core": true,
+    "target_satellite_markets": 5,
+    "proxy_history_requires_real_usdc_validation": true
   },
   "forward_evidence": {
     "enabled": true,
