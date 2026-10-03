@@ -3,13 +3,13 @@
   "mode": "PERSISTENT_ROLE_SWARM",
   "roles": {
     "A01": "Continuously maintain requirements, experiment ledger, rejected regions and exact reproducibility contracts.",
-    "A02": "Continuously search and backtest new profit/trade-opportunity candidates for all ten coins and the shared 250-USDC portfolio.",
+    "A02": "Continuously backtest Core and frozen Satellite candidates against one shared configured account C, with 250 USDC as the current reference rather than a permanent hard-code.",
     "A03": "Continuously verify Backtest/Paper/Trial/Live semantic parity and detect state/version drift.",
     "A04": "Continuously verify UI/API truthfulness and ensure research candidates never masquerade as promoted product state.",
     "A05": "Continuously diagnose idle time, holding duration, slot saturation, loss/winner clusters and runtime opportunity loss.",
     "A06": "Continuously regression-test candidate patches, determinism and cross-component behavior; repair known defects.",
     "A07": "Continuously validate public Binance USDC market/filter/data assumptions without private credentials or orders.",
-    "A08": "Continuously challenge strategy, allocator, ranking and risk assumptions under fixed 250-USDC capital.",
+    "A08": "Continuously challenge strategy, dynamic allocator, opportunity ranking, switching costs and risk across representative configured budgets.",
     "A09": "Independently reject stale, overfit, non-reproducible or technically regressive candidates; only exact-head QA_PASS can advance.",
     "A10": "Continuously dispatch the next evidence-led research/repair task, never stopping at a negative experiment.",
     "A11": "Continuously audit A01-A10, anti-overfit integrity and promotion evidence; only GOVERNANCE_PASS can authorize engineering promotion."
@@ -119,18 +119,29 @@
         "regional Binance availability, liquidity and exchange filters must pass before any live inclusion",
         "no automatic live market expansion"
       ]
+    },
+    "D20": {
+      "name": "Alignment & Continuity Dot",
+      "objective": "Continuously audit A01-A11, D12-D20, workflows, policies, taskboards and UI/backtest contracts for stale assumptions, duplicate work, missing handoffs and blockers relative to the current owner objective.",
+      "constraints": [
+        "repair safe orchestration/configuration drift directly when authorized",
+        "preserve Master as the single normal research-branch writer",
+        "never weaken A09/A11 or anti-overfit/future-readiness gates",
+        "never activate Paper/Live or use private credentials/orders",
+        "report material progress versus the previous checkpoint"
+      ]
     }
   },
-  "current_shared_mission": "MISSION-CAPITAL-ACTIVITY-250: ten-coin V6 core remains the primary high-value engine; up to five satellites monetize otherwise idle capital. Routing is scale-invariant and compares point-in-time normalized opportunity value, so the same logic can operate at different account sizes without fixed USDC switch thresholds.",
+  "current_shared_mission": "MISSION-SATELLITE-SHARED-C: one configured total account C; ten validated Core markets plus only satellites that add robust marginal shared-portfolio value; point-in-time scale-invariant HOLD/SWITCH/TRIM routing; no fixed-USDC switch rules.",
   "activity_focus": {
     "A01": "Track activity metrics, rejected regions and exact evidence contracts.",
-    "A02": "Search for higher position-cycle/day and utilization candidates under non-regressive profit gates.",
+    "A02": "Run Step-5 shared Core+Satellite portfolio evidence and later scale-invariant dynamic-C evidence.",
     "A03": "Ensure Backtest/Paper/Live timing semantics stay identical as research activity rises.",
     "A04": "Expose truthful utilization metrics and never present raw order count as success.",
     "A05": "Diagnose idle time, holding opportunity cost, normalized remaining opportunity value, switching friction and missed superior opportunities.",
     "A06": "Regression-test activity-oriented patches for duplicate orders, timing races and state corruption.",
     "A07": "Research sufficiently liquid/history-qualified USDC markets that can add opportunities.",
-    "A08": "Challenge opportunity-score calibration, scale invariance, switching margin, hysteresis, reserve policy and quote conversion.",
+    "A08": "Challenge marginal satellite contribution, Core displacement, router hysteresis, cost completeness and allocator scaling.",
     "A09": "Reject routing that uses fixed USDC thresholds, hindsight/future outcomes, cost omissions, weak-signal churn or non-scalable assumptions.",
     "A10": "Dispatch the highest-value activity bottleneck until a robust improvement is demonstrated.",
     "A11": "Audit that routing is point-in-time, scale-invariant, cost-complete, reproducible and improves shared portfolio behavior.",
@@ -141,6 +152,7 @@
     "D16": "Mine the high-frequency basis sensor for subsets suitable for meaningful-notional research trades.",
     "D17": "Check whether higher activity survives sealed recent windows, adverse costs and new forward data.",
     "D18": "Verify every research run uses the newest protected engineering bot and block stale-baseline work.",
-    "D19": "Validate five complementary idle satellites and scale-invariant switching rules using expected net return/risk/time rather than fixed USDC amounts."
+    "D19": "Use the frozen Step-4 five-market pool for shared-portfolio research; rediscover markets only when a real data/liquidity invalidation requires it.",
+    "D20": "Audit the whole system for stale 250/2x125/Core-absolute assumptions, redundant long loops, missing stage handoffs and false progress claims."
   }
 }
