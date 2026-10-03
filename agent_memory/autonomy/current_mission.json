@@ -2,13 +2,14 @@
   "schema_version": 1,
   "id": "MISSION-CAPITAL-ACTIVITY-250",
   "status": "ACTIVE",
-  "objective": "Preserve the current ten-coin V6 core as the strong primary strategy, then monetize otherwise idle 250-USDC capacity with preemptible satellite markets.",
+  "objective": "Preserve the current ten-coin V6 core as the primary profit engine. Use exactly the otherwise idle/free 250-USDC capacity with up to five preemptible satellite markets, and reclaim that capacity for any valid core entry as soon as the runtime can execute the handoff.",
   "priorities": [
-    "preserve the current strong core strategy and its valid entries",
-    "add incremental net profit from otherwise idle capacity",
-    "increase completed meaningful opportunities without tiny-order gaming",
-    "reduce zero-position hours and longest idle stretches",
-    "force satellite handoff when a valid core entry needs capacity",
+    "preserve every valid current ten-coin core opportunity; satellites must never cause a core trade that would otherwise execute to be missed",
+    "when the core has genuinely free/idle capacity, deploy that capacity only into separately validated satellite opportunities with positive incremental after-cost expectancy",
+    "when a valid core signal arrives, cancel conflicting pending satellite entries and exit/trim satellite exposure as needed to release USDC for the core at the first executable runtime opportunity",
+    "measure satellite success by incremental shared-portfolio net profit during core-idle periods, not by standalone satellite returns or raw trade count",
+    "reduce zero-position hours and longest idle stretches without weakening the core",
+    "model fees, spread, slippage, handoff latency and forced satellite-exit losses",
     "preserve future-readiness, stress, red-team and governance gates"
   ],
   "anti_gaming": {
@@ -31,7 +32,14 @@
     "profit_per_position_hour_usdc",
     "baseline_ending_equity",
     "stress_ending_equity",
-    "max_drawdown_pct"
+    "max_drawdown_pct",
+    "incremental_satellite_net_pnl_usdc",
+    "satellite_idle_hours_monetized",
+    "core_trade_displacement_count",
+    "satellite_forced_handoff_count",
+    "satellite_forced_handoff_loss_usdc",
+    "core_reclaim_latency_hours",
+    "quote_conversion_cost_usdc"
   ],
   "research_fronts": [
     "idle-satellite five-market selection from current Binance Spot USDC markets",
@@ -68,17 +76,38 @@
   },
   "satellite_layer": {
     "target_satellite_markets": 5,
+    "role": "IDLE_REPLACEMENT_ONLY",
     "core_priority_absolute": true,
     "satellites_idle_only": true,
+    "valid_core_trade_displacement_limit": 0,
+    "core_reclaim_rule": "A satellite has no right to keep capital once a valid core entry needs it. Pending conflicting satellite entries are cancelled; open satellite exposure is exited or reduced at the first executable runtime opportunity so capital can return to USDC and be allocated to the core.",
+    "handoff_semantics": "first executable opportunity under the same closed-bar/order-timing semantics used by Backtest, Paper and Live; never assume impossible intrabar clairvoyance",
     "force_exit_for_core_allowed": true,
     "forced_handoff_loss_must_be_modeled": true,
+    "quote_currency_default": "USDC",
+    "direct_usdc_pair_preferred": true,
+    "cross_quote_conversion_policy": "Do not add USDT/other quote conversion to the product path unless a separate experiment proves that additional spread, fees, latency, exchange filters and failure modes improve shared-portfolio net profit versus direct USDC routing.",
     "minimum_tranche_usdc": "50.00",
     "preferred_tranche_usdc": [
       "125.00",
       "250.00"
     ],
-    "selection_metric": "incremental shared-portfolio net profit earned specifically during core-idle/free-slot periods after costs and handoff losses",
+    "selection_metric": "incremental shared-portfolio net profit earned specifically during core-idle/free-slot periods after all trading costs, quote-conversion costs if any, and forced core-handoff losses",
+    "success_requires": [
+      "incremental satellite net PnL > 0 in baseline and stress",
+      "core_trade_displacement_count = 0",
+      "zero-position/idle time is materially reduced",
+      "handoff losses do not dominate satellite gains",
+      "real-USDC holdout and regional market availability pass",
+      "cross-window, shifted-3y, future-readiness and red-team pass"
+    ],
+    "capital_state_machine": {
+      "CORE_ACTIVE": "Core positions/signals own capital first; satellites may use only truly free capacity.",
+      "CORE_IDLE": "Validated satellites may temporarily deploy free capital to earn incremental after-cost profit.",
+      "CORE_SIGNAL_ARRIVES": "Reclaim required capital from satellites, return it to USDC, and route it to the valid core entry at the first executable runtime opportunity.",
+      "CORE_RECLAIMED": "Core trade proceeds; satellite may re-enter only later if capacity becomes genuinely idle again."
+    },
     "no_core_trade_may_be_displaced": true,
-    "target_example_only": "A higher total ending equity such as ~2000 USDC is desirable but is not guaranteed or a hard backtest target."
+    "target_example_only": "Higher utilization and ending equity are desirable, but no historical result is a guarantee."
   }
 }
