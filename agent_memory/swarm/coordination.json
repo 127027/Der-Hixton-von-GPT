@@ -1,8 +1,8 @@
 {
   "schema_version": 2,
-  "round_id": "COORD-2026-10-03-SATELLITE-STEP5-001",
+  "round_id": "COORD-2026-10-03-SATELLITE-STEP5B-002",
   "status": "DISPATCHED",
-  "owner_objective": "Advance from the validated ten-core V6 baseline to a robust 10+up-to-5 shared-capital architecture. Current stage is Step 5: test the five frozen Step-4 advancers SUIUSDC, NEARUSDC, UNIUSDC, AAVEUSDC and BCHUSDC for marginal shared-account value before any final Satellite claim.",
+  "owner_objective": "Build and validate short-horizon Satellite gap-fillers. They use otherwise idle/free capacity, never displace an open Core, and release filler capital to a materially stronger new Core entry after point-in-time remaining-value and switching-cost comparison.",
   "target_product_branch": "gpt/usdc-audit",
   "research_branch": "gpt/autonomous-research-v1",
   "protected_product_head": "f6497acf8d4d852aaac0b69878762fabb53155d4",
@@ -19,22 +19,25 @@
     ],
     "profiles_frozen": true
   },
-  "current_stage": "STEP5_SHARED_PORTFOLIO",
+  "current_stage": "STEP5B_SHORT_HORIZON_FILLER_ROUTER",
   "current_stage_contract": {
-    "capital_semantics": "ONE_SHARED_ACCOUNT_C",
-    "reference_capital_usdc": "250.00",
-    "core_symbols": 10,
-    "satellite_pool": 5,
+    "capital_semantics": "ONE_SHARED_ACCOUNT_C_REFERENCE_250",
+    "filler_semantics": "SHORT_HORIZON_FREE_CAPACITY_ONLY",
+    "satellite_max_reference_slots_each": 1,
+    "satellites_may_preempt_open_core": false,
+    "core_preemption_rule": "Only a materially stronger new Core entry may reclaim the weakest Satellite, after normalized exit+entry costs and training-frozen hysteresis.",
+    "calibration": "TRAINING_ONLY",
+    "real_usdc_holdout": "REJECTION_ONLY",
     "required_evidence": [
-      "baseline and stress ending equity/net PnL versus Core-only reference",
-      "zero-position hours and average deployed capital",
-      "Satellite realized contribution and completed cycles",
-      "Core and Satellite NO_FREE_SLOT opportunity loss",
-      "fees/spread/slippage and drawdown",
-      "greedy marginal addition evidence with frozen profiles",
-      "explicit router gap where an already-open Satellite can block a later superior opportunity"
+      "router HOLD/SWITCH event ledger with point-in-time scores and normalized switch costs",
+      "baseline/stress ending-equity delta versus Core-only",
+      "Satellite realized PnL and profit per occupied hour",
+      "median/average/max Satellite holding duration",
+      "Core NO_FREE_SLOT delta",
+      "idle-capital utilization / zero-position reduction",
+      "real-USDC holdout with no retuning"
     ],
-    "advance_rule": "Advance only Satellites that add positive marginal ending equity under both baseline and stress costs and reduce zero-position hours in the same shared account. Do not retune Step-4 profiles from Step-5 outcomes."
+    "pass_rule": "Positive baseline and stress shared-account delta, no increase in Core NO_FREE_SLOT blocks, productive capacity gain and positive selected-Satellite realized PnL, followed by rejection-only real-USDC holdout and full-window pass."
   },
   "routing_contract": {
     "core_priority_absolute": false,
@@ -88,5 +91,18 @@
     "no_bare_pass": true,
     "no_paper_live_activation": true,
     "no_private_credentials_or_orders": true
+  },
+  "step5": {
+    "source_run_id": 37147668454,
+    "result": "NO_ROUTER_COLLISION_DEPENDENCY_PROVEN",
+    "interpretation": "NEAR/AAVE made positive Satellite PnL but reduced total equity by blocking later Core opportunities; unchanged Step 5 must not be repeated."
+  },
+  "next_stages": {
+    "STEP6": "Router-aware robustness and final up-to-five set: cross-window/shifted/future-readiness/red-team.",
+    "STEP7": "Router state-transition hardening, determinism and parity contract.",
+    "STEP8": "Scale invariance and dynamic allocation for 50/250/1000/5000/20000+.",
+    "STEP9": "Backtest/UI/Paper/Trial/Live semantic integration and isolated-15xC vs shared-C truth.",
+    "STEP10": "D14 engineering candidate and exact-head A01-A11.",
+    "STEP11": "A09 QA_PASS + A11 GOVERNANCE_PASS + protected promotion."
   }
 }
