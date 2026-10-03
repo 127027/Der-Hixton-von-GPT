@@ -1,242 +1,92 @@
 {
-  "schema_version": 1,
-  "round_id": "COORD-2026-10-01-PROMOTE-007",
+  "schema_version": 2,
+  "round_id": "COORD-2026-10-03-SATELLITE-STEP5-001",
   "status": "DISPATCHED",
-  "owner_objective": "Promote only the two research winners proven in COORD-2026-10-01-PROFITOPP-006 into canonical V6: AVAX ATR 150 and DOGE momentum 16 / smoothing 14 / ATR 120 / band 4.3 with CMO 0.20. Expected V6 strategy version is HIXTON-V6-COIN-PAPER-1-c78c8cabf980. Independently verify that Backtest, Paper, UI/runtime strategy identity and all A01-A11 evidence use this exact new version; reject stale b271d7952d15 evidence. No other coin profile or allocator may change.",
-  "target_branch": "gpt/usdc-audit",
-  "commit_policy": "PIN_EXACT_COMMIT_AT_RUN_START",
-  "repair_policy": "ANY_PATCH_INVALIDATES_AFFECTED_EVIDENCE_AND_REQUIRES_A_NEW_PINNED_RUN",
-  "acceptance": {
-    "exact_head": "All research evidence is produced from one exact latest gpt/usdc-audit commit in a freshly created isolated venv.",
-    "all_ten_fresh": "Fresh exact-three-year baseline and stress evidence exists for each of the ten USDC coins with the current V6 profile.",
-    "history_review": "Prior Top-8 candidates, robust finalists, rejects and loss clusters are used to design the next bounded search rather than repeating the same grid blindly.",
-    "selection_integrity": "Candidate ranking uses training windows only. Validation/full windows can reject but cannot introduce or rank a new candidate.",
-    "robust_coin_improvement": "A coin counts as improved only if the challenger is non-regressive versus current in independent validation baseline/stress and full-three-year baseline/stress, improves at least one return measure, and stays within the drawdown gate.",
-    "search_iteration": "Coins with no robust finalist receive a bounded second-stage local search around their prior Top-8 parameter neighborhoods and measured losing-trade regimes. Search must remain finite and reproducible.",
-    "no_forced_winner": "If a coin still has no robust improvement, agents must report that fact and the concrete blocker; they may not weaken gates or reuse validation as training merely to satisfy the owner's target.",
-    "portfolio_gate": "Every robust per-coin finalist is tested one-at-a-time in the canonical saved-max-budget portfolio under baseline and stress costs. Combination testing occurs only after isolated holdout gates.",
-    "no_auto_promotion": "Research does not alter versions.py, Paper state, Live runtime, local WAITING_SIGNAL trial, credentials or active strategy.",
-    "full_agents": "A01-A08 produce specialist evidence; A10 synthesizes and routes unresolved coins; A09 independently QA-checks exact-head evidence; A11 rejects overfit/stale/mixed or automatically promoted results.",
-    "runtime_recovery": "A05 must become fresh and healthy on the preserved Paper ledger after the exact Paper-only strategy activation; no reset and no real/testnet order path.",
-    "experiment_ledger": "A01 must preserve an experiment ledger or immutable current-run summary so previously tested coin configurations and rejection reasons are not silently repeated.",
-    "eth_counterfactual": "A02/A03/A08 must explain ETH momentum19 versus momentum20 at trade and slot-collision level before any new broad ETH grid.",
-    "candidate_gate": "Every serious challenger must report isolated baseline/stress and canonical 250-USDC portfolio baseline/stress plus added/removed/shifted trades, occupied-slot-hour delta and displaced-coin PnL.",
-    "search_direction": "BTC/BNB emphasize capital binding and timing; SOL/LINK/AVAX emphasize opportunity expansion and timing; XRP emphasizes entry timing; DOGE emphasizes volatility reaction; ADA/DOT remain production-frozen shadow research.",
-    "portfolio_separation": "Only after coin profiles are frozen may allocator/ranking research compare 2x125 against alternative equal-250-USDC layouts or opportunity-cost ranking. Coin parameters and allocator rules may not change in the same causal experiment.",
-    "promotion": "A09/A11 reject any promotion without exact-head reproducibility, holdout integrity, base/stress evidence and positive shared-portfolio marginal contribution.",
-    "promoted_profiles_exact": "Canonical V6 must contain AVAX 6/20/8/150/5.2 and DOGE 6/16/14/120/4.3 with DOGE CMO 0.20; all eight other production profiles remain byte-equivalent in behavior.",
-    "expected_strategy_version": "Every strategy identity check must resolve HIXTON-V6-COIN-PAPER-1-c78c8cabf980 and reject stale HIXTON-V6-COIN-PAPER-1-b271d7952d15 as current.",
-    "fresh_validation": "Preflight, exact-three-year dashboard E2E, coin optimization/recheck and A01-A11 must all run on the exact promotion commit; A09 QA_PASS and A11 GOVERNANCE_PASS are required before distribution.",
-    "paper_transition": "Persistent Paper history must be preserved while exact owner authorization transitions b271d7952d15 -> c78c8cabf980; no reset and no real/testnet orders.",
-    "download_identity": "The downloadable ZIP must be pinned to the exact validated promotion commit, not merely a moving branch archive."
+  "owner_objective": "Advance from the validated ten-core V6 baseline to a robust 10+up-to-5 shared-capital architecture. Current stage is Step 5: test the five frozen Step-4 advancers SUIUSDC, NEARUSDC, UNIUSDC, AAVEUSDC and BCHUSDC for marginal shared-account value before any final Satellite claim.",
+  "target_product_branch": "gpt/usdc-audit",
+  "research_branch": "gpt/autonomous-research-v1",
+  "protected_product_head": "f6497acf8d4d852aaac0b69878762fabb53155d4",
+  "step4": {
+    "source_run_id": 37140989998,
+    "source_research_commit": "ba5ff6eb94b5052648ad09c3dfc40a5c43669cef",
+    "checkpoint_file": "agent_memory/autonomy/satellite_step4_checkpoint.json",
+    "advancing_symbols": [
+      "SUIUSDC",
+      "NEARUSDC",
+      "UNIUSDC",
+      "AAVEUSDC",
+      "BCHUSDC"
+    ],
+    "profiles_frozen": true
+  },
+  "current_stage": "STEP5_SHARED_PORTFOLIO",
+  "current_stage_contract": {
+    "capital_semantics": "ONE_SHARED_ACCOUNT_C",
+    "reference_capital_usdc": "250.00",
+    "core_symbols": 10,
+    "satellite_pool": 5,
+    "required_evidence": [
+      "baseline and stress ending equity/net PnL versus Core-only reference",
+      "zero-position hours and average deployed capital",
+      "Satellite realized contribution and completed cycles",
+      "Core and Satellite NO_FREE_SLOT opportunity loss",
+      "fees/spread/slippage and drawdown",
+      "greedy marginal addition evidence with frozen profiles",
+      "explicit router gap where an already-open Satellite can block a later superior opportunity"
+    ],
+    "advance_rule": "Advance only Satellites that add positive marginal ending equity under both baseline and stress costs and reduce zero-position hours in the same shared account. Do not retune Step-4 profiles from Step-5 outcomes."
+  },
+  "routing_contract": {
+    "core_priority_absolute": false,
+    "core_signal_alone_forces_exit": false,
+    "fixed_absolute_usdc_switch_thresholds_forbidden": true,
+    "point_in_time_only": true,
+    "score_inputs": [
+      "expected_net_return_pct",
+      "expected_remaining_return_pct",
+      "risk",
+      "expected_duration",
+      "return_per_time",
+      "uncertainty",
+      "fees_spread_slippage_latency_pct"
+    ],
+    "decisions": [
+      "HOLD",
+      "SWITCH",
+      "TRIM"
+    ]
+  },
+  "capital_contract": {
+    "user_truth": "max_capital_usdc",
+    "isolated_15xC": "diagnostic only; each market independently receives C",
+    "shared_portfolio_C": "actual bot simulation; total capital is C",
+    "future_scale_targets_usdc": [
+      "50",
+      "250",
+      "1000",
+      "5000",
+      "20000+"
+    ]
+  },
+  "assignments": {
+    "A01": "Track exact Step-4 checkpoint provenance, Step-5 experiment ledger and rejection reasons.",
+    "A02": "Produce deterministic shared Core+Satellite baseline/stress portfolio evidence using one account C.",
+    "A03": "Define later Backtest/Paper/Trial/Live semantic parity requirements for the promoted 10+5 router.",
+    "A04": "Define truthful UI labels for isolated 15xC versus shared portfolio C and single max_capital_usdc input.",
+    "A05": "Measure idle time, holding time, slot occupancy, blocked Core opportunities and opportunity-loss mechanics.",
+    "A06": "Regression-test research adapters and later router state transitions for determinism/duplicate-order defects.",
+    "A07": "Validate current Binance USDC filters/liquidity and proxy provenance without credentials/orders.",
+    "A08": "Challenge marginal contribution, allocator assumptions, router hysteresis and risk/cost completeness.",
+    "A10": "Synthesize A01-A08 and route only the highest-value next repair/experiment.",
+    "A09": "Reject stale/mixed/lookahead/cost-incomplete/non-scalable evidence; exact-head QA_PASS only.",
+    "A11": "Final governance: recompute required evidence and require QA_PASS before promotion."
   },
   "communication_rules": {
-    "all_reports_must_include": [
-      "round_id",
-      "source_commit",
-      "agent",
-      "verdict",
-      "evidence",
-      "blockers",
-      "handoff"
-    ],
-    "accept_cross_commit_evidence": false,
-    "accept_cross_round_evidence": false,
-    "bare_pass_is_valid": false,
-    "a10_must_route_failures_to_named_owner": true,
-    "a11_must_reject_stale_or_mixed_evidence": true,
-    "cloud_real_money_orders_allowed": false
-  },
-  "diagnostic_chain": [
-    "pin latest engineering head and build isolated venv",
-    "load exact three-year closed 1h Binance-public history plus warmup",
-    "reproduce current V6 per-coin baseline and stress",
-    "load prior Top-8/robust/reject/loss-cluster evidence",
-    "run bounded profit-first hypothesis pack with training-only ranking",
-    "freeze Top-K per coin before independent validation",
-    "report profit velocity, profit per occupied hour, Sharpe/Sortino/Calmar and time-to-25/50 percent",
-    "independent validation baseline/stress",
-    "full-three-year baseline/stress rejection gate",
-    "compare winner clusters against loser clusters before recommending stricter filters",
-    "marginal canonical portfolio compatibility per robust coin",
-    "diagnose per-coin slot opportunity cost for rejected robust finalists",
-    "combined candidate portfolio baseline/stress",
-    "profile hash parity across isolated and portfolio runners",
-    "A10 synthesis and named repair/search routing",
-    "A09 independent QA",
-    "A11 governance; research only"
-  ],
-  "assignments": {
-    "A01": {
-      "objective": "Audit the promotion diff and prove only AVAX and DOGE production profiles plus required orchestration/authorization metadata changed. Verify documentation/evidence identifies the exact new strategy version c78c8cabf980.",
-      "handoff": [
-        "A02",
-        "A05",
-        "A10"
-      ],
-      "required_focus": [
-        "methodology",
-        "history",
-        "search-space",
-        "overfit"
-      ]
-    },
-    "A02": {
-      "objective": "Re-run fresh exact-three-year baseline/stress evidence on the promoted canonical map. Confirm AVAX 6/20/8/150/5.2 and DOGE 6/16/14/120/4.3 are active, the other eight profiles are unchanged, and compare promoted map against the prior b271d7952d15 map.",
-      "handoff": [
-        "A03",
-        "A05",
-        "A08",
-        "A10"
-      ],
-      "required_focus": [
-        "10-coins",
-        "three-year",
-        "baseline-stress",
-        "top-k",
-        "robust-finalists",
-        "portfolio"
-      ]
-    },
-    "A03": {
-      "objective": "Verify Backtest/Paper/Trial/Live profile and strategy-version parity for c78c8cabf980. Reject stale or mixed profile hashes.",
-      "handoff": [
-        "A06",
-        "A10"
-      ],
-      "required_focus": [
-        "parity",
-        "determinism",
-        "profile-hash",
-        "runner-equivalence"
-      ]
-    },
-    "A04": {
-      "objective": "Verify the shipped UI/runtime reports the promoted canonical strategy identity and no research-only challenger controls leaked into the UI.",
-      "handoff": [
-        "A10"
-      ],
-      "required_focus": [
-        "research-only",
-        "ui-separation",
-        "no-live-mutation"
-      ]
-    },
-    "A05": {
-      "objective": "Verify preserved Paper runtime transitions exactly b271d7952d15 -> c78c8cabf980, remains fresh/healthy, and performs no reset or real/testnet order.",
-      "handoff": [
-        "A02",
-        "A06",
-        "A10"
-      ],
-      "required_focus": [
-        "loss-clusters",
-        "per-coin-search",
-        "holding-time",
-        "ATR",
-        "breakout"
-      ]
-    },
-    "A06": {
-      "objective": "Run regression and determinism checks for the exact AVAX/DOGE promotion. Confirm no unintended behavior change outside the two promoted coin profiles.",
-      "handoff": [
-        "A02",
-        "A10"
-      ],
-      "required_focus": [
-        "overfit",
-        "bounded-search",
-        "regressions",
-        "determinism"
-      ]
-    },
-    "A07": {
-      "objective": "Re-verify public Binance USDC market/filter assumptions for the promoted exact-head map; remain key-free and order-free.",
-      "handoff": [
-        "A02",
-        "A10"
-      ],
-      "required_focus": [
-        "binance-public",
-        "filters",
-        "USDC",
-        "no-orders"
-      ]
-    },
-    "A08": {
-      "objective": "Re-check 250-USDC portfolio risk/slot behavior and confirm the promoted AVAX/DOGE map preserves the positive base/stress marginal contribution without changing allocator semantics.",
-      "handoff": [
-        "A10"
-      ],
-      "required_focus": [
-        "portfolio-gate",
-        "slot-opportunity-cost",
-        "baseline-stress",
-        "combination"
-      ]
-    },
-    "A09": {
-      "objective": "Independently QA the exact promotion commit. Emit QA_PASS only if the canonical V6 identity is c78c8cabf980, AVAX/DOGE exact parameters match the approved winners, all other profiles/allocator remain unchanged, and full tests pass.",
-      "handoff": [
-        "A11"
-      ],
-      "required_focus": [
-        "independent-qa",
-        "exact-head",
-        "holdout",
-        "all-ten"
-      ]
-    },
-    "A10": {
-      "objective": "Synthesize A01-A08 exact-head promotion evidence. Route any stale-version or profile mismatch back to the owning agent. Do not accept mixed b271d7952d15/c78c8cabf980 evidence.",
-      "handoff": [
-        "A09"
-      ],
-      "required_focus": [
-        "per-coin-status",
-        "repair-routing",
-        "search-loop",
-        "aggregate"
-      ]
-    },
-    "A11": {
-      "objective": "Govern final distribution. Emit GOVERNANCE_PASS only after fresh QA_PASS on the exact promotion commit and prove the downloadable commit is the validated c78c8cabf980 build.",
-      "handoff": [],
-      "required_focus": [
-        "governance",
-        "no-overfit",
-        "no-promotion",
-        "local-trial-isolation"
-      ]
-    }
-  },
-  "owner_context": {
-    "target_symbols": [
-      "BTCUSDC",
-      "ETHUSDC",
-      "BNBUSDC",
-      "SOLUSDC",
-      "XRPUSDC",
-      "ADAUSDC",
-      "LINKUSDC",
-      "AVAXUSDC",
-      "DOTUSDC",
-      "DOGEUSDC"
-    ],
-    "prior_robust_summary": {
-      "BTCUSDC": "none",
-      "ETHUSDC": "none",
-      "BNBUSDC": "none",
-      "SOLUSDC": "momentum18,smoothing12",
-      "XRPUSDC": "momentum22",
-      "ADAUSDC": "vidya8_band_m0_1,vidya8,vidya9,momentum14,vidya8_band_0_1",
-      "LINKUSDC": "none",
-      "AVAXUSDC": "none",
-      "DOTUSDC": "none",
-      "DOGEUSDC": "smoothing17_momentum16"
-    },
-    "local_trial": "A separate locally authenticated 1x50-USDC trial may remain WAITING_SIGNAL; optimization must not require restart/update and must not use private credentials."
-  },
-  "research_brief_file": "agent_memory/swarm/research_brief_2026-10-01.md",
-  "promotion_brief_file": "agent_memory/swarm/promotion_brief_2026-10-01.md"
+    "issue": "#3",
+    "master_single_normal_writer": true,
+    "no_cross_commit_evidence": true,
+    "no_bare_pass": true,
+    "no_paper_live_activation": true,
+    "no_private_credentials_or_orders": true
+  }
 }
