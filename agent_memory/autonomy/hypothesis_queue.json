@@ -17,29 +17,35 @@
       "family": "idle_satellite_market_layer",
       "status": "READY",
       "activity_mission_priority": 1,
-      "hypothesis": "Keep the current ten-coin V6 core unchanged and use up to five additional Binance Spot USDC markets only when core slots are idle. Satellite positions must yield to new core entries, even at a bounded realized loss, if the combined after-cost portfolio profit improves.",
+      "hypothesis": "Keep the current ten-coin V6 core unchanged as the primary profit engine. Use up to five additional Binance Spot markets only as temporary idle-capital replacements: satellites may deploy free USDC while the core is idle, but must surrender required capital at the first executable opportunity when a valid core signal arrives. The layer succeeds only if shared after-cost portfolio profit improves and zero valid core trades are displaced.",
       "variables_to_test": [
         "satellite market set of five",
-        "satellite entry family",
+        "satellite-specific entry family",
         "satellite max holding time",
         "satellite tranche 50/125/250 USDC",
-        "core handoff timing",
-        "maximum tolerated forced-exit loss"
+        "core handoff timing under real runtime semantics",
+        "maximum tolerated forced-exit loss",
+        "optional USDC reserve versus full idle deployment",
+        "direct USDC versus any cross-quote route only as a separately costed experiment"
       ],
       "must_hold_fixed": [
         "current protected ten-coin core entry rules",
         "current protected core coin profiles",
         "250 USDC total account capital",
-        "core signals have absolute allocation priority"
+        "core signals have absolute allocation priority",
+        "a valid core trade that would execute in core-only mode may not be displaced",
+        "satellite role is idle replacement only"
       ],
       "required_evidence": [
         "newest protected baseline freshness PASS",
         "current Binance USDC spot/liquidity screen",
         "proxy-history provenance where used",
         "real-USDC holdout validation",
-        "incremental shared-portfolio base/stress profit",
+        "incremental shared-portfolio base/stress profit earned during core-idle windows",
         "core trade displacement count = 0",
-        "satellite handoff losses",
+        "satellite forced-handoff count and realized handoff PnL",
+        "fees spread slippage and handoff latency",
+        "quote-conversion cost if any",
         "zero-position hours reduced",
         "cross-window",
         "shifted_3y",
@@ -47,11 +53,13 @@
         "red_team"
       ],
       "rejection_criteria": [
-        "any valid core trade is displaced",
+        "any valid core trade is displaced or delayed beyond the defined executable handoff semantics",
         "satellite layer reduces shared portfolio ending equity beyond the explicit activity-concession gate",
         "stress incremental satellite PnL <= 0",
-        "handoff losses dominate satellite gains",
+        "handoff losses or costs dominate satellite gains",
+        "idle time is not materially reduced",
         "result depends only on proxy history and fails real-USDC holdout",
+        "cross-quote conversion is required but not separately profitable after all costs",
         "regional/live market availability cannot be confirmed"
       ]
     },
