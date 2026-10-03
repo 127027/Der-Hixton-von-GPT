@@ -86,6 +86,10 @@ jobs:
         run: |
           python -m pip install --upgrade pip
           pip install -e '.[dev]'
+      - name: Idle-satellite Binance universe discovery
+        run: python -m scripts.satellite_universe_discovery
+      - name: Step 4 satellite strategy and real-USDC holdout research
+        run: python -m scripts.satellite_strategy_research
       - name: Run adaptive ten-coin research
         run: python -m scripts.coin_optimization_cycle
       - name: Run fixed-250 capital/opportunity research
@@ -124,10 +128,6 @@ jobs:
         run: python -m scripts.basis_signal_census
       - name: Additional Binance USDC universe discovery
         run: python -m scripts.universe_discovery
-      - name: Idle-satellite Binance universe discovery
-        run: python -m scripts.satellite_universe_discovery
-      - name: Step 4 satellite strategy and real-USDC holdout research
-        run: python -m scripts.satellite_strategy_research
       - name: ETH M19 shared-slot collision audit
         run: python -m scripts.eth_slot_collision_audit
       - name: Point-in-time event reaction study
