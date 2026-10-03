@@ -1,0 +1,160 @@
+{
+  "schema_version": 1,
+  "study": "SATELLITE_STEP4_FROZEN_CHECKPOINT",
+  "frozen": true,
+  "source_run_id": 37140989998,
+  "source_research_commit": "ba5ff6eb94b5052648ad09c3dfc40a5c43669cef",
+  "source_artifact_id": 11282126204,
+  "source_artifact_digest": "sha256:2ec12055d27210285c4ee307fc32b58a1da283c519c72855cac9373b5e7420f6",
+  "selection_basis": "training-only profile selection followed by rejection-only real-USDC holdout under baseline and stress costs",
+  "advancing_symbols": [
+    "SUIUSDC",
+    "NEARUSDC",
+    "UNIUSDC",
+    "AAVEUSDC",
+    "BCHUSDC"
+  ],
+  "profiles": {
+    "SUIUSDC": {
+      "history_source_for_training": "SUIUSDT",
+      "template": "CORE_TEMPLATE_AVAXUSDC",
+      "parameters": {
+        "vidya_length": 6,
+        "momentum_length": 20,
+        "smoothing_length": 8,
+        "atr_length": 90,
+        "band_multiplier": 5.5,
+        "warmup_bars": 400
+      },
+      "trade_policy": {
+        "cmo_floor": 0,
+        "slope_bars": 0,
+        "stop_atr": 0,
+        "trail_atr": 0
+      },
+      "holdout": {
+        "baseline_net_pnl": "96.5779355107700000000",
+        "stress_net_pnl": "89.558925404730000000",
+        "baseline_trades": 3,
+        "stress_trades": 3
+      }
+    },
+    "NEARUSDC": {
+      "history_source_for_training": "NEARUSDT",
+      "template": "CORE_TEMPLATE_ADAUSDC",
+      "parameters": {
+        "vidya_length": 8,
+        "momentum_length": 20,
+        "smoothing_length": 8,
+        "atr_length": 60,
+        "band_multiplier": 4.4,
+        "warmup_bars": 400
+      },
+      "trade_policy": {
+        "cmo_floor": 0,
+        "slope_bars": 0,
+        "stop_atr": 0,
+        "trail_atr": 0
+      },
+      "holdout": {
+        "baseline_net_pnl": "474.311602011000000000",
+        "stress_net_pnl": "463.63098742210000000",
+        "baseline_trades": 6,
+        "stress_trades": 6
+      }
+    },
+    "UNIUSDC": {
+      "history_source_for_training": "UNIUSDT",
+      "template": "CORE_TEMPLATE_AVAXUSDC",
+      "parameters": {
+        "vidya_length": 6,
+        "momentum_length": 20,
+        "smoothing_length": 8,
+        "atr_length": 90,
+        "band_multiplier": 5.5,
+        "warmup_bars": 400
+      },
+      "trade_policy": {
+        "cmo_floor": 0,
+        "slope_bars": 0,
+        "stop_atr": 0,
+        "trail_atr": 0
+      },
+      "holdout": {
+        "baseline_net_pnl": "281.362068907665000000",
+        "stress_net_pnl": "264.35578926820000000",
+        "baseline_trades": 6,
+        "stress_trades": 6
+      }
+    },
+    "AAVEUSDC": {
+      "history_source_for_training": "AAVEUSDT",
+      "template": "GENERIC_V6",
+      "parameters": {
+        "vidya_length": 6,
+        "momentum_length": 20,
+        "smoothing_length": 8,
+        "atr_length": 60,
+        "band_multiplier": 3.8,
+        "warmup_bars": 400
+      },
+      "trade_policy": {
+        "cmo_floor": 0,
+        "slope_bars": 0,
+        "stop_atr": 0,
+        "trail_atr": 0
+      },
+      "holdout": {
+        "baseline_net_pnl": "27.07407027262500000",
+        "stress_net_pnl": "1.4148284737600000",
+        "baseline_trades": 19,
+        "stress_trades": 19
+      }
+    },
+    "BCHUSDC": {
+      "history_source_for_training": "BCHUSDT",
+      "template": "CORE_TEMPLATE_ADAUSDC",
+      "parameters": {
+        "vidya_length": 8,
+        "momentum_length": 20,
+        "smoothing_length": 8,
+        "atr_length": 60,
+        "band_multiplier": 4.4,
+        "warmup_bars": 400
+      },
+      "trade_policy": {
+        "cmo_floor": 0,
+        "slope_bars": 0,
+        "stop_atr": 0,
+        "trail_atr": 0
+      },
+      "holdout": {
+        "baseline_net_pnl": "44.4923792167000000",
+        "stress_net_pnl": "25.638396671500000",
+        "baseline_trades": 13,
+        "stress_trades": 13
+      }
+    }
+  },
+  "rejected_symbols": [
+    "ALGOUSDC",
+    "WLDUSDC",
+    "ZECUSDC",
+    "SANDUSDC",
+    "LTCUSDC",
+    "INJUSDC",
+    "PEPEUSDC",
+    "FETUSDC",
+    "HBARUSDC",
+    "APTUSDC"
+  ],
+  "safety": {
+    "research_only": true,
+    "profiles_frozen": true,
+    "shared_portfolio_outcomes_may_reject_but_not_retune_profiles": true,
+    "real_usdc_holdout_already_passed": true,
+    "paper_or_live_activated": false,
+    "private_credentials_used": false,
+    "orders_sent": false
+  }
+}
