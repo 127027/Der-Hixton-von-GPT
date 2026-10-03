@@ -1,20 +1,35 @@
 {
-  "cycle": "activity-night-2026-10-03-0244",
-  "timestamp_utc": "2026-10-03T00:44:00Z",
-  "reason": "continue_activity_mission_after_completed_cycle_no_promotable_activity_candidate",
+  "cycle": "satellite-step5-2026-10-03",
+  "timestamp_utc": "2026-10-03T19:15:00Z",
+  "reason": "step4_completed_and_system_audit_repaired_stale_orchestration",
+  "current_stage": "STEP5_SHARED_10_PLUS_SATELLITE_PORTFOLIO",
+  "step4_source_run_id": 37140989998,
+  "frozen_satellite_pool": [
+    "SUIUSDC",
+    "NEARUSDC",
+    "UNIUSDC",
+    "AAVEUSDC",
+    "BCHUSDC"
+  ],
   "next_focus": [
-    "HYP-EXIT-001: isolate maximum holding duration at 72h, 120h, 168h with entries/coin profiles/allocation fixed",
-    "require >=157 genuine completed position cycles over three years for mission acceptance; prefer >=365 and stretch >=1095",
-    "measure baseline/stress ending equity, position_cycles_per_day, zero_position_pct, longest_idle_hours, slot utilization and average deployed notional",
-    "prefer <=10% incumbent equity regression at minimum tier; never allow more than 15% regression and retain drawdown/future-readiness/red-team gates",
-    "if bounded time exits fail, record rejected region and advance to HYP-IDLE-001 rather than repeating it"
+    "run the dedicated shared one-account-C Step-5 portfolio research before unrelated legacy loops",
+    "require positive marginal baseline and stress ending equity, lower zero-position time, and positive realized completed-trade PnL for an added Satellite",
+    "measure Core NO_FREE_SLOT displacement so Step 7 can later implement opportunity-aware HOLD/SWITCH/TRIM",
+    "if Step 5 passes, advance to Step 6 robustness without rerunning frozen Step 4",
+    "if all frozen Satellites fail, record exact reasons and reopen D19 hypothesis/discovery rather than repeating the same screen"
   ],
   "constraints": {
     "protected_engineering_branch": "gpt/usdc-audit",
-    "fixed_total_capital_usdc": "250.00",
-    "minimum_research_tranche_usdc": "50.00",
+    "protected_product_head": "f6497acf8d4d852aaac0b69878762fabb53155d4",
+    "user_capital_source": "max_capital_usdc",
+    "reference_research_capital_usdc": "250.00",
+    "isolated_15xC_is_diagnostic_only": true,
+    "shared_portfolio_C_is_actual_account": true,
+    "core_priority_absolute": false,
+    "fixed_absolute_usdc_switch_thresholds_forbidden": true,
     "paper_live_activation": false,
     "real_orders": false,
-    "testnet_orders": false
+    "testnet_orders": false,
+    "private_binance_credentials_in_cloud": false
   }
 }
