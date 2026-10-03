@@ -44,5 +44,24 @@
     "correlation-aware allocation",
     "event-risk throttles only when replay-validated"
   ],
-  "success_rule": "A candidate may improve activity only if baseline/stress profit remain non-regressive and future-readiness/red-team gates pass. Prefer fewer larger meaningful trades over many tiny trades."
+  "success_rule": "A candidate is an activity success only if it reaches at least 157 completed position cycles over three years, uses meaningful >=50 USDC tranches, stays at or above 85% of protected-incumbent ending equity in both baseline and stress, and passes drawdown, future-readiness, red-team, A09 and A11 gates. Continue research after success toward GOOD then STRETCH tiers.",
+  "frequency_tiers_3y": {
+    "stretch_cycles": 1095,
+    "stretch_label": "~1 completed position cycle per day",
+    "good_cycles": 365,
+    "good_label": "~1 per 3 days",
+    "minimum_acceptable_cycles": 157,
+    "minimum_label": "~1 per 7 days",
+    "below_minimum_is_success": false
+  },
+  "profit_concession": {
+    "preferred_max_regression_pct": "10",
+    "hard_max_regression_pct": "15",
+    "hard_min_equity_ratio_vs_protected_incumbent": "0.85",
+    "applies_to": [
+      "baseline",
+      "stress"
+    ],
+    "note": "Activity candidates may trade some historical ending equity for materially lower idle time, but collapse toward ~1000 from a ~1500-1560 incumbent is unacceptable."
+  }
 }
