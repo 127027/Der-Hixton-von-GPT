@@ -23,6 +23,7 @@ on:
       - "scripts/hypothesis_scheduler.py"
       - "scripts/coin_optimization_cycle.py"
       - "scripts/capital_budget_optimizer.py"
+      - "scripts/holding_duration_research.py"
       - "scripts/capital_layout_cross_window.py"
       - "scripts/shifted_three_year_robustness.py"
       - "tests/test_autonomous_research_supervisor.py"
@@ -57,7 +58,8 @@ jobs:
             scripts/engineering_candidate_builder.py \
             scripts/eth_slot_collision_audit.py \
             scripts/event_reaction_study.py \
-            scripts/hypothesis_scheduler.py
+            scripts/hypothesis_scheduler.py \
+            scripts/holding_duration_research.py
           python -m unittest discover -s tests -p "test_autonomous_research_supervisor.py" -v
 
   research:
@@ -77,6 +79,8 @@ jobs:
         run: python -m scripts.coin_optimization_cycle
       - name: Run fixed-250 capital/opportunity research
         run: python -m scripts.capital_budget_optimizer
+      - name: Run bounded holding-duration activity research
+        run: python -m scripts.holding_duration_research
       - name: Cross-window robustness for strict layout winner
         run: python -m scripts.capital_layout_cross_window
       - name: Shifted full-three-year endpoint robustness
@@ -124,6 +128,7 @@ jobs:
           path: |
             evidence/coin-optimization-cycle*.json
             evidence/capital-budget-optimizer.json
+            evidence/holding-duration-research.json
             evidence/capital-layout-cross-window.json
             evidence/shifted-three-year-robustness.json
             evidence/autonomous-red-team.json
