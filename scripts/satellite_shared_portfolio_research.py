@@ -120,6 +120,10 @@ def _load_histories(
     execution_rules: dict[str, ExecutionRules],
 ):
     _warmup_start, report_start, report_end = safe_closed_window()
+    validation_start = report_end - timedelta(days=365)
+    if validation_start <= report_start:
+        raise RuntimeError("Step-5 selection window is empty")
+
     core_symbols = V6_COIN_STRATEGY.symbols
     core_history = load_continuity_history(
         strategy=V6_COIN_STRATEGY,
@@ -128,42 +132,67 @@ def _load_histories(
         execution_rules={symbol: execution_rules[symbol] for symbol in core_symbols},
         client=client,
     )
-    candles = dict(core_history.candles_by_symbol)
+    proxy_candles = dict(core_history.candles_by_symbol)
+    validation_candles = dict(core_history.candles_by_symbol)
 
     warmup_bars = max(
         [V6_COIN_STRATEGY.parameters_for(symbol).warmup_bars for symbol in core_symbols]
         + [400]
     )
-    warmup_start = report_start - warmup_bars * BAR
+    full_warmup_start = report_start - warmup_bars * BAR
+    validation_warmup_start = validation_start - warmup_bars * BAR
     provenance: dict[str, dict[str, object]] = dict(core_history.provenance_by_symbol)
 
     for symbol in satellite_symbols:
         source = satellite_sources[symbol]
-        raw = client.fetch_klines(
+        raw_proxy = client.fetch_klines(
             source,
-            start=warmup_start,
+            start=full_warmup_start,
             end_exclusive=report_end,
         )
-        adapted = _adapt(raw, symbol, source)
+        adapted_proxy = _adapt(raw_proxy, symbol, source)
         audit_candles(
-            adapted,
+            adapted_proxy,
             expected_symbol=symbol,
-            expected_start=warmup_start,
+            expected_start=full_warmup_start,
             expected_end_exclusive=report_end,
         ).require_valid()
-        candles[symbol] = adapted
+        proxy_candles[symbol] = adapted_proxy
+
+        real_usdc = client.fetch_klines(
+            symbol,
+            start=validation_warmup_start,
+            end_exclusive=report_end,
+        )
+        audit_candles(
+            real_usdc,
+            expected_symbol=symbol,
+            expected_start=validation_warmup_start,
+            expected_end_exclusive=report_end,
+        ).require_valid()
+        validation_candles[symbol] = real_usdc
+
         provenance[symbol] = {
             "target_market": symbol,
-            "market_proxy": source,
-            "target_quote": "USDC",
-            "proxy_scope": "HISTORICAL_MARKET_CANDLES_ONLY",
+            "selection_market_proxy": source,
+            "selection_proxy_scope": "HISTORICAL_MARKET_CANDLES_ONLY",
+            "validation_market": symbol,
+            "validation_quote": "USDC",
+            "selection_first_open_utc": adapted_proxy[0].open_time_utc.isoformat(),
+            "selection_last_open_utc": adapted_proxy[-1].open_time_utc.isoformat(),
+            "validation_first_open_utc": real_usdc[0].open_time_utc.isoformat(),
+            "validation_last_open_utc": real_usdc[-1].open_time_utc.isoformat(),
             "execution_rules_from": symbol,
-            "first_open_utc": adapted[0].open_time_utc.isoformat(),
-            "last_open_utc": adapted[-1].open_time_utc.isoformat(),
-            "candle_count": len(adapted),
         }
-    return report_start, report_end, candles, provenance
 
+    return (
+        report_start,
+        validation_start,
+        report_end,
+        proxy_candles,
+        validation_candles,
+        provenance,
+    )
 
 def _profiles(
     satellite_parameters: dict[str, StrategyParameters],
@@ -354,7 +383,11 @@ def _comparison(
 def main() -> None:
     parser = argparse.ArgumentParser()
     parser.add_argument("--checkpoint", type=Path, default=DEFAULT_CHECKPOINT)
-    parser.add_argument("--output", type=Path, default=Path("evidence/satellite-shared-portfolio-research.json"))
+    parser.add_argument(
+        "--output",
+        type=Path,
+        default=Path("evidence/satellite-shared-portfolio-research.json"),
+    )
     parser.add_argument("--capital", default="250")
     args = parser.parse_args()
 
@@ -367,7 +400,14 @@ def main() -> None:
     all_symbols = core_symbols + satellite_symbols
     client = BinancePublicClient(base_url="https://data-api.binance.vision")
     execution_rules = _rules(client, all_symbols)
-    report_start, report_end, candles, provenance = _load_histories(
+    (
+        report_start,
+        validation_start,
+        report_end,
+        proxy_candles,
+        validation_candles,
+        provenance,
+    ) = _load_histories(
         client=client,
         satellite_symbols=satellite_symbols,
         satellite_sources=satellite_sources,
@@ -375,51 +415,72 @@ def main() -> None:
     )
     parameters, policies = _profiles(satellite_parameters, satellite_policies)
 
-    cache: dict[tuple[tuple[str, ...], str], tuple[PortfolioBacktestResult, dict[str, object]]] = {}
+    cache: dict[
+        tuple[str, tuple[str, ...], str],
+        tuple[PortfolioBacktestResult, dict[str, object]],
+    ] = {}
 
-    def evaluate(selected: tuple[str, ...], costs):
-        key = (selected, costs.name)
-        if key not in cache:
-            symbols = core_symbols + selected
-            raw = _run_portfolio(
-                symbols=symbols,
-                core_symbols=core_symbols,
-                candles_by_symbol=candles,
-                execution_rules=execution_rules,
-                parameters_by_symbol=parameters,
-                policies_by_symbol=policies,
-                capital=capital,
-                costs=costs,
-                report_start=report_start,
-                report_end=report_end,
-            )
-            cache[key] = (
+    def evaluate(window: str, selected: tuple[str, ...], costs):
+        key = (window, selected, costs.name)
+        if key in cache:
+            return cache[key]
+
+        if window == "selection":
+            candles = proxy_candles
+            start = report_start
+            end = validation_start
+        elif window == "validation":
+            candles = validation_candles
+            start = validation_start
+            end = report_end
+        elif window == "full":
+            candles = proxy_candles
+            start = report_start
+            end = report_end
+        else:
+            raise ValueError(f"unknown Step-5 window: {window}")
+
+        symbols = core_symbols + selected
+        raw = _run_portfolio(
+            symbols=symbols,
+            core_symbols=core_symbols,
+            candles_by_symbol=candles,
+            execution_rules=execution_rules,
+            parameters_by_symbol=parameters,
+            policies_by_symbol=policies,
+            capital=capital,
+            costs=costs,
+            report_start=start,
+            report_end=end,
+        )
+        cache[key] = (
+            raw,
+            _summary(
                 raw,
-                _summary(
-                    raw,
-                    core_symbols=core_symbols,
-                    satellite_symbols=selected,
-                ),
-            )
+                core_symbols=core_symbols,
+                satellite_symbols=selected,
+            ),
+        )
         return cache[key]
 
-    _, core_base = evaluate((), BASELINE_COSTS)
-    _, core_stress = evaluate((), STRESS_COSTS)
+    _, selection_core_base = evaluate("selection", (), BASELINE_COSTS)
+    _, selection_core_stress = evaluate("selection", (), STRESS_COSTS)
 
     selected: list[str] = []
     remaining = list(satellite_symbols)
     rounds: list[dict[str, object]] = []
 
+    # IMPORTANT: only the pre-holdout selection window may rank/choose the subset.
     while remaining:
         current_tuple = tuple(selected)
-        _, current_base = evaluate(current_tuple, BASELINE_COSTS)
-        _, current_stress = evaluate(current_tuple, STRESS_COSTS)
+        _, current_base = evaluate("selection", current_tuple, BASELINE_COSTS)
+        _, current_stress = evaluate("selection", current_tuple, STRESS_COSTS)
         candidates: list[dict[str, object]] = []
 
         for symbol in remaining:
             trial_tuple = tuple(selected + [symbol])
-            _, base = evaluate(trial_tuple, BASELINE_COSTS)
-            _, stress = evaluate(trial_tuple, STRESS_COSTS)
+            _, base = evaluate("selection", trial_tuple, BASELINE_COSTS)
+            _, stress = evaluate("selection", trial_tuple, STRESS_COSTS)
             base_cmp = _comparison(base, current_base)
             stress_cmp = _comparison(stress, current_stress)
             min_profit_delta = min(
@@ -465,6 +526,7 @@ def main() -> None:
         candidates.sort(
             key=lambda row: (
                 _d(row["min_ending_equity_delta"]),
+                _d(row["min_average_position_value_gain_usdc"]),
                 int(row["min_zero_position_hours_reduced"]),
                 min(
                     _d(row["added_symbol_realized_pnl_baseline"]),
@@ -488,29 +550,78 @@ def main() -> None:
         selected.append(chosen)
         remaining.remove(chosen)
 
-    selected_tuple = tuple(selected)
-    _, final_base = evaluate(selected_tuple, BASELINE_COSTS)
-    _, final_stress = evaluate(selected_tuple, STRESS_COSTS)
-    base_vs_core = _comparison(final_base, core_base)
-    stress_vs_core = _comparison(final_stress, core_stress)
+    frozen_selection = tuple(selected)
 
-    step5_pass = bool(selected) and (
-        _d(base_vs_core["ending_equity_delta"]) > 0
-        and _d(stress_vs_core["ending_equity_delta"]) > 0
-        and (
-            (
-                int(base_vs_core["zero_position_hours_reduced"]) > 0
-                and int(stress_vs_core["zero_position_hours_reduced"]) > 0
-            )
-            or (
-                _d(base_vs_core["average_position_value_delta_usdc"]) > 0
-                and _d(stress_vs_core["average_position_value_delta_usdc"]) > 0
-            )
+    # Holdout is rejection-only. It may never choose a replacement or retune a profile.
+    _, validation_core_base = evaluate("validation", (), BASELINE_COSTS)
+    _, validation_core_stress = evaluate("validation", (), STRESS_COSTS)
+    _, validation_candidate_base = evaluate(
+        "validation", frozen_selection, BASELINE_COSTS
+    )
+    _, validation_candidate_stress = evaluate(
+        "validation", frozen_selection, STRESS_COSTS
+    )
+    validation_base_cmp = _comparison(validation_candidate_base, validation_core_base)
+    validation_stress_cmp = _comparison(
+        validation_candidate_stress, validation_core_stress
+    )
+    validation_capacity_gain = (
+        (
+            int(validation_base_cmp["zero_position_hours_reduced"]) > 0
+            and int(validation_stress_cmp["zero_position_hours_reduced"]) > 0
+        )
+        or (
+            _d(validation_base_cmp["average_position_value_delta_usdc"]) > 0
+            and _d(validation_stress_cmp["average_position_value_delta_usdc"]) > 0
         )
     )
+    per_satellite_validation = {
+        symbol: {
+            "baseline_realized_pnl": validation_candidate_base[
+                "per_symbol_realized_trade_pnl"
+            ][symbol],
+            "stress_realized_pnl": validation_candidate_stress[
+                "per_symbol_realized_trade_pnl"
+            ][symbol],
+            "baseline_completed_cycles": validation_candidate_base[
+                "per_symbol_completed_cycles"
+            ][symbol],
+            "stress_completed_cycles": validation_candidate_stress[
+                "per_symbol_completed_cycles"
+            ][symbol],
+        }
+        for symbol in frozen_selection
+    }
+    all_selected_realized_positive = bool(frozen_selection) and all(
+        _d(row["baseline_realized_pnl"]) > 0
+        and _d(row["stress_realized_pnl"]) > 0
+        and int(row["baseline_completed_cycles"]) > 0
+        and int(row["stress_completed_cycles"]) > 0
+        for row in per_satellite_validation.values()
+    )
+    holdout_pass = bool(frozen_selection) and (
+        _d(validation_base_cmp["ending_equity_delta"]) > 0
+        and _d(validation_stress_cmp["ending_equity_delta"]) > 0
+        and validation_capacity_gain
+        and all_selected_realized_positive
+    )
+
+    # Full 3y evidence is descriptive/rejection-only after the subset is frozen.
+    _, full_core_base = evaluate("full", (), BASELINE_COSTS)
+    _, full_core_stress = evaluate("full", (), STRESS_COSTS)
+    _, full_candidate_base = evaluate("full", frozen_selection, BASELINE_COSTS)
+    _, full_candidate_stress = evaluate("full", frozen_selection, STRESS_COSTS)
+    full_base_cmp = _comparison(full_candidate_base, full_core_base)
+    full_stress_cmp = _comparison(full_candidate_stress, full_core_stress)
+    full_non_regressive = (
+        _d(full_base_cmp["ending_equity_delta"]) > 0
+        and _d(full_stress_cmp["ending_equity_delta"]) > 0
+    )
+
+    step5_pass = holdout_pass and full_non_regressive
 
     output = {
-        "schema_version": 1,
+        "schema_version": 2,
         "study": "SATELLITE_STEP5_SHARED_PORTFOLIO_RESEARCH",
         "research_only": True,
         "activation_performed": False,
@@ -520,31 +631,77 @@ def main() -> None:
         "step4_advancing_symbols": list(satellite_symbols),
         "capital_usdc_shared_account": str(capital),
         "capital_plan": asdict(capital_plan(capital)),
-        "report_start_utc": report_start.isoformat(),
-        "report_end_utc": report_end.isoformat(),
+        "windows": {
+            "selection_training": {
+                "start_utc": report_start.isoformat(),
+                "end_utc": validation_start.isoformat(),
+                "satellite_history": "frozen full-history proxy",
+                "may_select_subset": True,
+            },
+            "real_usdc_holdout_validation": {
+                "start_utc": validation_start.isoformat(),
+                "end_utc": report_end.isoformat(),
+                "satellite_history": "real USDC only",
+                "may_select_subset": False,
+                "rejection_only": True,
+            },
+            "full_three_year_descriptive": {
+                "start_utc": report_start.isoformat(),
+                "end_utc": report_end.isoformat(),
+                "may_select_subset": False,
+                "rejection_only": True,
+            },
+        },
         "selection_method": (
-            "Greedy forward shared-portfolio selection. Frozen Step-4 satellite profiles "
-            "may advance only when adding the satellite improves ending equity under both "
-            "baseline and stress costs, improves productive capacity by either reducing "
-            "zero-position hours or increasing average deployed capital, and the added "
-            "Satellite has positive realized completed-trade PnL under both cost models. "
-            "Same-bar core "
-            "entries rank before satellites; an already-open satellite may still block a "
-            "later core entry, which is measured for the future HOLD/SWITCH/TRIM router."
+            "Greedy forward selection uses only the pre-holdout window. Frozen Step-4 "
+            "profiles may advance in training only when they improve baseline and stress "
+            "ending equity, add productive capacity (lower zero-position time or higher "
+            "average deployed capital), and have positive realized completed-trade PnL. "
+            "The selected subset is frozen before the final one-year real-USDC holdout."
         ),
-        "core_reference": {
-            "baseline": core_base,
-            "stress": core_stress,
+        "training_selection": {
+            "core_reference": {
+                "baseline": selection_core_base,
+                "stress": selection_core_stress,
+            },
+            "rounds": rounds,
+            "frozen_selected_satellites": selected,
+            "not_selected": [
+                symbol for symbol in satellite_symbols if symbol not in selected
+            ],
         },
-        "rounds": rounds,
-        "selected_for_step6_robustness": selected,
-        "not_selected": [symbol for symbol in satellite_symbols if symbol not in selected],
-        "final_candidate": {
-            "baseline": final_base,
-            "stress": final_stress,
-            "baseline_vs_core": base_vs_core,
-            "stress_vs_core": stress_vs_core,
+        "real_usdc_holdout_validation": {
+            "core_reference": {
+                "baseline": validation_core_base,
+                "stress": validation_core_stress,
+            },
+            "candidate": {
+                "baseline": validation_candidate_base,
+                "stress": validation_candidate_stress,
+                "baseline_vs_core": validation_base_cmp,
+                "stress_vs_core": validation_stress_cmp,
+                "productive_capacity_gain": validation_capacity_gain,
+                "per_satellite": per_satellite_validation,
+                "all_selected_realized_positive": all_selected_realized_positive,
+            },
+            "pass": holdout_pass,
+            "selection_or_retuning_performed": False,
         },
+        "full_three_year_rejection_check": {
+            "core_reference": {
+                "baseline": full_core_base,
+                "stress": full_core_stress,
+            },
+            "candidate": {
+                "baseline": full_candidate_base,
+                "stress": full_candidate_stress,
+                "baseline_vs_core": full_base_cmp,
+                "stress_vs_core": full_stress_cmp,
+            },
+            "non_regressive": full_non_regressive,
+            "selection_or_retuning_performed": False,
+        },
+        "selected_for_step6_robustness": selected if step5_pass else [],
         "step5_pass": step5_pass,
         "next_stage": (
             "STEP6_CROSS_WINDOW_SHIFTED_FUTURE_REDTEAM_FINAL_SATELLITE_SET"
@@ -557,9 +714,9 @@ def main() -> None:
             "open_satellite_can_block_later_core": True,
             "blocked_core_no_free_slot_is_measured": True,
             "purpose": (
-                "Step 5 selects complementary profitable satellites under current execution "
-                "semantics. Step 7 must solve opportunity-aware HOLD/SWITCH/TRIM rather than "
-                "hiding displacement with hindsight."
+                "Step 5 selects complementary profitable satellites under conservative "
+                "current execution semantics. Step 7 must solve opportunity-aware "
+                "HOLD/SWITCH/TRIM without hindsight."
             ),
         },
         "safety": {
@@ -569,6 +726,7 @@ def main() -> None:
             "orders_sent": False,
             "paper_or_live_activated": False,
             "satellite_profiles_retuned_from_shared_outcome": False,
+            "holdout_used_to_select_or_rank_subset": False,
             "endpoint_mark_to_market_alone_cannot_advance_satellite": True,
             "positive_realized_completed_trade_pnl_required": True,
             "future_realized_outcome_used_for_entry_decision": False,
@@ -584,11 +742,17 @@ def main() -> None:
         json.dumps(
             {
                 "study": output["study"],
+                "training_selected_satellites": selected,
+                "real_usdc_holdout_pass": holdout_pass,
+                "full_three_year_non_regressive": full_non_regressive,
                 "step5_pass": step5_pass,
-                "selected_for_step6_robustness": selected,
-                "not_selected": output["not_selected"],
-                "baseline_vs_core": base_vs_core,
-                "stress_vs_core": stress_vs_core,
+                "selected_for_step6_robustness": output[
+                    "selected_for_step6_robustness"
+                ],
+                "validation_baseline_vs_core": validation_base_cmp,
+                "validation_stress_vs_core": validation_stress_cmp,
+                "full_baseline_vs_core": full_base_cmp,
+                "full_stress_vs_core": full_stress_cmp,
             },
             indent=2,
         )
