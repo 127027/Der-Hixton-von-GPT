@@ -2,16 +2,16 @@
   "schema_version": 1,
   "id": "MISSION-SATELLITE-SHARED-C",
   "status": "ACTIVE",
-  "objective": "Maximize robust net profit and productive capital-time from one user-configured total budget C. Preserve the validated ten-coin V6 core, add only satellites that improve the same shared account after costs, and route capital by point-in-time opportunity value rather than fixed core priority or fixed USDC thresholds.",
+  "objective": "Use up to five short-horizon Satellite gap-fillers to monetize Core-idle/free capacity without turning them into a second main strategy. A stronger Core opportunity may reclaim a Satellite slot at the first executable open when its point-in-time strength clears remaining Satellite value plus normalized switching costs.",
   "priorities": [
-    "use otherwise idle/free capital productively with separately validated satellite opportunities",
-    "treat the ten-coin core as the primary source of high-value opportunities, but do not exit a satellite merely because any core signal exists",
-    "compare opportunities using scale-invariant point-in-time metrics such as expected net return on allocated capital, expected value per unit of risk and expected return per unit of time",
-    "derive all absolute PnL and switching costs from the actual allocated capital; never use fixed USDC profit/loss thresholds for routing",
-    "allow early satellite exit at partial profit, break-even or bounded loss when the alternative has materially superior expected net value after costs and risk",
-    "never use future realized PnL, future MFE/MAE or hindsight target achievement in the routing decision",
-    "measure success by robust shared-portfolio net return, capital utilization, captured high-value opportunities and switching efficiency",
-    "preserve future-readiness, stress, red-team and governance gates"
+    "treat Satellites as short-horizon idle-capital fillers, not primary long-hold strategies",
+    "allow Satellites to enter only genuinely free capacity and cap each Satellite to one reference slot during Step 5B",
+    "preserve the ten-Core engine as the main opportunity source; Satellites never displace an already-open Core position",
+    "when a materially stronger new Core entry clears remaining Satellite value plus normalized costs/hysteresis, exit the weakest Satellite at the first executable open",
+    "favor positive realized after-cost filler PnL, short median/average hold, high profit per occupied hour and low Core-blocking time",
+    "calibrate router/filler horizon on training only; real-USDC holdout may reject but never retune",
+    "never use future realized PnL/MFE/MAE as decision inputs and never use fixed absolute-USDC switch thresholds",
+    "after Step 5B PASS, run Step 6 robustness before any final-five claim"
   ],
   "anti_gaming": {
     "tiny_order_counting_for_frequency_forbidden": true,
@@ -63,7 +63,7 @@
     "correlation-aware allocation",
     "event-risk throttles only when replay-validated"
   ],
-  "success_rule": "A satellite architecture advances only when the same shared account C improves robust net performance under baseline and stress costs while materially reducing avoidable idle capital. Trade count is secondary and cannot justify a profit regression. Final promotion still requires cross-window, shifted-three-year, future-readiness, red-team, A09 QA_PASS and A11 GOVERNANCE_PASS.",
+  "success_rule": "Step 5B passes only if a training-frozen short-horizon filler router and Satellite subset improve the same shared account versus Core-only under baseline and stress, do not increase Core NO_FREE_SLOT blocks, produce positive realized Satellite PnL, and then pass real-USDC holdout plus full-window rejection checks without retuning.",
   "frequency_tiers_3y": {
     "stretch_cycles": 1095,
     "stretch_label": "~1 completed position cycle per day",
@@ -85,11 +85,11 @@
   },
   "satellite_layer": {
     "target_satellite_markets": 5,
-    "role": "IDLE_REPLACEMENT_WITH_SCALE_INVARIANT_OPPORTUNITY_ROUTING",
+    "role": "SHORT_HORIZON_IDLE_CAPITAL_FILLER",
     "core_priority_absolute": false,
     "satellites_idle_only": true,
     "valid_core_trade_displacement_limit": null,
-    "core_reclaim_rule": "No market has unconditional semantic priority. On each executable decision point, HOLD/SWITCH/TRIM compares the running position and new Core/Satellite opportunities using point-in-time expected net return, remaining value, risk, time, uncertainty and normalized switching costs. A Core label alone never forces exit.",
+    "core_reclaim_rule": "A Satellite is a filler. A new Core entry may reclaim the weakest Satellite slot only when its point-in-time breakout/opportunity score exceeds the Satellite remaining-value score by normalized exit+entry costs plus the training-calibrated hysteresis. Weak Core signals do not preempt.",
     "handoff_semantics": "first executable opportunity under the same closed-bar/order-timing semantics used by Backtest, Paper and Live; never assume impossible intrabar clairvoyance",
     "force_exit_for_core_allowed": true,
     "forced_handoff_loss_must_be_modeled": true,
@@ -150,9 +150,14 @@
       "BCHUSDC"
     ],
     "step4_source_run_id": 37140989998,
-    "current_stage": "STEP5_SHARED_PORTFOLIO"
+    "current_stage": "STEP5B_SHORT_HORIZON_FILLER_ROUTER",
+    "satellites_may_preempt_open_core": false,
+    "satellite_max_reference_slots_each": 1,
+    "short_horizon_required": true,
+    "training_only_router_calibration": true,
+    "real_usdc_holdout_rejection_only": true
   },
-  "current_stage": "STEP5_SHARED_10_PLUS_SATELLITE_PORTFOLIO",
+  "current_stage": "STEP5B_SHORT_HORIZON_FILLER_ROUTER",
   "capital_model": {
     "user_input": "max_capital_usdc",
     "reference_research_capital_usdc": "250.00",
