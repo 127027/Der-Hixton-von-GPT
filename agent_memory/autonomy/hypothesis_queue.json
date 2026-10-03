@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "objective": "robustly improve the fixed 250 USDC research portfolio while increasing meaningful market participation and reducing idle time",
+  "objective": "preserve the strong ten-coin core and add incremental profit by filling its otherwise idle capacity with five preemptible Binance Spot satellite markets",
   "rules": {
     "one_primary_variable_family_per_experiment": true,
     "rejected_region_requires_new_evidence_before_retry": true,
@@ -12,6 +12,49 @@
     "one_signal_split_into_tiny_orders_does_not_count": true
   },
   "hypotheses": [
+    {
+      "id": "HYP-SATELLITE-001",
+      "family": "idle_satellite_market_layer",
+      "status": "READY",
+      "activity_mission_priority": 1,
+      "hypothesis": "Keep the current ten-coin V6 core unchanged and use up to five additional Binance Spot USDC markets only when core slots are idle. Satellite positions must yield to new core entries, even at a bounded realized loss, if the combined after-cost portfolio profit improves.",
+      "variables_to_test": [
+        "satellite market set of five",
+        "satellite entry family",
+        "satellite max holding time",
+        "satellite tranche 50/125/250 USDC",
+        "core handoff timing",
+        "maximum tolerated forced-exit loss"
+      ],
+      "must_hold_fixed": [
+        "current protected ten-coin core entry rules",
+        "current protected core coin profiles",
+        "250 USDC total account capital",
+        "core signals have absolute allocation priority"
+      ],
+      "required_evidence": [
+        "newest protected baseline freshness PASS",
+        "current Binance USDC spot/liquidity screen",
+        "proxy-history provenance where used",
+        "real-USDC holdout validation",
+        "incremental shared-portfolio base/stress profit",
+        "core trade displacement count = 0",
+        "satellite handoff losses",
+        "zero-position hours reduced",
+        "cross-window",
+        "shifted_3y",
+        "future_readiness",
+        "red_team"
+      ],
+      "rejection_criteria": [
+        "any valid core trade is displaced",
+        "satellite layer reduces shared portfolio ending equity beyond the explicit activity-concession gate",
+        "stress incremental satellite PnL <= 0",
+        "handoff losses dominate satellite gains",
+        "result depends only on proxy history and fails real-USDC holdout",
+        "regional/live market availability cannot be confirmed"
+      ]
+    },
     {
       "id": "HYP-EXIT-001",
       "family": "holding_duration",
