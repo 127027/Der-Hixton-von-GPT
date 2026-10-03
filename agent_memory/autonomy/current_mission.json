@@ -2,14 +2,14 @@
   "schema_version": 1,
   "id": "MISSION-CAPITAL-ACTIVITY-250",
   "status": "ACTIVE",
-  "objective": "Increase robust profitable market participation of the fixed 250 USDC account while reducing avoidable idle time.",
+  "objective": "Preserve the current ten-coin V6 core as the strong primary strategy, then monetize otherwise idle 250-USDC capacity with preemptible satellite markets.",
   "priorities": [
-    "robust net profit after costs remains non-regressive",
-    "increase completed profitable opportunity frequency",
-    "increase average slot/capital utilization",
+    "preserve the current strong core strategy and its valid entries",
+    "add incremental net profit from otherwise idle capacity",
+    "increase completed meaningful opportunities without tiny-order gaming",
     "reduce zero-position hours and longest idle stretches",
-    "reduce avoidable NO_FREE_SLOT opportunity loss",
-    "preserve future-readiness and anti-overfit gates"
+    "force satellite handoff when a valid core entry needs capacity",
+    "preserve future-readiness, stress, red-team and governance gates"
   ],
   "anti_gaming": {
     "tiny_order_counting_for_frequency_forbidden": true,
@@ -34,11 +34,13 @@
     "max_drawdown_pct"
   ],
   "research_fronts": [
+    "idle-satellite five-market selection from current Binance Spot USDC markets",
+    "satellite handoff and forced-exit mechanics when core signals arrive",
+    "historical proxy research for mature assets whose USDC pair is newer, followed by real-USDC holdout validation",
     "holding-duration/time-exit experiments",
     "idle-capital secondary strategy with >=50 USDC tranches",
     "hybrid slot routing and handoff priority",
     "original basis-signal filtering for meaningful notional trades",
-    "additional liquid Binance USDC markets",
     "opportunity-cost ranking",
     "regime-adaptive entry strictness",
     "correlation-aware allocation",
@@ -63,5 +65,20 @@
       "stress"
     ],
     "note": "Activity candidates may trade some historical ending equity for materially lower idle time, but collapse toward ~1000 from a ~1500-1560 incumbent is unacceptable."
+  },
+  "satellite_layer": {
+    "target_satellite_markets": 5,
+    "core_priority_absolute": true,
+    "satellites_idle_only": true,
+    "force_exit_for_core_allowed": true,
+    "forced_handoff_loss_must_be_modeled": true,
+    "minimum_tranche_usdc": "50.00",
+    "preferred_tranche_usdc": [
+      "125.00",
+      "250.00"
+    ],
+    "selection_metric": "incremental shared-portfolio net profit earned specifically during core-idle/free-slot periods after costs and handoff losses",
+    "no_core_trade_may_be_displaced": true,
+    "target_example_only": "A higher total ending equity such as ~2000 USDC is desirable but is not guaranteed or a hard backtest target."
   }
 }
