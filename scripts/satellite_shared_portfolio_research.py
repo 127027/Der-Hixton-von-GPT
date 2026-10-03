@@ -430,10 +430,19 @@ def main() -> None:
                 int(base_cmp["zero_position_hours_reduced"]),
                 int(stress_cmp["zero_position_hours_reduced"]),
             )
+            deployed_gain = min(
+                _d(base_cmp["average_position_value_delta_usdc"]),
+                _d(stress_cmp["average_position_value_delta_usdc"]),
+            )
             symbol_realized_base = _d(base["per_symbol_realized_trade_pnl"][symbol])
             symbol_realized_stress = _d(stress["per_symbol_realized_trade_pnl"][symbol])
             realized_positive = symbol_realized_base > 0 and symbol_realized_stress > 0
-            advances = min_profit_delta > 0 and idle_reduction > 0 and realized_positive
+            productive_capacity_gain = idle_reduction > 0 or deployed_gain > 0
+            advances = (
+                min_profit_delta > 0
+                and productive_capacity_gain
+                and realized_positive
+            )
             candidates.append(
                 {
                     "symbol": symbol,
@@ -444,6 +453,8 @@ def main() -> None:
                     "stress_vs_current": stress_cmp,
                     "min_ending_equity_delta": str(min_profit_delta),
                     "min_zero_position_hours_reduced": idle_reduction,
+                    "min_average_position_value_gain_usdc": str(deployed_gain),
+                    "productive_capacity_gain": productive_capacity_gain,
                     "added_symbol_realized_pnl_baseline": str(symbol_realized_base),
                     "added_symbol_realized_pnl_stress": str(symbol_realized_stress),
                     "added_symbol_realized_positive_after_costs": realized_positive,
@@ -486,8 +497,16 @@ def main() -> None:
     step5_pass = bool(selected) and (
         _d(base_vs_core["ending_equity_delta"]) > 0
         and _d(stress_vs_core["ending_equity_delta"]) > 0
-        and int(base_vs_core["zero_position_hours_reduced"]) > 0
-        and int(stress_vs_core["zero_position_hours_reduced"]) > 0
+        and (
+            (
+                int(base_vs_core["zero_position_hours_reduced"]) > 0
+                and int(stress_vs_core["zero_position_hours_reduced"]) > 0
+            )
+            or (
+                _d(base_vs_core["average_position_value_delta_usdc"]) > 0
+                and _d(stress_vs_core["average_position_value_delta_usdc"]) > 0
+            )
+        )
     )
 
     output = {
@@ -506,8 +525,10 @@ def main() -> None:
         "selection_method": (
             "Greedy forward shared-portfolio selection. Frozen Step-4 satellite profiles "
             "may advance only when adding the satellite improves ending equity under both "
-            "baseline and stress costs, reduces zero-position hours, and the added Satellite "
-            "has positive realized completed-trade PnL under both cost models. Same-bar core "
+            "baseline and stress costs, improves productive capacity by either reducing "
+            "zero-position hours or increasing average deployed capital, and the added "
+            "Satellite has positive realized completed-trade PnL under both cost models. "
+            "Same-bar core "
             "entries rank before satellites; an already-open satellite may still block a "
             "later core entry, which is measured for the future HOLD/SWITCH/TRIM router."
         ),
