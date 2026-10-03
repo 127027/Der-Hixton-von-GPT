@@ -3,9 +3,9 @@
   "name": "Hixton Continuous Improvement Policy",
   "mode": "AUTONOMOUS_RESEARCH_AND_ENGINEERING",
   "objective": {
-    "capital_usdc": "250.00",
-    "symbols": 10,
-    "primary": "maximize robust shared-account net return and capital utilization by combining the ten-coin high-value core with preemptible idle-capital satellites using scale-invariant point-in-time opportunity routing",
+    "capital_usdc": "CONFIGURED_C",
+    "symbols": "10_CORE_PLUS_UP_TO_5_VALIDATED_SATELLITES",
+    "primary": "maximize robust shared-account net return and productive capital-time from one configured budget C using the validated core plus only satellites that add marginal after-cost portfolio value",
     "secondary": "increase completed position cycles per calendar day, slot utilization and average deployed notional while reducing zero-position hours, longest idle stretches and avoidable NO_FREE_SLOT loss",
     "never_optimize_for": [
       "headline trade count alone",
@@ -22,7 +22,7 @@
     "holding duration",
     "stop and trailing policy",
     "signal filters",
-    "slot count with fixed 250 USDC total capital",
+    "slot count, tranche sizing and reserve derived from configured total capital C",
     "allocation and ranking policy",
     "one-per-symbol versus ranked-repeat",
     "opportunity-cost routing",
@@ -32,13 +32,12 @@
     "new strategy families proposed by the hypothesis dot",
     "preemptible idle-satellite market layer",
     "cross-quote historical proxy research with real-USDC holdout validation",
-    "forced satellite handoff to core signals",
+    "opportunity-value handoff between running Core/Satellite positions and superior new opportunities",
     "scale-invariant opportunity-value routing between running positions and new candidates",
     "expected net return percent and return-per-risk/time ranking",
     "bounded early satellite exits when a superior normalized opportunity justifies switching"
   ],
   "hard_constraints": {
-    "fixed_total_capital_usdc": "250.00",
     "leverage_allowed": false,
     "private_binance_credentials_in_cloud": false,
     "real_money_orders_in_cloud": false,
@@ -49,7 +48,10 @@
     "live_futures_allowed": false,
     "minimum_research_tranche_usdc": "50.00",
     "frequency_may_not_be_gamed_by_splitting_orders": true,
-    "fixed_usdc_switch_thresholds_allowed": false
+    "fixed_usdc_switch_thresholds_allowed": false,
+    "single_user_capital_source": "max_capital_usdc",
+    "reference_research_capital_usdc": "250.00",
+    "router_fixed_absolute_usdc_thresholds_forbidden": true
   },
   "anti_overfit": {
     "training_only_may_rank_candidates": true,
@@ -88,10 +90,12 @@
     "activity_candidate_hard_max_equity_regression_pct": "15",
     "activity_candidate_exception": {
       "applies_only_to": "satellite/idle-capacity architecture candidates",
-      "min_equity_ratio_vs_incumbent": "0.85",
-      "minimum_cycles_3y": 157,
-      "core_trade_displacement_allowed": false,
-      "requires_incremental_satellite_profit_after_costs": true
+      "min_equity_ratio_vs_incumbent": "1.00",
+      "minimum_cycles_3y": 0,
+      "core_trade_displacement_allowed": true,
+      "requires_incremental_satellite_profit_after_costs": true,
+      "displacement_requires_validated_point_in_time_router": true,
+      "requires_idle_time_reduction": true
     }
   },
   "continuity": {
@@ -101,7 +105,9 @@
     "next_hypothesis_must_be_evidence_led": true,
     "target_cycle_hours": 6,
     "hypothesis_queue_required": true,
-    "event_archive_is_append_only": true
+    "event_archive_is_append_only": true,
+    "priority_path_target_minutes": 30,
+    "avoid_recomputing_frozen_stage_evidence": true
   },
   "intelligence_budget": {
     "deterministic_first": true,
@@ -121,12 +127,12 @@
     "live_market_universe_changes_require_full_promotion_and_owner_live_activation": true,
     "live_margin_futures_leverage_remains_forbidden": true,
     "core_v6_is_primary_strategy": true,
-    "satellite_layer_may_only_use_free_core_capacity": true,
-    "satellite_layer_must_yield_to_core": true,
+    "satellite_layer_may_only_use_free_core_capacity": false,
+    "satellite_layer_must_yield_to_core": false,
     "target_satellite_markets": 5,
     "proxy_history_requires_real_usdc_validation": true,
     "satellite_role": "IDLE_REPLACEMENT_WITH_SCALE_INVARIANT_OPPORTUNITY_ROUTING",
-    "core_reclaim_priority_absolute": true,
+    "core_reclaim_priority_absolute": false,
     "direct_usdc_routing_preferred": true,
     "cross_quote_conversion_requires_separate_after_cost_evidence": true,
     "core_priority_absolute": false,
@@ -134,7 +140,10 @@
     "opportunity_value_router_required": true,
     "point_in_time_switching_only": true,
     "routing_must_scale_with_account_and_position_size": true,
-    "fixed_absolute_profit_loss_switch_thresholds_forbidden": true
+    "fixed_absolute_profit_loss_switch_thresholds_forbidden": true,
+    "dynamic_capital_C_required": true,
+    "isolated_15xC_is_diagnostic_only": true,
+    "shared_portfolio_C_is_actual_account": true
   },
   "forward_evidence": {
     "enabled": true,
@@ -145,9 +154,9 @@
     "live_activation_automatic": false
   },
   "activity_mission": {
-    "id": "MISSION-CAPITAL-ACTIVITY-250",
-    "target_account_capital_usdc": "250.00",
-    "preferred_outcome": "more frequent meaningful 50-250 USDC simulated deployment with non-regressive baseline/stress profit",
+    "id": "MISSION-SATELLITE-SHARED-C",
+    "target_account_capital_usdc": "CONFIGURED_C_REFERENCE_250",
+    "preferred_outcome": "higher robust net profit and lower avoidable idle time from the same shared account C; activity alone is not success",
     "mandatory_metrics": [
       "position_cycles_per_day",
       "slot_trades_per_day",
@@ -169,14 +178,15 @@
       "below_minimum_is_success": false
     },
     "profit_concession": {
-      "preferred_max_regression_pct": "10",
-      "hard_max_regression_pct": "15",
+      "preferred_max_regression_pct": "0",
+      "hard_max_regression_pct": "0",
       "hard_min_equity_ratio_vs_protected_incumbent": "0.85",
       "applies_to": [
         "baseline",
         "stress"
       ],
-      "note": "Activity candidates may trade some historical ending equity for materially lower idle time, but collapse toward ~1000 from a ~1500-1560 incumbent is unacceptable."
+      "note": "Activity candidates may trade some historical ending equity for materially lower idle time, but collapse toward ~1000 from a ~1500-1560 incumbent is unacceptable.",
+      "hard_min_equity_ratio_vs_incumbent": "1.00"
     },
     "continue_after_minimum_tier": true,
     "satellite_contract": {
