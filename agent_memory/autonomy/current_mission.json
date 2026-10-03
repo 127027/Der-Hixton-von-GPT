@@ -2,14 +2,15 @@
   "schema_version": 1,
   "id": "MISSION-CAPITAL-ACTIVITY-250",
   "status": "ACTIVE",
-  "objective": "Preserve the current ten-coin V6 core as the primary profit engine. Use exactly the otherwise idle/free 250-USDC capacity with up to five preemptible satellite markets, and reclaim that capacity for any valid core entry as soon as the runtime can execute the handoff.",
+  "objective": "Preserve the ten-coin V6 core as the primary high-value opportunity engine while using up to five satellite markets to monetize otherwise idle/free capital. Capital reallocation is scale-invariant and opportunity-value based: a running satellite may be held through weak alternatives or exited early when another opportunity offers a materially better expected net return after all switching costs and risk.",
   "priorities": [
-    "preserve every valid current ten-coin core opportunity; satellites must never cause a core trade that would otherwise execute to be missed",
-    "when the core has genuinely free/idle capacity, deploy that capacity only into separately validated satellite opportunities with positive incremental after-cost expectancy",
-    "when a valid core signal arrives, cancel conflicting pending satellite entries and exit/trim satellite exposure as needed to release USDC for the core at the first executable runtime opportunity",
-    "measure satellite success by incremental shared-portfolio net profit during core-idle periods, not by standalone satellite returns or raw trade count",
-    "reduce zero-position hours and longest idle stretches without weakening the core",
-    "model fees, spread, slippage, handoff latency and forced satellite-exit losses",
+    "use otherwise idle/free capital productively with separately validated satellite opportunities",
+    "treat the ten-coin core as the primary source of high-value opportunities, but do not exit a satellite merely because any core signal exists",
+    "compare opportunities using scale-invariant point-in-time metrics such as expected net return on allocated capital, expected value per unit of risk and expected return per unit of time",
+    "derive all absolute PnL and switching costs from the actual allocated capital; never use fixed USDC profit/loss thresholds for routing",
+    "allow early satellite exit at partial profit, break-even or bounded loss when the alternative has materially superior expected net value after costs and risk",
+    "never use future realized PnL, future MFE/MAE or hindsight target achievement in the routing decision",
+    "measure success by robust shared-portfolio net return, capital utilization, captured high-value opportunities and switching efficiency",
     "preserve future-readiness, stress, red-team and governance gates"
   ],
   "anti_gaming": {
@@ -35,11 +36,19 @@
     "max_drawdown_pct",
     "incremental_satellite_net_pnl_usdc",
     "satellite_idle_hours_monetized",
-    "core_trade_displacement_count",
     "satellite_forced_handoff_count",
     "satellite_forced_handoff_loss_usdc",
     "core_reclaim_latency_hours",
-    "quote_conversion_cost_usdc"
+    "quote_conversion_cost_usdc",
+    "expected_net_return_pct_at_switch",
+    "expected_remaining_return_pct_satellite",
+    "switch_cost_pct",
+    "risk_adjusted_opportunity_score",
+    "expected_return_per_hour_pct",
+    "high_value_opportunity_miss_count",
+    "satellite_early_exit_count",
+    "satellite_early_exit_realized_return_pct",
+    "switch_regret_pct_ex_post"
   ],
   "research_fronts": [
     "idle-satellite five-market selection from current Binance Spot USDC markets",
@@ -76,8 +85,8 @@
   },
   "satellite_layer": {
     "target_satellite_markets": 5,
-    "role": "IDLE_REPLACEMENT_ONLY",
-    "core_priority_absolute": true,
+    "role": "IDLE_REPLACEMENT_WITH_SCALE_INVARIANT_OPPORTUNITY_ROUTING",
+    "core_priority_absolute": false,
     "satellites_idle_only": true,
     "valid_core_trade_displacement_limit": 0,
     "core_reclaim_rule": "A satellite has no right to keep capital once a valid core entry needs it. Pending conflicting satellite entries are cancelled; open satellite exposure is exited or reduced at the first executable runtime opportunity so capital can return to USDC and be allocated to the core.",
@@ -86,7 +95,7 @@
     "forced_handoff_loss_must_be_modeled": true,
     "quote_currency_default": "USDC",
     "direct_usdc_pair_preferred": true,
-    "cross_quote_conversion_policy": "Do not add USDT/other quote conversion to the product path unless a separate experiment proves that additional spread, fees, latency, exchange filters and failure modes improve shared-portfolio net profit versus direct USDC routing.",
+    "cross_quote_conversion_policy": "Prefer direct USDC. Any USDT/other quote path must separately beat direct routing after conversion fees, spread, slippage, latency and failure-mode costs.",
     "minimum_tranche_usdc": "50.00",
     "preferred_tranche_usdc": [
       "125.00",
@@ -94,20 +103,42 @@
     ],
     "selection_metric": "incremental shared-portfolio net profit earned specifically during core-idle/free-slot periods after all trading costs, quote-conversion costs if any, and forced core-handoff losses",
     "success_requires": [
-      "incremental satellite net PnL > 0 in baseline and stress",
-      "core_trade_displacement_count = 0",
-      "zero-position/idle time is materially reduced",
-      "handoff losses do not dominate satellite gains",
+      "shared portfolio baseline and stress return improve or satisfy the explicit activity architecture gate",
+      "idle/zero-position time is materially reduced",
+      "materially superior opportunities are not missed because lower-value satellite exposure is held",
+      "routing decisions are point-in-time and scale-invariant",
+      "all costs and early-exit effects are normalized and fully modeled",
       "real-USDC holdout and regional market availability pass",
       "cross-window, shifted-3y, future-readiness and red-team pass"
     ],
     "capital_state_machine": {
-      "CORE_ACTIVE": "Core positions/signals own capital first; satellites may use only truly free capacity.",
-      "CORE_IDLE": "Validated satellites may temporarily deploy free capital to earn incremental after-cost profit.",
-      "CORE_SIGNAL_ARRIVES": "Reclaim required capital from satellites, return it to USDC, and route it to the valid core entry at the first executable runtime opportunity.",
-      "CORE_RECLAIMED": "Core trade proceeds; satellite may re-enter only later if capacity becomes genuinely idle again."
+      "CAPACITY_IDLE": "Validated satellites may deploy genuinely free capital.",
+      "SATELLITE_ACTIVE": "Keep the satellite while its expected remaining normalized opportunity score is competitive with alternatives.",
+      "NEW_OPPORTUNITY_ARRIVES": "Estimate a point-in-time normalized opportunity score for the candidate and the running position, including time horizon, uncertainty and costs.",
+      "SWITCH": "If the candidate exceeds the running position by the validated cost/risk margin, exit or trim at the first executable opportunity and reallocate capital.",
+      "HOLD": "If the candidate does not clear the normalized margin, keep the current position.",
+      "CAPACITY_IDLE_AGAIN": "When capital becomes free again, satellite search resumes."
     },
     "no_core_trade_may_be_displaced": true,
-    "target_example_only": "Higher utilization and ending equity are desirable, but no historical result is a guarantee."
+    "target_example_only": "Higher utilization and ending equity are desirable, but no historical result is a guarantee.",
+    "core_signal_alone_forces_exit": false,
+    "opportunity_router_required": true,
+    "scale_invariant": true,
+    "fixed_usdc_switch_thresholds_forbidden": true,
+    "routing_units": [
+      "expected net return percent on allocated capital",
+      "expected return per unit of risk",
+      "expected return per unit of time",
+      "switching cost percent/basis points",
+      "confidence or uncertainty penalty"
+    ],
+    "switch_formula": "Switch when score(new_opportunity) - normalized_switch_cost - uncertainty_margin > score(current_position_remaining), where every score is normalized to the actual allocated capital and uses only information available at the decision time.",
+    "position_size_scaling_rule": "Any absolute USDC expectation shown to the user is derived dynamically from the chosen position size; routing decisions themselves must not depend on fixed absolute USDC profit/loss numbers.",
+    "current_unrealized_pnl_is_context_not_threshold": true,
+    "early_exit_with_profit_allowed": true,
+    "bounded_early_exit_with_loss_allowed": true,
+    "partial_trim_allowed_for_reclaim_research": true,
+    "target_profit_is_not_a_reason_to_hold_when_an_alternative_has_higher_validated_opportunity_value": true,
+    "no_future_outcome_in_decision": true
   }
 }

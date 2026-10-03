@@ -5,7 +5,7 @@
   "objective": {
     "capital_usdc": "250.00",
     "symbols": 10,
-    "primary": "preserve robust core profit while adding incremental after-cost profit from otherwise idle 250-USDC capacity",
+    "primary": "maximize robust shared-account net return and capital utilization by combining the ten-coin high-value core with preemptible idle-capital satellites using scale-invariant point-in-time opportunity routing",
     "secondary": "increase completed position cycles per calendar day, slot utilization and average deployed notional while reducing zero-position hours, longest idle stretches and avoidable NO_FREE_SLOT loss",
     "never_optimize_for": [
       "headline trade count alone",
@@ -32,7 +32,10 @@
     "new strategy families proposed by the hypothesis dot",
     "preemptible idle-satellite market layer",
     "cross-quote historical proxy research with real-USDC holdout validation",
-    "forced satellite handoff to core signals"
+    "forced satellite handoff to core signals",
+    "scale-invariant opportunity-value routing between running positions and new candidates",
+    "expected net return percent and return-per-risk/time ranking",
+    "bounded early satellite exits when a superior normalized opportunity justifies switching"
   ],
   "hard_constraints": {
     "fixed_total_capital_usdc": "250.00",
@@ -45,7 +48,8 @@
     "live_margin_allowed": false,
     "live_futures_allowed": false,
     "minimum_research_tranche_usdc": "50.00",
-    "frequency_may_not_be_gamed_by_splitting_orders": true
+    "frequency_may_not_be_gamed_by_splitting_orders": true,
+    "fixed_usdc_switch_thresholds_allowed": false
   },
   "anti_overfit": {
     "training_only_may_rank_candidates": true,
@@ -121,11 +125,16 @@
     "satellite_layer_must_yield_to_core": true,
     "target_satellite_markets": 5,
     "proxy_history_requires_real_usdc_validation": true,
-    "satellite_role": "IDLE_REPLACEMENT_ONLY",
+    "satellite_role": "IDLE_REPLACEMENT_WITH_SCALE_INVARIANT_OPPORTUNITY_ROUTING",
     "core_reclaim_priority_absolute": true,
-    "valid_core_trade_displacement_limit": 0,
     "direct_usdc_routing_preferred": true,
-    "cross_quote_conversion_requires_separate_after_cost_evidence": true
+    "cross_quote_conversion_requires_separate_after_cost_evidence": true,
+    "core_priority_absolute": false,
+    "core_signal_alone_forces_satellite_exit": false,
+    "opportunity_value_router_required": true,
+    "point_in_time_switching_only": true,
+    "routing_must_scale_with_account_and_position_size": true,
+    "fixed_absolute_profit_loss_switch_thresholds_forbidden": true
   },
   "forward_evidence": {
     "enabled": true,
@@ -171,26 +180,31 @@
     },
     "continue_after_minimum_tier": true,
     "satellite_contract": {
-      "purpose": "Monetize only otherwise idle/free capital while preserving every valid ten-coin core opportunity.",
-      "allowed_states": [
-        "CORE_ACTIVE",
-        "CORE_IDLE",
-        "CORE_SIGNAL_ARRIVES",
-        "CORE_RECLAIMED"
+      "purpose": "Monetize otherwise idle/free capital and reallocate it when a materially better opportunity appears.",
+      "core_is_primary_high_value_engine": true,
+      "core_signal_is_not_automatic_preemption": true,
+      "scale_invariant_routing_required": true,
+      "fixed_usdc_switch_thresholds_forbidden": true,
+      "switching_rule": "Compare normalized point-in-time opportunity scores based on expected net return on allocated capital, risk, time horizon and uncertainty; subtract normalized exit/entry/conversion costs and switch only when the improvement clears a validated margin.",
+      "early_satellite_exit_outcomes_allowed": [
+        "profit",
+        "break_even",
+        "bounded_loss"
       ],
-      "core_displacement_limit": 0,
-      "reclaim_timing": "first executable runtime opportunity under identical Backtest/Paper/Live order semantics",
+      "target_profit_does_not_force_holding": true,
+      "no_future_information": true,
       "accounting_required": [
-        "satellite gross and net pnl",
-        "fees",
-        "spread",
-        "slippage",
-        "forced handoff realized pnl",
+        "expected net return percent of current position remaining",
+        "expected net return percent of candidate",
+        "risk-adjusted opportunity score",
+        "expected return per unit time",
+        "fees spread slippage and conversion costs as percent/basis points",
+        "early-exit realized return percent",
         "handoff latency",
-        "quote conversion cost if any"
+        "switch regret for ex-post evaluation only"
       ],
-      "quote_policy": "Prefer direct USDC Spot. USDT/other quote routing remains research-only until separately proven superior after all conversion costs and operational failure modes.",
-      "success_definition": "Satellite layer must add positive shared-portfolio net profit in baseline and stress while materially reducing idle time and displacing zero valid core trades."
+      "quote_policy": "Prefer direct USDC Spot. Cross-quote routing remains research-only until separately proven superior after normalized costs and operational failure modes.",
+      "success_definition": "Increase robust shared-portfolio return and capital utilization while avoiding cost-negative churn; behavior must remain valid if the account is later scaled above or below the current research capital."
     }
   }
 }

@@ -12,6 +12,7 @@ on:
       - "agent_memory/autonomy/current_mission.json"
       - "agent_memory/autonomy/policy.json"
       - "agent_memory/autonomy/roles.json"
+      - "agent_memory/autonomy/hypothesis_queue.json"
       - "scripts/autonomous_research_supervisor.py"
       - "scripts/baseline_freshness_guard.py"
       - "scripts/autonomous_red_team.py"

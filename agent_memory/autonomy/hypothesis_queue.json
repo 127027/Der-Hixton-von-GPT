@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "objective": "preserve the strong ten-coin core and add incremental profit by filling its otherwise idle capacity with five preemptible Binance Spot satellite markets",
+  "objective": "preserve the strong ten-coin core while monetizing otherwise idle capital with five preemptible satellites and switch only when a materially better scale-invariant point-in-time opportunity justifies the normalized switching cost",
   "rules": {
     "one_primary_variable_family_per_experiment": true,
     "rejected_region_requires_new_evidence_before_retry": true,
@@ -9,7 +9,9 @@
     "point_in_time_only_for_event_features": true,
     "minimum_research_tranche_usdc": "50.00",
     "activity_means_capital_utilization_not_order_count": true,
-    "one_signal_split_into_tiny_orders_does_not_count": true
+    "one_signal_split_into_tiny_orders_does_not_count": true,
+    "fixed_usdc_switch_thresholds_forbidden": true,
+    "routing_must_scale_with_position_size": true
   },
   "hypotheses": [
     {
@@ -17,24 +19,29 @@
       "family": "idle_satellite_market_layer",
       "status": "READY",
       "activity_mission_priority": 1,
-      "hypothesis": "Keep the current ten-coin V6 core unchanged as the primary profit engine. Use up to five additional Binance Spot markets only as temporary idle-capital replacements: satellites may deploy free USDC while the core is idle, but must surrender required capital at the first executable opportunity when a valid core signal arrives. The layer succeeds only if shared after-cost portfolio profit improves and zero valid core trades are displaced.",
+      "hypothesis": "Keep the ten-coin V6 core as the primary high-value engine and use up to five additional Binance Spot markets as temporary idle-capital opportunities. A running satellite is not closed for every core signal. At each executable decision point, compare scale-invariant point-in-time opportunity scores for the current position and the new candidate using expected net return on allocated capital, risk, expected duration/return-per-time, uncertainty and normalized switching costs. Early exit at profit, break-even or bounded loss is allowed when the alternative materially dominates after costs. No fixed USDC profit/loss threshold may control switching.",
       "variables_to_test": [
         "satellite market set of five",
         "satellite-specific entry family",
-        "satellite max holding time",
-        "satellite tranche 50/125/250 USDC",
-        "core handoff timing under real runtime semantics",
-        "maximum tolerated forced-exit loss",
-        "optional USDC reserve versus full idle deployment",
-        "direct USDC versus any cross-quote route only as a separately costed experiment"
+        "satellite max holding time and remaining-value decay",
+        "satellite tranche as fraction of currently available capital subject to exchange minimums",
+        "point-in-time expected net return percent estimator",
+        "point-in-time remaining-return percent estimator",
+        "return-per-risk and return-per-time opportunity score",
+        "normalized switch cost in percent/basis points",
+        "scale-invariant hysteresis/uncertainty margin",
+        "partial trim versus full exit",
+        "optional liquidity reserve as fraction of available capital",
+        "direct USDC versus cross-quote route as a separately costed experiment"
       ],
       "must_hold_fixed": [
-        "current protected ten-coin core entry rules",
+        "current protected ten-coin core logic unless separately experimented",
         "current protected core coin profiles",
-        "250 USDC total account capital",
-        "core signals have absolute allocation priority",
-        "a valid core trade that would execute in core-only mode may not be displaced",
-        "satellite role is idle replacement only"
+        "research comparison uses the same account capital within each run",
+        "routing logic must remain valid under rescaled account/position capital",
+        "satellites may enter only with genuinely free capacity",
+        "no fixed absolute USDC switch threshold",
+        "no future realized PnL/MFE/MAE in the decision"
       ],
       "required_evidence": [
         "newest protected baseline freshness PASS",
@@ -42,7 +49,6 @@
         "proxy-history provenance where used",
         "real-USDC holdout validation",
         "incremental shared-portfolio base/stress profit earned during core-idle windows",
-        "core trade displacement count = 0",
         "satellite forced-handoff count and realized handoff PnL",
         "fees spread slippage and handoff latency",
         "quote-conversion cost if any",
@@ -50,16 +56,23 @@
         "cross-window",
         "shifted_3y",
         "future_readiness",
-        "red_team"
+        "red_team",
+        "scale-invariance test across multiple notional account sizes without retuning routing thresholds",
+        "point-in-time opportunity-score calibration",
+        "switch cost normalized in percent/basis points",
+        "early-exit realized return percent",
+        "missed-superior-opportunity audit"
       ],
       "rejection_criteria": [
-        "any valid core trade is displaced or delayed beyond the defined executable handoff semantics",
-        "satellite layer reduces shared portfolio ending equity beyond the explicit activity-concession gate",
-        "stress incremental satellite PnL <= 0",
-        "handoff losses or costs dominate satellite gains",
+        "routing relies on fixed absolute USDC profit/loss thresholds",
+        "routing changes materially merely because account size is rescaled while market state is otherwise identical",
+        "expected-value estimator uses future realized outcomes or hindsight labels at decision time",
+        "cost-negative switching churn dominates incremental satellite gains",
+        "shared portfolio return regresses beyond the explicit architecture gate",
+        "stress incremental satellite contribution <= 0",
         "idle time is not materially reduced",
         "result depends only on proxy history and fails real-USDC holdout",
-        "cross-quote conversion is required but not separately profitable after all costs",
+        "cross-quote conversion is required but not separately profitable after all normalized costs",
         "regional/live market availability cannot be confirmed"
       ]
     },

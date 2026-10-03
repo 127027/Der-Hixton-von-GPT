@@ -104,33 +104,36 @@
     },
     "D19": {
       "name": "Idle Satellite Market Dot",
-      "objective": "Find, validate and maintain up to five Binance Spot satellite markets whose only job is to monetize capital that the ten-coin V6 core is not currently using, then surrender that capital immediately at the first executable opportunity whenever a valid core entry needs it.",
+      "objective": "Find and validate up to five Binance Spot satellite markets that monetize otherwise idle capital and cooperate with a scale-invariant opportunity router. The router may hold a satellite through weak alternatives or exit it early when another opportunity has materially higher expected net return after normalized costs, risk and time.",
       "constraints": [
-        "the ten-coin V6 core is the primary profit engine; satellites are never peers and never replace the core",
-        "satellites may only consume genuinely free core capacity",
-        "any core trade that would execute in core-only mode must still execute with satellites enabled; allowed displacement count is zero",
-        "when a valid core signal needs capital, cancel conflicting satellite entries and exit/trim satellite exposure at the first executable runtime opportunity",
-        "forced handoff fees, spread, slippage, latency and realized losses must be modeled against satellite gains",
-        "rank satellites by incremental shared-portfolio profit earned specifically during core idle windows, not isolated headline profit or raw trade count",
-        "prefer direct USDC pairs; any USDT/other quote conversion requires its own after-cost proof before product use",
+        "the ten-coin V6 core is the primary high-value opportunity engine, but any core signal alone does not automatically force satellite exit",
+        "satellites may only enter with genuinely free capacity",
+        "routing must be normalized to allocated capital and remain valid when account size changes",
+        "fixed absolute USDC profit/loss thresholds for switching are forbidden",
+        "compare point-in-time expected net return, return per risk and return per time for current versus candidate opportunity",
+        "early exit at profit, break-even or bounded loss is allowed when the normalized opportunity comparison favors switching",
+        "future realized PnL, future MFE/MAE and hindsight target completion are forbidden decision features",
+        "fees, spread, slippage, latency and quote-conversion costs must be normalized and modeled",
+        "rank satellite sets by shared-portfolio return, idle-time monetization and complementarity, not isolated headline profit or raw trade count",
+        "prefer direct USDC; cross-quote routing needs separate after-cost proof",
         "regional Binance availability, liquidity and exchange filters must pass before any live inclusion",
         "no automatic live market expansion"
       ]
     }
   },
-  "current_shared_mission": "MISSION-CAPITAL-ACTIVITY-250: the ten-coin V6 core remains the protected primary profit engine. Up to five satellites are temporary idle-capital replacements only: use otherwise unused USDC, earn incremental after-cost profit, and surrender capital to any valid core entry with zero core-trade displacement.",
+  "current_shared_mission": "MISSION-CAPITAL-ACTIVITY-250: ten-coin V6 core remains the primary high-value engine; up to five satellites monetize otherwise idle capital. Routing is scale-invariant and compares point-in-time normalized opportunity value, so the same logic can operate at different account sizes without fixed USDC switch thresholds.",
   "activity_focus": {
     "A01": "Track activity metrics, rejected regions and exact evidence contracts.",
     "A02": "Search for higher position-cycle/day and utilization candidates under non-regressive profit gates.",
     "A03": "Ensure Backtest/Paper/Live timing semantics stay identical as research activity rises.",
     "A04": "Expose truthful utilization metrics and never present raw order count as success.",
-    "A05": "Diagnose zero-position hours, longest idle streaks, holding-time opportunity cost, satellite handoff cost and any accidental core displacement.",
+    "A05": "Diagnose idle time, holding opportunity cost, normalized remaining opportunity value, switching friction and missed superior opportunities.",
     "A06": "Regression-test activity-oriented patches for duplicate orders, timing races and state corruption.",
     "A07": "Research sufficiently liquid/history-qualified USDC markets that can add opportunities.",
-    "A08": "Challenge satellite strategy, exit, routing, reserve policy and quote conversion only when the result improves shared 250-USDC profit without displacing core.",
-    "A09": "Reject satellite activity gains caused by core displacement, handoff-cost omission, quote-conversion omission, tiny-order fragmentation, overfit, profit regression or worse future-readiness.",
+    "A08": "Challenge opportunity-score calibration, scale invariance, switching margin, hysteresis, reserve policy and quote conversion.",
+    "A09": "Reject routing that uses fixed USDC thresholds, hindsight/future outcomes, cost omissions, weak-signal churn or non-scalable assumptions.",
     "A10": "Dispatch the highest-value activity bottleneck until a robust improvement is demonstrated.",
-    "A11": "Audit that satellites are true idle replacements, all reclaim costs are accounted for, and no valid core trade is lost.",
+    "A11": "Audit that routing is point-in-time, scale-invariant, cost-complete, reproducible and improves shared portfolio behavior.",
     "D12": "Generate new evidence-led hypotheses for meaningful 50-250 USDC deployment and lower idle time.",
     "D13": "Research event-aware timing only when it improves entry/avoidance decisions, not order count for its own sake.",
     "D14": "Advance only candidates that pass profit, future-readiness and governance gates.",
@@ -138,6 +141,6 @@
     "D16": "Mine the high-frequency basis sensor for subsets suitable for meaningful-notional research trades.",
     "D17": "Check whether higher activity survives sealed recent windows, adverse costs and new forward data.",
     "D18": "Verify every research run uses the newest protected engineering bot and block stale-baseline work.",
-    "D19": "Validate five complementary idle-only USDC satellites and the reclaim router: monetize free capital, model every handoff cost, and guarantee zero displaced valid core trades."
+    "D19": "Validate five complementary idle satellites and scale-invariant switching rules using expected net return/risk/time rather than fixed USDC amounts."
   }
 }
