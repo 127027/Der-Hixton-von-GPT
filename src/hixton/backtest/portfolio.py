@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
 from datetime import datetime
 from decimal import ROUND_DOWN, Decimal
 
@@ -87,6 +87,7 @@ def run_shared_portfolio_backtest(
     slot_allocation: str = RANKED_REPEAT,
     apply_risk_limits: bool = True,
     symbols: tuple[str, ...] = SYMBOLS,
+    research_max_holding_hours: int | None = None,
 ) -> PortfolioBacktestResult:
     """Replay ten aligned markets against one non-compounding shared ledger."""
 
@@ -97,6 +98,10 @@ def run_shared_portfolio_backtest(
         raise ValueError("portfolio capital and slot_count must be positive")
     if report_start_utc >= report_end_utc:
         raise ValueError("report_start_utc must be before report_end_utc")
+    if research_max_holding_hours is not None and (
+        type(research_max_holding_hours) is not int or research_max_holding_hours <= 0
+    ):
+        raise ValueError("research_max_holding_hours must be a positive integer")
 
     parameters = strategy_parameters or StrategyParameters()
     if trade_policies_by_symbol is not None and set(trade_policies_by_symbol) != set(symbols):
@@ -312,6 +317,29 @@ def run_shared_portfolio_backtest(
                 entry_atr=position.signal.atr if position else 0.0,
                 highest_close=position.highest_close if position else 0.0,
             )
+            # Research-only bounded holding experiment. It preserves the canonical
+            # next-open execution semantics: an exit signal is emitted only after a
+            # closed bar proves the holding cap has been reached. Default None keeps
+            # product Backtest/Paper/Live behavior exactly unchanged.
+            if (
+                research_max_holding_hours is not None
+                and position is not None
+                and decisions[symbol].signal is None
+                and (
+                    points[symbol].candle.close_time_utc - position.fill.fill_time_utc
+                ).total_seconds()
+                >= research_max_holding_hours * 3600
+            ):
+                forced = HixtonStrategy.signal_for(
+                    replace(points[symbol], flip_down=True, flip_up=False),
+                    is_long=True,
+                )
+                if forced is not None:
+                    decisions[symbol] = replace(
+                        decisions[symbol],
+                        signal=forced,
+                        exit_reason="RESEARCH_MAX_HOLDING",
+                    )
         if in_report:
             max_concurrent = max(
                 max_concurrent,
