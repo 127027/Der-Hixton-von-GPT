@@ -13,6 +13,7 @@ on:
       - "agent_memory/autonomy/policy.json"
       - "agent_memory/autonomy/roles.json"
       - "scripts/autonomous_research_supervisor.py"
+      - "scripts/baseline_freshness_guard.py"
       - "scripts/autonomous_red_team.py"
       - "scripts/future_readiness_gate.py"
       - "scripts/basis_signal_census.py"
@@ -51,6 +52,7 @@ jobs:
         run: |
           python -m py_compile \
             scripts/autonomous_research_supervisor.py \
+            scripts/baseline_freshness_guard.py \
             scripts/autonomous_red_team.py \
             scripts/future_readiness_gate.py \
             scripts/basis_signal_census.py \
@@ -68,9 +70,13 @@ jobs:
     timeout-minutes: 180
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
       - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
+      - name: Verify newest protected engineering baseline
+        run: python -m scripts.baseline_freshness_guard
       - name: Install research environment
         run: |
           python -m pip install --upgrade pip
@@ -126,6 +132,7 @@ jobs:
         with:
           name: hixton-autonomous-research-${{ github.run_id }}
           path: |
+            evidence/baseline-freshness.json
             evidence/coin-optimization-cycle*.json
             evidence/capital-budget-optimizer.json
             evidence/holding-duration-research.json
