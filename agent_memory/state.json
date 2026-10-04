@@ -1,8 +1,8 @@
 {
   "mode": "PROTECTED_V6_CORE_PLUS_CLEAN_SATELLITE_V1_RESEARCH",
   "bootstrap_complete": true,
-  "progress_percent": 5,
-  "current_focus": "Clean reset: run original Hixton V1/DMS_V1 unchanged on SUIUSDC, NEARUSDC, UNIUSDC, AAVEUSDC and BCHUSDC, quantify trade quality/holding/coverage, then evolve each market separately to fill protected Core idle time.",
+  "progress_percent": 15,
+  "current_focus": "Run bounded per-market V1-derived evolution for SUI/NEAR/UNI/AAVE/BCH on training only, then direct-USDC rejection-only holdout. Preserve the validated ten-Core product unchanged.",
   "last_indexed_commit": "f6497acf8d4d852aaac0b69878762fabb53155d4",
   "last_learning_round": 7,
   "current_strategy": "Protected validated ten-Core product unchanged + research-only clean Satellite V1 baseline",
@@ -41,7 +41,7 @@
   },
   "target_architecture": {
     "universe": "10 protected Core + 5 independently evolved V1-derived Satellites",
-    "current_stage": "SATELLITE_V1_BASELINE",
+    "current_stage": "SATELLITE_V1_PER_MARKET_EVOLUTION",
     "satellites": [
       "SUIUSDC",
       "NEARUSDC",
