@@ -91,7 +91,7 @@
     "owner_core_active_fraction_approx": "0.10",
     "owner_core_idle_fraction_approx": "0.90",
     "owner_idle_fill_target_pct": "90",
-    "current_stage": "SATELLITE_MICRO_HARVEST_FIXED_EXIT_FAMILY",
+    "current_stage": "SATELLITE_MICRO_FILTERED_ENTRY_RESEARCH",
     "per_market_independent_development": true,
     "final_shared_account_usdc": "250",
     "core_is_protected_primary_engine": true,
@@ -137,7 +137,7 @@
     "initial_configured_capital_usdc": "250",
     "future_scale_after_clean_month_usdc": "1000"
   },
-  "current_stage": "SATELLITE_MICRO_HARVEST_FIXED_EXIT_FAMILY",
+  "current_stage": "SATELLITE_MICRO_FILTERED_ENTRY_RESEARCH",
   "capital_model": {
     "user_input": "max_capital_usdc",
     "reference_research_capital_usdc": "250.00",
@@ -150,7 +150,7 @@
     "run_69_head": "9314df9baeae1c907d98472823d2e7ccd3e4eaa4",
     "result": "SUCCESS_NO_SURVIVORS",
     "detail": "2/4/6h exact-full-Core-idle horizon family; UNI training winner 6h but direct-USDC rejected; SUI/NEAR/AAVE/BCH had no fully robust training horizon.",
-    "next": "Run bounded asymmetric TP/SL/horizon family on all five primary Satellites using unchanged V1 entry signals. Require positive TRAINING PnL under baseline and stress; Direct-USDC holdout can only reject the frozen winner.",
+    "next": "Test bounded point-in-time entry filters on unchanged V1 flip-up signals using CMO strength, normalized breakout strength and positive 24h VIDYA slope. Training selects filter+exit; Direct-USDC holdout rejects only. Require positive baseline and stress with at least 20 training cycles before Core-idle replay.",
     "run_70": 37198769433,
     "run_70_head": "736ee30f610f85044bb5476992ab81fd8606263c",
     "run_70_result": "SUCCESS_10_NEW_ELIGIBLE_REPLACEMENTS",
@@ -178,7 +178,20 @@
     "run_82": 37209106749,
     "run_82_result": "SUCCESS_TRAINING_SIGNAL_CENSUS",
     "run_82_training_flip_up_signals": 2333,
-    "run_82_best_simple_pattern": "NEARUSDC 4h +1.00/-1.00: 217 UP_FIRST vs 184 DOWN_FIRST, 54.1147% decisive win rate; direction edge exists but symmetric after-cost expectation remains negative."
+    "run_82_best_simple_pattern": "NEARUSDC 4h +1.00/-1.00: 217 UP_FIRST vs 184 DOWN_FIRST, 54.1147% decisive win rate; direction edge exists but symmetric after-cost expectation remains negative.",
+    "run_84": 37210667460,
+    "run_84_result": "SUCCESS_NO_ROBUST_FIXED_EXIT_WINNER",
+    "run_84_summary": {
+      "accepted_for_exact_core_idle_replay": [],
+      "best_training_baseline_by_symbol": {
+        "SUIUSDC": "-268.153792724556996225",
+        "NEARUSDC": "-234.72691442176358625",
+        "UNIUSDC": "-238.105097238844172925",
+        "AAVEUSDC": "-220.0034659114683018",
+        "BCHUSDC": "-246.596584002507248625"
+      },
+      "interpretation": "Exit-only repair is insufficient; poor entry selectivity dominates. Move to point-in-time filtered-entry research."
+    }
   },
   "canonical_core_baseline": {
     "status": "PROTECTED_AND_VALIDATED",
