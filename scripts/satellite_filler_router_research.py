@@ -190,6 +190,7 @@ def run_filler_router_portfolio(
     soft_filler_exit_enabled: bool = True,
     entry_filter_by_symbol: dict[str, Callable[[IndicatorPoint], str | None]] | None = None,
     continuation_reentry_symbols: frozenset[str] | None = None,
+    band_reentry_symbols: frozenset[str] | None = None,
 ) -> tuple[PortfolioBacktestResult, list[dict[str, object]]]:
     if tuple(candles_by_symbol) != symbols:
         raise ValueError("router input universe/order mismatch")
@@ -251,10 +252,13 @@ def run_filler_router_portfolio(
     satellite_set = frozenset(satellite_symbols)
     entry_filters = entry_filter_by_symbol or {}
     continuation_reentry = continuation_reentry_symbols or frozenset()
+    band_reentry = band_reentry_symbols or frozenset()
     if not set(entry_filters).issubset(set(symbols)):
         raise ValueError("entry filters reference symbols outside the research universe")
     if not set(continuation_reentry).issubset(set(satellite_symbols)):
         raise ValueError("continuation re-entry is research-only and Satellite-only")
+    if not set(band_reentry).issubset(set(satellite_symbols)):
+        raise ValueError("band re-entry is research-only and Satellite-only")
 
     cash = starting_cash
     positions: dict[str, OpenTrade] = {}
@@ -638,6 +642,32 @@ def run_filler_router_portfolio(
                         decisions[symbol],
                         signal=synthetic,
                         exit_reason="RESEARCH_CONTINUATION_REENTRY",
+                    )
+
+            # Stricter research-only continuation: after a pullback below the
+            # upper VIDYA/ATR band, allow a fresh entry only when the next closed bar
+            # reclaims that upper band while the canonical trend is still UP.
+            if (
+                in_report
+                and symbol in band_reentry
+                and position is None
+                and decisions[symbol].signal is None
+                and previous_point is not None
+                and point.trend.value == "UP"
+                and previous_point.upper is not None
+                and point.upper is not None
+                and previous_point.candle.close <= previous_point.upper
+                and point.candle.close > point.upper
+            ):
+                synthetic = HixtonStrategy.signal_for(
+                    replace(point, flip_up=True, flip_down=False),
+                    is_long=False,
+                )
+                if synthetic is not None:
+                    decisions[symbol] = replace(
+                        decisions[symbol],
+                        signal=synthetic,
+                        exit_reason="RESEARCH_UPPER_BAND_REENTRY",
                     )
 
             last_points[symbol] = point
