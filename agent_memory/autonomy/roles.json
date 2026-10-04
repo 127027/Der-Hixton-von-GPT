@@ -2,16 +2,16 @@
   "schema_version": 1,
   "mode": "PERSISTENT_ROLE_SWARM",
   "roles": {
-    "A01": "Own the clean Satellite-V1 requirements/evidence contract; ensure the five-market work starts from original V1/DMS_V1 and records every rejected evolution.",
-    "A02": "Run deterministic V1 baseline/evolution and shared-C replays for the active Satellite candidate set, including replacement USDC candidates after bounded seed rejection.",
+    "A01": "Own the Core-first small-signal Satellite evidence contract: protected ten-Core engine unchanged, Satellite idle-only entry, and unconditional Core preemption.",
+    "A02": "Run deterministic small-signal Satellite training/holdout and one-shared-C replays for SUI/NEAR/UNI/AAVE/BCH first; optional extra markets only after the primary set.",
     "A03": "Verify strategy semantics and timing parity so Satellite-V1 behavior can later match Backtest/Paper/Trial/Live without changing the protected Core.",
     "A04": "Keep UI/API truthful: Satellite research must remain visibly research-only until exact-head promotion.",
-    "A05": "Diagnose V1 weaknesses per Satellite: signal scarcity/noise, false breakouts, late entries/exits, holding duration, idle coverage, profit per occupied hour and overlap with Core idle time.",
+    "A05": "Diagnose why fillers fail: insufficient small-signal edge, fees, false breakouts, holding time, trade scarcity and long idle gaps.",
     "A06": "Regression-test every Satellite-V1 patch for determinism, data continuity, no leakage and no accidental protected-Core mutation.",
     "A07": "Validate Binance Spot USDC tradability, point-in-time filters, liquidity, USDC/USDT history and direct-USDC rejection-only holdout availability for every active or replacement Satellite candidate.",
     "A08": "Challenge each evolved Satellite-V1 profile on costs, risk, duration, opportunity frequency and shared-250 interaction with the protected Core.",
     "A09": "Independently reject overfit, stale, non-reproducible or Core-regressive Satellite candidates; only exact-head QA_PASS may advance.",
-    "A10": "Continuously dispatch the next evidence-led Satellite task: bounded V1 improvement, explicit rejection, or replacement-USDC discovery; never endlessly retune a failed market.",
+    "A10": "Continuously dispatch the next bounded small-signal filler hypothesis or combined replay; never drift into replacing the ten-Core primary engine.",
     "A11": "Govern the full Satellite-V1 program; require training/holdout separation, shifted/future/red-team evidence and exact-head GOVERNANCE_PASS before promotion."
   },
   "loop": [
@@ -32,7 +32,7 @@
   "specialized_dots": {
     "D12": {
       "name": "Hypothesis Architect Dot",
-      "objective": "Generate bounded, evidence-led V1-derived hypotheses for the active Satellite candidate set; after repeated seed rejection, support replacement-USDC candidates without using holdout outcomes for selection.",
+      "objective": "Generate bounded training-only small-signal/micro-filler hypotheses for SUI/NEAR/UNI/AAVE/BCH that target profitable short opportunities during complete Core idle periods.",
       "constraints": [
         "no blind parameter churn",
         "one causal family per experiment",
@@ -62,7 +62,7 @@
     },
     "D15": {
       "name": "Universe Discovery Dot",
-      "objective": "Discover and rank eligible Binance Spot USDC replacement candidates when seed markets are boundedly rejected; universe expansion is research-only until full promotion.",
+      "objective": "Optional Satellite pool expansion only after the five primary filler markets have been evaluated; never replace or distract from the protected ten-Core primary engine.",
       "constraints": [
         "no automatic live symbol addition",
         "current Binance Spot USDC tradability and liquidity required",
@@ -105,20 +105,17 @@
     },
     "D19": {
       "name": "Idle Satellite Market Dot",
-      "objective": "Lead the Satellite-V1 program toward five robust USDC gap-fillers: use seed markets where evidence supports them, explicitly reject weak seeds, and advance replacement candidates when needed.",
+      "objective": "Lead the Core-first gap-filler program: build profitable short small-signal Satellites, starting with SUI/NEAR/UNI/AAVE/BCH, that trade only while Core is idle and immediately yield to any executable Core entry.",
       "constraints": [
-        "the ten-coin V6 core is the primary high-value opportunity engine, but any core signal alone does not automatically force satellite exit",
-        "satellites may only enter with genuinely free capacity",
-        "routing must be normalized to allocated capital and remain valid when account size changes",
-        "fixed absolute USDC profit/loss thresholds for switching are forbidden",
-        "compare point-in-time expected net return, return per risk and return per time for current versus candidate opportunity",
-        "early exit at profit, break-even or bounded loss is allowed when the normalized opportunity comparison favors switching",
+        "the ten-coin Core is always the primary earnings engine",
+        "satellites may enter only when the Core engine is completely idle",
+        "any executable Core entry preempts the active Satellite at the next executable open",
+        "optimize incremental shared-account after-cost profit and reduction of long idle gaps",
+        "do not force trades merely to increase activity",
         "future realized PnL, future MFE/MAE and hindsight target completion are forbidden decision features",
-        "fees, spread, slippage, latency and quote-conversion costs must be normalized and modeled",
-        "rank satellite sets by shared-portfolio return, idle-time monetization and complementarity, not isolated headline profit or raw trade count",
-        "prefer direct USDC; cross-quote routing needs separate after-cost proof",
-        "regional Binance availability, liquidity and exchange filters must pass before any live inclusion",
-        "no automatic live market expansion"
+        "fees, spread, slippage and latency must be modeled",
+        "50 USDC is the first real trial size after validation; 250 USDC is the initial configured target; 1000 USDC is later scale validation",
+        "no automatic live activation"
       ]
     },
     "D20": {
@@ -133,7 +130,7 @@
       ]
     }
   },
-  "current_shared_mission": "MISSION-SATELLITE-V1-IDLE90: protect the validated 10-Core/250-USDC engine and find five robust V1-derived Binance Spot USDC gap-fillers that monetize genuinely free Core capacity without Core regression; the original five are seed candidates, not mandatory final choices.",
+  "current_shared_mission": "MISSION-SATELLITE-MICRO-FILLER: keep the validated 10-Core bot as the primary profit engine; during complete Core idle periods use SUI/NEAR/UNI/AAVE/BCH small-signal fillers, optionally supplemented later, and always close/yield the filler when any executable Core entry appears.",
   "activity_focus": {
     "A01": "V1 baseline and evidence contract",
     "A02": "five isolated V1 baselines then shared-250 replay",
