@@ -1,0 +1,87 @@
+{
+  "schema_version": 1,
+  "source_run_id": 37214596940,
+  "source_head_sha": "e10d2acd7d41f4f6beec989b92d0e8ca71f8e5ed",
+  "protected_product_sha": "f6497acf8d4d852aaac0b69878762fabb53155d4",
+  "note": "All seeds below are training-selected champions from Run #90. Validation outcomes are recorded separately and must not choose search direction.",
+  "per_symbol": {
+    "SUIUSDC": {
+      "parameters": {
+        "vidya_length": 15,
+        "momentum_length": 20,
+        "smoothing_length": 14,
+        "atr_length": 120,
+        "band_multiplier": 2.3,
+        "warmup_bars": 400
+      },
+      "prior_status": "UNMATURED",
+      "run90_full_stress_net_pnl_usdc": "231.61795051974",
+      "run90_validation_stress_net_pnl_usdc": "-82.77721973607"
+    },
+    "NEARUSDC": {
+      "parameters": {
+        "vidya_length": 10,
+        "momentum_length": 20,
+        "smoothing_length": 15,
+        "atr_length": 200,
+        "band_multiplier": 2.8,
+        "warmup_bars": 400
+      },
+      "prior_status": "PROFITABILITY_PASS_BUT_NOT_FINAL",
+      "run90_full_stress_net_pnl_usdc": "393.1510497113",
+      "run90_validation_stress_net_pnl_usdc": "108.086061076"
+    },
+    "UNIUSDC": {
+      "parameters": {
+        "vidya_length": 12,
+        "momentum_length": 20,
+        "smoothing_length": 10,
+        "atr_length": 120,
+        "band_multiplier": 2,
+        "warmup_bars": 400
+      },
+      "prior_status": "WEAK_PROFITABILITY_PASS_CONTINUE",
+      "run90_full_stress_net_pnl_usdc": "21.6248336495",
+      "run90_validation_stress_net_pnl_usdc": "8.26799706129"
+    },
+    "AAVEUSDC": {
+      "parameters": {
+        "vidya_length": 10,
+        "momentum_length": 12,
+        "smoothing_length": 15,
+        "atr_length": 200,
+        "band_multiplier": 2,
+        "warmup_bars": 400
+      },
+      "prior_status": "UNMATURED",
+      "run90_full_stress_net_pnl_usdc": "-57.20620885532",
+      "run90_validation_stress_net_pnl_usdc": "-114.03831631966"
+    },
+    "BCHUSDC": {
+      "parameters": {
+        "vidya_length": 13,
+        "momentum_length": 16,
+        "smoothing_length": 15,
+        "atr_length": 200,
+        "band_multiplier": 3.2,
+        "warmup_bars": 400
+      },
+      "prior_status": "UNMATURED",
+      "run90_full_stress_net_pnl_usdc": "254.7429417256",
+      "run90_validation_stress_net_pnl_usdc": "-58.4327099221"
+    }
+  },
+  "maturity_contract": {
+    "all_five_remain_active_until_mature_or_explicitly_replaced": true,
+    "positive_but_weak_profiles_are_not_final": true,
+    "training_year_a_stress_net_pnl_positive_required": true,
+    "training_year_b_stress_net_pnl_positive_required": true,
+    "validation_baseline_net_pnl_positive_required": true,
+    "validation_stress_net_pnl_positive_required": true,
+    "full_3y_baseline_net_pnl_positive_required": true,
+    "full_3y_stress_net_pnl_positive_required": true,
+    "minimum_full_3y_completed_trades_target": 157,
+    "target_interpretation": "~1 completed isolated cycle per week or better; target guides maturity, not permission to force trades.",
+    "holdout_may_reject_but_not_select_search_direction": true
+  }
+}
