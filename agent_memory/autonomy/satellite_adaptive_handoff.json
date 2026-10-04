@@ -1,16 +1,16 @@
 {
   "schema_version": 1,
-  "completed_run_number": 132,
-  "completed_run_id": 37236203419,
-  "completed_round": 7,
-  "completed_family": "ENTRY_CMO_QUALITY",
+  "completed_run_number": 133,
+  "completed_run_id": 37236428893,
+  "completed_round": 8,
+  "completed_family": "VOLATILITY_LOCAL_REFINEMENT",
   "economic_progress": false,
   "accepted_reference_updates": [],
   "mature_symbols_after": [
     "NEARUSDC"
   ],
   "next_stage": "SATELLITE_ISOLATED_5X250_ADAPTIVE_CYCLE",
-  "next_round": 8,
+  "next_round": 9,
   "dispatch_next": true,
-  "reason": "advance from adaptive round 7 to 8; next causal family is predeclared and different"
+  "reason": "advance from adaptive round 8 to 9; next causal family is predeclared and different"
 }
