@@ -1,4 +1,4 @@
-name: Hixton 15m Progress Watchdog
+name: Hixton 5m Progress Watchdog
 
 on:
   push:
@@ -7,7 +7,7 @@ on:
     paths:
       - ".github/workflows/hixton-15m-watchdog.yml"
   schedule:
-    - cron: "7,22,37,52 * * * *"
+    - cron: "*/5 * * * *"
   workflow_dispatch:
 
 permissions:
@@ -136,9 +136,9 @@ jobs:
             } else if (latest.status === "queued" || latest.status === "in_progress") {
               const started = new Date(latest.run_started_at || latest.created_at).getTime();
               const ageMinutes = Math.max(0, (Date.now() - started) / 60000);
-              if (same >= 3 && ageMinutes >= 45) {
+              if (same >= 9 && ageMinutes >= 45) {
                 classification = "POSSIBLE_ACTIVE_STALL";
-              } else if (same >= 1 && ageMinutes >= 15) {
+              } else if (same >= 3 && ageMinutes >= 15) {
                 classification = "INVESTIGATE_SLOW";
               }
             } else if (
@@ -180,7 +180,7 @@ jobs:
 
             const now = new Date().toISOString();
             const body = `${marker}
-            ## Hixton 15m Watchdog — ${now}
+            ## Hixton 5m Watchdog — ${now}
 
             - Classification: **${classification}**
             - Product HEAD: \`${productRef.data.object.sha}\`
@@ -192,7 +192,7 @@ jobs:
             - Active step: \`${activeStep}\`
             - Failed job: \`${failedJob}\`
             - Failed step: \`${failedStep}\`
-            - Same-state 15m intervals: **${same}**
+            - Same-state 5m intervals: **${same}**
             - Research run URL: ${latest?.html_url || "n/a"}
 
             The watchdog only detects and records progress/stalls. It never weakens gates,
