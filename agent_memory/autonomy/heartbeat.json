@@ -1,7 +1,7 @@
 {
   "cycle": "satellite-v1-cleanstart-2026-10-04",
   "timestamp_utc": "2026-10-04T08:40:00Z",
-  "reason": "run64_v1_baseline_passed_and_handoff_stall_repaired",
+  "reason": "retry satellite 5x250 policy refinement after explicit HIXTON-V5 trade-policy version-gate fix",
   "current_stage": "SATELLITE_V1_PER_MARKET_EVOLUTION",
   "frozen_satellite_pool": [
     "SUIUSDC",
@@ -31,5 +31,9 @@
     "paper_live_activation": false,
     "real_orders": false,
     "testnet_orders": false
-  }
+  },
+  "sequence": 1,
+  "target_stage": "SATELLITE_ISOLATED_5X250_POLICY_REFINEMENT",
+  "fixed_commit": "cb149f34a9d11c4980c583760f299d11e7b2db22",
+  "failed_run_id": 37219976312
 }
