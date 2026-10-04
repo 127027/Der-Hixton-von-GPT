@@ -1,8 +1,10 @@
 {
   "schema_version": 1,
-  "locked": true,
+  "locked": false,
   "reason": "transactional build: persistent adaptive analyze-patch-rerun cycle after Run #119",
   "started_from_head": "05082d40943adf17d2c959226af8d2f1109bb2ae",
   "contract": "No substantive research until adaptive control/state, new point-in-time hooks, adaptive research runner, post-run handoff, workflow persistence/dispatch, static contracts and protected-Core parity are verified on one coherent HEAD.",
-  "unlock_contract": "This unlock commit may trigger exactly one substantive targeted post-114 research run."
+  "unlock_contract": "This unlock commit may trigger exactly one substantive adaptive round-1 research run. Subsequent adaptive runs must be triggered only by the persisted post-run handoff.",
+  "completed_head": "622e04bb8c9c1a13eff454260f6fb447de81a76a",
+  "completed_reason": "Persistent adaptive 24-family cycle verified under lock: workflow contract/py_compile green, mission/state/control wired, adaptive handoff/persist/issue-comment/dispatch path present, protected Core critical files byte-identical."
 }
