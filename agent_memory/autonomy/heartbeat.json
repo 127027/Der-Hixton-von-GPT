@@ -1,8 +1,8 @@
 {
   "cycle": "satellite-v1-cleanstart-2026-10-04",
-  "timestamp_utc": "2026-10-04T07:50:00Z",
-  "reason": "owner_reset_v6_satellite_copy_and_requested_five_market_v1_redevelopment_for_core_idle_fill",
-  "current_stage": "SATELLITE_V1_BASELINE",
+  "timestamp_utc": "2026-10-04T08:40:00Z",
+  "reason": "run64_v1_baseline_passed_and_handoff_stall_repaired",
+  "current_stage": "SATELLITE_V1_PER_MARKET_EVOLUTION",
   "frozen_satellite_pool": [
     "SUIUSDC",
     "NEARUSDC",
@@ -11,11 +11,11 @@
     "BCHUSDC"
   ],
   "next_focus": [
-    "run unchanged original V1/DMS_V1 on all five over exact three-year proxy and one-year direct-USDC rejection-only window",
-    "quantify trade count, signal count, after-cost PnL, drawdown, active time, holding duration and profit per occupied hour per market",
-    "measure five-market union opportunity coverage versus the owner ~90% Core-idle opportunity pool",
-    "after baseline, diagnose and evolve each Satellite independently from V1 rather than borrowing Core V6 templates",
-    "after individual development, intersect opportunities with exact protected Core idle hours and run one shared 250-USDC Core+Satellite replay"
+    "run bounded V1-derived candidate grid independently for each of the five on pre-holdout training only",
+    "rank only positive baseline+stress candidates by profit/hour, cycles per occupied hour, stress PnL and shorter median hold",
+    "validate the training champion per market on final one-year direct-USDC holdout rejection-only",
+    "freeze only holdout-positive candidates for the next exact Core-idle-mask shared-250 replay",
+    "if a market has no robust V1-derived candidate, record rejection and send that market to one further bounded causal family rather than copying Core V6"
   ],
   "constraints": {
     "protected_engineering_branch": "gpt/usdc-audit",
