@@ -1,0 +1,213 @@
+{
+  "schema_version": 1,
+  "source_run": 119,
+  "protected_product_sha": "f6497acf8d4d852aaac0b69878762fabb53155d4",
+  "maturity_target_completed_trades": 157,
+  "per_symbol": {
+    "SUIUSDC": {
+      "parameters": {
+        "vidya_length": 15,
+        "momentum_length": 20,
+        "smoothing_length": 14,
+        "atr_length": 120,
+        "band_multiplier": 2.3,
+        "warmup_bars": 400
+      },
+      "policy": {
+        "cmo_floor": 0.4,
+        "slope_bars": 0,
+        "stop_atr": 0,
+        "trail_atr": 0
+      },
+      "training_seed": {
+        "name": "RUN119_VOL_CAP_0.0175",
+        "horizon_hours": 0,
+        "min_atr_pct": 0,
+        "max_atr_pct": 0.0175,
+        "min_trend_atr": -999,
+        "max_trend_atr": 999,
+        "min_breakout_atr": 0,
+        "min_abs_cmo": 0,
+        "reentry_atr_level": null,
+        "atr_direction": null,
+        "trend_health_exit": null
+      },
+      "reference_status": "VALIDATED_INCUMBENT",
+      "reference_source_run": 119,
+      "reference_profitability_pass": true,
+      "reference_maturity_pass": false,
+      "reference": {
+        "validation_stress_net_pnl": "82.302315198180000000",
+        "validation_stress_trades": 21,
+        "full_3y_stress_net_pnl": "507.691256283160000000",
+        "full_3y_stress_trades": 57,
+        "full_3y_stress_max_drawdown_pct": "25.72800378674776043553283649",
+        "full_3y_stress_profit_per_position_hour": "0.08021666239266234792226260073"
+      }
+    },
+    "NEARUSDC": {
+      "parameters": {
+        "vidya_length": 10,
+        "momentum_length": 20,
+        "smoothing_length": 15,
+        "atr_length": 200,
+        "band_multiplier": 2.8,
+        "warmup_bars": 400
+      },
+      "policy": {
+        "cmo_floor": 0,
+        "slope_bars": 0,
+        "stop_atr": 0,
+        "trail_atr": 0
+      },
+      "training_seed": {
+        "name": "RUN101_HOLD48",
+        "horizon_hours": 48,
+        "min_atr_pct": 0,
+        "max_atr_pct": 1,
+        "min_trend_atr": -999,
+        "max_trend_atr": 999,
+        "min_breakout_atr": 0,
+        "min_abs_cmo": 0,
+        "reentry_atr_level": null,
+        "atr_direction": null,
+        "trend_health_exit": null
+      },
+      "reference_status": "FROZEN_MATURE_INCUMBENT",
+      "reference_source_run": 101,
+      "reference_profitability_pass": true,
+      "reference_maturity_pass": true,
+      "reference": {
+        "validation_stress_net_pnl": "123.69366249120000000",
+        "validation_stress_trades": 61,
+        "full_3y_stress_net_pnl": "331.60670464360000000",
+        "full_3y_stress_trades": 191,
+        "full_3y_stress_max_drawdown_pct": "36.17099795728092254546654214",
+        "full_3y_stress_profit_per_position_hour": "0.04017040637717746820109024833"
+      }
+    },
+    "UNIUSDC": {
+      "parameters": {
+        "vidya_length": 12,
+        "momentum_length": 20,
+        "smoothing_length": 10,
+        "atr_length": 120,
+        "band_multiplier": 2,
+        "warmup_bars": 400
+      },
+      "policy": {
+        "cmo_floor": 0.3,
+        "slope_bars": 72,
+        "stop_atr": 0,
+        "trail_atr": 0
+      },
+      "training_seed": {
+        "name": "RUN95_INCUMBENT",
+        "horizon_hours": 0,
+        "min_atr_pct": 0,
+        "max_atr_pct": 1,
+        "min_trend_atr": -999,
+        "max_trend_atr": 999,
+        "min_breakout_atr": 0,
+        "min_abs_cmo": 0,
+        "reentry_atr_level": null,
+        "atr_direction": null,
+        "trend_health_exit": null
+      },
+      "reference_status": "VALIDATED_INCUMBENT",
+      "reference_source_run": 95,
+      "reference_profitability_pass": true,
+      "reference_maturity_pass": false,
+      "reference": {
+        "validation_stress_net_pnl": "160.85488637841000000",
+        "validation_stress_trades": 19,
+        "full_3y_stress_net_pnl": "261.33936268335000000",
+        "full_3y_stress_trades": 63,
+        "full_3y_stress_max_drawdown_pct": "33.89846134855061034345681268",
+        "full_3y_stress_profit_per_position_hour": "0.04540294695680159833217512161"
+      }
+    },
+    "AAVEUSDC": {
+      "parameters": {
+        "vidya_length": 10,
+        "momentum_length": 12,
+        "smoothing_length": 15,
+        "atr_length": 200,
+        "band_multiplier": 2,
+        "warmup_bars": 400
+      },
+      "policy": {
+        "cmo_floor": 0.3,
+        "slope_bars": 0,
+        "stop_atr": 0,
+        "trail_atr": 0
+      },
+      "training_seed": {
+        "name": "RUN114_REGIME_BALANCED",
+        "horizon_hours": 0,
+        "min_atr_pct": 0.003,
+        "max_atr_pct": 0.025,
+        "min_trend_atr": 0.25,
+        "max_trend_atr": 2.5,
+        "min_breakout_atr": 0,
+        "min_abs_cmo": 0,
+        "reentry_atr_level": null,
+        "atr_direction": null,
+        "trend_health_exit": null
+      },
+      "reference_status": "RESEARCH_BENCHMARK",
+      "reference_source_run": 114,
+      "reference_profitability_pass": false,
+      "reference_maturity_pass": false,
+      "reference": {
+        "validation_stress_net_pnl": "-87.3768653460000000",
+        "validation_stress_trades": 46,
+        "full_3y_stress_net_pnl": "297.9405412139000000",
+        "full_3y_stress_trades": 126,
+        "full_3y_stress_max_drawdown_pct": "38.61891276886049705587209238",
+        "full_3y_stress_profit_per_position_hour": "0.03283815069038906646092802822"
+      }
+    },
+    "BCHUSDC": {
+      "parameters": {
+        "vidya_length": 13,
+        "momentum_length": 16,
+        "smoothing_length": 15,
+        "atr_length": 200,
+        "band_multiplier": 3.2,
+        "warmup_bars": 400
+      },
+      "policy": {
+        "cmo_floor": 0,
+        "slope_bars": 0,
+        "stop_atr": 0,
+        "trail_atr": 0
+      },
+      "training_seed": {
+        "name": "RUN114_VOL_MAX_2PCT",
+        "horizon_hours": 0,
+        "min_atr_pct": 0,
+        "max_atr_pct": 0.02,
+        "min_trend_atr": -999,
+        "max_trend_atr": 999,
+        "min_breakout_atr": 0,
+        "min_abs_cmo": 0,
+        "reentry_atr_level": null,
+        "atr_direction": null,
+        "trend_health_exit": null
+      },
+      "reference_status": "RESEARCH_BENCHMARK",
+      "reference_source_run": 114,
+      "reference_profitability_pass": false,
+      "reference_maturity_pass": false,
+      "reference": {
+        "validation_stress_net_pnl": "-58.432709922100000",
+        "validation_stress_trades": 31,
+        "full_3y_stress_net_pnl": "279.906723360800000",
+        "full_3y_stress_trades": 73,
+        "full_3y_stress_max_drawdown_pct": "31.23418215152703731176153883",
+        "full_3y_stress_profit_per_position_hour": "0.02356117200006734006734006734"
+      }
+    }
+  }
+}
