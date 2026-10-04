@@ -89,7 +89,7 @@
     "owner_core_active_fraction_approx": "0.10",
     "owner_core_idle_fraction_approx": "0.90",
     "owner_idle_fill_target_pct": "90",
-    "current_stage": "SATELLITE_ISOLATED_5X250_POLICY_REFINEMENT",
+    "current_stage": "SATELLITE_ISOLATED_5X250_HOLDING_REFINEMENT",
     "per_market_independent_development": true,
     "final_shared_account_usdc": "250",
     "core_is_protected_primary_engine": true,
@@ -135,7 +135,7 @@
     "initial_configured_capital_usdc": "250",
     "future_scale_after_clean_month_usdc": "1000"
   },
-  "current_stage": "SATELLITE_ISOLATED_5X250_POLICY_REFINEMENT",
+  "current_stage": "SATELLITE_ISOLATED_5X250_HOLDING_REFINEMENT",
   "capital_model": {
     "user_input": "max_capital_usdc",
     "reference_research_capital_usdc": "250.00",
@@ -148,7 +148,7 @@
     "run_69_head": "9314df9baeae1c907d98472823d2e7ccd3e4eaa4",
     "result": "SUCCESS_NO_SURVIVORS",
     "detail": "2/4/6h exact-full-Core-idle horizon family; UNI training winner 6h but direct-USDC rejected; SUI/NEAR/AAVE/BCH had no fully robust training horizon.",
-    "next": "Continue all five primary Satellites independently with 250-USDC policy refinement. NEAR stays incumbent but may improve; UNI remains unfinished; SUI/AAVE/BCH remain unfinished. Use point-in-time CMO/VIDYA-slope/ATR stop-trail policy family, training-only selection, Direct-USDC rejection-only.",
+    "next": "Run six bounded autonomous research-only holding/exit/filter rounds. Each round selects only on two independent training years under stress, persists only training winners, uses Direct-USDC/full-window validation rejection-only, and auto-pushes the next round after evidence artifact persistence.",
     "run_70": 37198769433,
     "run_70_head": "736ee30f610f85044bb5476992ab81fd8606263c",
     "run_70_result": "SUCCESS_10_NEW_ELIGIBLE_REPLACEMENTS",
@@ -219,7 +219,16 @@
       "full_3y_proxy_stress_net_pnl_usdc": "21.6248336495"
     },
     "run_92": 37215914714,
-    "run_92_result": "SHARED_REPLAY_FAIL_NEAR_STRONG_UNI_WEAK"
+    "run_92_result": "SHARED_REPLAY_FAIL_NEAR_STRONG_UNI_WEAK",
+    "run_95": 37222097330,
+    "run_95_result": "SUCCESS_POLICY_REFINEMENT_ONE_PROFITABILITY_PASS_ZERO_MATURE",
+    "run_95_summary": {
+      "UNIUSDC": "training CMO_30_S72; full-3y stress +261.3394; validation stress +160.8549; 63 cycles; profitable but too infrequent",
+      "SUIUSDC": "training CMO_40; full-3y stress +283.5433; validation stress -20.9262; 78 cycles",
+      "AAVEUSDC": "training CMO_30; full-3y stress +0.8612; validation stress -103.0621; 168 cycles",
+      "BCHUSDC": "training BASE; full-3y stress +254.7429; validation stress -58.4327; 75 cycles",
+      "NEARUSDC": "preserve Run #90 incumbent; full-3y stress +393.1510; validation stress +108.0861"
+    }
   },
   "canonical_core_baseline": {
     "status": "PROTECTED_AND_VALIDATED",
@@ -266,5 +275,11 @@
       "satellite_gap_fillers_only": true,
       "any_executable_core_signal_preempts_satellite": true
     }
+  },
+  "autonomy": {
+    "transactional_build_lock_required": true,
+    "success_without_next_run_is_handoff_stall": true,
+    "autonomous_holding_rounds": 6,
+    "current_holding_round": 1
   }
 }
