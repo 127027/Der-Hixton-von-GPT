@@ -20,7 +20,7 @@
         "stop_atr": 0,
         "trail_atr": 0
       },
-      "incumbent_source": "RUN95_TRAINING_WINNER_CMO_40",
+      "incumbent_source": "AUTO_HOLDING_ROUND_1_TRAINING_WINNER_INCUMBENT",
       "base_horizon_hours": 0
     },
     "NEARUSDC": {
@@ -38,8 +38,8 @@
         "stop_atr": 0,
         "trail_atr": 0
       },
-      "incumbent_source": "RUN90_VALIDATED_PARAMETER_CHAMPION_PRESERVED",
-      "base_horizon_hours": 0
+      "incumbent_source": "AUTO_HOLDING_ROUND_1_TRAINING_WINNER_HOLD_48",
+      "base_horizon_hours": 48
     },
     "UNIUSDC": {
       "parameters": {
@@ -56,7 +56,7 @@
         "stop_atr": 0,
         "trail_atr": 0
       },
-      "incumbent_source": "RUN95_TRAINING_WINNER_CMO_30_S72",
+      "incumbent_source": "AUTO_HOLDING_ROUND_1_TRAINING_WINNER_INCUMBENT",
       "base_horizon_hours": 0
     },
     "AAVEUSDC": {
@@ -74,7 +74,7 @@
         "stop_atr": 0,
         "trail_atr": 0
       },
-      "incumbent_source": "RUN95_TRAINING_WINNER_CMO_30",
+      "incumbent_source": "AUTO_HOLDING_ROUND_1_TRAINING_WINNER_INCUMBENT",
       "base_horizon_hours": 0
     },
     "BCHUSDC": {
@@ -92,7 +92,7 @@
         "stop_atr": 0,
         "trail_atr": 0
       },
-      "incumbent_source": "RUN95_TRAINING_WINNER_BASE",
+      "incumbent_source": "AUTO_HOLDING_ROUND_1_TRAINING_WINNER_INCUMBENT",
       "base_horizon_hours": 0
     }
   }
