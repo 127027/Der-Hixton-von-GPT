@@ -4,7 +4,7 @@
   "progress_percent": 40,
   "current_focus": "Phase A isolated 5x250 Satellite optimization: SUI/NEAR/UNI/AAVE/BCH each independently start with 250 USDC on the canonical three-year window, mirroring the Core 10x250 coin-optimization laboratory. Phase B shared 250 Core+Satellite idle filler only after individual validation.",
   "last_indexed_commit": "f6497acf8d4d852aaac0b69878762fabb53155d4",
-  "last_learning_round": 10,
+  "last_learning_round": 11,
   "current_strategy": "Protected ten-Core primary engine + independently optimized Satellite profiles + later shared idle-capital router",
   "current_reference": {
     "reference_type": "CANONICAL_PROTECTED_CORE_250_EXACT_HEAD",
@@ -45,7 +45,7 @@
     "Binance public market-data endpoint availability and policy are external facts and must fail closed rather than trigger synthetic operational candles.",
     "Historical performance does not guarantee future profitability."
   ],
-  "notes": "Owner clarified that historical 10x250 means 250 USDC separately per Core market for per-coin optimization. Extend the research view to 15x250 by optimizing five Satellites independently first. Isolated 15x250 is not live capital. Final product remains one shared 250-USDC account with absolute Core priority.",
+  "notes": "Owner clarified that historical 10x250 means 250 USDC separately per Core market for per-coin optimization. Extend the research view to 15x250 by optimizing five Satellites independently first. Isolated 15x250 is not live capital. Final product remains one shared 250-USDC account with absolute Core priority. Run #114 produced real economic progress (SUI robustly profitable; AAVE/BCH research benchmarks improved). Next run is a targeted local refinement, not a blind rerun.",
   "current_product": {
     "max_capital_source": "max_capital_usdc",
     "allocator_version": "CAPITAL-V1-2X50PCT",
@@ -56,7 +56,7 @@
   },
   "target_architecture": {
     "universe": "10 protected Core + 5 independently evolved V1-derived Satellites",
-    "current_stage": "SATELLITE_ISOLATED_5X250_OPTIMIZATION",
+    "current_stage": "SATELLITE_ISOLATED_5X250_POST114_TARGETED_REFINEMENT",
     "satellites": [
       "SUIUSDC",
       "NEARUSDC",
@@ -102,7 +102,7 @@
     "phase_a": "ISOLATED_15X250_RESEARCH",
     "phase_b": "SHARED_250_CORE_PLUS_IDLE_FILLERS"
   },
-  "current_stage": "SATELLITE_ISOLATED_5X250_REGIME_REENTRY_REFINEMENT",
-  "last_transition": "NO_ECONOMIC_PROGRESS -> NEW_CAUSAL_FAMILY_REGIME_REENTRY",
+  "current_stage": "SATELLITE_ISOLATED_5X250_POST114_TARGETED_REFINEMENT",
+  "last_transition": "RUN_114_ECONOMIC_PROGRESS -> TARGETED_POST114_REFINEMENT",
   "validated_incumbent_separate_from_training_seed": true
 }
