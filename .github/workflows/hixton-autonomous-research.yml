@@ -31,6 +31,7 @@ on:
       - "scripts/satellite_v1_second_bounded_evolution.py"
       - "scripts/satellite_v1_idle_horizon_research.py"
       - "scripts/satellite_v1_replacement_baseline.py"
+      - "scripts/satellite_micro_filler_research.py"
       - "scripts/satellite_shared_portfolio_research.py"
       - "scripts/satellite_filler_router_research.py"
       - "scripts/engineering_candidate_builder.py"
@@ -78,6 +79,7 @@ jobs:
             scripts/satellite_v1_second_bounded_evolution.py \
             scripts/satellite_v1_idle_horizon_research.py \
             scripts/satellite_v1_replacement_baseline.py \
+            scripts/satellite_micro_filler_research.py \
             scripts/satellite_shared_portfolio_research.py \
             scripts/satellite_filler_router_research.py \
             scripts/engineering_candidate_builder.py \
@@ -140,6 +142,9 @@ jobs:
       - name: Replacement Satellite V1 free-capacity baseline
         if: steps.stage.outputs.priority_stage == 'SATELLITE_V1_REPLACEMENT_BASELINE'
         run: python -m scripts.satellite_v1_replacement_baseline
+      - name: Satellite small-signal micro-filler research
+        if: steps.stage.outputs.priority_stage == 'SATELLITE_MICRO_FILLER_RESEARCH'
+        run: python -m scripts.satellite_micro_filler_research
       - name: Step 5 shared 10-core + frozen-satellite portfolio research
         if: steps.stage.outputs.priority_stage == 'STEP5_SHARED_10_PLUS_SATELLITE_PORTFOLIO'
         run: python -m scripts.satellite_shared_portfolio_research
@@ -231,6 +236,7 @@ jobs:
             evidence/satellite-v1-second-bounded-evolution.json
             evidence/satellite-v1-idle-horizon-research.json
             evidence/satellite-v1-replacement-baseline.json
+            evidence/satellite-micro-filler-research.json
             evidence/satellite-strategy-research.json
             evidence/satellite-shared-portfolio-research.json
             evidence/satellite-filler-router-research.json
