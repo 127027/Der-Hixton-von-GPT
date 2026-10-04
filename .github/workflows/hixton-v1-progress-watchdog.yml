@@ -133,17 +133,17 @@ jobs:
           WATCHDOG 15M — $now
 
           - Classification: **$classification**
-          - Product HEAD: `$product_sha`
-          - Research HEAD: `$research_sha`
-          - Mission stage: `$stage`
+          - Product HEAD: $product_sha
+          - Research HEAD: $research_sha
+          - Mission stage: $stage
           - Latest research run: #$latest_number / $latest_id
-          - Run status: `$latest_status`
-          - Conclusion: `$latest_conclusion`
-          - Last GitHub update: `$latest_updated`
-          - Active step: `$active_step`
-          - Failed step: `$failed_step`
+          - Run status: $latest_status
+          - Conclusion: $latest_conclusion
+          - Last GitHub update: $latest_updated
+          - Active step: $active_step
+          - Failed step: $failed_step
           - Same-state intervals: **$same_count**
-          - Automatic action: `$action`
+          - Automatic action: $action
 
           $detail
 
