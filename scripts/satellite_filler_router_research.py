@@ -185,6 +185,9 @@ def run_filler_router_portfolio(
     core_symbols: tuple[str, ...],
     satellite_symbols: tuple[str, ...],
     router_config: RouterConfig,
+    strategy_semantics_by_symbol: dict[str, StrategySemantics] | None = None,
+    strict_core_idle_mask: bool = False,
+    soft_filler_exit_enabled: bool = True,
 ) -> tuple[PortfolioBacktestResult, list[dict[str, object]]]:
     if tuple(candles_by_symbol) != symbols:
         raise ValueError("router input universe/order mismatch")
@@ -192,6 +195,11 @@ def run_filler_router_portfolio(
         raise ValueError("router parameters must cover the full research universe")
     if set(trade_policies_by_symbol) != set(symbols):
         raise ValueError("router policies must cover the full research universe")
+    if (
+        strategy_semantics_by_symbol is not None
+        and set(strategy_semantics_by_symbol) != set(symbols)
+    ):
+        raise ValueError("router semantics must cover the full research universe")
     if slot_count <= 0 or starting_cash <= 0 or target_notional <= 0:
         raise ValueError("invalid capital plan")
 
@@ -225,7 +233,11 @@ def run_filler_router_portfolio(
         symbol: HixtonStrategy(
             symbol,
             parameters=strategy_parameters_by_symbol[symbol],
-            semantics=V6_COIN_STRATEGY.semantics,
+            semantics=(
+                V6_COIN_STRATEGY.semantics
+                if strategy_semantics_by_symbol is None
+                else strategy_semantics_by_symbol[symbol]
+            ),
             strategy_version=VERSION,
         )
         for symbol in symbols
@@ -438,6 +450,27 @@ def run_filler_router_portfolio(
                     ]
                     if not candidates:
                         break
+                    if strict_core_idle_mask:
+                        sat_symbol, _sat_trade = sorted(
+                            candidates, key=lambda item: item[0]
+                        )[0]
+                        router_events.append(
+                            {
+                                "time_utc": open_time.isoformat(),
+                                "satellite_symbol": sat_symbol,
+                                "core_candidate": core_signal.symbol,
+                                "desired_core_slots": desired_slots,
+                                "decision": "STRICT_IDLE_HANDOFF",
+                            }
+                        )
+                        close_position(
+                            sat_symbol,
+                            at=open_time,
+                            candle=candles[sat_symbol],
+                            reason_id=f"STRICT_IDLE_HANDOFF::{core_signal.signal_id}",
+                        )
+                        continue
+
                     ranked_running: list[
                         tuple[Decimal, str, OpenTrade, Decimal]
                     ] = []
@@ -521,6 +554,19 @@ def run_filler_router_portfolio(
             # (monetize the quiet gap between Core trades) instead of treating a spare
             # second slot during an active Core position as Satellite capacity.
             core_active = any(not trade.is_satellite for trade in positions.values())
+            if strict_core_idle_mask and core_active:
+                for sat_symbol in sorted(
+                    symbol
+                    for symbol, trade in positions.items()
+                    if trade.is_satellite
+                ):
+                    close_position(
+                        sat_symbol,
+                        at=open_time,
+                        candle=candles[sat_symbol],
+                        reason_id="STRICT_CORE_IDLE_MASK",
+                    )
+            core_active = any(not trade.is_satellite for trade in positions.values())
             for signal in satellite_entries:
                 if signal.symbol in positions:
                     blocked.append(f"{signal.signal_id}:POSITION_ALREADY_OPEN")
@@ -563,7 +609,8 @@ def run_filler_router_portfolio(
             # score has fully decayed and the canonical strategy has not already exited,
             # schedule an exit for the next open.
             if (
-                in_report
+                soft_filler_exit_enabled
+                and in_report
                 and position is not None
                 and position.is_satellite
                 and decisions[symbol].signal is None

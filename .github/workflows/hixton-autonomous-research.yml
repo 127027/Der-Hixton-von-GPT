@@ -14,6 +14,7 @@ on:
       - "agent_memory/autonomy/roles.json"
       - "agent_memory/autonomy/hypothesis_queue.json"
       - "agent_memory/autonomy/satellite_step4_checkpoint.json"
+      - "agent_memory/autonomy/satellite_v1_candidates.json"
       - "scripts/autonomous_research_supervisor.py"
       - "scripts/baseline_freshness_guard.py"
       - "scripts/autonomous_red_team.py"
@@ -24,6 +25,7 @@ on:
       - "scripts/satellite_strategy_research.py"
       - "scripts/satellite_v1_baseline_research.py"
       - "scripts/satellite_v1_evolution_research.py"
+      - "scripts/satellite_v1_shared_core_idle_replay.py"
       - "scripts/satellite_shared_portfolio_research.py"
       - "scripts/satellite_filler_router_research.py"
       - "scripts/engineering_candidate_builder.py"
@@ -67,6 +69,7 @@ jobs:
             scripts/universe_discovery.py \
             scripts/satellite_universe_discovery.py \
             scripts/satellite_strategy_research.py \
+            scripts/satellite_v1_shared_core_idle_replay.py \
             scripts/satellite_shared_portfolio_research.py \
             scripts/satellite_filler_router_research.py \
             scripts/engineering_candidate_builder.py \
@@ -114,6 +117,9 @@ jobs:
       - name: Bounded per-market Satellite V1 evolution
         if: steps.stage.outputs.priority_stage == 'SATELLITE_V1_PER_MARKET_EVOLUTION'
         run: python -m scripts.satellite_v1_evolution_research
+      - name: Satellite V1 exact shared-Core-idle replay
+        if: steps.stage.outputs.priority_stage == 'SATELLITE_V1_SHARED_CORE_IDLE_REPLAY'
+        run: python -m scripts.satellite_v1_shared_core_idle_replay
       - name: Step 5 shared 10-core + frozen-satellite portfolio research
         if: steps.stage.outputs.priority_stage == 'STEP5_SHARED_10_PLUS_SATELLITE_PORTFOLIO'
         run: python -m scripts.satellite_shared_portfolio_research
@@ -201,6 +207,7 @@ jobs:
             evidence/satellite-universe-discovery.json
             evidence/satellite-v1-baseline.json
             evidence/satellite-v1-evolution.json
+            evidence/satellite-v1-shared-core-idle-replay.json
             evidence/satellite-strategy-research.json
             evidence/satellite-shared-portfolio-research.json
             evidence/satellite-filler-router-research.json
