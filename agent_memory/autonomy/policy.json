@@ -5,8 +5,8 @@
   "objective": {
     "capital_usdc": "CONFIGURED_C",
     "symbols": "10_CORE_PLUS_UP_TO_5_VALIDATED_SATELLITES",
-    "primary": "maximize robust shared-account net return and productive capital-time from one configured budget C using the validated core plus only satellites that add marginal after-cost portfolio value",
-    "secondary": "increase completed position cycles per calendar day, slot utilization and average deployed notional while reducing zero-position hours, longest idle stretches and avoidable NO_FREE_SLOT loss",
+    "primary": "Protect the validated ten-Core engine and develop five dedicated V1-derived Satellite strategies that robustly monetize as much as possible of the approximately 90% Core-idle opportunity pool in one shared configured capital C.",
+    "secondary": "Increase profitable Core-idle coverage, completed genuine Satellite cycles and profit per occupied hour while reducing Satellite holding time and avoiding any Core regression.",
     "never_optimize_for": [
       "headline trade count alone",
       "tiny-order fragmentation",
@@ -16,26 +16,15 @@
     "future_readiness": "prefer mechanisms that survive plausible unseen regimes, execution degradation and newly arriving data over mechanisms that maximize historical fit"
   },
   "allowed_research": [
-    "per-coin strategy parameters",
-    "entry timing",
-    "exit timing",
-    "holding duration",
-    "stop and trailing policy",
-    "signal filters",
-    "slot count, tranche sizing and reserve derived from configured total capital C",
-    "allocation and ranking policy",
-    "one-per-symbol versus ranked-repeat",
-    "opportunity-cost routing",
-    "risk controls",
+    "unchanged original V1/DMS_V1 baseline on SUI/NEAR/UNI/AAVE/BCH",
+    "bounded per-market V1 parameter evolution",
+    "bounded per-market V1 exit/entry policy evolution",
+    "signal scarcity, false-breakout and holding-duration diagnosis",
+    "five-market complementarity and overlap",
+    "exact protected Core idle-mask intersection",
+    "one-shared-C Core+Satellite portfolio replay",
     "execution-cost robustness",
-    "point-in-time event and news risk features",
-    "new strategy families proposed by the hypothesis dot",
-    "preemptible idle-satellite market layer",
-    "cross-quote historical proxy research with real-USDC holdout validation",
-    "opportunity-value handoff between running Core/Satellite positions and superior new opportunities",
-    "scale-invariant opportunity-value routing between running positions and new candidates",
-    "expected net return percent and return-per-risk/time ranking",
-    "bounded early satellite exits when a superior normalized opportunity justifies switching"
+    "shifted-window, holdout, future-readiness and red-team rejection tests"
   ],
   "hard_constraints": {
     "leverage_allowed": false,
@@ -131,7 +120,7 @@
     "satellite_layer_must_yield_to_core": false,
     "target_satellite_markets": 5,
     "proxy_history_requires_real_usdc_validation": true,
-    "satellite_role": "IDLE_REPLACEMENT_WITH_SCALE_INVARIANT_OPPORTUNITY_ROUTING",
+    "satellite_role": "DEDICATED_V1_DERIVED_CORE_IDLE_FILLER",
     "core_reclaim_priority_absolute": false,
     "direct_usdc_routing_preferred": true,
     "cross_quote_conversion_requires_separate_after_cost_evidence": true,
@@ -143,7 +132,11 @@
     "fixed_absolute_profit_loss_switch_thresholds_forbidden": true,
     "dynamic_capital_C_required": true,
     "isolated_15xC_is_diagnostic_only": true,
-    "shared_portfolio_C_is_actual_account": true
+    "shared_portfolio_C_is_actual_account": true,
+    "satellite_base_strategy": "V1_STRATEGY",
+    "satellite_base_semantics": "DMS_V1",
+    "core_v6_templates_as_satellite_starting_profiles": false,
+    "old_step4_v6_satellite_profiles_invalidated_for_selection": true
   },
   "forward_evidence": {
     "enabled": true,
@@ -154,67 +147,26 @@
     "live_activation_automatic": false
   },
   "activity_mission": {
-    "id": "MISSION-SATELLITE-SHARED-C",
+    "id": "MISSION-SATELLITE-V1-IDLE90",
     "target_account_capital_usdc": "CONFIGURED_C_REFERENCE_250",
-    "preferred_outcome": "higher robust net profit and lower avoidable idle time from the same shared account C; activity alone is not success",
+    "owner_core_active_fraction_approx": "0.10",
+    "owner_core_idle_fraction_approx": "0.90",
+    "target_idle_fill_pct": "90",
+    "preferred_outcome": "Five independently evolved V1-derived Satellites monetize a large share of true Core-idle hours and raise or preserve after-cost shared account equity; coverage without profit is not success.",
     "mandatory_metrics": [
-      "position_cycles_per_day",
-      "slot_trades_per_day",
-      "slot_utilization_pct",
-      "average_deployed_notional_usdc",
-      "zero_position_pct",
-      "longest_idle_hours",
-      "profit_per_calendar_day_usdc",
-      "blocked_no_free_slot"
+      "completed_trades",
+      "trades_per_calendar_day",
+      "active_calendar_pct",
+      "median_holding_hours",
+      "profit_per_position_hour",
+      "five_market_union_active_pct",
+      "core_idle_fill_pct",
+      "shared_250_baseline_ending_equity",
+      "shared_250_stress_ending_equity",
+      "core_opportunities_displaced"
     ],
     "profit_and_future_readiness_remain_hard_gates": true,
-    "frequency_tiers_3y": {
-      "stretch_cycles": 1095,
-      "stretch_label": "~1 completed position cycle per day",
-      "good_cycles": 365,
-      "good_label": "~1 per 3 days",
-      "minimum_acceptable_cycles": 157,
-      "minimum_label": "~1 per 7 days",
-      "below_minimum_is_success": false
-    },
-    "profit_concession": {
-      "preferred_max_regression_pct": "0",
-      "hard_max_regression_pct": "0",
-      "hard_min_equity_ratio_vs_protected_incumbent": "0.85",
-      "applies_to": [
-        "baseline",
-        "stress"
-      ],
-      "note": "Activity candidates may trade some historical ending equity for materially lower idle time, but collapse toward ~1000 from a ~1500-1560 incumbent is unacceptable.",
-      "hard_min_equity_ratio_vs_incumbent": "1.00"
-    },
-    "continue_after_minimum_tier": true,
-    "satellite_contract": {
-      "purpose": "Monetize otherwise idle/free capital and reallocate it when a materially better opportunity appears.",
-      "core_is_primary_high_value_engine": true,
-      "core_signal_is_not_automatic_preemption": true,
-      "scale_invariant_routing_required": true,
-      "fixed_usdc_switch_thresholds_forbidden": true,
-      "switching_rule": "Compare normalized point-in-time opportunity scores based on expected net return on allocated capital, risk, time horizon and uncertainty; subtract normalized exit/entry/conversion costs and switch only when the improvement clears a validated margin.",
-      "early_satellite_exit_outcomes_allowed": [
-        "profit",
-        "break_even",
-        "bounded_loss"
-      ],
-      "target_profit_does_not_force_holding": true,
-      "no_future_information": true,
-      "accounting_required": [
-        "expected net return percent of current position remaining",
-        "expected net return percent of candidate",
-        "risk-adjusted opportunity score",
-        "expected return per unit time",
-        "fees spread slippage and conversion costs as percent/basis points",
-        "early-exit realized return percent",
-        "handoff latency",
-        "switch regret for ex-post evaluation only"
-      ],
-      "quote_policy": "Prefer direct USDC Spot. Cross-quote routing remains research-only until separately proven superior after normalized costs and operational failure modes.",
-      "success_definition": "Increase robust shared-portfolio return and capital utilization while avoiding cost-negative churn; behavior must remain valid if the account is later scaled above or below the current research capital."
-    }
+    "per_market_independent_evolution": true,
+    "v6_core_profile_copy_forbidden_as_default": true
   }
 }
