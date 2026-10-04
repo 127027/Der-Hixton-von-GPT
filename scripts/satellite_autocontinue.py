@@ -53,6 +53,7 @@ def main() -> None:
         if not winner:
             continue
         seeds["per_symbol"][symbol]["base_policy"] = winner["policy"]
+        seeds["per_symbol"][symbol]["base_horizon_hours"] = int(winner.get("max_holding_hours", 0))
         seeds["per_symbol"][symbol]["incumbent_source"] = (
             f"AUTO_HOLDING_ROUND_{round_no}_TRAINING_WINNER_{winner['name']}"
         )
