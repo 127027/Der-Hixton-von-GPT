@@ -1,0 +1,7 @@
+{
+  "schema_version": 1,
+  "locked": true,
+  "reason": "transactional rebuild: autonomous success/failure handoff and next satellite refinement stage",
+  "started_from_head": "df9d71073a4ec0ae60b5ba0d93444e8be9115a81",
+  "contract": "No substantive research may start while locked. Unlock only after workflow, stage handler, mission and continuation wiring are all verified on the same research branch."
+}
