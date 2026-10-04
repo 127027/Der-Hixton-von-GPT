@@ -1,9 +1,9 @@
 {
-  "run_number": 142,
-  "run_id": 37238753326,
-  "head_sha": "f002612bbdaf85df6415158fd84baafbcf3a0971",
-  "adaptive_round": 17,
-  "family": "BREAKOUT_X_TREND_EXIT",
+  "run_number": 143,
+  "run_id": 37238981019,
+  "head_sha": "8729a85a6b02499193b647c728da0c1ce91a9566",
+  "adaptive_round": 18,
+  "family": "VOLATILITY_X_TREND_EXIT",
   "technical_success": true,
   "economic_progress": false,
   "improved_symbols": [],
@@ -153,5 +153,5 @@
   "patch_complete": true,
   "next_stage": "SATELLITE_ISOLATED_5X250_ADAPTIVE_CYCLE",
   "dispatch_next": true,
-  "next_reason": "advance from adaptive round 17 to 18; next causal family is predeclared and different"
+  "next_reason": "advance from adaptive round 18 to 19; next causal family is predeclared and different"
 }
