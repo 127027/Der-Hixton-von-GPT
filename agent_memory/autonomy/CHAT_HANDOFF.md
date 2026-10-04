@@ -1,3 +1,28 @@
+# CANONICAL CORE BASELINE — exact protected f649 evidence
+
+All agents, DOTs, controllers and future candidate validation must use this as the protected Core reference until a newer exact-head product validation explicitly supersedes it.
+
+- Protected product: `gpt/usdc-audit@f6497acf8d4d852aaac0b69878762fabb53155d4`.
+- Exact-head validation round: Autonomous Research Run `37034447882`; A02 source_commit is exactly `f6497acf...`.
+- Three-year window: `2023-10-02T18:00:00Z` to `2026-10-02T18:00:00Z`.
+- One shared account starts with `250.00 USDC`; allocator is `CAPITAL-V1-2X50PCT`, ranked-repeat, two 125-USDC reference slots.
+- Baseline ending equity: `1560.08098032189235 USDC`.
+- Baseline net profit: `+1310.08098032189235 USDC`.
+- Baseline return: `+524.03239212875694%`.
+- Baseline activity: `84` position cycles / `138` slot trades.
+- Baseline max drawdown: `30.0225060991%`.
+- Stress ending equity: `1469.7623654035115 USDC` = `+1219.7623654035115 USDC` net from the same 250 start.
+- Same exact commit independently passed A09 `QA_PASS` and A11 `GOVERNANCE_PASS`.
+- Owner shorthand “~1500” is treated as an approximate ending-balance description; do not record it as +1500 net profit.
+
+Integration invariant:
+1. The above ten-Core engine is the protected primary strategy and is not retuned to make Satellite research look better.
+2. Satellites are a separate secondary strategy for complete Core-idle periods.
+3. A Satellite may open only while the Core engine has no active position/claim under the current owner contract.
+4. ANY executable Core entry signal has priority. At the next executable open, close/yield the Satellite first and allocate the Core trade.
+5. Success is measured by a like-for-like one-shared-C comparison: Core+Satellite must exceed/preserve this Core behavior after fees/slippage/stress while reducing long idle gaps. Isolated 10x250 and old 3x80 figures are diagnostics only.
+6. First real trial after full validation is 50 USDC; configured target is 250 USDC; 1000 USDC is a later scaling stage.
+
 # LIVE OVERRIDE — Core-first micro-filler mission after Run #74
 
 This section supersedes older replacement-universe wording below.
