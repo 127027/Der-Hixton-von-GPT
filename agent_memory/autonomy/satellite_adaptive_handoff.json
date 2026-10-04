@@ -1,16 +1,16 @@
 {
   "schema_version": 1,
-  "completed_run_number": 143,
-  "completed_run_id": 37238981019,
-  "completed_round": 18,
-  "completed_family": "VOLATILITY_X_TREND_EXIT",
+  "completed_run_number": 144,
+  "completed_run_id": 37239314533,
+  "completed_round": 19,
+  "completed_family": "TREND_WINDOW_X_TREND_EXIT",
   "economic_progress": false,
   "accepted_reference_updates": [],
   "mature_symbols_after": [
     "NEARUSDC"
   ],
   "next_stage": "SATELLITE_ISOLATED_5X250_ADAPTIVE_CYCLE",
-  "next_round": 19,
+  "next_round": 20,
   "dispatch_next": true,
-  "reason": "advance from adaptive round 18 to 19; next causal family is predeclared and different"
+  "reason": "advance from adaptive round 19 to 20; next causal family is predeclared and different"
 }
