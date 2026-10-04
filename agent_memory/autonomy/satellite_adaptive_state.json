@@ -20,7 +20,7 @@
         "trail_atr": 0
       },
       "training_seed": {
-        "name": "AUTO_R8_SEED",
+        "name": "AUTO_R9_ATR_EXPANDING_EXIT_-0.25",
         "horizon_hours": 120,
         "min_atr_pct": 0,
         "max_atr_pct": 0.0175,
@@ -29,8 +29,8 @@
         "min_breakout_atr": 0,
         "min_abs_cmo": 0,
         "reentry_atr_level": 0.25,
-        "atr_direction": null,
-        "trend_health_exit": null
+        "atr_direction": "EXPANDING",
+        "trend_health_exit": -0.25
       },
       "reference_status": "VALIDATED_INCUMBENT",
       "reference_source_run": 119,
@@ -44,8 +44,8 @@
         "full_3y_stress_max_drawdown_pct": "25.72800378674776043553283649",
         "full_3y_stress_profit_per_position_hour": "0.08021666239266234792226260073"
       },
-      "training_seed_source_run": 133,
-      "training_seed_source_round": 8,
+      "training_seed_source_run": 134,
+      "training_seed_source_round": 9,
       "training_seed_selection_mode": "ACTIVITY_WITHIN_75PCT_TRAINING_PNL_RETENTION"
     },
     "NEARUSDC": {
@@ -105,7 +105,7 @@
         "trail_atr": 0
       },
       "training_seed": {
-        "name": "AUTO_R8_SEED",
+        "name": "AUTO_R9_SEED",
         "horizon_hours": 0,
         "min_atr_pct": 0,
         "max_atr_pct": 1,
@@ -129,8 +129,8 @@
         "full_3y_stress_max_drawdown_pct": "33.89846134855061034345681268",
         "full_3y_stress_profit_per_position_hour": "0.04540294695680159833217512161"
       },
-      "training_seed_source_run": 133,
-      "training_seed_source_round": 8,
+      "training_seed_source_run": 134,
+      "training_seed_source_round": 9,
       "training_seed_selection_mode": "ACTIVITY_WITHIN_75PCT_TRAINING_PNL_RETENTION"
     },
     "AAVEUSDC": {
@@ -149,7 +149,7 @@
         "trail_atr": 0
       },
       "training_seed": {
-        "name": "AUTO_R8_SEED",
+        "name": "AUTO_R9_SEED",
         "horizon_hours": 168,
         "min_atr_pct": 0.003,
         "max_atr_pct": 0.025,
@@ -173,8 +173,8 @@
         "full_3y_stress_max_drawdown_pct": "35.21479749719530312980482349",
         "full_3y_stress_profit_per_position_hour": "0.04332743952469329691589848640"
       },
-      "training_seed_source_run": 133,
-      "training_seed_source_round": 8,
+      "training_seed_source_run": 134,
+      "training_seed_source_round": 9,
       "training_seed_selection_mode": "PROFIT_FIRST_TRAINING_SELECTION",
       "reference_source_round": 6
     },
@@ -194,7 +194,7 @@
         "trail_atr": 0
       },
       "training_seed": {
-        "name": "AUTO_R8_SEED",
+        "name": "AUTO_R9_SEED",
         "horizon_hours": 0,
         "min_atr_pct": 0,
         "max_atr_pct": 0.02,
@@ -218,8 +218,8 @@
         "full_3y_stress_max_drawdown_pct": "31.23418215152703731176153883",
         "full_3y_stress_profit_per_position_hour": "0.02356117200006734006734006734"
       },
-      "training_seed_source_run": 133,
-      "training_seed_source_round": 8,
+      "training_seed_source_run": 134,
+      "training_seed_source_round": 9,
       "training_seed_selection_mode": "PROFIT_FIRST_TRAINING_SELECTION"
     }
   }
