@@ -1,3 +1,26 @@
+# OWNER METHODOLOGY OVERRIDE — isolated 15x250 first, shared 250 second
+
+This supersedes any older wording that treats isolated 10x250/15x250 as merely incidental diagnostics.
+
+**Phase A — per-market optimization laboratory**
+- Historical Core `10x250` means each of the ten Core markets is backtested/optimized independently with `250 USDC` each.
+- Exact-head f649 A02 reference for this laboratory: starting equity `2500 USDC`, baseline ending equity `8107.07268728784085 USDC`, stress ending equity `7597.1773394368352 USDC`.
+- Extend this same methodology to five primary Satellites: `SUIUSDC, NEARUSDC, UNIUSDC, AAVEUSDC, BCHUSDC`.
+- Therefore the research lab becomes `15x250`: ten protected Core profiles plus five independently optimized Satellite profiles.
+- Each Satellite may use its own parameters. Selection/adaptive evolution is training-only; Direct-USDC/validation may reject/freeze but never choose a new search direction.
+- `15x250` is NOT actual account capital and must never be reported as shared/live performance.
+
+**Phase B — actual product architecture**
+- Real/configured product remains one shared account with `250 USDC`.
+- The protected ten-Core bot is the primary earnings engine.
+- Validated Satellites are gap-fillers for otherwise idle/free Core capital.
+- ANY executable Core entry has absolute priority: close/yield active Satellite at the next executable open and allocate Core.
+- Final proof is Core-only shared 250 vs Core+Satellite shared 250 on like-for-like data/costs, including incremental PnL and idle-time reduction.
+- First validated local real trial remains 50 USDC; 1000 USDC is later scale validation.
+
+Current stage: `SATELLITE_ISOLATED_5X250_OPTIMIZATION`.
+New optimizer: `scripts/satellite_isolated_5x250_optimizer.py`, three adaptive training-led generations per Satellite on the canonical f649 three-year window.
+
 # CANONICAL CORE BASELINE — exact protected f649 evidence
 
 All agents, DOTs, controllers and future candidate validation must use this as the protected Core reference until a newer exact-head product validation explicitly supersedes it.
