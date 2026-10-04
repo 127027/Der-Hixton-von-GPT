@@ -1,11 +1,11 @@
 {
   "mode": "PROTECTED_V6_CORE_PLUS_CLEAN_SATELLITE_V1_RESEARCH",
   "bootstrap_complete": true,
-  "progress_percent": 35,
-  "current_focus": "Run unchanged V1/DMS_V1 entry semantics with training-selected 4/8/12h filler horizons across ten replacement USDC candidates in the real shared C=250 free-slot model; Direct-USDC rejects only.",
+  "progress_percent": 40,
+  "current_focus": "Dedicated small-signal/micro-filler research on SUI/NEAR/UNI/AAVE/BCH: smaller/faster entry signals, 2/6/12h max holds, strict Core-idle entry and unconditional Core preemption, shared C=250.",
   "last_indexed_commit": "f6497acf8d4d852aaac0b69878762fabb53155d4",
   "last_learning_round": 10,
-  "current_strategy": "Protected ten-Core product unchanged + V1-derived USDC Satellite seed/replacement discovery and free-capacity filler research",
+  "current_strategy": "Protected ten-Core primary engine + dedicated small-signal Core-idle Satellite filler layer",
   "current_reference": {
     "source_run_id": "35463131378",
     "isolated_10x250_baseline_usdc": "8217.00711069101365000000",
@@ -30,18 +30,18 @@
     "Binance public market-data endpoint availability and policy are external facts and must fail closed rather than trigger synthetic operational candles.",
     "Historical performance does not guarantee future profitability."
   ],
-  "notes": "Runs #66-#69 validated the exact-idle bridge and bounded horizon families but produced no promoted Satellite. Original SUI/NEAR/UNI/AAVE/BCH are seed candidates, not mandatory final choices. Universe replacement is now allowed after bounded rejection.",
+  "notes": "Run #74 completed successfully but found no robust survivor using the old V1-style replacement baseline. Do not keep searching more markets with the same weak filler logic. Next stage tests a dedicated smaller-signal family on the five primary Satellites.",
   "current_product": {
     "max_capital_source": "max_capital_usdc",
     "allocator_version": "CAPITAL-V1-2X50PCT",
     "default_max_capital_usdc": "250.00",
     "default_slot_count": 2,
     "default_target_notional_usdc": "125.00",
-    "status": "PROTECTED_CURRENT_PRODUCT_NOT_YET_10_PLUS_5"
+    "status": "PROTECTED_10_CORE_PRODUCT; SATELLITE_MICRO_FILLER_RESEARCH_NOT_PROMOTED"
   },
   "target_architecture": {
     "universe": "10 protected Core + 5 independently evolved V1-derived Satellites",
-    "current_stage": "SATELLITE_V1_REPLACEMENT_BASELINE",
+    "current_stage": "SATELLITE_MICRO_FILLER_RESEARCH",
     "satellites": [
       "SUIUSDC",
       "NEARUSDC",
@@ -62,7 +62,7 @@
       "AAVEUSDC",
       "BCHUSDC"
     ],
-    "seed_satellites_replaceable": true,
+    "seed_satellites_replaceable": false,
     "final_satellite_goal": 5,
     "entry_requires_genuinely_free_core_capacity": true,
     "materially_better_core_can_reclaim_filler": true,
@@ -77,6 +77,12 @@
       "INJUSDC",
       "HBARUSDC",
       "ICPUSDC"
-    ]
+    ],
+    "core_priority_absolute": true,
+    "any_executable_core_entry_preempts_satellite": true,
+    "entry_requires_core_engine_completely_idle": true,
+    "initial_real_trial_capital_usdc": "50",
+    "initial_configured_capital_usdc": "250",
+    "future_scale_usdc": "1000"
   }
 }
