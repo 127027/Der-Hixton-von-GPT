@@ -89,7 +89,7 @@
     "owner_core_active_fraction_approx": "0.10",
     "owner_core_idle_fraction_approx": "0.90",
     "owner_idle_fill_target_pct": "90",
-    "current_stage": "SATELLITE_V1_REPLACEMENT_UNIVERSE_DISCOVERY",
+    "current_stage": "SATELLITE_V1_REPLACEMENT_BASELINE",
     "per_market_independent_development": true,
     "final_shared_account_usdc": "250",
     "core_is_protected_primary_engine": true,
@@ -107,9 +107,21 @@
     "candidate_universe": "BINANCE_SPOT_USDC",
     "entry_requires_genuinely_free_core_capacity": true,
     "materially_better_core_may_reclaim_satellite": true,
-    "weak_core_signal_alone_forces_exit": false
+    "weak_core_signal_alone_forces_exit": false,
+    "active_replacement_candidates": [
+      "ALGOUSDC",
+      "ZECUSDC",
+      "LTCUSDC",
+      "WLDUSDC",
+      "FETUSDC",
+      "SANDUSDC",
+      "RUNEUSDC",
+      "INJUSDC",
+      "HBARUSDC",
+      "ICPUSDC"
+    ]
   },
-  "current_stage": "SATELLITE_V1_REPLACEMENT_UNIVERSE_DISCOVERY",
+  "current_stage": "SATELLITE_V1_REPLACEMENT_BASELINE",
   "capital_model": {
     "user_input": "max_capital_usdc",
     "reference_research_capital_usdc": "250.00",
@@ -122,6 +134,21 @@
     "run_69_head": "9314df9baeae1c907d98472823d2e7ccd3e4eaa4",
     "result": "SUCCESS_NO_SURVIVORS",
     "detail": "2/4/6h exact-full-Core-idle horizon family; UNI training winner 6h but direct-USDC rejected; SUI/NEAR/AAVE/BCH had no fully robust training horizon.",
-    "next": "Discover replacement USDC markets rather than endlessly retuning the same five."
+    "next": "Training-selected V1/DMS_V1 short-horizon free-capacity screen across all ten replacement candidates; Direct-USDC reject-only.",
+    "run_70": 37198769433,
+    "run_70_head": "736ee30f610f85044bb5476992ab81fd8606263c",
+    "run_70_result": "SUCCESS_10_NEW_ELIGIBLE_REPLACEMENTS",
+    "run_70_candidates": [
+      "ALGOUSDC",
+      "ZECUSDC",
+      "LTCUSDC",
+      "WLDUSDC",
+      "FETUSDC",
+      "SANDUSDC",
+      "RUNEUSDC",
+      "INJUSDC",
+      "HBARUSDC",
+      "ICPUSDC"
+    ]
   }
-}
+}\n

@@ -1,8 +1,8 @@
 {
   "mode": "PROTECTED_V6_CORE_PLUS_CLEAN_SATELLITE_V1_RESEARCH",
   "bootstrap_complete": true,
-  "progress_percent": 30,
-  "current_focus": "Run #69 produced no survivor. Discover replacement Binance Spot USDC markets, then test active candidates from V1/DMS_V1 against genuinely free shared-Core capacity with one C=250 account and Core reclaim.",
+  "progress_percent": 35,
+  "current_focus": "Run unchanged V1/DMS_V1 entry semantics with training-selected 4/8/12h filler horizons across ten replacement USDC candidates in the real shared C=250 free-slot model; Direct-USDC rejects only.",
   "last_indexed_commit": "f6497acf8d4d852aaac0b69878762fabb53155d4",
   "last_learning_round": 10,
   "current_strategy": "Protected ten-Core product unchanged + V1-derived USDC Satellite seed/replacement discovery and free-capacity filler research",
@@ -41,7 +41,7 @@
   },
   "target_architecture": {
     "universe": "10 protected Core + 5 independently evolved V1-derived Satellites",
-    "current_stage": "SATELLITE_V1_REPLACEMENT_UNIVERSE_DISCOVERY",
+    "current_stage": "SATELLITE_V1_REPLACEMENT_BASELINE",
     "satellites": [
       "SUIUSDC",
       "NEARUSDC",
@@ -65,6 +65,18 @@
     "seed_satellites_replaceable": true,
     "final_satellite_goal": 5,
     "entry_requires_genuinely_free_core_capacity": true,
-    "materially_better_core_can_reclaim_filler": true
+    "materially_better_core_can_reclaim_filler": true,
+    "active_replacement_candidates": [
+      "ALGOUSDC",
+      "ZECUSDC",
+      "LTCUSDC",
+      "WLDUSDC",
+      "FETUSDC",
+      "SANDUSDC",
+      "RUNEUSDC",
+      "INJUSDC",
+      "HBARUSDC",
+      "ICPUSDC"
+    ]
   }
-}
+}\n

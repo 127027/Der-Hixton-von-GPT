@@ -1,3 +1,11 @@
+\n## LIVE UPDATE — Run #70 replacement discovery
+
+- Run #70 / `37198769433` / `736ee30f610f85044bb5476992ab81fd8606263c` completed SUCCESS.
+- Ten new non-seed Binance Spot USDC markets passed point-in-time liquidity/history eligibility: ALGOUSDC, ZECUSDC, LTCUSDC, WLDUSDC, FETUSDC, SANDUSDC, RUNEUSDC, INJUSDC, HBARUSDC, ICPUSDC.
+- No strategy or holdout outcome selected these markets; this is eligibility only.
+- Next stage is `SATELLITE_V1_REPLACEMENT_BASELINE`: all ten are screened from unchanged V1/DMS_V1 entry semantics using training-selected short filler horizons in one shared C=250 free-slot model. Direct-USDC remains rejection-only.
+- This free-capacity model may use a spare slot while Core is under-deployed; the point-in-time router may reclaim filler capital for a materially superior Core opportunity. Weak Core signals do not win solely by label.
+
 # LIVE OVERRIDE — after Run #69 (2026-10-04)
 
 This section supersedes older stage/status statements below when they conflict.

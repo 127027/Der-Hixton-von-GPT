@@ -1,0 +1,70 @@
+{
+  "schema_version": 1,
+  "study": "SATELLITE_V1_REPLACEMENT_CANDIDATE_CHECKPOINT",
+  "source_discovery_run_id": 37198769433,
+  "source_discovery_run_number": 70,
+  "source_discovery_head_sha": "736ee30f610f85044bb5476992ab81fd8606263c",
+  "source_discovery_artifact_id": 11301802417,
+  "source_discovery_artifact_digest": "sha256:f8ba800997648b4bd3e7343ac5bac1a7de6226f72f5a9278695d93392ef6f3b3",
+  "protected_product_sha": "f6497acf8d4d852aaac0b69878762fabb53155d4",
+  "selection_basis": "Point-in-time Binance Spot USDC tradability, >=1M USDC 24h quote volume, sufficient three-year direct/proxy history and >=365 days real-USDC holdout availability. No holdout performance was used.",
+  "excluded_seed_symbols": [
+    "SUIUSDC",
+    "NEARUSDC",
+    "UNIUSDC",
+    "AAVEUSDC",
+    "BCHUSDC"
+  ],
+  "candidates": [
+    {
+      "symbol": "ALGOUSDC",
+      "history_source": "ALGOUSDC",
+      "direct_three_year_usdc_history": true
+    },
+    {
+      "symbol": "ZECUSDC",
+      "history_source": "ZECUSDC",
+      "direct_three_year_usdc_history": true
+    },
+    {
+      "symbol": "LTCUSDC",
+      "history_source": "LTCUSDC",
+      "direct_three_year_usdc_history": true
+    },
+    {
+      "symbol": "WLDUSDC",
+      "history_source": "WLDUSDT",
+      "direct_three_year_usdc_history": false
+    },
+    {
+      "symbol": "FETUSDC",
+      "history_source": "FETUSDT",
+      "direct_three_year_usdc_history": false
+    },
+    {
+      "symbol": "SANDUSDC",
+      "history_source": "SANDUSDT",
+      "direct_three_year_usdc_history": false
+    },
+    {
+      "symbol": "RUNEUSDC",
+      "history_source": "RUNEUSDT",
+      "direct_three_year_usdc_history": false
+    },
+    {
+      "symbol": "INJUSDC",
+      "history_source": "INJUSDT",
+      "direct_three_year_usdc_history": false
+    },
+    {
+      "symbol": "HBARUSDC",
+      "history_source": "HBARUSDT",
+      "direct_three_year_usdc_history": false
+    },
+    {
+      "symbol": "ICPUSDC",
+      "history_source": "ICPUSDT",
+      "direct_three_year_usdc_history": false
+    }
+  ]
+}\n

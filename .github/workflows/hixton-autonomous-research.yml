@@ -134,6 +134,9 @@ jobs:
       - name: Replacement Binance USDC Satellite universe discovery
         if: steps.stage.outputs.priority_stage == 'SATELLITE_V1_REPLACEMENT_UNIVERSE_DISCOVERY'
         run: python -m scripts.satellite_universe_discovery
+      - name: Replacement Satellite V1 free-capacity baseline
+        if: steps.stage.outputs.priority_stage == 'SATELLITE_V1_REPLACEMENT_BASELINE'
+        run: python -m scripts.satellite_v1_replacement_baseline
       - name: Step 5 shared 10-core + frozen-satellite portfolio research
         if: steps.stage.outputs.priority_stage == 'STEP5_SHARED_10_PLUS_SATELLITE_PORTFOLIO'
         run: python -m scripts.satellite_shared_portfolio_research
