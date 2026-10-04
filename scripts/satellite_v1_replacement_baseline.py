@@ -15,6 +15,7 @@ from __future__ import annotations
 
 import json
 from dataclasses import asdict
+from datetime import timedelta
 from decimal import Decimal
 from pathlib import Path
 from typing import Any
@@ -26,10 +27,12 @@ from hixton.backtest.models import (
     PortfolioBacktestResult,
     SignalAction,
 )
-from hixton.data.binance import BinancePublicClient
+from hixton.data.binance import BinanceApiError, BinancePublicClient
+from hixton.data.quality import audit_candles
 from hixton.domain.capital import capital_plan
 from hixton.domain.trade_policy import TradePolicy
 from hixton.domain.versions import V1_STRATEGY, V6_COIN_STRATEGY
+from hixton.runtime.supervisor import safe_closed_window
 from scripts.satellite_filler_router_research import (
     RouterConfig,
     run_filler_router_portfolio,
@@ -53,6 +56,73 @@ def _load(path: Path) -> dict[str, Any]:
 
 def _d(value: object) -> D:
     return D(str(value))
+
+
+def _resolve_training_sources(
+    client: BinancePublicClient,
+    rows: list[dict[str, Any]],
+) -> tuple[dict[str, str], dict[str, dict[str, object]]]:
+    """Fail closed on discontinuous direct-USDC history and fall back to USDT proxy.
+
+    Universe discovery's first-available check proves age, not continuity. Some
+    Binance USDC markets have an old prefix plus a later relisting, so a first candle
+    can look three-year eligible while the required window still contains a long gap.
+    This preflight audits continuity before research. It never uses performance or
+    holdout outcomes to choose a source.
+    """
+
+    _warmup_start, report_start, report_end = safe_closed_window()
+    full_warmup_start = report_start - timedelta(hours=400)
+    resolved: dict[str, str] = {}
+    details: dict[str, dict[str, object]] = {}
+
+    for row in rows:
+        symbol = str(row["symbol"])
+        configured = str(row["history_source"])
+        chosen = configured
+        fallback_reason: str | None = None
+
+        if configured == symbol:
+            try:
+                direct = client.fetch_klines(
+                    symbol,
+                    start=full_warmup_start,
+                    end_exclusive=report_end,
+                )
+                audit_candles(
+                    direct,
+                    expected_symbol=symbol,
+                    expected_start=full_warmup_start,
+                    expected_end_exclusive=report_end,
+                ).require_valid()
+            except (BinanceApiError, ValueError) as exc:
+                proxy = f"{symbol[:-4]}USDT"
+                proxy_candles = client.fetch_klines(
+                    proxy,
+                    start=full_warmup_start,
+                    end_exclusive=report_end,
+                )
+                audit_candles(
+                    proxy_candles,
+                    expected_symbol=proxy,
+                    expected_start=full_warmup_start,
+                    expected_end_exclusive=report_end,
+                ).require_valid()
+                chosen = proxy
+                fallback_reason = (
+                    "DIRECT_USDC_HISTORY_NOT_CONTIGUOUS; "
+                    f"fallback_to_proxy_without_performance_selection: {exc}"
+                )
+
+        resolved[symbol] = chosen
+        details[symbol] = {
+            "configured_source": configured,
+            "resolved_training_source": chosen,
+            "fallback_used": chosen != configured,
+            "fallback_reason": fallback_reason,
+        }
+
+    return resolved, details
 
 
 def _occupied_slot_hours(
@@ -148,18 +218,18 @@ def main() -> None:
     if not isinstance(rows, list) or not rows:
         raise RuntimeError("replacement checkpoint has no candidates")
 
-    satellite_sources = {
-        str(row["symbol"]): str(row["history_source"])
-        for row in rows
-        if isinstance(row, dict)
-    }
-    satellites = tuple(satellite_sources)
-    if len(satellites) != len(rows):
+    typed_rows = [row for row in rows if isinstance(row, dict)]
+    if len(typed_rows) != len(rows):
         raise RuntimeError("malformed replacement candidate checkpoint")
 
     core_symbols = V6_COIN_STRATEGY.symbols
+    satellites = tuple(str(row["symbol"]) for row in typed_rows)
     all_symbols = core_symbols + satellites
     client = BinancePublicClient(base_url="https://data-api.binance.vision")
+    satellite_sources, source_resolution = _resolve_training_sources(
+        client,
+        typed_rows,
+    )
     rules = _rules(client, all_symbols)
     (
         report_start,
@@ -367,6 +437,7 @@ def main() -> None:
         "capital_plan": asdict(plan),
         "tested_replacement_candidates": list(satellites),
         "horizon_family_hours": list(HORIZONS),
+        "training_source_resolution": source_resolution,
         "selection_contract": {
             "unchanged_v1_entry_semantics": True,
             "training_may_select_horizon": True,
