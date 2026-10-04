@@ -1,9 +1,8 @@
 {
-  "cycle": "satellite-step5-2026-10-03",
-  "timestamp_utc": "2026-10-03T19:15:00Z",
-  "reason": "step4_completed_and_system_audit_repaired_stale_orchestration",
-  "current_stage": "STEP5_SHARED_10_PLUS_SATELLITE_PORTFOLIO",
-  "step4_source_run_id": 37140989998,
+  "cycle": "satellite-v1-cleanstart-2026-10-04",
+  "timestamp_utc": "2026-10-04T07:50:00Z",
+  "reason": "owner_reset_v6_satellite_copy_and_requested_five_market_v1_redevelopment_for_core_idle_fill",
+  "current_stage": "SATELLITE_V1_BASELINE",
   "frozen_satellite_pool": [
     "SUIUSDC",
     "NEARUSDC",
@@ -12,24 +11,25 @@
     "BCHUSDC"
   ],
   "next_focus": [
-    "run the dedicated shared one-account-C Step-5 portfolio research before unrelated legacy loops",
-    "require positive marginal baseline and stress ending equity, lower zero-position time, and positive realized completed-trade PnL for an added Satellite",
-    "measure Core NO_FREE_SLOT displacement so Step 7 can later implement opportunity-aware HOLD/SWITCH/TRIM",
-    "if Step 5 passes, advance to Step 6 robustness without rerunning frozen Step 4",
-    "if all frozen Satellites fail, record exact reasons and reopen D19 hypothesis/discovery rather than repeating the same screen"
+    "run unchanged original V1/DMS_V1 on all five over exact three-year proxy and one-year direct-USDC rejection-only window",
+    "quantify trade count, signal count, after-cost PnL, drawdown, active time, holding duration and profit per occupied hour per market",
+    "measure five-market union opportunity coverage versus the owner ~90% Core-idle opportunity pool",
+    "after baseline, diagnose and evolve each Satellite independently from V1 rather than borrowing Core V6 templates",
+    "after individual development, intersect opportunities with exact protected Core idle hours and run one shared 250-USDC Core+Satellite replay"
   ],
   "constraints": {
     "protected_engineering_branch": "gpt/usdc-audit",
     "protected_product_head": "f6497acf8d4d852aaac0b69878762fabb53155d4",
-    "user_capital_source": "max_capital_usdc",
+    "satellite_base_strategy": "V1_STRATEGY",
+    "satellite_base_semantics": "DMS_V1",
+    "core_v6_profiles_as_satellite_seed": false,
     "reference_research_capital_usdc": "250.00",
-    "isolated_15xC_is_diagnostic_only": true,
-    "shared_portfolio_C_is_actual_account": true,
-    "core_priority_absolute": false,
-    "fixed_absolute_usdc_switch_thresholds_forbidden": true,
+    "final_shared_account_C": true,
+    "training_only_selection": true,
+    "holdout_rejection_only": true,
+    "private_binance_credentials_in_cloud": false,
     "paper_live_activation": false,
     "real_orders": false,
-    "testnet_orders": false,
-    "private_binance_credentials_in_cloud": false
+    "testnet_orders": false
   }
 }
