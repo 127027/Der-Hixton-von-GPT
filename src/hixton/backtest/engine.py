@@ -254,11 +254,20 @@ def run_single_backtest(
         point = strategy.update(candle)
         if open_trade is not None:
             open_trade.highest_close = max(open_trade.highest_close, candle.close)
+        holding_bars = (
+            int(
+                (candle.close_time_utc - open_trade.fill.fill_time_utc).total_seconds()
+                // TIMEFRAME_DELTA.total_seconds()
+            )
+            if open_trade is not None
+            else 0
+        )
         decision = policy_gate.decide(
             point,
             entry_price=float(open_trade.fill.fill_price) if open_trade else None,
             entry_atr=open_trade.signal.atr if open_trade else 0.0,
             highest_close=open_trade.highest_close if open_trade else 0.0,
+            holding_bars=holding_bars,
         )
         if not in_report:
             continue
