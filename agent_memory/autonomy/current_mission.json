@@ -89,7 +89,7 @@
     "owner_core_active_fraction_approx": "0.10",
     "owner_core_idle_fraction_approx": "0.90",
     "owner_idle_fill_target_pct": "90",
-    "current_stage": "SATELLITE_ISOLATED_5X250_NEEDS_NEW_CAUSAL_FAMILY",
+    "current_stage": "SATELLITE_ISOLATED_5X250_REGIME_REENTRY_REFINEMENT",
     "per_market_independent_development": true,
     "final_shared_account_usdc": "250",
     "core_is_protected_primary_engine": true,
@@ -135,7 +135,7 @@
     "initial_configured_capital_usdc": "250",
     "future_scale_after_clean_month_usdc": "1000"
   },
-  "current_stage": "SATELLITE_ISOLATED_5X250_NEEDS_NEW_CAUSAL_FAMILY",
+  "current_stage": "SATELLITE_ISOLATED_5X250_REGIME_REENTRY_REFINEMENT",
   "capital_model": {
     "user_input": "max_capital_usdc",
     "reference_research_capital_usdc": "250.00",
@@ -540,6 +540,11 @@
           "validation_stress_net_pnl": "-58.432709922100000"
         }
       }
+    },
+    "after_run_109": {
+      "result": "NO_ECONOMIC_PROGRESS_HOLDING_FAMILY_EXHAUSTED",
+      "diagnosis": "Runs #104-#108 were technically successful but produced no validated per-symbol economic improvement. The holding/CMO/slope/stop-trail family is exhausted.",
+      "next": "Run one materially different point-in-time regime + pullback-reentry family. Preserve validated incumbents separately from training seeds."
     }
   },
   "canonical_core_baseline": {
@@ -592,6 +597,9 @@
     "transactional_build_lock_required": true,
     "success_without_next_run_is_handoff_stall": true,
     "autonomous_holding_rounds": 6,
-    "current_holding_round": 1
+    "current_holding_round": 1,
+    "requires_patch_before_next_run": true,
+    "green_run_is_not_economic_progress": true,
+    "validated_incumbent_separate_from_training_seed": true
   }
 }
