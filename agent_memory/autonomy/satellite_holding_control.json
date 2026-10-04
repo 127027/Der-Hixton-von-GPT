@@ -1,0 +1,19 @@
+{
+  "schema_version": 1,
+  "round": 1,
+  "max_rounds": 6,
+  "stage": "SATELLITE_ISOLATED_5X250_HOLDING_REFINEMENT",
+  "objective": "Shorten occupancy and increase usable profitable opportunities while preserving after-cost robustness. Each round is training-selected only; Direct-USDC/full-window validation may reject but never steer the next round.",
+  "round_families": {
+    "1": "broad max-hold 24/48/72/120/168 plus bounded ATR stop/trail overlays",
+    "2": "short max-hold 6/12/18/24/36/48 with finer ATR stop/trail",
+    "3": "local CMO refinement around the current training champion plus max-hold",
+    "4": "slope 0/24/72 refinement around the current training champion plus max-hold",
+    "5": "combined stop+trail refinement around the current training champion",
+    "6": "final short-occupancy consolidation around current training champion"
+  },
+  "stop_conditions": {
+    "all_five_mature": true,
+    "max_rounds_reached": true
+  }
+}
