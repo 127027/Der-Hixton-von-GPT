@@ -89,7 +89,7 @@
     "owner_core_active_fraction_approx": "0.10",
     "owner_core_idle_fraction_approx": "0.90",
     "owner_idle_fill_target_pct": "90",
-    "current_stage": "SATELLITE_ISOLATED_5X250_POST114_TARGETED_REFINEMENT",
+    "current_stage": "SATELLITE_ISOLATED_5X250_ADAPTIVE_CYCLE",
     "per_market_independent_development": true,
     "final_shared_account_usdc": "250",
     "core_is_protected_primary_engine": true,
@@ -135,7 +135,7 @@
     "initial_configured_capital_usdc": "250",
     "future_scale_after_clean_month_usdc": "1000"
   },
-  "current_stage": "SATELLITE_ISOLATED_5X250_POST114_TARGETED_REFINEMENT",
+  "current_stage": "SATELLITE_ISOLATED_5X250_ADAPTIVE_CYCLE",
   "capital_model": {
     "user_input": "max_capital_usdc",
     "reference_research_capital_usdc": "250.00",
@@ -557,6 +557,14 @@
         "NEARUSDC"
       ],
       "next": "Targeted local refinement around Run #114 training winners; preserve validated incumbents; use upper-band reentry only for UNI."
+    },
+    "run_119": {
+      "result": "ECONOMIC_PROGRESS",
+      "improved_symbols": [
+        "SUIUSDC"
+      ],
+      "summary": "SUI improved materially; NEAR frozen mature; UNI/AAVE/BCH unchanged. Persistent adaptive 24-family cycle built for autonomous continuation.",
+      "next": "Adaptive round 1: targeted reentry for SUI/UNI and trend-health exits for AAVE/BCH; training-only seed selection; validation rejection-only."
     }
   },
   "canonical_core_baseline": {
@@ -612,6 +620,9 @@
     "current_holding_round": 1,
     "requires_patch_before_next_run": true,
     "green_run_is_not_economic_progress": true,
-    "validated_incumbent_separate_from_training_seed": true
+    "validated_incumbent_separate_from_training_seed": true,
+    "persistent_adaptive_cycle": true,
+    "adaptive_round_count": 24,
+    "next_run_requires_completed_handoff": true
   }
 }
