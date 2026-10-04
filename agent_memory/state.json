@@ -2,7 +2,7 @@
   "mode": "V6_PRODUCT_PLUS_SATELLITE_RESEARCH",
   "bootstrap_complete": true,
   "progress_percent": 55,
-  "current_focus": "SWARM-004 / Step 5: shared 10-Core + frozen Satellite portfolio evidence using one configured account C. Step 4 passed for SUI, NEAR, UNI, AAVE and BCH; product remains protected ten-core until full promotion.",
+  "current_focus": "SWARM-004 / Step 5B: strict short-horizon Core-idle-only Satellite filler repair after Run #61 selected no Satellite. Satellites may enter only when the Core engine has no open position; stronger later Core opportunities may reclaim Satellite capacity.",
   "last_indexed_commit": "f6497acf8d4d852aaac0b69878762fabb53155d4",
   "last_learning_round": 6,
   "current_strategy": "Protected V6 ten-core product plus research-only frozen Step-4 Satellite profiles",
@@ -41,7 +41,7 @@
   },
   "target_architecture": {
     "universe": "10 Core + up to 5 validated Satellites",
-    "current_stage": "STEP5_SHARED_PORTFOLIO",
+    "current_stage": "STEP5B_CORE_IDLE_ONLY_FILLER_REPAIR",
     "step4_advancing_symbols": [
       "SUIUSDC",
       "NEARUSDC",
