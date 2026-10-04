@@ -1,10 +1,8 @@
 {
   "schema_version": 1,
-  "locked": false,
-  "reason": "technical self-heal after Run #124: RUN DELTA issue comment permission blocked dispatch",
-  "started_from_head": "865421a",
-  "contract": "Do not run substantive round 2 until issue-report failure is made non-blocking and dispatch is verified under lock.",
-  "unlock_contract": "This unlock triggers adaptive round 2. Do not manually advance its handoff; verify it self-persists and self-dispatches round 3.",
-  "completed_head": "1afa87f7dd50c55b20b51f6345fe32d411a2e1db",
-  "completed_reason": "Run #124 failure isolated to optional Issue comment; workflow now has issues:write, reporting is continue-on-error, and dispatch uses always(). Contract-only Run #126 verified the repair. Adaptive state already persisted round 1 and is ready for round 2."
+  "locked": true,
+  "reason": "Run #149 / adaptive round 24 exhausted the predeclared adaptive family queue with NO_ECONOMIC_PROGRESS; transactional lock set before constructing a genuinely new causal family.",
+  "started_from_head": "f304eb4a10c4f88cdaf789a7ab21cf82bbcc83f0",
+  "contract": "Do not dispatch/retry substantive research or mutate strategy opportunistically while the new post-round-24 causal family is being designed and wired. Preserve VALIDATED_INCUMBENTs; TRAINING_RESEARCH_SEED remains separate; NEAR mature incumbent frozen.",
+  "unlock_contract": "Unlock only after one coherent HEAD contains the new materially different point-in-time family, real workflow/stage handler wiring, py_compile/static contract checks and artifact paths, with no gate/economic weakening. Final explicit unlock may trigger exactly one substantive run."
 }
