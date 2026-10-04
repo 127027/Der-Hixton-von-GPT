@@ -91,7 +91,7 @@
     "owner_core_active_fraction_approx": "0.10",
     "owner_core_idle_fraction_approx": "0.90",
     "owner_idle_fill_target_pct": "90",
-    "current_stage": "SATELLITE_MICRO_FILLER_SIGNAL_CENSUS",
+    "current_stage": "SATELLITE_MICRO_HARVEST_FIXED_EXIT_FAMILY",
     "per_market_independent_development": true,
     "final_shared_account_usdc": "250",
     "core_is_protected_primary_engine": true,
@@ -137,7 +137,7 @@
     "initial_configured_capital_usdc": "250",
     "future_scale_after_clean_month_usdc": "1000"
   },
-  "current_stage": "SATELLITE_MICRO_FILLER_SIGNAL_CENSUS",
+  "current_stage": "SATELLITE_MICRO_HARVEST_FIXED_EXIT_FAMILY",
   "capital_model": {
     "user_input": "max_capital_usdc",
     "reference_research_capital_usdc": "250.00",
@@ -150,7 +150,7 @@
     "run_69_head": "9314df9baeae1c907d98472823d2e7ccd3e4eaa4",
     "result": "SUCCESS_NO_SURVIVORS",
     "detail": "2/4/6h exact-full-Core-idle horizon family; UNI training winner 6h but direct-USDC rejected; SUI/NEAR/AAVE/BCH had no fully robust training horizon.",
-    "next": "Run TRAINING-only micro-signal first-touch census on SUI/NEAR/UNI/AAVE/BCH using unchanged V1/DMS_V1 flip-up signals, next-open entry, 2/4/6/12h horizons and symmetric 0.25/0.50/0.75/1.00% target/stop labels. Freeze one materially different fixed-exit micro-harvest family from training only, then validate in exact Core-idle shared-C with Direct-USDC rejection-only.",
+    "next": "Run bounded asymmetric TP/SL/horizon family on all five primary Satellites using unchanged V1 entry signals. Require positive TRAINING PnL under baseline and stress; Direct-USDC holdout can only reject the frozen winner.",
     "run_70": 37198769433,
     "run_70_head": "736ee30f610f85044bb5476992ab81fd8606263c",
     "run_70_result": "SUCCESS_10_NEW_ELIGIBLE_REPLACEMENTS",
@@ -174,7 +174,11 @@
     "run_79": 37206922957,
     "run_79_result": "DUPLICATE_SUCCESS_NO_SURVIVORS",
     "run_79_duplicate_of_run_78": true,
-    "run_79_artifact_sha256": "9628b67cd381e53b112e9b4f693097ca7ff725ff3da0d378e6d0aba6a6ef70f4"
+    "run_79_artifact_sha256": "9628b67cd381e53b112e9b4f693097ca7ff725ff3da0d378e6d0aba6a6ef70f4",
+    "run_82": 37209106749,
+    "run_82_result": "SUCCESS_TRAINING_SIGNAL_CENSUS",
+    "run_82_training_flip_up_signals": 2333,
+    "run_82_best_simple_pattern": "NEARUSDC 4h +1.00/-1.00: 217 UP_FIRST vs 184 DOWN_FIRST, 54.1147% decisive win rate; direction edge exists but symmetric after-cost expectation remains negative."
   },
   "canonical_core_baseline": {
     "status": "PROTECTED_AND_VALIDATED",
