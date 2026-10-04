@@ -246,10 +246,152 @@ def _variants(symbol: str, seed: AdaptiveSpec, round_no: int) -> tuple[AdaptiveS
                 for direction in directions:
                     rows.append(_with(
                         seed,
-                        f"FINAL_R{level}_E{exit_threshold}_D{direction or 'ANY'}",
+                        f"CONSOLIDATE_R{level}_E{exit_threshold}_D{direction or 'ANY'}",
                         reentry_atr_level=level,
                         trend_health_exit=exit_threshold,
                         atr_direction=direction,
+                    ))
+
+    elif round_no == 13:
+        for breakout in (0.05, 0.10, 0.20, 0.30):
+            for level in (0.25, 0.50, 0.75):
+                rows.append(_with(
+                    seed,
+                    f"BREAKOUT_{breakout:.2f}_REENTRY_{level:.2f}",
+                    min_breakout_atr=breakout,
+                    reentry_atr_level=level,
+                ))
+
+    elif round_no == 14:
+        base_max = seed.max_atr_pct if seed.max_atr_pct < 0.9 else 0.03
+        for mult in (0.75, 0.90, 1.0, 1.10, 1.25):
+            for level in (0.25, 0.50, 0.75):
+                rows.append(_with(
+                    seed,
+                    f"VOL_{mult:.2f}_REENTRY_{level:.2f}",
+                    max_atr_pct=_clamp(base_max * mult, 0.008, 0.08),
+                    reentry_atr_level=level,
+                ))
+
+    elif round_no == 15:
+        base_min = seed.min_trend_atr if seed.min_trend_atr > -100 else 0.0
+        for lo in sorted({_clamp(base_min + shift, -0.25, 1.5) for shift in (-0.25, 0.0, 0.25, 0.50)}):
+            for hi in (1.5, 2.0, 2.5, 3.5):
+                if lo < hi:
+                    for level in (0.25, 0.50, 0.75):
+                        rows.append(_with(
+                            seed,
+                            f"TREND_{lo:.2f}_{hi:.2f}_REENTRY_{level:.2f}",
+                            min_trend_atr=lo,
+                            max_trend_atr=hi,
+                            reentry_atr_level=level,
+                        ))
+
+    elif round_no == 16:
+        for cmo in (0.05, 0.10, 0.15, 0.20, 0.30):
+            for level in (0.25, 0.50, 0.75):
+                rows.append(_with(
+                    seed,
+                    f"CMO_{cmo:.2f}_REENTRY_{level:.2f}",
+                    min_abs_cmo=cmo,
+                    reentry_atr_level=level,
+                ))
+
+    elif round_no == 17:
+        for breakout in (0.05, 0.10, 0.20, 0.30):
+            for threshold in (-0.50, -0.25, 0.0, 0.25):
+                rows.append(_with(
+                    seed,
+                    f"BREAKOUT_{breakout:.2f}_EXIT_{threshold:+.2f}",
+                    min_breakout_atr=breakout,
+                    trend_health_exit=threshold,
+                ))
+
+    elif round_no == 18:
+        base_max = seed.max_atr_pct if seed.max_atr_pct < 0.9 else 0.03
+        for mult in (0.75, 0.90, 1.0, 1.10, 1.25):
+            for threshold in (-0.50, -0.25, 0.0, 0.25):
+                rows.append(_with(
+                    seed,
+                    f"VOL_{mult:.2f}_EXIT_{threshold:+.2f}",
+                    max_atr_pct=_clamp(base_max * mult, 0.008, 0.08),
+                    trend_health_exit=threshold,
+                ))
+
+    elif round_no == 19:
+        base_min = seed.min_trend_atr if seed.min_trend_atr > -100 else 0.0
+        for lo in sorted({_clamp(base_min + shift, -0.25, 1.5) for shift in (-0.25, 0.0, 0.25)}):
+            for hi in (1.5, 2.0, 2.5, 3.5):
+                if lo < hi:
+                    for threshold in (-0.25, 0.0, 0.25):
+                        rows.append(_with(
+                            seed,
+                            f"TREND_{lo:.2f}_{hi:.2f}_EXIT_{threshold:+.2f}",
+                            min_trend_atr=lo,
+                            max_trend_atr=hi,
+                            trend_health_exit=threshold,
+                        ))
+
+    elif round_no == 20:
+        for cmo in (0.05, 0.10, 0.15, 0.20, 0.30):
+            for threshold in (-0.50, -0.25, 0.0, 0.25):
+                rows.append(_with(
+                    seed,
+                    f"CMO_{cmo:.2f}_EXIT_{threshold:+.2f}",
+                    min_abs_cmo=cmo,
+                    trend_health_exit=threshold,
+                ))
+
+    elif round_no == 21:
+        for direction in ("EXPANDING", "CONTRACTING"):
+            for breakout in (0.05, 0.10, 0.20, 0.30):
+                rows.append(_with(
+                    seed,
+                    f"ATR_{direction}_BREAKOUT_{breakout:.2f}",
+                    atr_direction=direction,
+                    min_breakout_atr=breakout,
+                ))
+
+    elif round_no == 22:
+        for direction in ("EXPANDING", "CONTRACTING"):
+            for cmo in (0.05, 0.10, 0.15, 0.20, 0.30):
+                rows.append(_with(
+                    seed,
+                    f"ATR_{direction}_CMO_{cmo:.2f}",
+                    atr_direction=direction,
+                    min_abs_cmo=cmo,
+                ))
+
+    elif round_no == 23:
+        for hold in (24, 48, 72, 120):
+            for level in (0.50, 0.75):
+                for threshold in (-0.25, 0.0):
+                    rows.append(_with(
+                        seed,
+                        f"H{hold}_R{level:.2f}_E{threshold:+.2f}",
+                        horizon_hours=hold,
+                        reentry_atr_level=level,
+                        trend_health_exit=threshold,
+                    ))
+
+    elif round_no == 24:
+        base_max = seed.max_atr_pct if seed.max_atr_pct < 0.9 else 0.03
+        max_atrs = sorted({
+            _clamp(base_max * 0.90, 0.008, 0.08),
+            _clamp(base_max, 0.008, 0.08),
+            _clamp(base_max * 1.10, 0.008, 0.08),
+        })
+        reentries = [seed.reentry_atr_level, 0.50]
+        exits = [seed.trend_health_exit, 0.0]
+        for max_atr in max_atrs:
+            for level in reentries:
+                for threshold in exits:
+                    rows.append(_with(
+                        seed,
+                        f"FINAL_PARETO_V{max_atr:.4f}_R{level}_E{threshold}",
+                        max_atr_pct=max_atr,
+                        reentry_atr_level=level,
+                        trend_health_exit=threshold,
                     ))
     else:
         raise RuntimeError(f"unsupported adaptive round {round_no}")
