@@ -16,6 +16,7 @@ on:
       - "agent_memory/autonomy/satellite_step4_checkpoint.json"
       - "agent_memory/autonomy/satellite_v1_candidates.json"
       - "agent_memory/autonomy/satellite_v1_idle_horizon_sources.json"
+      - "agent_memory/autonomy/satellite_v1_replacement_candidates.json"
       - "scripts/autonomous_research_supervisor.py"
       - "scripts/baseline_freshness_guard.py"
       - "scripts/autonomous_red_team.py"
@@ -29,6 +30,7 @@ on:
       - "scripts/satellite_v1_shared_core_idle_replay.py"
       - "scripts/satellite_v1_second_bounded_evolution.py"
       - "scripts/satellite_v1_idle_horizon_research.py"
+      - "scripts/satellite_v1_replacement_baseline.py"
       - "scripts/satellite_shared_portfolio_research.py"
       - "scripts/satellite_filler_router_research.py"
       - "scripts/engineering_candidate_builder.py"
@@ -75,6 +77,7 @@ jobs:
             scripts/satellite_v1_shared_core_idle_replay.py \
             scripts/satellite_v1_second_bounded_evolution.py \
             scripts/satellite_v1_idle_horizon_research.py \
+            scripts/satellite_v1_replacement_baseline.py \
             scripts/satellite_shared_portfolio_research.py \
             scripts/satellite_filler_router_research.py \
             scripts/engineering_candidate_builder.py \
@@ -227,6 +230,7 @@ jobs:
             evidence/satellite-v1-shared-core-idle-replay.json
             evidence/satellite-v1-second-bounded-evolution.json
             evidence/satellite-v1-idle-horizon-research.json
+            evidence/satellite-v1-replacement-baseline.json
             evidence/satellite-strategy-research.json
             evidence/satellite-shared-portfolio-research.json
             evidence/satellite-filler-router-research.json

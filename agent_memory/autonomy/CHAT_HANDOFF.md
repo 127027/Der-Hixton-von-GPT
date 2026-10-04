@@ -1,4 +1,4 @@
-\n## LIVE UPDATE — Run #70 replacement discovery
+## LIVE UPDATE — Run #70 replacement discovery
 
 - Run #70 / `37198769433` / `736ee30f610f85044bb5476992ab81fd8606263c` completed SUCCESS.
 - Ten new non-seed Binance Spot USDC markets passed point-in-time liquidity/history eligibility: ALGOUSDC, ZECUSDC, LTCUSDC, WLDUSDC, FETUSDC, SANDUSDC, RUNEUSDC, INJUSDC, HBARUSDC, ICPUSDC.
