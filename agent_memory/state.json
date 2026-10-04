@@ -1,11 +1,11 @@
 {
-  "mode": "V6_PRODUCT_PLUS_SATELLITE_RESEARCH",
+  "mode": "PROTECTED_V6_CORE_PLUS_CLEAN_SATELLITE_V1_RESEARCH",
   "bootstrap_complete": true,
-  "progress_percent": 55,
-  "current_focus": "SWARM-004 / Step 5B: strict short-horizon Core-idle-only Satellite filler repair after Run #61 selected no Satellite. Satellites may enter only when the Core engine has no open position; stronger later Core opportunities may reclaim Satellite capacity.",
+  "progress_percent": 5,
+  "current_focus": "Clean reset: run original Hixton V1/DMS_V1 unchanged on SUIUSDC, NEARUSDC, UNIUSDC, AAVEUSDC and BCHUSDC, quantify trade quality/holding/coverage, then evolve each market separately to fill protected Core idle time.",
   "last_indexed_commit": "f6497acf8d4d852aaac0b69878762fabb53155d4",
-  "last_learning_round": 6,
-  "current_strategy": "Protected V6 ten-core product plus research-only frozen Step-4 Satellite profiles",
+  "last_learning_round": 7,
+  "current_strategy": "Protected validated ten-Core product unchanged + research-only clean Satellite V1 baseline",
   "current_reference": {
     "source_run_id": "35463131378",
     "isolated_10x250_baseline_usdc": "8217.00711069101365000000",
@@ -30,7 +30,7 @@
     "Binance public market-data endpoint availability and policy are external facts and must fail closed rather than trigger synthetic operational candles.",
     "Historical performance does not guarantee future profitability."
   ],
-  "notes": "Protected product is still the validated ten-core V6 baseline. Step-4 Satellite profiles are frozen research evidence. Cloud agents remain key-free/order-free; no automatic Paper/Live activation.",
+  "notes": "Previous V6-derived Satellite Step-4 profiles are retained only as historical evidence/history-source lookup and are invalidated as strategy seeds. New Satellite work begins from V1_STRATEGY/DMS_V1.",
   "current_product": {
     "max_capital_source": "max_capital_usdc",
     "allocator_version": "CAPITAL-V1-2X50PCT",
@@ -40,24 +40,20 @@
     "status": "PROTECTED_CURRENT_PRODUCT_NOT_YET_10_PLUS_5"
   },
   "target_architecture": {
-    "universe": "10 Core + up to 5 validated Satellites",
-    "current_stage": "STEP5B_CORE_IDLE_ONLY_FILLER_REPAIR",
-    "step4_advancing_symbols": [
+    "universe": "10 protected Core + 5 independently evolved V1-derived Satellites",
+    "current_stage": "SATELLITE_V1_BASELINE",
+    "satellites": [
       "SUIUSDC",
       "NEARUSDC",
       "UNIUSDC",
       "AAVEUSDC",
       "BCHUSDC"
     ],
-    "single_user_capital_input": "max_capital_usdc",
-    "dynamic_allocator_required": true,
-    "representative_scale_usdc": [
-      "50",
-      "250",
-      "1000",
-      "5000",
-      "20000+"
-    ],
-    "router": "point-in-time HOLD/SWITCH/TRIM after normalized costs/risk/time/uncertainty"
+    "owner_core_active_fraction_approx": "0.10",
+    "owner_core_idle_fraction_approx": "0.90",
+    "target_idle_fill_pct": "90",
+    "final_shared_capital_usdc": "250",
+    "core_product_must_not_regress": true,
+    "per_market_independent_v1_evolution": true
   }
 }
