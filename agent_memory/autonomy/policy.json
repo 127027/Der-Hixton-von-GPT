@@ -5,7 +5,7 @@
   "objective": {
     "capital_usdc": "CONFIGURED_C",
     "symbols": "10_CORE_PLUS_UP_TO_5_VALIDATED_SATELLITES",
-    "primary": "Protect the validated ten-Core engine and develop five dedicated V1-derived Satellite strategies that robustly monetize as much as possible of the approximately 90% Core-idle opportunity pool in one shared configured capital C.",
+    "primary": "Protect the validated ten-Core engine as the primary earnings source and develop a secondary short-duration small-signal Satellite layer for complete Core-idle periods.",
     "secondary": "Increase profitable Core-idle coverage, completed genuine Satellite cycles and profit per occupied hour while reducing Satellite holding time and avoiding any Core regression.",
     "never_optimize_for": [
       "headline trade count alone",
@@ -16,16 +16,14 @@
     "future_readiness": "prefer mechanisms that survive plausible unseen regimes, execution degradation and newly arriving data over mechanisms that maximize historical fit"
   },
   "allowed_research": [
-    "unchanged original V1/DMS_V1 baseline on SUI/NEAR/UNI/AAVE/BCH",
-    "bounded per-market V1 parameter evolution",
-    "bounded per-market V1 exit/entry policy evolution",
-    "signal scarcity, false-breakout and holding-duration diagnosis",
-    "five-market complementarity and overlap",
+    "bounded small-signal/micro-filler families on SUI/NEAR/UNI/AAVE/BCH",
+    "bounded per-market Satellite parameter and exit/horizon evolution",
+    "optional additional Binance Spot USDC filler markets only after the primary five are evaluated",
+    "signal scarcity, false-breakout, holding-duration and maximum idle-gap diagnosis",
     "exact protected Core idle-mask intersection",
     "one-shared-C Core+Satellite portfolio replay",
     "execution-cost robustness",
-    "shifted-window, holdout, future-readiness and red-team rejection tests",
-    "point-in-time Binance Spot USDC replacement-universe discovery after bounded seed rejection"
+    "shifted-window, holdout, future-readiness and red-team rejection tests"
   ],
   "hard_constraints": {
     "leverage_allowed": false,
@@ -82,7 +80,7 @@
       "applies_only_to": "satellite/idle-capacity architecture candidates",
       "min_equity_ratio_vs_incumbent": "1.00",
       "minimum_cycles_3y": 0,
-      "core_trade_displacement_allowed": true,
+      "core_trade_displacement_allowed": false,
       "requires_incremental_satellite_profit_after_costs": true,
       "displacement_requires_validated_point_in_time_router": true,
       "requires_idle_time_reduction": true
@@ -122,11 +120,11 @@
     "target_satellite_markets": 5,
     "proxy_history_requires_real_usdc_validation": true,
     "satellite_role": "DEDICATED_V1_DERIVED_CORE_IDLE_FILLER",
-    "core_reclaim_priority_absolute": false,
+    "core_reclaim_priority_absolute": true,
     "direct_usdc_routing_preferred": true,
     "cross_quote_conversion_requires_separate_after_cost_evidence": true,
-    "core_priority_absolute": false,
-    "core_signal_alone_forces_satellite_exit": false,
+    "core_priority_absolute": true,
+    "core_signal_alone_forces_satellite_exit": true,
     "opportunity_value_router_required": true,
     "point_in_time_switching_only": true,
     "routing_must_scale_with_account_and_position_size": true,
@@ -139,9 +137,22 @@
     "core_v6_templates_as_satellite_starting_profiles": false,
     "old_step4_v6_satellite_profiles_invalidated_for_selection": true,
     "satellite_entry_requires_genuinely_free_core_capacity": true,
-    "satellite_must_yield_to_materially_better_core": true,
-    "seed_satellites_replaceable_after_bounded_rejection": true,
-    "replacement_candidate_universe": "BINANCE_SPOT_USDC"
+    "satellite_must_yield_to_materially_better_core": false,
+    "seed_satellites_replaceable_after_bounded_rejection": false,
+    "replacement_candidate_universe": "BINANCE_SPOT_USDC",
+    "satellite_entry_requires_core_engine_completely_idle": true,
+    "satellite_must_yield_to_any_executable_core_entry": true,
+    "primary_satellites": [
+      "SUIUSDC",
+      "NEARUSDC",
+      "UNIUSDC",
+      "AAVEUSDC",
+      "BCHUSDC"
+    ],
+    "optional_satellite_pool_expansion_allowed": true,
+    "initial_real_trial_capital_usdc": "50",
+    "initial_configured_capital_usdc": "250",
+    "future_scale_capital_usdc": "1000"
   },
   "forward_evidence": {
     "enabled": true,
@@ -157,7 +168,7 @@
     "owner_core_active_fraction_approx": "0.10",
     "owner_core_idle_fraction_approx": "0.90",
     "target_idle_fill_pct": "90",
-    "preferred_outcome": "Five independently evolved V1-derived Satellites monetize a large share of true Core-idle hours and raise or preserve after-cost shared account equity; coverage without profit is not success.",
+    "preferred_outcome": "The ten-Core strategy remains the primary profit engine. Small-signal Satellites profitably reduce long Core-idle gaps and immediately yield to every executable Core entry.",
     "mandatory_metrics": [
       "completed_trades",
       "trades_per_calendar_day",
@@ -180,7 +191,14 @@
       "AAVEUSDC",
       "BCHUSDC"
     ],
-    "seed_symbols_are_not_mandatory_final_set": true,
-    "replacement_discovery_allowed_after_bounded_rejection": true
+    "seed_symbols_are_not_mandatory_final_set": false,
+    "replacement_discovery_allowed_after_bounded_rejection": false,
+    "primary_symbols": [
+      "SUIUSDC",
+      "NEARUSDC",
+      "UNIUSDC",
+      "AAVEUSDC",
+      "BCHUSDC"
+    ]
   }
 }
