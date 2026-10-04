@@ -1,0 +1,31 @@
+{
+  "schema_version": 1,
+  "round": 1,
+  "max_rounds": 12,
+  "status": "RUNNING",
+  "source_run": 119,
+  "stage": "SATELLITE_ISOLATED_5X250_ADAPTIVE_CYCLE",
+  "contract": {
+    "each_round_uses_different_causal_family": true,
+    "training_only_selects_next_seed": true,
+    "validation_rejection_only": true,
+    "validated_reference_never_overwritten_by_worse_candidate": true,
+    "green_ci_is_not_economic_progress": true,
+    "build_lock_required_for_code_family_changes": true,
+    "auto_commit_and_workflow_dispatch_after_completed_round": true
+  },
+  "family_sequence": [
+    "TARGETED_REENTRY_OR_TREND_EXIT",
+    "TARGETED_TREND_EXIT_OR_ATR_DIRECTION",
+    "ATR_DIRECTION_PLUS_REENTRY_OR_LOCAL_REGIME",
+    "BREAKOUT_QUALITY",
+    "TREND_EXTENSION_CAP",
+    "OCCUPANCY_HORIZON",
+    "ENTRY_CMO_QUALITY",
+    "VOLATILITY_LOCAL_REFINEMENT",
+    "ATR_DIRECTION_PLUS_TREND_EXIT",
+    "REENTRY_PLUS_TREND_EXIT",
+    "LOCAL_REGIME_COMBINATION",
+    "FINAL_TRAINING_SEED_CONSOLIDATION"
+  ]
+}
