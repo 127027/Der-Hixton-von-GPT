@@ -21,6 +21,7 @@ on:
       - "agent_memory/autonomy/satellite_refinement_seeds.json"
       - "agent_memory/autonomy/satellite_holding_seeds.json"
       - "agent_memory/autonomy/satellite_validated_incumbents.json"
+      - "agent_memory/autonomy/satellite_post114_state.json"
       - "agent_memory/autonomy/satellite_holding_control.json"
       - "scripts/autonomous_research_supervisor.py"
       - "scripts/baseline_freshness_guard.py"
@@ -92,6 +93,7 @@ jobs:
             scripts/satellite_isolated_5x250_policy_refinement.py \
             scripts/satellite_isolated_5x250_holding_refinement.py \
             scripts/satellite_isolated_5x250_regime_reentry_refinement.py \
+            scripts/satellite_isolated_5x250_post114_targeted_refinement.py \
             scripts/satellite_autocontinue.py \
             src/hixton/domain/trade_policy.py \
             src/hixton/backtest/engine.py \
@@ -192,6 +194,9 @@ jobs:
       - name: Satellite isolated 5x250 regime/reentry refinement
         if: steps.stage.outputs.priority_stage == 'SATELLITE_ISOLATED_5X250_REGIME_REENTRY_REFINEMENT'
         run: python -m scripts.satellite_isolated_5x250_regime_reentry_refinement
+      - name: Satellite isolated 5x250 post114 targeted refinement
+        if: steps.stage.outputs.priority_stage == 'SATELLITE_ISOLATED_5X250_POST114_TARGETED_REFINEMENT'
+        run: python -m scripts.satellite_isolated_5x250_post114_targeted_refinement
       - name: Step 5 shared 10-core + frozen-satellite portfolio research
         if: steps.stage.outputs.priority_stage == 'STEP5_SHARED_10_PLUS_SATELLITE_PORTFOLIO'
         run: python -m scripts.satellite_shared_portfolio_research
@@ -292,6 +297,7 @@ jobs:
             evidence/satellite-isolated-5x250-policy-refinement.json
             evidence/satellite-isolated-5x250-holding-refinement.json
             evidence/satellite-isolated-5x250-regime-reentry-refinement.json
+            evidence/satellite-isolated-5x250-post114-targeted-refinement.json
             evidence/satellite-strategy-research.json
             evidence/satellite-shared-portfolio-research.json
             evidence/satellite-filler-router-research.json
