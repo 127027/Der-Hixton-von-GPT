@@ -172,7 +172,7 @@ def main() -> None:
         training_rows = []
         ranked = []
         for name, policy in policy_grid:
-            version = f"HIXTON-SAT-POLICY-{symbol}-{name}"
+            version = f"HIXTON-V5-SAT-POLICY-{symbol}-{name}"
             ta = _run(
                 symbol=symbol, candles=proxy, rules=rules,
                 start=start, end=train_a_end, costs=STRESS_COSTS,
@@ -210,7 +210,7 @@ def main() -> None:
             continue
 
         _, winner_name, winner_policy, winner_training = ranked[0]
-        version = f"HIXTON-SAT-POLICY-FROZEN-{symbol}-{winner_name}"
+        version = f"HIXTON-V5-SAT-POLICY-FROZEN-{symbol}-{winner_name}"
         v_base = _run(
             symbol=symbol, candles=direct, rules=rules,
             start=validation_start, end=end, costs=BASELINE_COSTS,
