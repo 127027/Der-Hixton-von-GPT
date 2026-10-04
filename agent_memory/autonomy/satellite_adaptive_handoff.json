@@ -1,16 +1,18 @@
 {
   "schema_version": 1,
-  "completed_run_number": 140,
-  "completed_run_id": 37238078826,
-  "completed_round": 15,
-  "completed_family": "TREND_WINDOW_X_REENTRY",
-  "economic_progress": false,
-  "accepted_reference_updates": [],
+  "completed_run_number": 141,
+  "completed_run_id": 37238455312,
+  "completed_round": 16,
+  "completed_family": "CMO_X_REENTRY",
+  "economic_progress": true,
+  "accepted_reference_updates": [
+    "UNIUSDC"
+  ],
   "mature_symbols_after": [
     "NEARUSDC"
   ],
   "next_stage": "SATELLITE_ISOLATED_5X250_ADAPTIVE_CYCLE",
-  "next_round": 16,
+  "next_round": 17,
   "dispatch_next": true,
-  "reason": "advance from adaptive round 15 to 16; next causal family is predeclared and different"
+  "reason": "advance from adaptive round 16 to 17; next causal family is predeclared and different"
 }
