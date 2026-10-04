@@ -29,7 +29,7 @@ from scripts.satellite_v1_shared_core_idle_replay import _window_payload
 D = Decimal
 SOURCES = Path("agent_memory/autonomy/satellite_v1_idle_horizon_sources.json")
 OUTPUT = Path("evidence/satellite-v1-idle-horizon-research.json")
-HORIZONS = (8, 16, 24, 36)
+HORIZONS = (2, 4, 6)
 CAPITAL = D("250")
 
 
