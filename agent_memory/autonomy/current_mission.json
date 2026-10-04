@@ -89,7 +89,7 @@
     "owner_core_active_fraction_approx": "0.10",
     "owner_core_idle_fraction_approx": "0.90",
     "owner_idle_fill_target_pct": "90",
-    "current_stage": "SATELLITE_V1_SHARED_CORE_IDLE_REPLAY",
+    "current_stage": "SATELLITE_ISOLATED_5X250_POLICY_REFINEMENT",
     "per_market_independent_development": true,
     "final_shared_account_usdc": "250",
     "core_is_protected_primary_engine": true,
@@ -135,7 +135,7 @@
     "initial_configured_capital_usdc": "250",
     "future_scale_after_clean_month_usdc": "1000"
   },
-  "current_stage": "SATELLITE_V1_SHARED_CORE_IDLE_REPLAY",
+  "current_stage": "SATELLITE_ISOLATED_5X250_POLICY_REFINEMENT",
   "capital_model": {
     "user_input": "max_capital_usdc",
     "reference_research_capital_usdc": "250.00",
@@ -148,7 +148,7 @@
     "run_69_head": "9314df9baeae1c907d98472823d2e7ccd3e4eaa4",
     "result": "SUCCESS_NO_SURVIVORS",
     "detail": "2/4/6h exact-full-Core-idle horizon family; UNI training winner 6h but direct-USDC rejected; SUI/NEAR/AAVE/BCH had no fully robust training horizon.",
-    "next": "Replay frozen NEAR+UNI profiles in the unchanged one-shared-250 Core bot. Satellites may enter only in complete Core-idle periods and must yield to any executable Core entry. Measure incremental ending equity, Satellite PnL, idle hours monetized, Core parity and stress.",
+    "next": "Continue all five primary Satellites independently with 250-USDC policy refinement. NEAR stays incumbent but may improve; UNI remains unfinished; SUI/AAVE/BCH remain unfinished. Use point-in-time CMO/VIDYA-slope/ATR stop-trail policy family, training-only selection, Direct-USDC rejection-only.",
     "run_70": 37198769433,
     "run_70_head": "736ee30f610f85044bb5476992ab81fd8606263c",
     "run_70_result": "SUCCESS_10_NEW_ELIGIBLE_REPLACEMENTS",
@@ -217,7 +217,9 @@
       "validation_stress_net_pnl_usdc": "8.26799706129",
       "full_3y_proxy_baseline_net_pnl_usdc": "305.942018310555",
       "full_3y_proxy_stress_net_pnl_usdc": "21.6248336495"
-    }
+    },
+    "run_92": 37215914714,
+    "run_92_result": "SHARED_REPLAY_FAIL_NEAR_STRONG_UNI_WEAK"
   },
   "canonical_core_baseline": {
     "status": "PROTECTED_AND_VALIDATED",
