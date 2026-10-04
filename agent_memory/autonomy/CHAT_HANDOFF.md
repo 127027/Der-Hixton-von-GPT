@@ -1,3 +1,18 @@
+# LIVE OVERRIDE — Core-first micro-filler mission after Run #74
+
+This section supersedes older replacement-universe wording below.
+
+- Protected ten-Core product remains the primary earnings engine and is not modified.
+- Satellites exist only to monetize complete Core quiet periods. They are not a second primary strategy.
+- Primary Satellite markets: SUIUSDC, NEARUSDC, UNIUSDC, AAVEUSDC, BCHUSDC. Extra USDC markets may be added later only as optional filler breadth.
+- ANY executable Core entry has absolute priority. If a Satellite is open, it is closed at the next executable open and the Core entry receives the capital. No "materially stronger Core" threshold applies.
+- Run #74 / 37202539649 completed SUCCESS but found zero robust training survivors from the old V1-style 4/8/12h replacement baseline. Reusing that same entry family on more coins is not the next path.
+- Current stage target: SATELLITE_MICRO_FILLER_RESEARCH.
+- New bounded family targets genuinely smaller/faster signals on the five primary Satellites with 2/6/12h maximum holds, strict idle-only entry, baseline+stress costs, training-only selection and Direct-USDC rejection-only holdout.
+- Capital path: 50 USDC first real trial after full engineering validation; 250 USDC initial configured target; 1000 USDC only after a clean operating period and later scale validation.
+- Success is one shared account: Core-only three-year result versus Core+Satellite on identical data/costs, with higher after-cost ending equity and materially shorter idle gaps.
+- No Paper/Live auto-activation, private credentials or cloud orders.
+
 ## LIVE UPDATE — Run #70 replacement discovery
 
 - Run #70 / `37198769433` / `736ee30f610f85044bb5476992ab81fd8606263c` completed SUCCESS.
