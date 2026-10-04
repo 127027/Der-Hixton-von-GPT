@@ -2,15 +2,15 @@
   "schema_version": 1,
   "id": "MISSION-SATELLITE-V1-IDLE90",
   "status": "ACTIVE",
-  "objective": "Protect the validated 10-Core / one-shared-250-USDC primary engine and find five robust Binance Spot USDC Satellite gap-fillers, starting from SUIUSDC, NEARUSDC, UNIUSDC, AAVEUSDC and BCHUSDC but replacing boundedly rejected seed markets when better USDC candidates exist. Satellites must monetize genuinely free Core capacity without reducing Core performance.",
+  "objective": "Protect the validated 10-Core / one-shared-capital primary engine and add a secondary small-signal Satellite layer that trades only during Core quiet periods. The five primary Satellite markets are SUIUSDC, NEARUSDC, UNIUSDC, AAVEUSDC and BCHUSDC; additional markets are optional only if useful. Any executable Core entry has absolute priority and preempts an active Satellite at the next executable open.",
   "priorities": [
-    "Preserve the validated ten-Core product unchanged while Satellite research proceeds.",
-    "Use original V1_STRATEGY / DMS_V1 as the neutral Satellite starting basis; never copy Core V6 profiles as Satellite seeds.",
-    "Treat SUI/NEAR/UNI/AAVE/BCH as seed candidates, not immutable final choices; after bounded causal rejection, discover replacement Binance Spot USDC markets using point-in-time tradability, liquidity and history eligibility only.",
-    "Select strategy/parameter/horizon candidates on training only. Direct-USDC holdout, shifted, future and red-team evidence may reject but never select or retune.",
-    "Satellites may use only genuinely free shared-account capacity. They must never block protected Core allocation; a materially superior Core opportunity must be able to reclaim filler capital at the next executable opportunity.",
-    "Optimize after-cost incremental shared-account profit, genuine trade count, short capital occupancy and profit per occupied hour; idle coverage without profit is failure.",
-    "Final success is five robust USDC gap-fillers if evidence supports five; never force weak markets merely to hit a count."
+    "Preserve the validated ten-Core product unchanged as the primary earnings engine.",
+    "Develop dedicated short-duration small-signal Satellite fillers for SUI/NEAR/UNI/AAVE/BCH first; optional additional USDC markets may supplement the pool but never replace the Core mission.",
+    "Satellites trade only while the Core engine is completely idle and are secondary to every executable Core entry signal.",
+    "When a Core entry becomes executable, close the active Satellite at that same executable open before allocating the Core trade.",
+    "Select Satellite family/parameters/horizon on training only. Direct-USDC holdout, shifted, future and red-team evidence may reject but never select or retune.",
+    "Optimize after-cost incremental shared-account profit and reduction of long idle gaps; activity without profit is failure.",
+    "Prepare a 50-USDC real trial only after engineering validation; normal initial configured production capital is 250 USDC. 1000 USDC scale is a later validation target."
   ],
   "anti_gaming": {
     "tiny_order_counting_for_frequency_forbidden": true,
@@ -89,7 +89,7 @@
     "owner_core_active_fraction_approx": "0.10",
     "owner_core_idle_fraction_approx": "0.90",
     "owner_idle_fill_target_pct": "90",
-    "current_stage": "SATELLITE_V1_REPLACEMENT_BASELINE",
+    "current_stage": "SATELLITE_MICRO_FILLER_RESEARCH",
     "per_market_independent_development": true,
     "final_shared_account_usdc": "250",
     "core_is_protected_primary_engine": true,
@@ -103,11 +103,11 @@
       "AAVEUSDC",
       "BCHUSDC"
     ],
-    "seed_symbols_replaceable_after_bounded_rejection": true,
+    "seed_symbols_replaceable_after_bounded_rejection": false,
     "candidate_universe": "BINANCE_SPOT_USDC",
     "entry_requires_genuinely_free_core_capacity": true,
-    "materially_better_core_may_reclaim_satellite": true,
-    "weak_core_signal_alone_forces_exit": false,
+    "materially_better_core_may_reclaim_satellite": false,
+    "weak_core_signal_alone_forces_exit": true,
     "active_replacement_candidates": [
       "ALGOUSDC",
       "ZECUSDC",
@@ -119,9 +119,23 @@
       "INJUSDC",
       "HBARUSDC",
       "ICPUSDC"
-    ]
+    ],
+    "primary_symbols": [
+      "SUIUSDC",
+      "NEARUSDC",
+      "UNIUSDC",
+      "AAVEUSDC",
+      "BCHUSDC"
+    ],
+    "optional_pool_expansion_allowed": true,
+    "entry_requires_core_engine_completely_idle": true,
+    "any_executable_core_entry_preempts_satellite": true,
+    "core_handoff_timing": "NEXT_EXECUTABLE_OPEN",
+    "initial_real_trial_capital_usdc": "50",
+    "initial_configured_capital_usdc": "250",
+    "future_scale_after_clean_month_usdc": "1000"
   },
-  "current_stage": "SATELLITE_V1_REPLACEMENT_BASELINE",
+  "current_stage": "SATELLITE_MICRO_FILLER_RESEARCH",
   "capital_model": {
     "user_input": "max_capital_usdc",
     "reference_research_capital_usdc": "250.00",
@@ -134,7 +148,7 @@
     "run_69_head": "9314df9baeae1c907d98472823d2e7ccd3e4eaa4",
     "result": "SUCCESS_NO_SURVIVORS",
     "detail": "2/4/6h exact-full-Core-idle horizon family; UNI training winner 6h but direct-USDC rejected; SUI/NEAR/AAVE/BCH had no fully robust training horizon.",
-    "next": "Training-selected V1/DMS_V1 short-horizon free-capacity screen across all ten replacement candidates; Direct-USDC reject-only.",
+    "next": "Run a bounded dedicated small-signal/micro-filler family on the five primary Satellites with strict idle-only entry and unconditional Core preemption.",
     "run_70": 37198769433,
     "run_70_head": "736ee30f610f85044bb5476992ab81fd8606263c",
     "run_70_result": "SUCCESS_10_NEW_ELIGIBLE_REPLACEMENTS",
@@ -149,6 +163,9 @@
       "INJUSDC",
       "HBARUSDC",
       "ICPUSDC"
-    ]
+    ],
+    "run_74": 37202539649,
+    "run_74_result": "SUCCESS_NO_SURVIVORS_FROM_V1_STYLE_REPLACEMENT_BASELINE",
+    "run_74_detail": "Nine replacement markets completed the old V1-style 4/8/12h free-capacity baseline after ZECUSDC data-quality exclusion; none had a training-robust positive edge."
   }
 }
