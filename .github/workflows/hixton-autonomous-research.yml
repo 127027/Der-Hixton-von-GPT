@@ -22,6 +22,7 @@ on:
       - "scripts/universe_discovery.py"
       - "scripts/satellite_universe_discovery.py"
       - "scripts/satellite_strategy_research.py"
+      - "scripts/satellite_v1_baseline_research.py"
       - "scripts/satellite_shared_portfolio_research.py"
       - "scripts/satellite_filler_router_research.py"
       - "scripts/engineering_candidate_builder.py"
@@ -96,7 +97,7 @@ jobs:
           import json
           mission = json.load(open("agent_memory/autonomy/current_mission.json", encoding="utf-8"))
           stage = str(mission.get("current_stage", "LEGACY_FULL_PIPELINE"))
-          fast = stage.startswith(("STEP4_", "STEP5_", "STEP5B_", "STEP6_", "STEP7_", "STEP8_", "STEP9_"))
+          fast = stage.startswith(("SATELLITE_", "STEP4_", "STEP5_", "STEP5B_", "STEP6_", "STEP7_", "STEP8_", "STEP9_"))
           print(f"priority_stage={stage}")
           print(f"full_candidate_pipeline={'false' if fast else 'true'}")
           PY
@@ -106,6 +107,9 @@ jobs:
         run: |
           python -m pip install --upgrade pip
           pip install -e '.[dev]'
+      - name: Clean Satellite V1 five-market baseline
+        if: steps.stage.outputs.priority_stage == 'SATELLITE_V1_BASELINE'
+        run: python -m scripts.satellite_v1_baseline_research
       - name: Step 5 shared 10-core + frozen-satellite portfolio research
         if: steps.stage.outputs.priority_stage == 'STEP5_SHARED_10_PLUS_SATELLITE_PORTFOLIO'
         run: python -m scripts.satellite_shared_portfolio_research
@@ -191,6 +195,7 @@ jobs:
             evidence/basis-signal-census.json
             evidence/universe-discovery.json
             evidence/satellite-universe-discovery.json
+            evidence/satellite-v1-baseline.json
             evidence/satellite-strategy-research.json
             evidence/satellite-shared-portfolio-research.json
             evidence/satellite-filler-router-research.json
