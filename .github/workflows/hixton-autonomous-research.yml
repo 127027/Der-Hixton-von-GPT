@@ -9,6 +9,7 @@ on:
       - gpt/autonomous-research-v1
     paths:
       - "agent_memory/autonomy/heartbeat.json"
+      - "agent_memory/autonomy/research_build_lock.json"
       - "agent_memory/autonomy/current_mission.json"
       - "agent_memory/autonomy/policy.json"
       - "agent_memory/autonomy/roles.json"
@@ -115,10 +116,19 @@ jobs:
         run: |
           python - <<'PY' >> "$GITHUB_OUTPUT"
           import json
+          from pathlib import Path
           mission = json.load(open("agent_memory/autonomy/current_mission.json", encoding="utf-8"))
           stage = str(mission.get("current_stage", "LEGACY_FULL_PIPELINE"))
-          fast = stage.startswith(("SATELLITE_", "STEP4_", "STEP5_", "STEP5B_", "STEP6_", "STEP7_", "STEP8_", "STEP9_"))
+          lock_path = Path("agent_memory/autonomy/research_build_lock.json")
+          build_locked = False
+          if lock_path.exists():
+              lock = json.load(open(lock_path, encoding="utf-8"))
+              build_locked = bool(lock.get("locked", False))
+          if build_locked:
+              stage = "BUILD_LOCKED"
+          fast = build_locked or stage.startswith(("SATELLITE_", "STEP4_", "STEP5_", "STEP5B_", "STEP6_", "STEP7_", "STEP8_", "STEP9_"))
           print(f"priority_stage={stage}")
+          print(f"build_locked={'true' if build_locked else 'false'}")
           print(f"full_candidate_pipeline={'false' if fast else 'true'}")
           PY
       - name: Verify newest protected engineering baseline
