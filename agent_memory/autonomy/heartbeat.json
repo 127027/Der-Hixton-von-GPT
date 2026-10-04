@@ -1,7 +1,7 @@
 {
   "cycle": "satellite-v1-cleanstart-2026-10-04",
   "timestamp_utc": "2026-10-04T08:40:00Z",
-  "reason": "advance autonomous Satellite holding refinement to round 2",
+  "reason": "advance autonomous Satellite holding refinement to round 3",
   "current_stage": "SATELLITE_V1_PER_MARKET_EVOLUTION",
   "frozen_satellite_pool": [
     "SUIUSDC",
@@ -32,9 +32,9 @@
     "real_orders": false,
     "testnet_orders": false
   },
-  "sequence": 2,
+  "sequence": 3,
   "target_stage": "SATELLITE_ISOLATED_5X250_HOLDING_REFINEMENT",
   "fixed_commit": "cb149f34a9d11c4980c583760f299d11e7b2db22",
   "failed_run_id": 37219976312,
-  "last_completed_autonomous_round": 1
+  "last_completed_autonomous_round": 2
 }

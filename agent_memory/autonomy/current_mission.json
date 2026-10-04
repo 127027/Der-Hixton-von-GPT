@@ -148,7 +148,7 @@
     "run_69_head": "9314df9baeae1c907d98472823d2e7ccd3e4eaa4",
     "result": "SUCCESS_NO_SURVIVORS",
     "detail": "2/4/6h exact-full-Core-idle horizon family; UNI training winner 6h but direct-USDC rejected; SUI/NEAR/AAVE/BCH had no fully robust training horizon.",
-    "next": "advance autonomous Satellite holding refinement to round 2",
+    "next": "advance autonomous Satellite holding refinement to round 3",
     "run_70": 37198769433,
     "run_70_head": "736ee30f610f85044bb5476992ab81fd8606263c",
     "run_70_result": "SUCCESS_10_NEW_ELIGIBLE_REPLACEMENTS",
@@ -249,6 +249,58 @@
         },
         "NEARUSDC": {
           "training_winner": "HOLD_48",
+          "profitability_pass": true,
+          "maturity_pass": true,
+          "full_3y_stress_net_pnl": "331.60670464360000000",
+          "full_3y_stress_completed_trades": 191,
+          "validation_stress_net_pnl": "123.69366249120000000"
+        },
+        "UNIUSDC": {
+          "training_winner": "INCUMBENT",
+          "profitability_pass": true,
+          "maturity_pass": false,
+          "full_3y_stress_net_pnl": "261.33936268335000000",
+          "full_3y_stress_completed_trades": 63,
+          "validation_stress_net_pnl": "160.85488637841000000"
+        },
+        "AAVEUSDC": {
+          "training_winner": "INCUMBENT",
+          "profitability_pass": false,
+          "maturity_pass": false,
+          "full_3y_stress_net_pnl": "0.8611939881600000",
+          "full_3y_stress_completed_trades": 168,
+          "validation_stress_net_pnl": "-103.0621137826900000"
+        },
+        "BCHUSDC": {
+          "training_winner": "INCUMBENT",
+          "profitability_pass": false,
+          "maturity_pass": false,
+          "full_3y_stress_net_pnl": "254.742941725600000",
+          "full_3y_stress_completed_trades": 75,
+          "validation_stress_net_pnl": "-58.432709922100000"
+        }
+      }
+    },
+    "auto_holding_round_2": {
+      "mature_symbols": [
+        "NEARUSDC"
+      ],
+      "profitability_pass_symbols": [
+        "NEARUSDC",
+        "UNIUSDC"
+      ],
+      "next_stage": "SATELLITE_ISOLATED_5X250_HOLDING_REFINEMENT",
+      "per_symbol": {
+        "SUIUSDC": {
+          "training_winner": "INCUMBENT",
+          "profitability_pass": false,
+          "maturity_pass": false,
+          "full_3y_stress_net_pnl": "283.543276497860000000",
+          "full_3y_stress_completed_trades": 78,
+          "validation_stress_net_pnl": "-20.926209597350000000"
+        },
+        "NEARUSDC": {
+          "training_winner": "INCUMBENT",
           "profitability_pass": true,
           "maturity_pass": true,
           "full_3y_stress_net_pnl": "331.60670464360000000",
