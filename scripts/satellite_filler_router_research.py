@@ -83,10 +83,14 @@ class OpenTrade:
 class RouterConfig:
     filler_horizon_hours: int
     hysteresis_atr: Decimal
+    satellite_budget_fraction_of_c: Decimal
 
     @property
     def key(self) -> str:
-        return f"h{self.filler_horizon_hours}_m{self.hysteresis_atr}"
+        return (
+            f"h{self.filler_horizon_hours}_m{self.hysteresis_atr}"
+            f"_s{self.satellite_budget_fraction_of_c}"
+        )
 
 
 def _d(value: float | Decimal | int | str) -> Decimal:
@@ -312,12 +316,22 @@ def run_filler_router_portfolio(
         del positions[symbol]
         return True
 
-    def open_position(signal: Signal, *, slots: int, at: datetime, candle: Candle) -> bool:
+    def open_position(
+        signal: Signal,
+        *,
+        slots: int,
+        at: datetime,
+        candle: Candle,
+        budget_override: Decimal | None = None,
+    ) -> bool:
         nonlocal cash
         if slots <= 0 or signal.symbol in positions:
             return False
         rule = execution_rules[signal.symbol]
-        budget = min(target_notional * D(slots), cash)
+        budget = min(
+            budget_override if budget_override is not None else target_notional * D(slots),
+            cash,
+        )
         reference = _d(candle.open)
         fill_price = reference * (ONE + costs.adverse_price_rate)
         gross_quantity = _round_down(budget / fill_price, rule.step_size)
@@ -523,6 +537,9 @@ def run_filler_router_portfolio(
                     slots=1,
                     at=open_time,
                     candle=candles[signal.symbol],
+                    budget_override=(
+                        starting_cash * router_config.satellite_budget_fraction_of_c
+                    ),
                 )
             pending = []
 
@@ -696,6 +713,7 @@ def _summary(
             blocked_sat += 1
 
     sat_trades = [t for t in result.trades if t.symbol in satellite_symbols]
+    core_trades = [t for t in result.trades if t.symbol in core_symbols]
     sat_pnl = sum((t.realized_pnl for t in sat_trades), ZERO)
     sat_hours = sum((t.holding_hours for t in sat_trades), ZERO)
     average_hold = (
@@ -727,6 +745,8 @@ def _summary(
         "return_pct": str(result.metrics.return_pct),
         "max_drawdown_pct": str(result.metrics.max_drawdown_pct),
         "completed_position_cycles": result.metrics.completed_trades,
+        "core_completed_cycles": len(core_trades),
+        "core_realized_pnl": str(sum((t.realized_pnl for t in core_trades), ZERO)),
         "satellite_completed_cycles": len(sat_trades),
         "satellite_realized_pnl": str(sat_pnl),
         "satellite_position_hours": str(sat_hours),
@@ -739,6 +759,10 @@ def _summary(
         "average_position_value_usdc": str(avg_deployed),
         "blocked_core_no_free_slot": blocked_core,
         "blocked_satellite_no_free_slot": blocked_sat,
+        "daily_paused_bars": result.daily_paused_bars,
+        "risk_halted_at_utc": (
+            None if result.risk_halted_at_utc is None else result.risk_halted_at_utc.isoformat()
+        ),
         "router_switch_count": len(switch_events),
         "router_hold_count": len(hold_events),
         "total_fees": str(result.metrics.total_fees),
@@ -760,6 +784,13 @@ def _cmp(candidate: dict[str, object], reference: dict[str, object]) -> dict[str
         ),
         "blocked_core_delta": int(candidate["blocked_core_no_free_slot"])
         - int(reference["blocked_core_no_free_slot"]),
+        "core_completed_cycles_delta": int(candidate["core_completed_cycles"])
+        - int(reference["core_completed_cycles"]),
+        "core_realized_pnl_delta": str(
+            _d(candidate["core_realized_pnl"]) - _d(reference["core_realized_pnl"])
+        ),
+        "daily_paused_bars_delta": int(candidate["daily_paused_bars"])
+        - int(reference["daily_paused_bars"]),
     }
 
 
@@ -843,7 +874,7 @@ def main() -> None:
 
     # Core-only reference is evaluated through the same research engine, so only
     # Satellite/router behavior differs.
-    neutral = RouterConfig(24, D("0.20"))
+    neutral = RouterConfig(12, D("0"), D("0.10"))
     core_base, _ = run(
         window="training", satellites=(), costs=BASELINE_COSTS, config=neutral
     )
@@ -854,31 +885,33 @@ def main() -> None:
     configs: list[dict[str, object]] = []
     for hours in HORIZON_GRID_HOURS:
         for margin in HYSTERESIS_GRID_ATR:
-            config = RouterConfig(hours, margin)
-            base, _ = run(
-                window="training",
-                satellites=sat_symbols,
-                costs=BASELINE_COSTS,
-                config=config,
-            )
-            stress, _ = run(
-                window="training",
-                satellites=sat_symbols,
-                costs=STRESS_COSTS,
-                config=config,
-            )
-            base_cmp = _cmp(base, core_base)
-            stress_cmp = _cmp(stress, core_stress)
-            min_delta = min(
-                _d(base_cmp["ending_equity_delta"]),
-                _d(stress_cmp["ending_equity_delta"]),
-            )
-            configs.append(
-                {
-                    "config": {
-                        "filler_horizon_hours": hours,
-                        "hysteresis_atr": str(margin),
-                    },
+            for satellite_fraction in SATELLITE_BUDGET_FRACTION_GRID:
+                config = RouterConfig(hours, margin, satellite_fraction)
+                base, _ = run(
+                    window="training",
+                    satellites=sat_symbols,
+                    costs=BASELINE_COSTS,
+                    config=config,
+                )
+                stress, _ = run(
+                    window="training",
+                    satellites=sat_symbols,
+                    costs=STRESS_COSTS,
+                    config=config,
+                )
+                base_cmp = _cmp(base, core_base)
+                stress_cmp = _cmp(stress, core_stress)
+                min_delta = min(
+                    _d(base_cmp["ending_equity_delta"]),
+                    _d(stress_cmp["ending_equity_delta"]),
+                )
+                configs.append(
+                    {
+                        "config": {
+                            "filler_horizon_hours": hours,
+                            "hysteresis_atr": str(margin),
+                            "satellite_budget_fraction_of_c": str(satellite_fraction),
+                        },
                     "baseline": base,
                     "stress": stress,
                     "baseline_vs_core": base_cmp,
@@ -904,6 +937,7 @@ def main() -> None:
     frozen = RouterConfig(
         int(winner["config"]["filler_horizon_hours"]),
         _d(winner["config"]["hysteresis_atr"]),
+        _d(winner["config"]["satellite_budget_fraction_of_c"]),
     )
 
     # With router frozen, select a complementary Satellite subset on training only.
@@ -1072,6 +1106,9 @@ def main() -> None:
         "frozen_router": {
             "filler_horizon_hours": frozen.filler_horizon_hours,
             "hysteresis_atr": str(frozen.hysteresis_atr),
+            "satellite_budget_fraction_of_c": str(
+                frozen.satellite_budget_fraction_of_c
+            ),
         },
         "training_subset_selection": {
             "rounds": rounds,
@@ -1110,6 +1147,10 @@ def main() -> None:
             "product_runner_modified": False,
             "satellites_never_preempt_open_core": True,
             "satellites_enter_only_when_core_engine_idle": True,
+            "satellite_budget_is_normalized_fraction_of_c": True,
+            "satellite_size_grid_training_only": [
+                str(x) for x in SATELLITE_BUDGET_FRACTION_GRID
+            ],
             "satellite_max_slots_each": 1,
             "router_calibration_training_only": True,
             "holdout_rejection_only": True,
