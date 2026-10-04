@@ -1,9 +1,9 @@
 {
-  "run_number": 146,
-  "run_id": 37239836268,
-  "head_sha": "d65b2e4a89007b18c3aa882950a20bb13d821525",
-  "adaptive_round": 21,
-  "family": "ATR_DIRECTION_X_BREAKOUT",
+  "run_number": 147,
+  "run_id": 37240094301,
+  "head_sha": "326d6983393a0a0f95391929c867decaba4bcd6e",
+  "adaptive_round": 22,
+  "family": "ATR_DIRECTION_X_CMO",
   "technical_success": true,
   "economic_progress": false,
   "improved_symbols": [],
@@ -153,5 +153,5 @@
   "patch_complete": true,
   "next_stage": "SATELLITE_ISOLATED_5X250_ADAPTIVE_CYCLE",
   "dispatch_next": true,
-  "next_reason": "advance from adaptive round 21 to 22; next causal family is predeclared and different"
+  "next_reason": "advance from adaptive round 22 to 23; next causal family is predeclared and different"
 }
