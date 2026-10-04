@@ -1,0 +1,32 @@
+{
+  "run_number": 119,
+  "run_id": 37233568742,
+  "family": "TARGETED_LOCAL_REGIME_PLUS_UPPER_BAND_REENTRY",
+  "economic_progress": true,
+  "per_symbol": {
+    "SUIUSDC": {
+      "classification": "IMPROVED",
+      "validation_stress_net_pnl_delta": "54.777238882840000000",
+      "full_3y_stress_net_pnl_delta": "213.018204108990000000",
+      "completed_trades_delta": -12,
+      "max_drawdown_pct_delta": "-20.47475077787895000565077391",
+      "summary": "SUI robust reference improved to validation stress +82.30 and full-3y stress +507.69, DD 25.73%, but only 57 cycles"
+    },
+    "NEARUSDC": {
+      "classification": "UNCHANGED",
+      "summary": "mature incumbent frozen at 191 cycles"
+    },
+    "UNIUSDC": {
+      "classification": "UNCHANGED",
+      "summary": "reference family won training; no economic delta; 63 cycles remains frequency gap"
+    },
+    "AAVEUSDC": {
+      "classification": "UNCHANGED",
+      "summary": "local regime variants did not beat Run #114 training seed/reference; validation remains negative"
+    },
+    "BCHUSDC": {
+      "classification": "UNCHANGED",
+      "summary": "local volatility variants did not beat Run #114 training seed/reference; validation remains negative"
+    }
+  }
+}
