@@ -63,6 +63,7 @@ on:
 permissions:
   contents: write
   actions: write
+  issues: write
 
 concurrency:
   group: hixton-autonomous-research-v1
@@ -370,6 +371,7 @@ jobs:
 
       - name: Publish adaptive RUN DELTA
         if: steps.adaptive_persist.outputs.advanced == 'true'
+        continue-on-error: true
         shell: bash
         env:
           GH_TOKEN: ${{ github.token }}
@@ -378,7 +380,7 @@ jobs:
           gh issue comment 3 --repo "$GITHUB_REPOSITORY" --body-file evidence/satellite-adaptive-run-delta.md
 
       - name: Dispatch next persistent adaptive Satellite run
-        if: steps.adaptive_persist.outputs.advanced == 'true' && steps.adaptive_prepare.outputs.dispatch_next == 'true'
+        if: always() && steps.adaptive_persist.outputs.advanced == 'true' && steps.adaptive_prepare.outputs.dispatch_next == 'true'
         shell: bash
         env:
           GH_TOKEN: ${{ github.token }}
