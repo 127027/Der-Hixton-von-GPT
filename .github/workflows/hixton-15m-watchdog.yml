@@ -1,0 +1,251 @@
+name: Hixton 15m Progress Watchdog
+
+on:
+  schedule:
+    - cron: "*/15 * * * *"
+  workflow_dispatch:
+
+permissions:
+  actions: read
+  contents: read
+  issues: write
+
+jobs:
+  watchdog:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - name: Audit research progress and stalls
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const crypto = require("crypto");
+            const owner = context.repo.owner;
+            const repo = context.repo.repo;
+            const issue_number = 3;
+            const researchBranch = "gpt/autonomous-research-v1";
+            const productBranch = "gpt/usdc-audit";
+            const marker = "<!-- HIXTON_15M_WATCHDOG_STATE -->";
+
+            const productRef = await github.rest.git.getRef({
+              owner, repo, ref: `heads/${productBranch}`
+            });
+            const researchRef = await github.rest.git.getRef({
+              owner, repo, ref: `heads/${researchBranch}`
+            });
+
+            let stage = "UNKNOWN";
+            try {
+              const missionFile = await github.rest.repos.getContent({
+                owner,
+                repo,
+                path: "agent_memory/autonomy/current_mission.json",
+                ref: researchBranch,
+              });
+              if (!Array.isArray(missionFile.data) && missionFile.data.content) {
+                const mission = JSON.parse(
+                  Buffer.from(missionFile.data.content, "base64").toString("utf8")
+                );
+                stage = String(mission.current_stage || "UNKNOWN");
+              }
+            } catch (error) {
+              stage = `MISSION_READ_ERROR:${error.status || "unknown"}`;
+            }
+
+            const allRuns = await github.rest.actions.listWorkflowRunsForRepo({
+              owner,
+              repo,
+              branch: researchBranch,
+              per_page: 50,
+            });
+            const researchRuns = allRuns.data.workflow_runs.filter(
+              run => String(run.path || "").endsWith("hixton-autonomous-research.yml")
+            );
+            const latest = researchRuns[0] || null;
+
+            let activeStep = "none";
+            let failedStep = "none";
+            let failedJob = "none";
+            if (latest) {
+              const jobs = await github.rest.actions.listJobsForWorkflowRun({
+                owner, repo, run_id: latest.id, per_page: 100,
+              });
+              for (const job of jobs.data.jobs) {
+                if (job.status !== "completed") {
+                  activeStep =
+                    (job.steps || []).find(step => step.status === "in_progress")?.name ||
+                    job.name ||
+                    activeStep;
+                }
+                if (job.conclusion === "failure") {
+                  failedJob = job.name;
+                  failedStep =
+                    [...(job.steps || [])].reverse().find(step => step.conclusion === "failure")?.name ||
+                    failedStep;
+                }
+              }
+            }
+
+            const comments = await github.paginate(github.rest.issues.listComments, {
+              owner, repo, issue_number, per_page: 100,
+            });
+            const stateComment = [...comments].reverse().find(
+              comment => String(comment.body || "").includes(marker)
+            );
+            const previousBody = String(stateComment?.body || "");
+            const previousFingerprint =
+              previousBody.match(/fingerprint=([a-f0-9]{64})/)?.[1] || "";
+            const previousSame = Number(
+              previousBody.match(/same=(\d+)/)?.[1] || "0"
+            );
+            const previousClass =
+              previousBody.match(/classification=([A-Z_]+)/)?.[1] || "NONE";
+
+            const fingerprintPayload = {
+              product_head: productRef.data.object.sha,
+              research_head: researchRef.data.object.sha,
+              stage,
+              run_id: latest?.id || null,
+              run_number: latest?.run_number || null,
+              run_attempt: latest?.run_attempt || null,
+              status: latest?.status || "none",
+              conclusion: latest?.conclusion || "none",
+              active_step: activeStep,
+              failed_job: failedJob,
+              failed_step: failedStep,
+            };
+            const fingerprint = crypto
+              .createHash("sha256")
+              .update(JSON.stringify(fingerprintPayload))
+              .digest("hex");
+            const same = fingerprint === previousFingerprint ? previousSame + 1 : 0;
+
+            let classification = "PROGRESS";
+            if (!latest) {
+              classification = "NO_RESEARCH_RUN";
+            } else if (
+              latest.status === "completed" &&
+              ["failure", "cancelled", "timed_out", "action_required"].includes(latest.conclusion)
+            ) {
+              classification = "FAILED_STALL";
+            } else if (latest.status === "queued" || latest.status === "in_progress") {
+              const started = new Date(latest.run_started_at || latest.created_at).getTime();
+              const ageMinutes = Math.max(0, (Date.now() - started) / 60000);
+              if (same >= 3 && ageMinutes >= 45) {
+                classification = "POSSIBLE_ACTIVE_STALL";
+              } else if (same >= 1 && ageMinutes >= 15) {
+                classification = "INVESTIGATE_SLOW";
+              }
+            } else if (
+              latest.status === "completed" &&
+              latest.conclusion === "success" &&
+              same >= 1
+            ) {
+              classification = "HANDOFF_STALL";
+            }
+
+            // Detect a repeated technical retry loop: three latest research runs fail
+            // at the same workflow step without reaching a different substantive stage.
+            if (researchRuns.length >= 3) {
+              const recent = researchRuns.slice(0, 3);
+              if (recent.every(run => run.status === "completed" && run.conclusion === "failure")) {
+                const failedSteps = [];
+                for (const run of recent) {
+                  const jobs = await github.rest.actions.listJobsForWorkflowRun({
+                    owner, repo, run_id: run.id, per_page: 100,
+                  });
+                  let stepName = "unknown";
+                  for (const job of jobs.data.jobs) {
+                    if (job.conclusion === "failure") {
+                      stepName =
+                        [...(job.steps || [])].reverse().find(step => step.conclusion === "failure")?.name ||
+                        job.name ||
+                        "unknown";
+                      break;
+                    }
+                  }
+                  failedSteps.push(stepName);
+                }
+                if (new Set(failedSteps).size === 1) {
+                  classification = "RETRY_LOOP";
+                  failedStep = failedSteps[0];
+                }
+              }
+            }
+
+            const now = new Date().toISOString();
+            const body = `${marker}
+            ## Hixton 15m Watchdog — ${now}
+
+            - Classification: **${classification}**
+            - Product HEAD: \`${productRef.data.object.sha}\`
+            - Research HEAD: \`${researchRef.data.object.sha}\`
+            - Mission stage: \`${stage}\`
+            - Latest research run: ${latest ? `#${latest.run_number} / ${latest.id}` : "none"}
+            - Run status: \`${latest?.status || "none"}\`
+            - Conclusion: \`${latest?.conclusion || "none"}\`
+            - Active step: \`${activeStep}\`
+            - Failed job: \`${failedJob}\`
+            - Failed step: \`${failedStep}\`
+            - Same-state 15m intervals: **${same}**
+            - Research run URL: ${latest?.html_url || "n/a"}
+
+            The watchdog only detects and records progress/stalls. It never weakens gates,
+            blindly reruns a failed experiment, mutates the protected product, activates
+            Paper/Live, uses private credentials, or sends orders.
+
+            <!-- HIXTON_15M_STATE fingerprint=${fingerprint} same=${same} classification=${classification} run=${latest?.id || 0} stage=${stage} -->
+            `;
+
+            if (stateComment) {
+              await github.rest.issues.updateComment({
+                owner,
+                repo,
+                comment_id: stateComment.id,
+                body,
+              });
+            } else {
+              await github.rest.issues.createComment({
+                owner, repo, issue_number, body,
+              });
+            }
+
+            const anomalies = new Set([
+              "FAILED_STALL",
+              "POSSIBLE_ACTIVE_STALL",
+              "HANDOFF_STALL",
+              "RETRY_LOOP",
+              "NO_RESEARCH_RUN",
+            ]);
+            if (anomalies.has(classification) && classification !== previousClass) {
+              await github.rest.issues.createComment({
+                owner,
+                repo,
+                issue_number,
+                body: `## WATCHDOG ALERT — ${now}
+
+            **${classification}**
+
+            Research stage: \`${stage}\`
+            Latest run: ${latest ? `#${latest.run_number} / ${latest.id}` : "none"}
+            Research HEAD: \`${researchRef.data.object.sha}\`
+            Failed/active step: \`${failedStep !== "none" ? failedStep : activeStep}\`
+
+            The next controller pass must inspect the exact logs/state and repair the
+            causal blocker if safely possible. Do not blindly rerun an unchanged failure.`
+              });
+            }
+
+            core.info(JSON.stringify({
+              classification,
+              same,
+              stage,
+              product_head: productRef.data.object.sha,
+              research_head: researchRef.data.object.sha,
+              latest_run_id: latest?.id || null,
+              latest_run_number: latest?.run_number || null,
+              latest_status: latest?.status || null,
+              latest_conclusion: latest?.conclusion || null,
+              active_step: activeStep,
+              failed_step: failedStep,
+            }, null, 2));
