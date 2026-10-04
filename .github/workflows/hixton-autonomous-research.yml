@@ -53,7 +53,7 @@ on:
 
 permissions:
   contents: write
-  actions: read
+  actions: write
 
 concurrency:
   group: hixton-autonomous-research-v1
@@ -295,12 +295,14 @@ jobs:
         if: steps.stage.outputs.priority_stage == 'SATELLITE_ISOLATED_5X250_HOLDING_REFINEMENT' && steps.stage.outputs.build_locked != 'true'
         run: python -m scripts.satellite_autocontinue
       - name: Persist bounded automatic Satellite handoff
+        id: handoff
         if: steps.stage.outputs.priority_stage == 'SATELLITE_ISOLATED_5X250_HOLDING_REFINEMENT' && steps.stage.outputs.build_locked != 'true'
         shell: bash
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
           set -euo pipefail
+          echo "advanced=false" >> "$GITHUB_OUTPUT"
           branch="gpt/autonomous-research-v1"
           git fetch origin "$branch"
           remote_head="$(git rev-parse "origin/$branch")"
@@ -328,6 +330,18 @@ jobs:
           git commit -m "autonomy(satellite): advance bounded refinement to round ${next_round}"
           git remote set-url origin "https://x-access-token:${GH_TOKEN}@github.com/${GITHUB_REPOSITORY}.git"
           git push origin "HEAD:$branch"
+          echo "advanced=true" >> "$GITHUB_OUTPUT"
+
+      - name: Dispatch next bounded Satellite round
+        if: steps.handoff.outputs.advanced == 'true'
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          branch="gpt/autonomous-research-v1"
+          echo "Dispatching next autonomous research run on $branch after bot-authored handoff commit."
+          gh workflow run hixton-autonomous-research.yml --ref "$branch"
 
   build-candidate:
     needs: research
