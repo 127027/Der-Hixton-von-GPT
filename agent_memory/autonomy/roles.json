@@ -3,15 +3,15 @@
   "mode": "PERSISTENT_ROLE_SWARM",
   "roles": {
     "A01": "Own the clean Satellite-V1 requirements/evidence contract; ensure the five-market work starts from original V1/DMS_V1 and records every rejected evolution.",
-    "A02": "Run deterministic per-market V1 baseline/evolution backtests for SUI/NEAR/UNI/AAVE/BCH and later the one-shared-250 Core+Satellite replay.",
+    "A02": "Run deterministic V1 baseline/evolution and shared-C replays for the active Satellite candidate set, including replacement USDC candidates after bounded seed rejection.",
     "A03": "Verify strategy semantics and timing parity so Satellite-V1 behavior can later match Backtest/Paper/Trial/Live without changing the protected Core.",
     "A04": "Keep UI/API truthful: Satellite research must remain visibly research-only until exact-head promotion.",
     "A05": "Diagnose V1 weaknesses per Satellite: signal scarcity/noise, false breakouts, late entries/exits, holding duration, idle coverage, profit per occupied hour and overlap with Core idle time.",
     "A06": "Regression-test every Satellite-V1 patch for determinism, data continuity, no leakage and no accidental protected-Core mutation.",
-    "A07": "Validate Binance public USDC/USDT history, filters, liquidity assumptions and direct-USDC holdout availability for the five Satellites.",
+    "A07": "Validate Binance Spot USDC tradability, point-in-time filters, liquidity, USDC/USDT history and direct-USDC rejection-only holdout availability for every active or replacement Satellite candidate.",
     "A08": "Challenge each evolved Satellite-V1 profile on costs, risk, duration, opportunity frequency and shared-250 interaction with the protected Core.",
     "A09": "Independently reject overfit, stale, non-reproducible or Core-regressive Satellite candidates; only exact-head QA_PASS may advance.",
-    "A10": "Continuously dispatch the next evidence-led per-market Satellite-V1 improvement until the five are either robust gap-fillers or explicitly rejected.",
+    "A10": "Continuously dispatch the next evidence-led Satellite task: bounded V1 improvement, explicit rejection, or replacement-USDC discovery; never endlessly retune a failed market.",
     "A11": "Govern the full Satellite-V1 program; require training/holdout separation, shifted/future/red-team evidence and exact-head GOVERNANCE_PASS before promotion."
   },
   "loop": [
@@ -32,7 +32,7 @@
   "specialized_dots": {
     "D12": {
       "name": "Hypothesis Architect Dot",
-      "objective": "Generate bounded, evidence-led V1-derived improvement hypotheses separately for SUI, NEAR, UNI, AAVE and BCH after the unchanged V1 baseline identifies each market's actual weakness.",
+      "objective": "Generate bounded, evidence-led V1-derived hypotheses for the active Satellite candidate set; after repeated seed rejection, support replacement-USDC candidates without using holdout outcomes for selection.",
       "constraints": [
         "no blind parameter churn",
         "one causal family per experiment",
@@ -62,12 +62,13 @@
     },
     "D15": {
       "name": "Universe Discovery Dot",
-      "objective": "Freeze universe expansion during this mission; verify only the selected five remain tradable/liquid enough for research.",
+      "objective": "Discover and rank eligible Binance Spot USDC replacement candidates when seed markets are boundedly rejected; universe expansion is research-only until full promotion.",
       "constraints": [
         "no automatic live symbol addition",
-        "minimum history and liquidity required",
-        "marginal portfolio contribution required",
-        "point-in-time exchange filters only"
+        "current Binance Spot USDC tradability and liquidity required",
+        "sufficient historical proxy plus real-USDC rejection-only holdout required",
+        "replacement selection must not use holdout outcomes",
+        "final inclusion requires positive marginal shared-C contribution and full promotion gates"
       ]
     },
     "D16": {
@@ -104,7 +105,7 @@
     },
     "D19": {
       "name": "Idle Satellite Market Dot",
-      "objective": "Lead the five-market Satellite-V1 program: unchanged V1 baseline first, then independent per-market evolution toward profitable short Core-idle gap filling.",
+      "objective": "Lead the Satellite-V1 program toward five robust USDC gap-fillers: use seed markets where evidence supports them, explicitly reject weak seeds, and advance replacement candidates when needed.",
       "constraints": [
         "the ten-coin V6 core is the primary high-value opportunity engine, but any core signal alone does not automatically force satellite exit",
         "satellites may only enter with genuinely free capacity",
@@ -132,7 +133,7 @@
       ]
     }
   },
-  "current_shared_mission": "MISSION-SATELLITE-V1-IDLE90: protect the validated 10-Core/250-USDC engine; develop SUI/NEAR/UNI/AAVE/BCH independently from original V1/DMS_V1 to monetize the ~90% Core-idle opportunity pool with no Core regression.",
+  "current_shared_mission": "MISSION-SATELLITE-V1-IDLE90: protect the validated 10-Core/250-USDC engine and find five robust V1-derived Binance Spot USDC gap-fillers that monetize genuinely free Core capacity without Core regression; the original five are seed candidates, not mandatory final choices.",
   "activity_focus": {
     "A01": "V1 baseline and evidence contract",
     "A02": "five isolated V1 baselines then shared-250 replay",

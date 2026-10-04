@@ -1,11 +1,11 @@
 {
   "mode": "PROTECTED_V6_CORE_PLUS_CLEAN_SATELLITE_V1_RESEARCH",
   "bootstrap_complete": true,
-  "progress_percent": 15,
-  "current_focus": "Run bounded per-market V1-derived evolution for SUI/NEAR/UNI/AAVE/BCH on training only, then direct-USDC rejection-only holdout. Preserve the validated ten-Core product unchanged.",
+  "progress_percent": 30,
+  "current_focus": "Run #69 produced no survivor. Discover replacement Binance Spot USDC markets, then test active candidates from V1/DMS_V1 against genuinely free shared-Core capacity with one C=250 account and Core reclaim.",
   "last_indexed_commit": "f6497acf8d4d852aaac0b69878762fabb53155d4",
-  "last_learning_round": 7,
-  "current_strategy": "Protected validated ten-Core product unchanged + research-only clean Satellite V1 baseline",
+  "last_learning_round": 10,
+  "current_strategy": "Protected ten-Core product unchanged + V1-derived USDC Satellite seed/replacement discovery and free-capacity filler research",
   "current_reference": {
     "source_run_id": "35463131378",
     "isolated_10x250_baseline_usdc": "8217.00711069101365000000",
@@ -30,7 +30,7 @@
     "Binance public market-data endpoint availability and policy are external facts and must fail closed rather than trigger synthetic operational candles.",
     "Historical performance does not guarantee future profitability."
   ],
-  "notes": "Previous V6-derived Satellite Step-4 profiles are retained only as historical evidence/history-source lookup and are invalidated as strategy seeds. New Satellite work begins from V1_STRATEGY/DMS_V1.",
+  "notes": "Runs #66-#69 validated the exact-idle bridge and bounded horizon families but produced no promoted Satellite. Original SUI/NEAR/UNI/AAVE/BCH are seed candidates, not mandatory final choices. Universe replacement is now allowed after bounded rejection.",
   "current_product": {
     "max_capital_source": "max_capital_usdc",
     "allocator_version": "CAPITAL-V1-2X50PCT",
@@ -41,7 +41,7 @@
   },
   "target_architecture": {
     "universe": "10 protected Core + 5 independently evolved V1-derived Satellites",
-    "current_stage": "SATELLITE_V1_PER_MARKET_EVOLUTION",
+    "current_stage": "SATELLITE_V1_REPLACEMENT_UNIVERSE_DISCOVERY",
     "satellites": [
       "SUIUSDC",
       "NEARUSDC",
@@ -54,6 +54,17 @@
     "target_idle_fill_pct": "90",
     "final_shared_capital_usdc": "250",
     "core_product_must_not_regress": true,
-    "per_market_independent_v1_evolution": true
+    "per_market_independent_v1_evolution": true,
+    "seed_satellites": [
+      "SUIUSDC",
+      "NEARUSDC",
+      "UNIUSDC",
+      "AAVEUSDC",
+      "BCHUSDC"
+    ],
+    "seed_satellites_replaceable": true,
+    "final_satellite_goal": 5,
+    "entry_requires_genuinely_free_core_capacity": true,
+    "materially_better_core_can_reclaim_filler": true
   }
 }

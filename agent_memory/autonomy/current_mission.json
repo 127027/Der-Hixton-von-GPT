@@ -2,15 +2,15 @@
   "schema_version": 1,
   "id": "MISSION-SATELLITE-V1-IDLE90",
   "status": "ACTIVE",
-  "objective": "Keep the validated 10-Core / one-shared-250-USDC product untouched as the primary engine, and independently develop five Satellite strategies for SUIUSDC, NEARUSDC, UNIUSDC, AAVEUSDC and BCHUSDC from the original Hixton V1/DMS_V1 basis so they can monetize as much as possible of the Core engine's approximately 90% idle time without reducing Core performance.",
+  "objective": "Protect the validated 10-Core / one-shared-250-USDC primary engine and find five robust Binance Spot USDC Satellite gap-fillers, starting from SUIUSDC, NEARUSDC, UNIUSDC, AAVEUSDC and BCHUSDC but replacing boundedly rejected seed markets when better USDC candidates exist. Satellites must monetize genuinely free Core capacity without reducing Core performance.",
   "priorities": [
-    "Run bounded independent V1-derived evolution for SUI/NEAR/UNI/AAVE/BCH using only the first two years of proxy history for selection.",
-    "Do not use old Core-V6 Satellite profiles as strategy seeds.",
-    "For each market compare unchanged V1 against bounded V1-derived probes for after-cost PnL, completed cycles, median hold and profit per occupied hour.",
-    "Select independently per market on training only; the five markets may end with different profiles.",
-    "Use the final one-year direct-USDC window only as a rejection gate; never retune from holdout outcomes.",
-    "Advance only holdout-positive candidates to the exact protected-Core idle-mask shared-250 replay.",
-    "Treat the owner's ~90% Core-idle figure as opportunity pool, not a quota; never sacrifice shared after-cost equity for utilization."
+    "Preserve the validated ten-Core product unchanged while Satellite research proceeds.",
+    "Use original V1_STRATEGY / DMS_V1 as the neutral Satellite starting basis; never copy Core V6 profiles as Satellite seeds.",
+    "Treat SUI/NEAR/UNI/AAVE/BCH as seed candidates, not immutable final choices; after bounded causal rejection, discover replacement Binance Spot USDC markets using point-in-time tradability, liquidity and history eligibility only.",
+    "Select strategy/parameter/horizon candidates on training only. Direct-USDC holdout, shifted, future and red-team evidence may reject but never select or retune.",
+    "Satellites may use only genuinely free shared-account capacity. They must never block protected Core allocation; a materially superior Core opportunity must be able to reclaim filler capital at the next executable opportunity.",
+    "Optimize after-cost incremental shared-account profit, genuine trade count, short capital occupancy and profit per occupied hour; idle coverage without profit is failure.",
+    "Final success is five robust USDC gap-fillers if evidence supports five; never force weak markets merely to hit a count."
   ],
   "anti_gaming": {
     "tiny_order_counting_for_frequency_forbidden": true,
@@ -89,20 +89,39 @@
     "owner_core_active_fraction_approx": "0.10",
     "owner_core_idle_fraction_approx": "0.90",
     "owner_idle_fill_target_pct": "90",
-    "current_stage": "SATELLITE_V1_IDLE_HORIZON_EVOLUTION",
+    "current_stage": "SATELLITE_V1_REPLACEMENT_UNIVERSE_DISCOVERY",
     "per_market_independent_development": true,
     "final_shared_account_usdc": "250",
     "core_is_protected_primary_engine": true,
     "core_regression_allowed": false,
     "no_future_information": true,
-    "real_usdc_holdout_rejection_only": true
+    "real_usdc_holdout_rejection_only": true,
+    "seed_symbols": [
+      "SUIUSDC",
+      "NEARUSDC",
+      "UNIUSDC",
+      "AAVEUSDC",
+      "BCHUSDC"
+    ],
+    "seed_symbols_replaceable_after_bounded_rejection": true,
+    "candidate_universe": "BINANCE_SPOT_USDC",
+    "entry_requires_genuinely_free_core_capacity": true,
+    "materially_better_core_may_reclaim_satellite": true,
+    "weak_core_signal_alone_forces_exit": false
   },
-  "current_stage": "SATELLITE_V1_IDLE_HORIZON_EVOLUTION",
+  "current_stage": "SATELLITE_V1_REPLACEMENT_UNIVERSE_DISCOVERY",
   "capital_model": {
     "user_input": "max_capital_usdc",
     "reference_research_capital_usdc": "250.00",
     "baseline_isolated_per_market_full_C_is_diagnostic_only": true,
     "final_satellite_layer_uses_one_shared_C": true,
     "final_core_plus_satellite_replay_uses_one_shared_C": true
+  },
+  "recent_evidence": {
+    "run_69": 37196821137,
+    "run_69_head": "9314df9baeae1c907d98472823d2e7ccd3e4eaa4",
+    "result": "SUCCESS_NO_SURVIVORS",
+    "detail": "2/4/6h exact-full-Core-idle horizon family; UNI training winner 6h but direct-USDC rejected; SUI/NEAR/AAVE/BCH had no fully robust training horizon.",
+    "next": "Discover replacement USDC markets rather than endlessly retuning the same five."
   }
 }

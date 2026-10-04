@@ -1,3 +1,16 @@
+# LIVE OVERRIDE — after Run #69 (2026-10-04)
+
+This section supersedes older stage/status statements below when they conflict.
+
+- Protected product remains `gpt/usdc-audit@f6497acf8d4d852aaac0b69878762fabb53155d4`.
+- Research Run #69 / `37196821137` / head `9314df9baeae1c907d98472823d2e7ccd3e4eaa4` completed SUCCESS.
+- The 2/4/6h V1 exact-full-Core-idle family produced no direct-USDC survivor. UNI selected 6h on TRAINING only but failed rejection-only Direct-USDC. SUI/NEAR/AAVE/BCH had no fully robust training horizon.
+- The current strict-idle experiment is a conservative falsification layer, not the final capital router: it only allows Satellite entry when no Core position is open. The owner target is broader genuine free-capacity filling; spare shared-account capacity may be used when it does not displace Core, and materially superior Core opportunities must be able to reclaim filler capital.
+- The original five are now seed candidates, not immutable final choices. After repeated bounded rejection, replacement Binance Spot USDC markets may be discovered using point-in-time tradability/liquidity/history eligibility. Holdout outcomes may not select replacements.
+- Current stage: `SATELLITE_V1_REPLACEMENT_UNIVERSE_DISCOVERY`.
+- Next action: run `scripts/satellite_universe_discovery.py`, inspect eligible USDC replacements, then build a V1/DMS_V1 training-only baseline/evolution for the active candidate set and validate it in one shared C=250 free-capacity replay.
+- Do not weaken holdout/stress/future/red-team gates. Do not mutate the protected Core. No Paper/Live activation, credentials or orders.
+
 # HIXTON CHAT HANDOFF — 2026-10-04 10:49 Europe/Berlin
 
 ## Purpose

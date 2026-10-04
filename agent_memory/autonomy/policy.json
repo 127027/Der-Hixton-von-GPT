@@ -24,7 +24,8 @@
     "exact protected Core idle-mask intersection",
     "one-shared-C Core+Satellite portfolio replay",
     "execution-cost robustness",
-    "shifted-window, holdout, future-readiness and red-team rejection tests"
+    "shifted-window, holdout, future-readiness and red-team rejection tests",
+    "point-in-time Binance Spot USDC replacement-universe discovery after bounded seed rejection"
   ],
   "hard_constraints": {
     "leverage_allowed": false,
@@ -116,8 +117,8 @@
     "live_market_universe_changes_require_full_promotion_and_owner_live_activation": true,
     "live_margin_futures_leverage_remains_forbidden": true,
     "core_v6_is_primary_strategy": true,
-    "satellite_layer_may_only_use_free_core_capacity": false,
-    "satellite_layer_must_yield_to_core": false,
+    "satellite_layer_may_only_use_free_core_capacity": true,
+    "satellite_layer_must_yield_to_core": true,
     "target_satellite_markets": 5,
     "proxy_history_requires_real_usdc_validation": true,
     "satellite_role": "DEDICATED_V1_DERIVED_CORE_IDLE_FILLER",
@@ -136,7 +137,11 @@
     "satellite_base_strategy": "V1_STRATEGY",
     "satellite_base_semantics": "DMS_V1",
     "core_v6_templates_as_satellite_starting_profiles": false,
-    "old_step4_v6_satellite_profiles_invalidated_for_selection": true
+    "old_step4_v6_satellite_profiles_invalidated_for_selection": true,
+    "satellite_entry_requires_genuinely_free_core_capacity": true,
+    "satellite_must_yield_to_materially_better_core": true,
+    "seed_satellites_replaceable_after_bounded_rejection": true,
+    "replacement_candidate_universe": "BINANCE_SPOT_USDC"
   },
   "forward_evidence": {
     "enabled": true,
@@ -167,6 +172,15 @@
     ],
     "profit_and_future_readiness_remain_hard_gates": true,
     "per_market_independent_evolution": true,
-    "v6_core_profile_copy_forbidden_as_default": true
+    "v6_core_profile_copy_forbidden_as_default": true,
+    "seed_symbols": [
+      "SUIUSDC",
+      "NEARUSDC",
+      "UNIUSDC",
+      "AAVEUSDC",
+      "BCHUSDC"
+    ],
+    "seed_symbols_are_not_mandatory_final_set": true,
+    "replacement_discovery_allowed_after_bounded_rejection": true
   }
 }
