@@ -1,10 +1,8 @@
 {
   "schema_version": 1,
-  "locked": false,
-  "reason": "transactional build: new regime-aware point-in-time satellite family after NO_ECONOMIC_PROGRESS in #104-#108",
-  "started_from_head": "5973d9819066c7bbc346581bf96bac6996e9fd2d",
-  "contract": "Do not launch substantive research until regime family script, workflow wiring, mission stage, delta/incumbent separation and protected-Core parity are verified on one coherent HEAD.",
-  "unlock_contract": "This final unlock commit may trigger exactly one substantive regime/reentry research run.",
-  "completed_head": "d6fe0990acaf8dfd056a3b17f1fcfafa974dfa50",
-  "completed_reason": "Regime/reentry research family built transactionally; workflow py_compile/contract green; mission stage wired; validated incumbents separated from training seeds; protected Core critical files byte-identical."
+  "locked": true,
+  "reason": "transactional build: targeted local regime refinement from Run #114 economic deltas",
+  "started_from_head": "912d1dd9503464062dfd866e6a2f8a23d5b10cd9",
+  "contract": "No substantive research until Run #114 improvements are persisted, targeted local candidate family is wired, contracts/compile/protected-Core parity are verified on one coherent HEAD.",
+  "unlock_contract": "This final unlock commit may trigger exactly one substantive regime/reentry research run."
 }
