@@ -138,8 +138,10 @@ jobs:
           print(f"full_candidate_pipeline={'false' if fast else 'true'}")
           PY
       - name: Verify newest protected engineering baseline
+        if: steps.stage.outputs.build_locked != 'true'
         run: python -m scripts.baseline_freshness_guard
       - name: Install research environment
+        if: steps.stage.outputs.build_locked != 'true'
         run: |
           python -m pip install --upgrade pip
           pip install -e '.[dev]'
@@ -252,6 +254,7 @@ jobs:
             --decision evidence/autonomous-research-decision.json \
             --output evidence/autonomous-next-hypothesis.json
       - uses: actions/upload-artifact@v4
+        if: steps.stage.outputs.build_locked != 'true'
         with:
           name: hixton-autonomous-research-${{ github.run_id }}
           path: |
