@@ -4,14 +4,13 @@
   "status": "ACTIVE",
   "objective": "Keep the validated 10-Core / one-shared-250-USDC product untouched as the primary engine, and independently develop five Satellite strategies for SUIUSDC, NEARUSDC, UNIUSDC, AAVEUSDC and BCHUSDC from the original Hixton V1/DMS_V1 basis so they can monetize as much as possible of the Core engine's approximately 90% idle time without reducing Core performance.",
   "priorities": [
-    "start from the unchanged original V1_STRATEGY / DMS_V1 semantics for all five Satellites; do not seed them from Core V6 profiles",
-    "measure V1 first before changing anything: trade count, signal count, wins/losses, after-cost PnL, drawdown, active time, median/average/max hold, and profit per occupied hour",
-    "measure the union opportunity coverage of the five and later intersect it with the exact protected Core idle mask",
-    "after the baseline, diagnose each Satellite separately and evolve a dedicated Satellite-V1 profile for that market; the five profiles may diverge",
-    "optimize for productive short-gap filling: positive after-cost PnL, short capital lock, sufficient opportunity frequency, high profit per occupied hour and complementarity with Core idle periods",
-    "target the owner's approximately 90% Core-idle interval as the opportunity pool, but never game utilization or trade count and never sacrifice protected Core profit just to reach a coverage number",
-    "selection/tuning uses training evidence only; real-USDC holdout, shifted windows, future-readiness and red-team are rejection-only",
-    "after per-market V1 development, replay one shared C=250 account with protected 10-Core plus the five Satellites and require no Core regression before promotion"
+    "Run bounded independent V1-derived evolution for SUI/NEAR/UNI/AAVE/BCH using only the first two years of proxy history for selection.",
+    "Do not use old Core-V6 Satellite profiles as strategy seeds.",
+    "For each market compare unchanged V1 against bounded V1-derived probes for after-cost PnL, completed cycles, median hold and profit per occupied hour.",
+    "Select independently per market on training only; the five markets may end with different profiles.",
+    "Use the final one-year direct-USDC window only as a rejection gate; never retune from holdout outcomes.",
+    "Advance only holdout-positive candidates to the exact protected-Core idle-mask shared-250 replay.",
+    "Treat the owner's ~90% Core-idle figure as opportunity pool, not a quota; never sacrifice shared after-cost equity for utilization."
   ],
   "anti_gaming": {
     "tiny_order_counting_for_frequency_forbidden": true,
@@ -90,7 +89,7 @@
     "owner_core_active_fraction_approx": "0.10",
     "owner_core_idle_fraction_approx": "0.90",
     "owner_idle_fill_target_pct": "90",
-    "current_stage": "SATELLITE_V1_BASELINE",
+    "current_stage": "SATELLITE_V1_PER_MARKET_EVOLUTION",
     "per_market_independent_development": true,
     "final_shared_account_usdc": "250",
     "core_is_protected_primary_engine": true,
@@ -98,7 +97,7 @@
     "no_future_information": true,
     "real_usdc_holdout_rejection_only": true
   },
-  "current_stage": "SATELLITE_V1_BASELINE",
+  "current_stage": "SATELLITE_V1_PER_MARKET_EVOLUTION",
   "capital_model": {
     "user_input": "max_capital_usdc",
     "reference_research_capital_usdc": "250.00",
