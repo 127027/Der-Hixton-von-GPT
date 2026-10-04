@@ -1,10 +1,8 @@
 {
   "schema_version": 1,
-  "locked": false,
-  "reason": "transactional repair: explicit workflow_dispatch after bot-authored round handoff",
-  "started_from_head": "dd9aa04b35192f614a84adbb51ca664b49482dcd",
-  "contract": "No substantive research may start while locked. Verify explicit-dispatch handoff and workflow permissions before unlock.",
-  "unlock_contract": "This unlock commit may trigger substantive round-2 research. Future bot-authored handoff commits explicitly dispatch the next workflow.",
-  "completed_head": "d8f800c0755df1185c19e671d71863ce2fc48dcb",
-  "completed_reason": "Explicit workflow_dispatch handoff verified under contract-only lock; round 2 control present; permissions/actions wiring green."
+  "locked": true,
+  "reason": "transactional build: new regime-aware point-in-time satellite family after NO_ECONOMIC_PROGRESS in #104-#108",
+  "started_from_head": "5973d9819066c7bbc346581bf96bac6996e9fd2d",
+  "contract": "Do not launch substantive research until regime family script, workflow wiring, mission stage, delta/incumbent separation and protected-Core parity are verified on one coherent HEAD.",
+  "unlock_contract": "This unlock commit may trigger substantive round-2 research. Future bot-authored handoff commits explicitly dispatch the next workflow."
 }
