@@ -1,0 +1,99 @@
+{
+  "schema_version": 1,
+  "source_run_id": 37222097330,
+  "source_head_sha": "df9d71073a4ec0ae60b5ba0d93444e8be9115a81",
+  "protected_product_sha": "f6497acf8d4d852aaac0b69878762fabb53155d4",
+  "selection_contract": "Base policies come only from Run #95 TRAINING winners. NEAR had no better #95 training policy, so its validated Run #90 incumbent is preserved with BASE policy. Validation results are context only and do not select seeds.",
+  "per_symbol": {
+    "SUIUSDC": {
+      "parameters": {
+        "vidya_length": 15,
+        "momentum_length": 20,
+        "smoothing_length": 14,
+        "atr_length": 120,
+        "band_multiplier": 2.3,
+        "warmup_bars": 400
+      },
+      "base_policy": {
+        "cmo_floor": 0.4,
+        "slope_bars": 0,
+        "stop_atr": 0,
+        "trail_atr": 0,
+        "max_hold_bars": 0
+      },
+      "incumbent_source": "RUN95_TRAINING_WINNER_CMO_40"
+    },
+    "NEARUSDC": {
+      "parameters": {
+        "vidya_length": 10,
+        "momentum_length": 20,
+        "smoothing_length": 15,
+        "atr_length": 200,
+        "band_multiplier": 2.8,
+        "warmup_bars": 400
+      },
+      "base_policy": {
+        "cmo_floor": 0,
+        "slope_bars": 0,
+        "stop_atr": 0,
+        "trail_atr": 0,
+        "max_hold_bars": 0
+      },
+      "incumbent_source": "RUN90_VALIDATED_PARAMETER_CHAMPION_PRESERVED"
+    },
+    "UNIUSDC": {
+      "parameters": {
+        "vidya_length": 12,
+        "momentum_length": 20,
+        "smoothing_length": 10,
+        "atr_length": 120,
+        "band_multiplier": 2,
+        "warmup_bars": 400
+      },
+      "base_policy": {
+        "cmo_floor": 0.3,
+        "slope_bars": 72,
+        "stop_atr": 0,
+        "trail_atr": 0,
+        "max_hold_bars": 0
+      },
+      "incumbent_source": "RUN95_TRAINING_WINNER_CMO_30_S72"
+    },
+    "AAVEUSDC": {
+      "parameters": {
+        "vidya_length": 10,
+        "momentum_length": 12,
+        "smoothing_length": 15,
+        "atr_length": 200,
+        "band_multiplier": 2,
+        "warmup_bars": 400
+      },
+      "base_policy": {
+        "cmo_floor": 0.3,
+        "slope_bars": 0,
+        "stop_atr": 0,
+        "trail_atr": 0,
+        "max_hold_bars": 0
+      },
+      "incumbent_source": "RUN95_TRAINING_WINNER_CMO_30"
+    },
+    "BCHUSDC": {
+      "parameters": {
+        "vidya_length": 13,
+        "momentum_length": 16,
+        "smoothing_length": 15,
+        "atr_length": 200,
+        "band_multiplier": 3.2,
+        "warmup_bars": 400
+      },
+      "base_policy": {
+        "cmo_floor": 0,
+        "slope_bars": 0,
+        "stop_atr": 0,
+        "trail_atr": 0,
+        "max_hold_bars": 0
+      },
+      "incumbent_source": "RUN95_TRAINING_WINNER_BASE"
+    }
+  }
+}
