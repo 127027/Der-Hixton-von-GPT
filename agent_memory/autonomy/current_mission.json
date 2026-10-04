@@ -89,7 +89,7 @@
     "owner_core_active_fraction_approx": "0.10",
     "owner_core_idle_fraction_approx": "0.90",
     "owner_idle_fill_target_pct": "90",
-    "current_stage": "SATELLITE_ISOLATED_5X250_OPTIMIZATION",
+    "current_stage": "SATELLITE_V1_SHARED_CORE_IDLE_REPLAY",
     "per_market_independent_development": true,
     "final_shared_account_usdc": "250",
     "core_is_protected_primary_engine": true,
@@ -135,7 +135,7 @@
     "initial_configured_capital_usdc": "250",
     "future_scale_after_clean_month_usdc": "1000"
   },
-  "current_stage": "SATELLITE_ISOLATED_5X250_OPTIMIZATION",
+  "current_stage": "SATELLITE_V1_SHARED_CORE_IDLE_REPLAY",
   "capital_model": {
     "user_input": "max_capital_usdc",
     "reference_research_capital_usdc": "250.00",
@@ -148,7 +148,7 @@
     "run_69_head": "9314df9baeae1c907d98472823d2e7ccd3e4eaa4",
     "result": "SUCCESS_NO_SURVIVORS",
     "detail": "2/4/6h exact-full-Core-idle horizon family; UNI training winner 6h but direct-USDC rejected; SUI/NEAR/AAVE/BCH had no fully robust training horizon.",
-    "next": "Run SATELLITE_ISOLATED_5X250_OPTIMIZATION with three adaptive training-led generations per SUI/NEAR/UNI/AAVE/BCH on the canonical f649 three-year window.",
+    "next": "Replay frozen NEAR+UNI profiles in the unchanged one-shared-250 Core bot. Satellites may enter only in complete Core-idle periods and must yield to any executable Core entry. Measure incremental ending equity, Satellite PnL, idle hours monetized, Core parity and stress.",
     "run_70": 37198769433,
     "run_70_head": "736ee30f610f85044bb5476992ab81fd8606263c",
     "run_70_result": "SUCCESS_10_NEW_ELIGIBLE_REPLACEMENTS",
@@ -192,7 +192,32 @@
     },
     "run_86": 37213344723,
     "run_86_result": "SUCCESS_NO_ROBUST_FILTERED_ENTRY_WINNER",
-    "run_86_interpretation": "Filtered-entry micro-harvest family still produced no robust training winner; latest owner clarification changes the workflow order: optimize each new Satellite independently with 250 first, like historical Core 10x250, before shared idle integration."
+    "run_86_interpretation": "Filtered-entry micro-harvest family still produced no robust training winner; latest owner clarification changes the workflow order: optimize each new Satellite independently with 250 first, like historical Core 10x250, before shared idle integration.",
+    "run_90": 37214596940,
+    "run_90_result": "SUCCESS_TWO_ISOLATED_250_WINNERS",
+    "run_90_accepted": [
+      "NEARUSDC",
+      "UNIUSDC"
+    ],
+    "run_90_rejected": [
+      "SUIUSDC",
+      "AAVEUSDC",
+      "BCHUSDC"
+    ],
+    "run_90_near": {
+      "profile": "band_multiplier=2.8",
+      "validation_baseline_net_pnl_usdc": "191.1507607056",
+      "validation_stress_net_pnl_usdc": "108.086061076",
+      "full_3y_proxy_baseline_net_pnl_usdc": "538.43827243635",
+      "full_3y_proxy_stress_net_pnl_usdc": "393.1510497113"
+    },
+    "run_90_uni": {
+      "profile": "BALANCED_B (vidya12 momentum20 smoothing10 atr120 band2.0)",
+      "validation_baseline_net_pnl_usdc": "88.1982195505",
+      "validation_stress_net_pnl_usdc": "8.26799706129",
+      "full_3y_proxy_baseline_net_pnl_usdc": "305.942018310555",
+      "full_3y_proxy_stress_net_pnl_usdc": "21.6248336495"
+    }
   },
   "canonical_core_baseline": {
     "status": "PROTECTED_AND_VALIDATED",
