@@ -19,6 +19,8 @@ on:
       - "agent_memory/autonomy/satellite_v1_idle_horizon_sources.json"
       - "agent_memory/autonomy/satellite_v1_replacement_candidates.json"
       - "agent_memory/autonomy/satellite_refinement_seeds.json"
+      - "agent_memory/autonomy/satellite_holding_seeds.json"
+      - "agent_memory/autonomy/satellite_holding_control.json"
       - "scripts/autonomous_research_supervisor.py"
       - "scripts/baseline_freshness_guard.py"
       - "scripts/autonomous_red_team.py"
@@ -55,7 +57,7 @@ permissions:
 
 concurrency:
   group: hixton-autonomous-research-v1
-  cancel-in-progress: true
+  cancel-in-progress: false
 
 jobs:
   contract:
@@ -87,6 +89,10 @@ jobs:
             scripts/satellite_micro_filtered_entry_research.py \
             scripts/satellite_isolated_5x250_optimizer.py \
             scripts/satellite_isolated_5x250_policy_refinement.py \
+            scripts/satellite_isolated_5x250_holding_refinement.py \
+            scripts/satellite_autocontinue.py \
+            src/hixton/domain/trade_policy.py \
+            src/hixton/backtest/engine.py \
             scripts/satellite_shared_portfolio_research.py \
             scripts/satellite_filler_router_research.py \
             scripts/engineering_candidate_builder.py \
@@ -176,6 +182,9 @@ jobs:
       - name: Satellite isolated 5x250 policy refinement
         if: steps.stage.outputs.priority_stage == 'SATELLITE_ISOLATED_5X250_POLICY_REFINEMENT'
         run: python -m scripts.satellite_isolated_5x250_policy_refinement
+      - name: Satellite isolated 5x250 holding refinement
+        if: steps.stage.outputs.priority_stage == 'SATELLITE_ISOLATED_5X250_HOLDING_REFINEMENT'
+        run: python -m scripts.satellite_isolated_5x250_holding_refinement
       - name: Step 5 shared 10-core + frozen-satellite portfolio research
         if: steps.stage.outputs.priority_stage == 'STEP5_SHARED_10_PLUS_SATELLITE_PORTFOLIO'
         run: python -m scripts.satellite_shared_portfolio_research
@@ -273,11 +282,49 @@ jobs:
             evidence/satellite-micro-filtered-entry-research.json
             evidence/satellite-isolated-5x250-optimizer.json
             evidence/satellite-isolated-5x250-policy-refinement.json
+            evidence/satellite-isolated-5x250-holding-refinement.json
             evidence/satellite-strategy-research.json
             evidence/satellite-shared-portfolio-research.json
             evidence/satellite-filler-router-research.json
           retention-days: 30
           if-no-files-found: error
+      - name: Prepare bounded automatic Satellite handoff
+        if: steps.stage.outputs.priority_stage == 'SATELLITE_ISOLATED_5X250_HOLDING_REFINEMENT' && steps.stage.outputs.build_locked != 'true'
+        run: python -m scripts.satellite_autocontinue
+      - name: Persist bounded automatic Satellite handoff
+        if: steps.stage.outputs.priority_stage == 'SATELLITE_ISOLATED_5X250_HOLDING_REFINEMENT' && steps.stage.outputs.build_locked != 'true'
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          branch="gpt/autonomous-research-v1"
+          git fetch origin "$branch"
+          remote_head="$(git rev-parse "origin/$branch")"
+          if [ "$remote_head" != "$GITHUB_SHA" ]; then
+            echo "::warning::Research HEAD moved during this run ($remote_head != $GITHUB_SHA); skip automatic handoff push."
+            exit 0
+          fi
+          git config user.name "hixton-autonomy[bot]"
+          git config user.email "hixton-autonomy@users.noreply.github.com"
+          git add \
+            agent_memory/autonomy/current_mission.json \
+            agent_memory/autonomy/heartbeat.json \
+            agent_memory/autonomy/satellite_holding_control.json \
+            agent_memory/autonomy/satellite_holding_seeds.json
+          if git diff --cached --quiet; then
+            echo "No bounded continuation state change to persist."
+            exit 0
+          fi
+          next_round="$(python - <<'PY'
+          import json
+          c=json.load(open("agent_memory/autonomy/satellite_holding_control.json"))
+          print(c.get("round", "done"))
+          PY
+          )"
+          git commit -m "autonomy(satellite): advance bounded refinement to round ${next_round}"
+          git remote set-url origin "https://x-access-token:${GH_TOKEN}@github.com/${GITHUB_REPOSITORY}.git"
+          git push origin "HEAD:$branch"
 
   build-candidate:
     needs: research
