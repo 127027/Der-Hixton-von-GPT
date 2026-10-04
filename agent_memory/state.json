@@ -7,14 +7,26 @@
   "last_learning_round": 10,
   "current_strategy": "Protected ten-Core primary engine + dedicated small-signal Core-idle Satellite filler layer",
   "current_reference": {
-    "source_run_id": "35463131378",
-    "isolated_10x250_baseline_usdc": "8217.00711069101365000000",
-    "isolated_10x250_stress_usdc": "7692.5144402748462000000",
-    "shared_3x80_baseline_usdc": "1217.90575965983510000000",
-    "shared_3x80_stress_usdc": "1133.4052326050468000000",
-    "report_start_utc": "2023-09-19T19:00:00+00:00",
-    "report_end_utc": "2026-09-19T19:00:00+00:00",
-    "reference_type": "historical_pre_max_budget_research_checkpoint"
+    "reference_type": "CANONICAL_PROTECTED_CORE_250_EXACT_HEAD",
+    "protected_product_sha": "f6497acf8d4d852aaac0b69878762fabb53155d4",
+    "validation_workflow_run_id": "37034447882",
+    "validation_agent": "A02",
+    "report_start_utc": "2023-10-02T18:00:00+00:00",
+    "report_end_utc": "2026-10-02T18:00:00+00:00",
+    "starting_capital_usdc": "250.00",
+    "allocator": "CAPITAL-V1-2X50PCT / ranked_repeat / 2x125",
+    "baseline_ending_equity_usdc": "1560.08098032189235000000",
+    "baseline_net_profit_usdc": "1310.08098032189235000000",
+    "baseline_return_pct": "524.032392128756940000",
+    "baseline_position_cycles": 84,
+    "baseline_slot_trades": 138,
+    "baseline_max_drawdown_pct": "30.02250609909379042476876819",
+    "stress_ending_equity_usdc": "1469.7623654035115000000",
+    "stress_net_profit_usdc": "1219.7623654035115000000",
+    "stress_return_pct": "487.90494616140460000",
+    "exact_head_qa_gate": "QA_PASS",
+    "exact_head_governance_gate": "GOVERNANCE_PASS",
+    "interpretation": "Owner shorthand '~1500' corresponds approximately to ending equity; canonical measured net profit is +1310.08098032189235 USDC."
   },
   "agent_runtime": {
     "agent_count": 11,
@@ -30,7 +42,7 @@
     "Binance public market-data endpoint availability and policy are external facts and must fail closed rather than trigger synthetic operational candles.",
     "Historical performance does not guarantee future profitability."
   ],
-  "notes": "Run #74 completed successfully but found no robust survivor using the old V1-style replacement baseline. Do not keep searching more markets with the same weak filler logic. Next stage tests a dedicated smaller-signal family on the five primary Satellites.",
+  "notes": "Canonical protected Core baseline is now the exact-head f649 250-USDC three-year A02 evidence (run 37034447882). Satellite research must compare Core+Satellite against this protected behavior on like-for-like windows/costs, never against stale 3x80 or isolated 10x250 diagnostics. Run #78 completed but the first dedicated micro-filler family had no robust survivor.",
   "current_product": {
     "max_capital_source": "max_capital_usdc",
     "allocator_version": "CAPITAL-V1-2X50PCT",
