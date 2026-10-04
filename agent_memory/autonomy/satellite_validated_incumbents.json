@@ -1,0 +1,147 @@
+{
+  "schema_version": 1,
+  "purpose": "Separate validated/reference incumbents from training research seeds. These incumbents may only be replaced by a like-for-like candidate that improves without violating robustness/no-regression gates.",
+  "protected_product_sha": "f6497acf8d4d852aaac0b69878762fabb53155d4",
+  "per_symbol": {
+    "SUIUSDC": {
+      "parameters": {
+        "vidya_length": 15,
+        "momentum_length": 20,
+        "smoothing_length": 14,
+        "atr_length": 120,
+        "band_multiplier": 2.3,
+        "warmup_bars": 400
+      },
+      "policy": {
+        "cmo_floor": 0.4,
+        "slope_bars": 0,
+        "stop_atr": 0,
+        "trail_atr": 0
+      },
+      "horizon_hours": 0,
+      "source_run": 95,
+      "profitability_pass": false,
+      "maturity_pass": false,
+      "reference": {
+        "validation_stress_net_pnl": "-20.926209597350000000",
+        "validation_stress_trades": 25,
+        "full_3y_stress_net_pnl": "283.543276497860000000",
+        "full_3y_stress_trades": 78,
+        "full_3y_stress_max_drawdown_pct": "53.06097703704273299605557782",
+        "full_3y_stress_profit_per_position_hour": "0.03454053800680472651967352905"
+      }
+    },
+    "NEARUSDC": {
+      "parameters": {
+        "vidya_length": 10,
+        "momentum_length": 20,
+        "smoothing_length": 15,
+        "atr_length": 200,
+        "band_multiplier": 2.8,
+        "warmup_bars": 400
+      },
+      "policy": {
+        "cmo_floor": 0,
+        "slope_bars": 0,
+        "stop_atr": 0,
+        "trail_atr": 0
+      },
+      "horizon_hours": 48,
+      "source_run": 101,
+      "profitability_pass": true,
+      "maturity_pass": true,
+      "reference": {
+        "validation_stress_net_pnl": "123.69366249120000000",
+        "validation_stress_trades": 61,
+        "full_3y_stress_net_pnl": "331.60670464360000000",
+        "full_3y_stress_trades": 191,
+        "full_3y_stress_max_drawdown_pct": "36.17099795728092254546654214",
+        "full_3y_stress_profit_per_position_hour": "0.04017040637717746820109024833"
+      }
+    },
+    "UNIUSDC": {
+      "parameters": {
+        "vidya_length": 12,
+        "momentum_length": 20,
+        "smoothing_length": 10,
+        "atr_length": 120,
+        "band_multiplier": 2,
+        "warmup_bars": 400
+      },
+      "policy": {
+        "cmo_floor": 0.3,
+        "slope_bars": 72,
+        "stop_atr": 0,
+        "trail_atr": 0
+      },
+      "horizon_hours": 0,
+      "source_run": 95,
+      "profitability_pass": true,
+      "maturity_pass": false,
+      "reference": {
+        "validation_stress_net_pnl": "160.85488637841000000",
+        "validation_stress_trades": 19,
+        "full_3y_stress_net_pnl": "261.33936268335000000",
+        "full_3y_stress_trades": 63,
+        "full_3y_stress_max_drawdown_pct": "33.89846134855061034345681268",
+        "full_3y_stress_profit_per_position_hour": "0.04540294695680159833217512161"
+      }
+    },
+    "AAVEUSDC": {
+      "parameters": {
+        "vidya_length": 10,
+        "momentum_length": 12,
+        "smoothing_length": 15,
+        "atr_length": 200,
+        "band_multiplier": 2,
+        "warmup_bars": 400
+      },
+      "policy": {
+        "cmo_floor": 0.3,
+        "slope_bars": 0,
+        "stop_atr": 0,
+        "trail_atr": 0
+      },
+      "horizon_hours": 0,
+      "source_run": 95,
+      "profitability_pass": false,
+      "maturity_pass": false,
+      "reference": {
+        "validation_stress_net_pnl": "-103.0621137826900000",
+        "validation_stress_trades": 60,
+        "full_3y_stress_net_pnl": "0.8611939881600000",
+        "full_3y_stress_trades": 168,
+        "full_3y_stress_max_drawdown_pct": "73.24666475777443650109959008",
+        "full_3y_stress_profit_per_position_hour": "0.00007263781951417004048582995951"
+      }
+    },
+    "BCHUSDC": {
+      "parameters": {
+        "vidya_length": 13,
+        "momentum_length": 16,
+        "smoothing_length": 15,
+        "atr_length": 200,
+        "band_multiplier": 3.2,
+        "warmup_bars": 400
+      },
+      "policy": {
+        "cmo_floor": 0,
+        "slope_bars": 0,
+        "stop_atr": 0,
+        "trail_atr": 0
+      },
+      "horizon_hours": 0,
+      "source_run": 95,
+      "profitability_pass": false,
+      "maturity_pass": false,
+      "reference": {
+        "validation_stress_net_pnl": "-58.432709922100000",
+        "validation_stress_trades": 31,
+        "full_3y_stress_net_pnl": "254.742941725600000",
+        "full_3y_stress_trades": 75,
+        "full_3y_stress_max_drawdown_pct": "37.73664054946849421036595061",
+        "full_3y_stress_profit_per_position_hour": "0.02114751301059272787647351818"
+      }
+    }
+  }
+}
