@@ -1,17 +1,13 @@
 {
-  "run_number": 131,
-  "run_id": 37235973906,
-  "head_sha": "bff09032ea77eb0109add2b01daedc564f131e4e",
-  "adaptive_round": 6,
-  "family": "OCCUPANCY_HORIZON",
+  "run_number": 132,
+  "run_id": 37236203419,
+  "head_sha": "cd39e37a54503aa1c5ba6c299dbcb79926f6bf09",
+  "adaptive_round": 7,
+  "family": "ENTRY_CMO_QUALITY",
   "technical_success": true,
-  "economic_progress": true,
-  "improved_symbols": [
-    "AAVEUSDC"
-  ],
-  "accepted_reference_updates": [
-    "AAVEUSDC"
-  ],
+  "economic_progress": false,
+  "improved_symbols": [],
+  "accepted_reference_updates": [],
   "mature_symbols_after": [
     "NEARUSDC"
   ],
@@ -92,21 +88,21 @@
       "reference_maturity_after": false
     },
     "AAVEUSDC": {
-      "classification": "IMPROVED",
-      "reason": "RESEARCH_BENCHMARK_MOVED_TOWARD_VALIDATION",
+      "classification": "UNCHANGED",
+      "reason": "NO_VALIDATED_IMPROVEMENT",
       "problem_after_round": "VALIDATION_GENERALIZATION_GAP",
-      "training_winner": "HOLD_168",
+      "training_winner": "SEED",
       "selection_mode": "PROFIT_FIRST_TRAINING_SELECTION",
       "profitability_pass": false,
       "maturity_pass": false,
       "economic_delta_vs_reference": {
-        "classification": "IMPROVED",
-        "reason": "RESEARCH_BENCHMARK_MOVED_TOWARD_VALIDATION",
-        "validation_stress_net_pnl_delta": "5.8000173348200000",
-        "full_3y_stress_net_pnl_delta": "82.7776698895800000",
+        "classification": "UNCHANGED",
+        "reason": "NO_VALIDATED_IMPROVEMENT",
+        "validation_stress_net_pnl_delta": "0E-16",
+        "full_3y_stress_net_pnl_delta": "0E-16",
         "full_3y_stress_completed_trades_delta": 0,
-        "full_3y_stress_max_drawdown_pct_delta": "-3.40411527166519392606726889",
-        "full_3y_stress_profit_per_position_hour_delta": "0.01048928883430423045497045818",
+        "full_3y_stress_max_drawdown_pct_delta": "0E-26",
+        "full_3y_stress_profit_per_position_hour_delta": "0E-29",
         "candidate_profitability_pass": false,
         "candidate_maturity_pass": false,
         "candidate_reference": {
@@ -118,7 +114,7 @@
           "full_3y_stress_profit_per_position_hour": "0.04332743952469329691589848640"
         }
       },
-      "accepted_as_new_reference": true,
+      "accepted_as_new_reference": false,
       "reference_source_run_after": 131,
       "reference_maturity_after": false
     },
@@ -157,5 +153,5 @@
   "patch_complete": true,
   "next_stage": "SATELLITE_ISOLATED_5X250_ADAPTIVE_CYCLE",
   "dispatch_next": true,
-  "next_reason": "advance from adaptive round 6 to 7; next causal family is predeclared and different"
+  "next_reason": "advance from adaptive round 7 to 8; next causal family is predeclared and different"
 }
