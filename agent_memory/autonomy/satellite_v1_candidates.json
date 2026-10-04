@@ -1,51 +1,35 @@
 {
   "schema_version": 1,
-  "study": "SATELLITE_V1_CANDIDATE_CHECKPOINT",
-  "source_run_id": 37189822138,
-  "source_run_number": 65,
-  "source_head_sha": "12033e72260568aa81c427f83afa75006d968ca7",
-  "source_artifact_id": 11298795927,
-  "source_artifact_digest": "sha256:3ab10a6de0f5fac53aea0dbf7b895ff3326be4570cd1a0291174d5d340689ee2",
+  "source_run_id": 37214596940,
+  "source_head_sha": "e10d2acd7d41f4f6beec989b92d0e8ca71f8e5ed",
+  "source_artifact_digest": "sha256:a6279d72c43ac958a3352001d934052179f3d6cb36b869c5ce85bfe72681cb6c",
   "protected_product_sha": "f6497acf8d4d852aaac0b69878762fabb53155d4",
-  "selection_contract": {
-    "training_may_select": true,
-    "direct_usdc_holdout_rejection_only": true,
-    "shared_core_idle_replay_may_reject_not_retune": true
-  },
+  "methodology": "ISOLATED_5X250_WINNERS_FROZEN_FOR_SHARED_IDLE_REPLAY",
   "accepted_for_shared_core_idle_replay": [
+    "NEARUSDC",
     "UNIUSDC"
   ],
   "per_symbol": {
-    "SUIUSDC": {
-      "champion_name": "AXIS_atr_length_72",
-      "parameters": {
-        "vidya_length": 10,
-        "momentum_length": 20,
-        "smoothing_length": 15,
-        "atr_length": 72,
-        "band_multiplier": 2,
-        "warmup_bars": 400
-      },
-      "history_source_for_training": "SUIUSDT",
-      "advance_to_shared_replay": false,
-      "rejection_reason": "DIRECT_USDC_HOLDOUT_REJECTION"
-    },
     "NEARUSDC": {
-      "champion_name": "AXIS_atr_length_72",
+      "advance_to_shared_replay": true,
       "parameters": {
         "vidya_length": 10,
         "momentum_length": 20,
         "smoothing_length": 15,
-        "atr_length": 72,
-        "band_multiplier": 2,
+        "atr_length": 200,
+        "band_multiplier": 2.8,
         "warmup_bars": 400
       },
       "history_source_for_training": "NEARUSDT",
-      "advance_to_shared_replay": false,
-      "rejection_reason": "DIRECT_USDC_HOLDOUT_REJECTION"
+      "isolated_250_evidence": {
+        "validation_baseline_net_pnl_usdc": "191.150760705600000000",
+        "validation_stress_net_pnl_usdc": "108.08606107600000000",
+        "full_3y_proxy_baseline_net_pnl_usdc": "538.438272436350000000",
+        "full_3y_proxy_stress_net_pnl_usdc": "393.15104971130000000"
+      }
     },
     "UNIUSDC": {
-      "champion_name": "BALANCED_B",
+      "advance_to_shared_replay": true,
       "parameters": {
         "vidya_length": 12,
         "momentum_length": 20,
@@ -55,36 +39,18 @@
         "warmup_bars": 400
       },
       "history_source_for_training": "UNIUSDT",
-      "advance_to_shared_replay": true,
-      "rejection_reason": null
-    },
-    "AAVEUSDC": {
-      "champion_name": "AXIS_momentum_length_12",
-      "parameters": {
-        "vidya_length": 10,
-        "momentum_length": 12,
-        "smoothing_length": 15,
-        "atr_length": 200,
-        "band_multiplier": 2,
-        "warmup_bars": 400
-      },
-      "history_source_for_training": "AAVEUSDT",
-      "advance_to_shared_replay": false,
-      "rejection_reason": "DIRECT_USDC_HOLDOUT_REJECTION"
-    },
-    "BCHUSDC": {
-      "champion_name": "AXIS_band_multiplier_2.8",
-      "parameters": {
-        "vidya_length": 10,
-        "momentum_length": 20,
-        "smoothing_length": 15,
-        "atr_length": 200,
-        "band_multiplier": 2.8,
-        "warmup_bars": 400
-      },
-      "history_source_for_training": "BCHUSDT",
-      "advance_to_shared_replay": false,
-      "rejection_reason": "DIRECT_USDC_HOLDOUT_REJECTION"
+      "isolated_250_evidence": {
+        "validation_baseline_net_pnl_usdc": "88.198219550500000000",
+        "validation_stress_net_pnl_usdc": "8.26799706129000000",
+        "full_3y_proxy_baseline_net_pnl_usdc": "305.942018310555000000",
+        "full_3y_proxy_stress_net_pnl_usdc": "21.62483364950000000"
+      }
     }
-  }
+  },
+  "rejected_for_now": {
+    "SUIUSDC": "NO_ROBUST_ISOLATED_250_PROFILE_AFTER_3_ADAPTIVE_GENERATIONS",
+    "AAVEUSDC": "NO_ROBUST_ISOLATED_250_PROFILE_AFTER_3_ADAPTIVE_GENERATIONS",
+    "BCHUSDC": "NO_ROBUST_ISOLATED_250_PROFILE_AFTER_3_ADAPTIVE_GENERATIONS"
+  },
+  "next_stage": "SATELLITE_V1_SHARED_CORE_IDLE_REPLAY"
 }
