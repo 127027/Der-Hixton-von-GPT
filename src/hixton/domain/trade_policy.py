@@ -16,6 +16,7 @@ class TradePolicy:
     slope_bars: int = 0
     stop_atr: float = 0.0
     trail_atr: float = 0.0
+    max_hold_bars: int = 0
 
     def __post_init__(self) -> None:
         if not all(isfinite(v) and v >= 0 for v in (self.cmo_floor, self.stop_atr, self.trail_atr)):
@@ -24,8 +25,10 @@ class TradePolicy:
             self.cmo_floor > 1
             or type(self.slope_bars) is not int
             or self.slope_bars not in (0, 24, 72)
+            or type(self.max_hold_bars) is not int
+            or self.max_hold_bars < 0
         ):
-            raise ValueError("invalid CMO threshold or slope lookback")
+            raise ValueError("invalid CMO threshold, slope lookback or max hold")
 
 
 @dataclass(frozen=True, slots=True)
@@ -47,6 +50,7 @@ class TradePolicyGate:
         entry_price: float | None = None,
         entry_atr: float = 0.0,
         highest_close: float = 0.0,
+        holding_bars: int = 0,
     ) -> PolicyDecision:
         """Called once per closed bar, including warm-up. Stops trigger at CLOSE only."""
         self._vidya.append(point.vidya)
@@ -63,10 +67,14 @@ class TradePolicyGate:
                 return PolicyDecision(signal, block_reason="POLICY_VIDYA_SLOPE")
         if signal is not None:
             return PolicyDecision(signal)
-        if entry_price is None or not point.tradable or entry_atr <= 0:
+        if entry_price is None or not point.tradable:
             return PolicyDecision(None)
         reason = None
-        if (
+        if self.policy.max_hold_bars and holding_bars >= self.policy.max_hold_bars:
+            reason = "POLICY_MAX_HOLD"
+        elif entry_atr <= 0:
+            return PolicyDecision(None)
+        elif (
             self.policy.stop_atr
             and point.candle.close <= entry_price - self.policy.stop_atr * entry_atr
         ):
