@@ -5,7 +5,7 @@
   "objective": {
     "capital_usdc": "CONFIGURED_C",
     "symbols": "10_CORE_PLUS_UP_TO_5_VALIDATED_SATELLITES",
-    "primary": "Protect the validated ten-Core engine as the primary earnings source and develop a secondary short-duration small-signal Satellite layer for complete Core-idle periods.",
+    "primary": "First extend the established per-market optimization laboratory from Core 10x250 to Core+Satellite 15x250 by independently optimizing five Satellites at 250 USDC each; then integrate validated Satellites into the unchanged shared 250-USDC Core product as idle-capital fillers with absolute Core preemption.",
     "secondary": "Increase profitable Core-idle coverage, completed genuine Satellite cycles and profit per occupied hour while reducing Satellite holding time and avoiding any Core regression.",
     "never_optimize_for": [
       "headline trade count alone",
@@ -16,14 +16,11 @@
     "future_readiness": "prefer mechanisms that survive plausible unseen regimes, execution degradation and newly arriving data over mechanisms that maximize historical fit"
   },
   "allowed_research": [
-    "bounded small-signal/micro-filler families on SUI/NEAR/UNI/AAVE/BCH",
-    "bounded per-market Satellite parameter and exit/horizon evolution",
-    "optional additional Binance Spot USDC filler markets only after the primary five are evaluated",
-    "signal scarcity, false-breakout, holding-duration and maximum idle-gap diagnosis",
-    "exact protected Core idle-mask intersection",
-    "one-shared-C Core+Satellite portfolio replay",
-    "execution-cost robustness",
-    "shifted-window, holdout, future-readiness and red-team rejection tests"
+    "isolated 250-USDC adaptive optimization per SUI/NEAR/UNI/AAVE/BCH on the canonical three-year window",
+    "per-Satellite independent parameters and bounded adaptive generations",
+    "training-only search direction with Direct-USDC rejection-only validation",
+    "shared 250-USDC Core+Satellite idle-capital integration only after isolated Satellite validation",
+    "execution-cost robustness, shifted-window, future-readiness and red-team rejection tests"
   ],
   "hard_constraints": {
     "leverage_allowed": false,
@@ -152,7 +149,17 @@
     "optional_satellite_pool_expansion_allowed": true,
     "initial_real_trial_capital_usdc": "50",
     "initial_configured_capital_usdc": "250",
-    "future_scale_capital_usdc": "1000"
+    "future_scale_capital_usdc": "1000",
+    "isolated_core_lab": "10x250",
+    "isolated_satellite_lab": "5x250",
+    "combined_isolated_research_view": "15x250",
+    "isolated_capital_per_market_usdc": "250",
+    "isolated_15x250_is_shared_or_live_capital": false,
+    "phase_order": [
+      "ISOLATED_PER_MARKET_OPTIMIZATION",
+      "SHARED_250_IDLE_FILLER_INTEGRATION"
+    ],
+    "satellite_profiles_independent_per_market": true
   },
   "forward_evidence": {
     "enabled": true,
