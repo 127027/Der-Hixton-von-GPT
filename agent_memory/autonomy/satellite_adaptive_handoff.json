@@ -1,16 +1,16 @@
 {
   "schema_version": 1,
-  "completed_run_number": 134,
-  "completed_run_id": 37236744456,
-  "completed_round": 9,
-  "completed_family": "ATR_DIRECTION_PLUS_TREND_EXIT",
+  "completed_run_number": 135,
+  "completed_run_id": 37236940994,
+  "completed_round": 10,
+  "completed_family": "REENTRY_PLUS_TREND_EXIT",
   "economic_progress": false,
   "accepted_reference_updates": [],
   "mature_symbols_after": [
     "NEARUSDC"
   ],
   "next_stage": "SATELLITE_ISOLATED_5X250_ADAPTIVE_CYCLE",
-  "next_round": 10,
+  "next_round": 11,
   "dispatch_next": true,
-  "reason": "advance from adaptive round 9 to 10; next causal family is predeclared and different"
+  "reason": "advance from adaptive round 10 to 11; next causal family is predeclared and different"
 }
