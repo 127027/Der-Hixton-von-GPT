@@ -2,16 +2,16 @@
   "schema_version": 1,
   "mode": "PERSISTENT_ROLE_SWARM",
   "roles": {
-    "A01": "Own the Core-first small-signal Satellite evidence contract: protected ten-Core engine unchanged, Satellite idle-only entry, and unconditional Core preemption.",
-    "A02": "Run deterministic small-signal Satellite training/holdout and one-shared-C replays for SUI/NEAR/UNI/AAVE/BCH first; optional extra markets only after the primary set.",
+    "A01": "Verify the two-phase owner contract: isolated 15x250 optimization laboratory first, then shared 250 Core+Satellite filler integration. Prevent confusion between research capital and live/shared capital.",
+    "A02": "Own deterministic per-market 250-USDC backtests for the protected ten Core profiles and five independent Satellite profiles, then the like-for-like shared-250 integration replay.",
     "A03": "Verify strategy semantics and timing parity so Satellite-V1 behavior can later match Backtest/Paper/Trial/Live without changing the protected Core.",
     "A04": "Keep UI/API truthful: Satellite research must remain visibly research-only until exact-head promotion.",
-    "A05": "Diagnose why fillers fail: insufficient small-signal edge, fees, false breakouts, holding time, trade scarcity and long idle gaps.",
+    "A05": "Diagnose per-Satellite losses from isolated 250 evidence before shared integration: entry quality, exits, fees, holding duration, false breakouts and insufficient sample size.",
     "A06": "Regression-test every Satellite-V1 patch for determinism, data continuity, no leakage and no accidental protected-Core mutation.",
     "A07": "Validate Binance Spot USDC tradability, point-in-time filters, liquidity, USDC/USDT history and direct-USDC rejection-only holdout availability for every active or replacement Satellite candidate.",
     "A08": "Challenge each evolved Satellite-V1 profile on costs, risk, duration, opportunity frequency and shared-250 interaction with the protected Core.",
     "A09": "Independently reject overfit, stale, non-reproducible or Core-regressive Satellite candidates; only exact-head QA_PASS may advance.",
-    "A10": "Continuously dispatch the next bounded small-signal filler hypothesis or combined replay; never drift into replacing the ten-Core primary engine.",
+    "A10": "Keep the pipeline moving from isolated 5x250 adaptive optimization to shared-250 integration and robustness. Do not wait for manual user prompts after a completed stage.",
     "A11": "Govern the full Satellite-V1 program; require training/holdout separation, shifted/future/red-team evidence and exact-head GOVERNANCE_PASS before promotion."
   },
   "loop": [
@@ -32,7 +32,7 @@
   "specialized_dots": {
     "D12": {
       "name": "Hypothesis Architect Dot",
-      "objective": "Generate bounded training-only small-signal/micro-filler hypotheses for SUI/NEAR/UNI/AAVE/BCH that target profitable short opportunities during complete Core idle periods.",
+      "objective": "Generate bounded training-only hypotheses to improve each of SUI/NEAR/UNI/AAVE/BCH independently under the isolated 250-USDC laboratory before shared integration.",
       "constraints": [
         "no blind parameter churn",
         "one causal family per experiment",
@@ -105,7 +105,7 @@
     },
     "D19": {
       "name": "Idle Satellite Market Dot",
-      "objective": "Lead the Core-first gap-filler program: build profitable short small-signal Satellites, starting with SUI/NEAR/UNI/AAVE/BCH, that trade only while Core is idle and immediately yield to any executable Core entry.",
+      "objective": "Lead independent 5x250 Satellite optimization first; only validated Satellite profiles proceed into shared 250 idle-capital integration with absolute Core preemption.",
       "constraints": [
         "the ten-coin Core is always the primary earnings engine",
         "satellites may enter only when the Core engine is completely idle",
@@ -130,7 +130,7 @@
       ]
     }
   },
-  "current_shared_mission": "MISSION-SATELLITE-MICRO-FILLER: keep the validated 10-Core bot as the primary profit engine; during complete Core idle periods use SUI/NEAR/UNI/AAVE/BCH small-signal fillers, optionally supplemented later, and always close/yield the filler when any executable Core entry appears.",
+  "current_shared_mission": "MISSION-ISOLATED-15X250-THEN-SHARED-250: optimize five Satellites independently at 250 each using the established Core coin-by-coin lab method, then integrate validated profiles as gap-fillers into the protected shared-250 Core engine with absolute Core preemption.",
   "activity_focus": {
     "A01": "V1 baseline and evidence contract",
     "A02": "five isolated V1 baselines then shared-250 replay",
