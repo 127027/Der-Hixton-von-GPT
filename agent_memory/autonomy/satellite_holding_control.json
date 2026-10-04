@@ -16,6 +16,6 @@
     "all_five_mature": true,
     "max_rounds_reached": true
   },
-  "status": "CONTINUE",
-  "last_completed_round": 5
+  "status": "BOUNDED_ROUNDS_EXHAUSTED_NEEDS_NEW_CAUSAL_FAMILY",
+  "last_completed_round": 6
 }

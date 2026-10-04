@@ -89,7 +89,7 @@
     "owner_core_active_fraction_approx": "0.10",
     "owner_core_idle_fraction_approx": "0.90",
     "owner_idle_fill_target_pct": "90",
-    "current_stage": "SATELLITE_ISOLATED_5X250_HOLDING_REFINEMENT",
+    "current_stage": "SATELLITE_ISOLATED_5X250_NEEDS_NEW_CAUSAL_FAMILY",
     "per_market_independent_development": true,
     "final_shared_account_usdc": "250",
     "core_is_protected_primary_engine": true,
@@ -135,7 +135,7 @@
     "initial_configured_capital_usdc": "250",
     "future_scale_after_clean_month_usdc": "1000"
   },
-  "current_stage": "SATELLITE_ISOLATED_5X250_HOLDING_REFINEMENT",
+  "current_stage": "SATELLITE_ISOLATED_5X250_NEEDS_NEW_CAUSAL_FAMILY",
   "capital_model": {
     "user_input": "max_capital_usdc",
     "reference_research_capital_usdc": "250.00",
@@ -148,7 +148,7 @@
     "run_69_head": "9314df9baeae1c907d98472823d2e7ccd3e4eaa4",
     "result": "SUCCESS_NO_SURVIVORS",
     "detail": "2/4/6h exact-full-Core-idle horizon family; UNI training winner 6h but direct-USDC rejected; SUI/NEAR/AAVE/BCH had no fully robust training horizon.",
-    "next": "advance autonomous Satellite holding refinement to round 6",
+    "next": "bounded holding rounds exhausted; controller must derive a new training-led causal family",
     "run_70": 37198769433,
     "run_70_head": "736ee30f610f85044bb5476992ab81fd8606263c",
     "run_70_result": "SUCCESS_10_NEW_ELIGIBLE_REPLACEMENTS",
@@ -446,6 +446,58 @@
         "UNIUSDC"
       ],
       "next_stage": "SATELLITE_ISOLATED_5X250_HOLDING_REFINEMENT",
+      "per_symbol": {
+        "SUIUSDC": {
+          "training_winner": "INCUMBENT",
+          "profitability_pass": false,
+          "maturity_pass": false,
+          "full_3y_stress_net_pnl": "283.543276497860000000",
+          "full_3y_stress_completed_trades": 78,
+          "validation_stress_net_pnl": "-20.926209597350000000"
+        },
+        "NEARUSDC": {
+          "training_winner": "INCUMBENT",
+          "profitability_pass": true,
+          "maturity_pass": true,
+          "full_3y_stress_net_pnl": "331.50993598360000000",
+          "full_3y_stress_completed_trades": 190,
+          "validation_stress_net_pnl": "90.60344946790000000"
+        },
+        "UNIUSDC": {
+          "training_winner": "INCUMBENT",
+          "profitability_pass": true,
+          "maturity_pass": false,
+          "full_3y_stress_net_pnl": "261.33936268335000000",
+          "full_3y_stress_completed_trades": 63,
+          "validation_stress_net_pnl": "160.85488637841000000"
+        },
+        "AAVEUSDC": {
+          "training_winner": "INCUMBENT",
+          "profitability_pass": false,
+          "maturity_pass": false,
+          "full_3y_stress_net_pnl": "0.8611939881600000",
+          "full_3y_stress_completed_trades": 168,
+          "validation_stress_net_pnl": "-103.0621137826900000"
+        },
+        "BCHUSDC": {
+          "training_winner": "INCUMBENT",
+          "profitability_pass": false,
+          "maturity_pass": false,
+          "full_3y_stress_net_pnl": "254.742941725600000",
+          "full_3y_stress_completed_trades": 75,
+          "validation_stress_net_pnl": "-58.432709922100000"
+        }
+      }
+    },
+    "auto_holding_round_6": {
+      "mature_symbols": [
+        "NEARUSDC"
+      ],
+      "profitability_pass_symbols": [
+        "NEARUSDC",
+        "UNIUSDC"
+      ],
+      "next_stage": "SATELLITE_ISOLATED_5X250_NEEDS_NEW_CAUSAL_FAMILY",
       "per_symbol": {
         "SUIUSDC": {
           "training_winner": "INCUMBENT",
