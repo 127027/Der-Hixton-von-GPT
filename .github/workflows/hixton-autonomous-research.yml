@@ -96,7 +96,7 @@ jobs:
           import json
           mission = json.load(open("agent_memory/autonomy/current_mission.json", encoding="utf-8"))
           stage = str(mission.get("current_stage", "LEGACY_FULL_PIPELINE"))
-          fast = stage.startswith(("STEP4_", "STEP5_"))
+          fast = stage.startswith(("STEP4_", "STEP5_", "STEP5B_", "STEP6_", "STEP7_", "STEP8_", "STEP9_"))
           print(f"priority_stage={stage}")
           print(f"full_candidate_pipeline={'false' if fast else 'true'}")
           PY
