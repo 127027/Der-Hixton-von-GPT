@@ -1,8 +1,10 @@
 {
   "schema_version": 1,
-  "locked": true,
+  "locked": false,
   "reason": "transactional repair: explicit workflow_dispatch after bot-authored round handoff",
   "started_from_head": "dd9aa04b35192f614a84adbb51ca664b49482dcd",
   "contract": "No substantive research may start while locked. Verify explicit-dispatch handoff and workflow permissions before unlock.",
-  "unlock_contract": "This unlock commit is permitted to trigger the first substantive autonomous holding-refinement run."
+  "unlock_contract": "This unlock commit may trigger substantive round-2 research. Future bot-authored handoff commits explicitly dispatch the next workflow.",
+  "completed_head": "d8f800c0755df1185c19e671d71863ce2fc48dcb",
+  "completed_reason": "Explicit workflow_dispatch handoff verified under contract-only lock; round 2 control present; permissions/actions wiring green."
 }
