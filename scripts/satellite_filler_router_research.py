@@ -18,7 +18,7 @@ from dataclasses import dataclass, replace
 from datetime import datetime
 from decimal import ROUND_DOWN, Decimal
 from pathlib import Path
-from typing import Any
+from typing import Any, Callable
 
 from hixton.backtest.engine import candle_snapshot_sha256
 from hixton.backtest.metrics import calculate_metrics
@@ -188,6 +188,8 @@ def run_filler_router_portfolio(
     strategy_semantics_by_symbol: dict[str, StrategySemantics] | None = None,
     strict_core_idle_mask: bool = False,
     soft_filler_exit_enabled: bool = True,
+    entry_filter_by_symbol: dict[str, Callable[[IndicatorPoint], str | None]] | None = None,
+    continuation_reentry_symbols: frozenset[str] | None = None,
 ) -> tuple[PortfolioBacktestResult, list[dict[str, object]]]:
     if tuple(candles_by_symbol) != symbols:
         raise ValueError("router input universe/order mismatch")
@@ -247,6 +249,12 @@ def run_filler_router_portfolio(
     }
     core_set = frozenset(core_symbols)
     satellite_set = frozenset(satellite_symbols)
+    entry_filters = entry_filter_by_symbol or {}
+    continuation_reentry = continuation_reentry_symbols or frozenset()
+    if not set(entry_filters).issubset(set(symbols)):
+        raise ValueError("entry filters reference symbols outside the research universe")
+    if not set(continuation_reentry).issubset(set(satellite_symbols)):
+        raise ValueError("continuation re-entry is research-only and Satellite-only")
 
     cash = starting_cash
     positions: dict[str, OpenTrade] = {}
@@ -592,9 +600,9 @@ def run_filler_router_portfolio(
         points: dict[str, IndicatorPoint] = {}
         decisions = {}
         for symbol in symbols:
+            previous_point = last_points.get(symbol)
             point = strategies[symbol].update(candles[symbol])
             points[symbol] = point
-            last_points[symbol] = point
             position = positions.get(symbol)
             if position is not None:
                 position.highest_close = max(position.highest_close, candles[symbol].close)
@@ -604,6 +612,35 @@ def run_filler_router_portfolio(
                 entry_atr=position.signal.atr if position else 0.0,
                 highest_close=position.highest_close if position else 0.0,
             )
+
+            # Research-only continuation entry overlay. This creates a new opportunity
+            # only after a completed pullback through VIDYA while the canonical trend
+            # remains UP. It uses current/prior closed bars only and leaves product
+            # strategy semantics untouched.
+            if (
+                in_report
+                and symbol in continuation_reentry
+                and position is None
+                and decisions[symbol].signal is None
+                and previous_point is not None
+                and point.trend.value == "UP"
+                and previous_point.vidya is not None
+                and point.vidya is not None
+                and previous_point.candle.close <= previous_point.vidya
+                and point.candle.close > point.vidya
+            ):
+                synthetic = HixtonStrategy.signal_for(
+                    replace(point, flip_up=True, flip_down=False),
+                    is_long=False,
+                )
+                if synthetic is not None:
+                    decisions[symbol] = replace(
+                        decisions[symbol],
+                        signal=synthetic,
+                        exit_reason="RESEARCH_CONTINUATION_REENTRY",
+                    )
+
+            last_points[symbol] = point
 
             # Soft short-horizon filler exit: if the training-calibrated remaining-value
             # score has fully decayed and the canonical strategy has not already exited,
@@ -672,6 +709,12 @@ def run_filler_router_portfolio(
                     blocked.append(f"{signal.signal_id}:{decisions[symbol].block_reason}")
                     continue
                 if signal.action is SignalAction.ENTER_LONG:
+                    entry_filter = entry_filters.get(symbol)
+                    if entry_filter is not None:
+                        filter_reason = entry_filter(points[symbol])
+                        if filter_reason:
+                            blocked.append(f"{signal.signal_id}:{filter_reason}")
+                            continue
                     if risk_state.halted:
                         blocked.append(
                             f"{signal.signal_id}:{risk_state.halt_reason or 'HALTED'}"
