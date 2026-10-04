@@ -1,9 +1,9 @@
 {
-  "run_number": 139,
-  "run_id": 37237844958,
-  "head_sha": "df54bac25bfa284417de2dcee0d98c6afa8d26fd",
-  "adaptive_round": 14,
-  "family": "VOLATILITY_X_REENTRY",
+  "run_number": 140,
+  "run_id": 37238078826,
+  "head_sha": "962856e7b1fd993355fd419dffcd5d0747bdccf2",
+  "adaptive_round": 15,
+  "family": "TREND_WINDOW_X_REENTRY",
   "technical_success": true,
   "economic_progress": false,
   "improved_symbols": [],
@@ -153,5 +153,5 @@
   "patch_complete": true,
   "next_stage": "SATELLITE_ISOLATED_5X250_ADAPTIVE_CYCLE",
   "dispatch_next": true,
-  "next_reason": "advance from adaptive round 14 to 15; next causal family is predeclared and different"
+  "next_reason": "advance from adaptive round 15 to 16; next causal family is predeclared and different"
 }
