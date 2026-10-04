@@ -502,11 +502,17 @@ def run_filler_router_portfolio(
                     candle=candles[core_signal.symbol],
                 )
 
-            # Satellites are fillers only: they never displace Core and never take more
-            # than one slot each, even if ranked-repeat would otherwise stack capital.
+            # Satellites are strict gap-fillers: they may enter only when the Core
+            # engine is completely idle. This isolates the owner's intended use-case
+            # (monetize the quiet gap between Core trades) instead of treating a spare
+            # second slot during an active Core position as Satellite capacity.
+            core_active = any(not trade.is_satellite for trade in positions.values())
             for signal in satellite_entries:
                 if signal.symbol in positions:
                     blocked.append(f"{signal.signal_id}:POSITION_ALREADY_OPEN")
+                    continue
+                if core_active:
+                    blocked.append(f"{signal.signal_id}:CORE_ACTIVE_FILLER_IDLE_ONLY")
                     continue
                 used_slots = sum(p.slots for p in positions.values())
                 if used_slots >= slot_count:
@@ -1103,6 +1109,7 @@ def main() -> None:
         "safety": {
             "product_runner_modified": False,
             "satellites_never_preempt_open_core": True,
+            "satellites_enter_only_when_core_engine_idle": True,
             "satellite_max_slots_each": 1,
             "router_calibration_training_only": True,
             "holdout_rejection_only": True,
