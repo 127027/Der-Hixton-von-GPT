@@ -23,6 +23,7 @@ on:
       - "scripts/satellite_universe_discovery.py"
       - "scripts/satellite_strategy_research.py"
       - "scripts/satellite_v1_baseline_research.py"
+      - "scripts/satellite_v1_evolution_research.py"
       - "scripts/satellite_shared_portfolio_research.py"
       - "scripts/satellite_filler_router_research.py"
       - "scripts/engineering_candidate_builder.py"
@@ -110,6 +111,9 @@ jobs:
       - name: Clean Satellite V1 five-market baseline
         if: steps.stage.outputs.priority_stage == 'SATELLITE_V1_BASELINE'
         run: python -m scripts.satellite_v1_baseline_research
+      - name: Bounded per-market Satellite V1 evolution
+        if: steps.stage.outputs.priority_stage == 'SATELLITE_V1_PER_MARKET_EVOLUTION'
+        run: python -m scripts.satellite_v1_evolution_research
       - name: Step 5 shared 10-core + frozen-satellite portfolio research
         if: steps.stage.outputs.priority_stage == 'STEP5_SHARED_10_PLUS_SATELLITE_PORTFOLIO'
         run: python -m scripts.satellite_shared_portfolio_research
@@ -196,6 +200,7 @@ jobs:
             evidence/universe-discovery.json
             evidence/satellite-universe-discovery.json
             evidence/satellite-v1-baseline.json
+            evidence/satellite-v1-evolution.json
             evidence/satellite-strategy-research.json
             evidence/satellite-shared-portfolio-research.json
             evidence/satellite-filler-router-research.json
