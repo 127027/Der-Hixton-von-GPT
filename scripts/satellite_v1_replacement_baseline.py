@@ -58,21 +58,28 @@ def _d(value: object) -> D:
     return D(str(value))
 
 
-def _resolve_training_sources(
+def _resolve_candidate_data(
     client: BinancePublicClient,
     rows: list[dict[str, Any]],
-) -> tuple[dict[str, str], dict[str, dict[str, object]]]:
-    """Fail closed on discontinuous direct-USDC history and fall back to USDT proxy.
+) -> tuple[
+    list[dict[str, Any]],
+    dict[str, str],
+    dict[str, dict[str, object]],
+]:
+    """Resolve training source and require a continuous real-USDC holdout.
 
-    Universe discovery's first-available check proves age, not continuity. Some
-    Binance USDC markets have an old prefix plus a later relisting, so a first candle
-    can look three-year eligible while the required window still contains a long gap.
-    This preflight audits continuity before research. It never uses performance or
-    holdout outcomes to choose a source.
+    Data eligibility is point-in-time only. No PnL, win rate, or holdout outcome is
+    inspected here. Direct USDC may fall back to a continuous USDT proxy for TRAINING,
+    but the rejection-only holdout must remain real USDC and must cover the complete
+    validation window plus warmup without gaps.
     """
 
     _warmup_start, report_start, report_end = safe_closed_window()
     full_warmup_start = report_start - timedelta(hours=400)
+    validation_start = report_end - timedelta(days=365)
+    validation_warmup_start = validation_start - timedelta(hours=400)
+
+    eligible_rows: list[dict[str, Any]] = []
     resolved: dict[str, str] = {}
     details: dict[str, dict[str, object]] = {}
 
@@ -80,7 +87,8 @@ def _resolve_training_sources(
         symbol = str(row["symbol"])
         configured = str(row["history_source"])
         chosen = configured
-        fallback_reason: str | None = None
+        training_fallback_reason: str | None = None
+        holdout_error: str | None = None
 
         if configured == symbol:
             try:
@@ -109,20 +117,42 @@ def _resolve_training_sources(
                     expected_end_exclusive=report_end,
                 ).require_valid()
                 chosen = proxy
-                fallback_reason = (
-                    "DIRECT_USDC_HISTORY_NOT_CONTIGUOUS; "
+                training_fallback_reason = (
+                    "DIRECT_USDC_TRAINING_HISTORY_NOT_CONTIGUOUS; "
                     f"fallback_to_proxy_without_performance_selection: {exc}"
                 )
 
-        resolved[symbol] = chosen
+        try:
+            real_holdout = client.fetch_klines(
+                symbol,
+                start=validation_warmup_start,
+                end_exclusive=report_end,
+            )
+            audit_candles(
+                real_holdout,
+                expected_symbol=symbol,
+                expected_start=validation_warmup_start,
+                expected_end_exclusive=report_end,
+            ).require_valid()
+        except (BinanceApiError, ValueError) as exc:
+            holdout_error = str(exc)
+
+        holdout_eligible = holdout_error is None
         details[symbol] = {
             "configured_source": configured,
             "resolved_training_source": chosen,
-            "fallback_used": chosen != configured,
-            "fallback_reason": fallback_reason,
+            "training_fallback_used": chosen != configured,
+            "training_fallback_reason": training_fallback_reason,
+            "direct_usdc_holdout_continuous": holdout_eligible,
+            "direct_usdc_holdout_error": holdout_error,
         }
+        if not holdout_eligible:
+            continue
 
-    return resolved, details
+        eligible_rows.append(row)
+        resolved[symbol] = chosen
+
+    return eligible_rows, resolved, details
 
 
 def _occupied_slot_hours(
@@ -223,13 +253,18 @@ def main() -> None:
         raise RuntimeError("malformed replacement candidate checkpoint")
 
     core_symbols = V6_COIN_STRATEGY.symbols
-    satellites = tuple(str(row["symbol"]) for row in typed_rows)
-    all_symbols = core_symbols + satellites
     client = BinancePublicClient(base_url="https://data-api.binance.vision")
-    satellite_sources, source_resolution = _resolve_training_sources(
+    eligible_rows, satellite_sources, source_resolution = _resolve_candidate_data(
         client,
         typed_rows,
     )
+    satellites = tuple(str(row["symbol"]) for row in eligible_rows)
+    if not satellites:
+        raise RuntimeError(
+            "no replacement candidate has both continuous training history/proxy "
+            "and a continuous real-USDC rejection-only holdout"
+        )
+    all_symbols = core_symbols + satellites
     rules = _rules(client, all_symbols)
     (
         report_start,
@@ -435,7 +470,15 @@ def main() -> None:
         ),
         "shared_capital_usdc": str(CAPITAL),
         "capital_plan": asdict(plan),
+        "configured_replacement_candidates": [
+            str(row["symbol"]) for row in typed_rows
+        ],
         "tested_replacement_candidates": list(satellites),
+        "data_quality_excluded_candidates": [
+            str(row["symbol"])
+            for row in typed_rows
+            if str(row["symbol"]) not in satellites
+        ],
         "horizon_family_hours": list(HORIZONS),
         "training_source_resolution": source_resolution,
         "selection_contract": {
