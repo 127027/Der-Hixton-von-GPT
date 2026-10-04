@@ -1,8 +1,10 @@
 {
   "schema_version": 1,
-  "locked": true,
+  "locked": false,
   "reason": "technical self-heal after Run #124: RUN DELTA issue comment permission blocked dispatch",
   "started_from_head": "865421a",
   "contract": "Do not run substantive round 2 until issue-report failure is made non-blocking and dispatch is verified under lock.",
-  "unlock_contract": "This unlock commit may trigger exactly one substantive adaptive round-1 research run. Subsequent adaptive runs must be triggered only by the persisted post-run handoff."
+  "unlock_contract": "This unlock triggers adaptive round 2. Do not manually advance its handoff; verify it self-persists and self-dispatches round 3.",
+  "completed_head": "1afa87f7dd50c55b20b51f6345fe32d411a2e1db",
+  "completed_reason": "Run #124 failure isolated to optional Issue comment; workflow now has issues:write, reporting is continue-on-error, and dispatch uses always(). Contract-only Run #126 verified the repair. Adaptive state already persisted round 1 and is ready for round 2."
 }
