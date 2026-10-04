@@ -17,6 +17,7 @@ on:
       - "agent_memory/autonomy/satellite_v1_candidates.json"
       - "agent_memory/autonomy/satellite_v1_idle_horizon_sources.json"
       - "agent_memory/autonomy/satellite_v1_replacement_candidates.json"
+      - "agent_memory/autonomy/satellite_refinement_seeds.json"
       - "scripts/autonomous_research_supervisor.py"
       - "scripts/baseline_freshness_guard.py"
       - "scripts/autonomous_red_team.py"
@@ -84,6 +85,7 @@ jobs:
             scripts/satellite_micro_harvest_research.py \
             scripts/satellite_micro_filtered_entry_research.py \
             scripts/satellite_isolated_5x250_optimizer.py \
+            scripts/satellite_isolated_5x250_policy_refinement.py \
             scripts/satellite_shared_portfolio_research.py \
             scripts/satellite_filler_router_research.py \
             scripts/engineering_candidate_builder.py \
@@ -161,6 +163,9 @@ jobs:
       - name: Satellite isolated 5x250 adaptive optimizer
         if: steps.stage.outputs.priority_stage == 'SATELLITE_ISOLATED_5X250_OPTIMIZATION'
         run: python -m scripts.satellite_isolated_5x250_optimizer
+      - name: Satellite isolated 5x250 policy refinement
+        if: steps.stage.outputs.priority_stage == 'SATELLITE_ISOLATED_5X250_POLICY_REFINEMENT'
+        run: python -m scripts.satellite_isolated_5x250_policy_refinement
       - name: Step 5 shared 10-core + frozen-satellite portfolio research
         if: steps.stage.outputs.priority_stage == 'STEP5_SHARED_10_PLUS_SATELLITE_PORTFOLIO'
         run: python -m scripts.satellite_shared_portfolio_research
@@ -257,6 +262,7 @@ jobs:
             evidence/satellite-micro-harvest-research.json
             evidence/satellite-micro-filtered-entry-research.json
             evidence/satellite-isolated-5x250-optimizer.json
+            evidence/satellite-isolated-5x250-policy-refinement.json
             evidence/satellite-strategy-research.json
             evidence/satellite-shared-portfolio-research.json
             evidence/satellite-filler-router-research.json
