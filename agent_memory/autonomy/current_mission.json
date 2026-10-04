@@ -2,17 +2,15 @@
   "schema_version": 1,
   "id": "MISSION-SATELLITE-V1-IDLE90",
   "status": "ACTIVE",
-  "objective": "Protect the validated 10-Core / one-shared-capital primary engine and add a secondary small-signal Satellite layer that trades only during Core quiet periods. The five primary Satellite markets are SUIUSDC, NEARUSDC, UNIUSDC, AAVEUSDC and BCHUSDC; additional markets are optional only if useful. Any executable Core entry has absolute priority and preempts an active Satellite at the next executable open.",
+  "objective": "Phase A: extend the established isolated coin-optimization laboratory from Core 10x250 to Core+Satellite 15x250 by optimizing SUIUSDC, NEARUSDC, UNIUSDC, AAVEUSDC and BCHUSDC independently with 250 USDC each over the same canonical three-year window. Phase B: after individual Satellite validation, integrate only validated Satellites as idle-capital gap fillers into the unchanged one-shared-250-USDC ten-Core product, with absolute Core preemption.",
   "priorities": [
-    "Do not rerun the rejected Run #78/#79 micro family unchanged; #79 was byte-identical duplicate evidence and counts as zero research progress.",
-    "Use canonical_core_baseline as the protected numerical reference; do not substitute stale 3x80, isolated 10x250 or remembered '~1500 profit' figures.",
-    "Preserve the validated ten-Core product unchanged as the primary earnings engine.",
-    "Develop dedicated short-duration small-signal Satellite fillers for SUI/NEAR/UNI/AAVE/BCH first; optional additional USDC markets may supplement the pool but never replace the Core mission.",
-    "Satellites trade only while the Core engine is completely idle and are secondary to every executable Core entry signal.",
-    "When a Core entry becomes executable, close the active Satellite at that same executable open before allocating the Core trade.",
-    "Select Satellite family/parameters/horizon on training only. Direct-USDC holdout, shifted, future and red-team evidence may reject but never select or retune.",
-    "Optimize after-cost incremental shared-account profit and reduction of long idle gaps; activity without profit is failure.",
-    "Prepare a 50-USDC real trial only after engineering validation; normal initial configured production capital is 250 USDC. 1000 USDC scale is a later validation target."
+    "Treat isolated 10x250 / 15x250 as per-market optimization evidence: 250 USDC separately for each market. It is not the live/shared account.",
+    "Preserve protected Core 10 profiles and exact-head f649 evidence. Do not retune Core to make Satellites look better.",
+    "Optimize the five primary Satellites independently with 250 USDC each, adaptive training-only generations, baseline/stress costs and Direct-USDC rejection-only validation.",
+    "Each Satellite may have its own independently optimized parameters; do not require one shared Satellite profile.",
+    "Only after isolated validation move to the actual shared 250-USDC product replay.",
+    "In the shared product, Satellites use only Core-idle/free capacity and ANY executable Core signal closes/yields the Satellite at the next executable open.",
+    "Final product success is measured on the same shared 250-USDC account against Core-only: higher after-cost ending equity and materially lower idle time without Core regression."
   ],
   "anti_gaming": {
     "tiny_order_counting_for_frequency_forbidden": true,
@@ -54,7 +52,7 @@
     "one-shared-250-USDC Core+Satellite replay",
     "short-horizon exits and handoff only after the five Satellite entry/exit strategies themselves are suitable"
   ],
-  "success_rule": "Mission success requires a secondary Satellite layer that, on like-for-like one-shared-C tests, preserves or exceeds the canonical protected f649 Core baseline after costs/stress while materially reducing long Core-idle gaps. The ten-Core engine remains primary and unchanged; Satellites may open only while Core is completely idle and must yield to any executable Core entry at the next executable open.",
+  "success_rule": "Phase A must produce individually robust Satellite profiles under isolated 250-USDC tests. Phase B must then demonstrate that validated Satellites increase the same one-shared-250-USDC Core account after costs/stress while reducing idle time; isolated 15x250 aggregate is never presented as live/shared performance.",
   "frequency_tiers_3y": {
     "stretch_cycles": 1095,
     "stretch_label": "~1 completed position cycle per day",
@@ -91,7 +89,7 @@
     "owner_core_active_fraction_approx": "0.10",
     "owner_core_idle_fraction_approx": "0.90",
     "owner_idle_fill_target_pct": "90",
-    "current_stage": "SATELLITE_MICRO_FILTERED_ENTRY_RESEARCH",
+    "current_stage": "SATELLITE_ISOLATED_5X250_OPTIMIZATION",
     "per_market_independent_development": true,
     "final_shared_account_usdc": "250",
     "core_is_protected_primary_engine": true,
@@ -137,7 +135,7 @@
     "initial_configured_capital_usdc": "250",
     "future_scale_after_clean_month_usdc": "1000"
   },
-  "current_stage": "SATELLITE_MICRO_FILTERED_ENTRY_RESEARCH",
+  "current_stage": "SATELLITE_ISOLATED_5X250_OPTIMIZATION",
   "capital_model": {
     "user_input": "max_capital_usdc",
     "reference_research_capital_usdc": "250.00",
@@ -150,7 +148,7 @@
     "run_69_head": "9314df9baeae1c907d98472823d2e7ccd3e4eaa4",
     "result": "SUCCESS_NO_SURVIVORS",
     "detail": "2/4/6h exact-full-Core-idle horizon family; UNI training winner 6h but direct-USDC rejected; SUI/NEAR/AAVE/BCH had no fully robust training horizon.",
-    "next": "Test bounded point-in-time entry filters on unchanged V1 flip-up signals using CMO strength, normalized breakout strength and positive 24h VIDYA slope. Training selects filter+exit; Direct-USDC holdout rejects only. Require positive baseline and stress with at least 20 training cycles before Core-idle replay.",
+    "next": "Run SATELLITE_ISOLATED_5X250_OPTIMIZATION with three adaptive training-led generations per SUI/NEAR/UNI/AAVE/BCH on the canonical f649 three-year window.",
     "run_70": 37198769433,
     "run_70_head": "736ee30f610f85044bb5476992ab81fd8606263c",
     "run_70_result": "SUCCESS_10_NEW_ELIGIBLE_REPLACEMENTS",
@@ -191,7 +189,10 @@
         "BCHUSDC": "-246.596584002507248625"
       },
       "interpretation": "Exit-only repair is insufficient; poor entry selectivity dominates. Move to point-in-time filtered-entry research."
-    }
+    },
+    "run_86": 37213344723,
+    "run_86_result": "SUCCESS_NO_ROBUST_FILTERED_ENTRY_WINNER",
+    "run_86_interpretation": "Filtered-entry micro-harvest family still produced no robust training winner; latest owner clarification changes the workflow order: optimize each new Satellite independently with 250 first, like historical Core 10x250, before shared idle integration."
   },
   "canonical_core_baseline": {
     "status": "PROTECTED_AND_VALIDATED",
@@ -216,6 +217,27 @@
     "a09_gate": "QA_PASS",
     "a11_gate": "GOVERNANCE_PASS",
     "owner_shorthand_note": "Treat '~1500' as approximate ending equity language, not +1500 net profit.",
-    "comparison_rule": "Every Satellite architecture must be compared on a like-for-like one-shared-C basis against the protected Core. Old shared-3x80 and isolated-10x250 numbers are diagnostics only."
+    "comparison_rule": "Every Satellite architecture must be compared on a like-for-like one-shared-C basis against the protected Core. Old shared-3x80 and isolated-10x250 numbers are diagnostics only.",
+    "isolated_10x250_starting_equity_usdc": "2500",
+    "isolated_10x250_baseline_ending_equity_usdc": "8107.07268728784085000000",
+    "isolated_10x250_stress_ending_equity_usdc": "7597.1773394368352000000",
+    "isolated_10x250_interpretation": "250 USDC independently per each of the 10 Core markets; optimization laboratory, not one shared live account."
+  },
+  "research_methodology": {
+    "phase_a": {
+      "name": "ISOLATED_15X250_OPTIMIZATION_LAB",
+      "core_markets": 10,
+      "satellite_markets": 5,
+      "capital_per_market_usdc": "250",
+      "total_notional_across_independent_tests_usdc": "3750",
+      "interpretation": "Research-only independent per-market optimization; not simultaneously deployed shared capital."
+    },
+    "phase_b": {
+      "name": "SHARED_250_CORE_PLUS_SATELLITE_FILLER",
+      "shared_capital_usdc": "250",
+      "core_primary": true,
+      "satellite_gap_fillers_only": true,
+      "any_executable_core_signal_preempts_satellite": true
+    }
   }
 }
