@@ -191,6 +191,9 @@ def run_filler_router_portfolio(
     entry_filter_by_symbol: dict[str, Callable[[IndicatorPoint], str | None]] | None = None,
     continuation_reentry_symbols: frozenset[str] | None = None,
     band_reentry_symbols: frozenset[str] | None = None,
+    atr_reentry_level_by_symbol: dict[str, float] | None = None,
+    entry_atr_direction_by_symbol: dict[str, str] | None = None,
+    trend_health_exit_by_symbol: dict[str, float] | None = None,
 ) -> tuple[PortfolioBacktestResult, list[dict[str, object]]]:
     if tuple(candles_by_symbol) != symbols:
         raise ValueError("router input universe/order mismatch")
@@ -253,12 +256,23 @@ def run_filler_router_portfolio(
     entry_filters = entry_filter_by_symbol or {}
     continuation_reentry = continuation_reentry_symbols or frozenset()
     band_reentry = band_reentry_symbols or frozenset()
+    atr_reentry_levels = atr_reentry_level_by_symbol or {}
+    atr_directions = entry_atr_direction_by_symbol or {}
+    trend_health_exits = trend_health_exit_by_symbol or {}
     if not set(entry_filters).issubset(set(symbols)):
         raise ValueError("entry filters reference symbols outside the research universe")
     if not set(continuation_reentry).issubset(set(satellite_symbols)):
         raise ValueError("continuation re-entry is research-only and Satellite-only")
     if not set(band_reentry).issubset(set(satellite_symbols)):
         raise ValueError("band re-entry is research-only and Satellite-only")
+    if not set(atr_reentry_levels).issubset(set(satellite_symbols)):
+        raise ValueError("ATR-level re-entry is research-only and Satellite-only")
+    if not set(atr_directions).issubset(set(symbols)):
+        raise ValueError("ATR-direction filters reference symbols outside the research universe")
+    if any(value not in {"EXPANDING", "CONTRACTING"} for value in atr_directions.values()):
+        raise ValueError("ATR-direction must be EXPANDING or CONTRACTING")
+    if not set(trend_health_exits).issubset(set(satellite_symbols)):
+        raise ValueError("trend-health exits are research-only and Satellite-only")
 
     cash = starting_cash
     positions: dict[str, OpenTrade] = {}
@@ -602,9 +616,11 @@ def run_filler_router_portfolio(
             pending = []
 
         points: dict[str, IndicatorPoint] = {}
+        previous_points: dict[str, IndicatorPoint | None] = {}
         decisions = {}
         for symbol in symbols:
             previous_point = last_points.get(symbol)
+            previous_points[symbol] = previous_point
             point = strategies[symbol].update(candles[symbol])
             points[symbol] = point
             position = positions.get(symbol)
@@ -670,7 +686,69 @@ def run_filler_router_portfolio(
                         exit_reason="RESEARCH_UPPER_BAND_REENTRY",
                     )
 
+            # Intermediate ATR-level continuation re-entry. Unlike the broad VIDYA
+            # cross and strict upper-band cross, this can require a configurable
+            # point-in-time reclaim level such as VIDYA + 0.5*ATR.
+            atr_level = atr_reentry_levels.get(symbol)
+            if (
+                in_report
+                and atr_level is not None
+                and position is None
+                and decisions[symbol].signal is None
+                and previous_point is not None
+                and point.trend.value == "UP"
+                and previous_point.vidya is not None
+                and previous_point.atr is not None
+                and point.vidya is not None
+                and point.atr is not None
+                and previous_point.atr > 0
+                and point.atr > 0
+            ):
+                previous_threshold = previous_point.vidya + float(atr_level) * previous_point.atr
+                current_threshold = point.vidya + float(atr_level) * point.atr
+                if (
+                    previous_point.candle.close <= previous_threshold
+                    and point.candle.close > current_threshold
+                ):
+                    synthetic = HixtonStrategy.signal_for(
+                        replace(point, flip_up=True, flip_down=False),
+                        is_long=False,
+                    )
+                    if synthetic is not None:
+                        decisions[symbol] = replace(
+                            decisions[symbol],
+                            signal=synthetic,
+                            exit_reason="RESEARCH_ATR_LEVEL_REENTRY",
+                        )
+
             last_points[symbol] = point
+
+            # Point-in-time research exit when trend health degrades below a
+            # training-selected threshold. This is separate from the existing
+            # max-hold/value-decay exit and never mutates product strategy code.
+            trend_exit = trend_health_exits.get(symbol)
+            if (
+                in_report
+                and trend_exit is not None
+                and position is not None
+                and position.is_satellite
+                and decisions[symbol].signal is None
+                and point.vidya is not None
+                and point.atr is not None
+                and point.atr > 0
+            ):
+                trend_health = (point.candle.close - point.vidya) / point.atr
+                if trend_health <= float(trend_exit):
+                    forced = HixtonStrategy.signal_for(
+                        replace(point, flip_down=True, flip_up=False),
+                        is_long=True,
+                    )
+                    if forced is not None:
+                        decisions[symbol] = replace(
+                            decisions[symbol],
+                            signal=forced,
+                            exit_reason="RESEARCH_TREND_HEALTH_EXIT",
+                        )
 
             # Soft short-horizon filler exit: if the training-calibrated remaining-value
             # score has fully decayed and the canonical strategy has not already exited,
@@ -744,6 +822,23 @@ def run_filler_router_portfolio(
                         filter_reason = entry_filter(points[symbol])
                         if filter_reason:
                             blocked.append(f"{signal.signal_id}:{filter_reason}")
+                            continue
+                    atr_direction = atr_directions.get(symbol)
+                    if atr_direction is not None:
+                        previous_point = previous_points.get(symbol)
+                        current_point = points[symbol]
+                        if (
+                            previous_point is None
+                            or previous_point.atr is None
+                            or current_point.atr is None
+                        ):
+                            blocked.append(f"{signal.signal_id}:ATR_DIRECTION_UNAVAILABLE")
+                            continue
+                        if atr_direction == "EXPANDING" and current_point.atr <= previous_point.atr:
+                            blocked.append(f"{signal.signal_id}:ATR_NOT_EXPANDING")
+                            continue
+                        if atr_direction == "CONTRACTING" and current_point.atr >= previous_point.atr:
+                            blocked.append(f"{signal.signal_id}:ATR_NOT_CONTRACTING")
                             continue
                     if risk_state.halted:
                         blocked.append(
