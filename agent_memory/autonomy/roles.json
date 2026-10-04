@@ -2,17 +2,17 @@
   "schema_version": 1,
   "mode": "PERSISTENT_ROLE_SWARM",
   "roles": {
-    "A01": "Continuously maintain requirements, experiment ledger, rejected regions and exact reproducibility contracts.",
-    "A02": "Continuously backtest Core and frozen Satellite candidates against one shared configured account C, with 250 USDC as the current reference rather than a permanent hard-code.",
-    "A03": "Continuously verify Backtest/Paper/Trial/Live semantic parity and detect state/version drift.",
-    "A04": "Continuously verify UI/API truthfulness and ensure research candidates never masquerade as promoted product state.",
-    "A05": "Continuously diagnose idle time, holding duration, slot saturation, loss/winner clusters and runtime opportunity loss.",
-    "A06": "Continuously regression-test candidate patches, determinism and cross-component behavior; repair known defects.",
-    "A07": "Continuously validate public Binance USDC market/filter/data assumptions without private credentials or orders.",
-    "A08": "Continuously challenge strategy, dynamic allocator, opportunity ranking, switching costs and risk across representative configured budgets.",
-    "A09": "Independently reject stale, overfit, non-reproducible or technically regressive candidates; only exact-head QA_PASS can advance.",
-    "A10": "Continuously dispatch the next evidence-led research/repair task, never stopping at a negative experiment.",
-    "A11": "Continuously audit A01-A10, anti-overfit integrity and promotion evidence; only GOVERNANCE_PASS can authorize engineering promotion."
+    "A01": "Own the clean Satellite-V1 requirements/evidence contract; ensure the five-market work starts from original V1/DMS_V1 and records every rejected evolution.",
+    "A02": "Run deterministic per-market V1 baseline/evolution backtests for SUI/NEAR/UNI/AAVE/BCH and later the one-shared-250 Core+Satellite replay.",
+    "A03": "Verify strategy semantics and timing parity so Satellite-V1 behavior can later match Backtest/Paper/Trial/Live without changing the protected Core.",
+    "A04": "Keep UI/API truthful: Satellite research must remain visibly research-only until exact-head promotion.",
+    "A05": "Diagnose V1 weaknesses per Satellite: signal scarcity/noise, false breakouts, late entries/exits, holding duration, idle coverage, profit per occupied hour and overlap with Core idle time.",
+    "A06": "Regression-test every Satellite-V1 patch for determinism, data continuity, no leakage and no accidental protected-Core mutation.",
+    "A07": "Validate Binance public USDC/USDT history, filters, liquidity assumptions and direct-USDC holdout availability for the five Satellites.",
+    "A08": "Challenge each evolved Satellite-V1 profile on costs, risk, duration, opportunity frequency and shared-250 interaction with the protected Core.",
+    "A09": "Independently reject overfit, stale, non-reproducible or Core-regressive Satellite candidates; only exact-head QA_PASS may advance.",
+    "A10": "Continuously dispatch the next evidence-led per-market Satellite-V1 improvement until the five are either robust gap-fillers or explicitly rejected.",
+    "A11": "Govern the full Satellite-V1 program; require training/holdout separation, shifted/future/red-team evidence and exact-head GOVERNANCE_PASS before promotion."
   },
   "loop": [
     "observe current evidence and event archive",
@@ -32,7 +32,7 @@
   "specialized_dots": {
     "D12": {
       "name": "Hypothesis Architect Dot",
-      "objective": "Continuously introduce materially new, source-backed, bounded strategy/portfolio hypotheses when the deterministic queue is exhausted or stale.",
+      "objective": "Generate bounded, evidence-led V1-derived improvement hypotheses separately for SUI, NEAR, UNI, AAVE and BCH after the unchanged V1 baseline identifies each market's actual weakness.",
       "constraints": [
         "no blind parameter churn",
         "one causal family per experiment",
@@ -42,7 +42,7 @@
     },
     "D13": {
       "name": "Event Intelligence Dot",
-      "objective": "Build an append-only point-in-time archive of high-impact crypto, regulatory and macro events and research whether event-aware risk throttles add robust value.",
+      "objective": "Maintain point-in-time event evidence as a later optional falsification layer; do not distract the clean V1 baseline/evolution stage.",
       "constraints": [
         "publication timestamp is immutable",
         "source URL required",
@@ -52,7 +52,7 @@
     },
     "D14": {
       "name": "Engineering Promotion Dot",
-      "objective": "Turn validated research winners into whitelisted candidate code, run exact-head A01-A11, and promote only engineering state after A09/A11 success.",
+      "objective": "Materialize only fully validated Satellite-V1 architecture winners after shared-250 Core+Satellite evidence and exact-head A01-A11.",
       "constraints": [
         "candidate must descend from exact protected baseline",
         "whitelisted files only",
@@ -62,7 +62,7 @@
     },
     "D15": {
       "name": "Universe Discovery Dot",
-      "objective": "Continuously inspect public Binance USDC spot markets for additional liquid, sufficiently old, diversifying opportunity sources and nominate them for isolated and shared-portfolio research.",
+      "objective": "Freeze universe expansion during this mission; verify only the selected five remain tradable/liquid enough for research.",
       "constraints": [
         "no automatic live symbol addition",
         "minimum history and liquidity required",
@@ -72,7 +72,7 @@
     },
     "D16": {
       "name": "Base Signal Mining Dot",
-      "objective": "Continuously mine the original high-frequency Hixton flip stream for statistically robust micro-opportunity structures without weakening the core V6 filter.",
+      "objective": "Mine the original V1/DMS_V1 signal stream on the five Satellites to explain missed/false/slow opportunities and propose bounded per-market improvements.",
       "constraints": [
         "never assume all raw flips are tradable",
         "fees/slippage mandatory",
@@ -82,7 +82,7 @@
     },
     "D17": {
       "name": "Future Readiness & Forward Evidence Dot",
-      "objective": "Try to falsify promoted and candidate behavior under recent sealed proxy windows, harsher execution assumptions and newly arriving post-promotion data without tuning on that evidence.",
+      "objective": "Provide rejection-only forward evidence only after a Satellite-V1 candidate exists; do not tune from new data.",
       "constraints": [
         "future cannot be predicted or claimed to match backtest",
         "recent proxy windows are reject-only and may not select new parameters",
@@ -93,7 +93,7 @@
     },
     "D18": {
       "name": "Protected Baseline Freshness Dot",
-      "objective": "Before every research cycle verify that all product-critical strategy/config files exactly match the latest protected gpt/usdc-audit engineering head; fail closed on any stale baseline and route a sync repair before further optimization.",
+      "objective": "Protect the exact validated 10-Core product baseline while Satellite-V1 research proceeds on separate research state.",
       "constraints": [
         "never silently research from an older protected strategy",
         "protected engineering SHA must be recorded in evidence",
@@ -104,7 +104,7 @@
     },
     "D19": {
       "name": "Idle Satellite Market Dot",
-      "objective": "Find and validate up to five Binance Spot satellite markets that monetize otherwise idle capital and cooperate with a scale-invariant opportunity router. The router may hold a satellite through weak alternatives or exit it early when another opportunity has materially higher expected net return after normalized costs, risk and time.",
+      "objective": "Lead the five-market Satellite-V1 program: unchanged V1 baseline first, then independent per-market evolution toward profitable short Core-idle gap filling.",
       "constraints": [
         "the ten-coin V6 core is the primary high-value opportunity engine, but any core signal alone does not automatically force satellite exit",
         "satellites may only enter with genuinely free capacity",
@@ -122,7 +122,7 @@
     },
     "D20": {
       "name": "Alignment & Continuity Dot",
-      "objective": "Continuously audit A01-A11, D12-D20, workflows, policies, taskboards and UI/backtest contracts for stale assumptions, duplicate work, missing handoffs and blockers relative to the current owner objective.",
+      "objective": "Audit hourly that all agents/dots remain on the Satellite-V1 idle-fill mission and that failed stages immediately produce a causal next action rather than stalling.",
       "constraints": [
         "repair safe orchestration/configuration drift directly when authorized",
         "preserve Master as the single normal research-branch writer",
@@ -132,27 +132,18 @@
       ]
     }
   },
-  "current_shared_mission": "MISSION-SATELLITE-SHARED-C: one configured total account C; ten validated Core markets plus only satellites that add robust marginal shared-portfolio value; point-in-time scale-invariant HOLD/SWITCH/TRIM routing; no fixed-USDC switch rules.",
+  "current_shared_mission": "MISSION-SATELLITE-V1-IDLE90: protect the validated 10-Core/250-USDC engine; develop SUI/NEAR/UNI/AAVE/BCH independently from original V1/DMS_V1 to monetize the ~90% Core-idle opportunity pool with no Core regression.",
   "activity_focus": {
-    "A01": "Track activity metrics, rejected regions and exact evidence contracts.",
-    "A02": "Run Step-5 shared Core+Satellite portfolio evidence and later scale-invariant dynamic-C evidence.",
-    "A03": "Ensure Backtest/Paper/Live timing semantics stay identical as research activity rises.",
-    "A04": "Expose truthful utilization metrics and never present raw order count as success.",
-    "A05": "Diagnose idle time, holding opportunity cost, normalized remaining opportunity value, switching friction and missed superior opportunities.",
-    "A06": "Regression-test activity-oriented patches for duplicate orders, timing races and state corruption.",
-    "A07": "Research sufficiently liquid/history-qualified USDC markets that can add opportunities.",
-    "A08": "Challenge marginal satellite contribution, Core displacement, router hysteresis, cost completeness and allocator scaling.",
-    "A09": "Reject routing that uses fixed USDC thresholds, hindsight/future outcomes, cost omissions, weak-signal churn or non-scalable assumptions.",
-    "A10": "Dispatch the highest-value activity bottleneck until a robust improvement is demonstrated.",
-    "A11": "Audit that routing is point-in-time, scale-invariant, cost-complete, reproducible and improves shared portfolio behavior.",
-    "D12": "Generate new evidence-led hypotheses for meaningful 50-250 USDC deployment and lower idle time.",
-    "D13": "Research event-aware timing only when it improves entry/avoidance decisions, not order count for its own sake.",
-    "D14": "Advance only candidates that pass profit, future-readiness and governance gates.",
-    "D15": "Expand the opportunity universe with liquid USDC markets that add marginal portfolio value.",
-    "D16": "Mine the high-frequency basis sensor for subsets suitable for meaningful-notional research trades.",
-    "D17": "Check whether higher activity survives sealed recent windows, adverse costs and new forward data.",
-    "D18": "Verify every research run uses the newest protected engineering bot and block stale-baseline work.",
-    "D19": "Use the frozen Step-4 five-market pool for shared-portfolio research; rediscover markets only when a real data/liquidity invalidation requires it.",
-    "D20": "Audit the whole system for stale 250/2x125/Core-absolute assumptions, redundant long loops, missing stage handoffs and false progress claims."
+    "A01": "V1 baseline and evidence contract",
+    "A02": "five isolated V1 baselines then shared-250 replay",
+    "A03": "V1 timing/parity",
+    "A04": "research/product truth",
+    "A05": "idle-time and per-market weakness diagnosis",
+    "A06": "deterministic regression/no-leakage",
+    "A07": "Binance data/history/filter validity",
+    "A08": "strategy/risk/cost challenge",
+    "A09": "independent QA rejection gate",
+    "A10": "next per-market V1 hypothesis and dispatch",
+    "A11": "governance and promotion gate"
   }
 }
