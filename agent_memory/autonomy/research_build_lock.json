@@ -1,10 +1,8 @@
 {
   "schema_version": 1,
-  "locked": false,
-  "reason": "transactional build: targeted local regime refinement from Run #114 economic deltas",
-  "started_from_head": "912d1dd9503464062dfd866e6a2f8a23d5b10cd9",
-  "contract": "No substantive research until Run #114 improvements are persisted, targeted local candidate family is wired, contracts/compile/protected-Core parity are verified on one coherent HEAD.",
-  "unlock_contract": "This unlock commit may trigger exactly one substantive targeted post-114 research run.",
-  "completed_head": "213b13a25b2e20d2691b10ac2d3b4371bc55a61e",
-  "completed_reason": "Run #114 analyzed; targeted per-symbol follow-up built; contract job compiled new script successfully in #118; workflow/mission/state wired; protected Core critical files unchanged."
+  "locked": true,
+  "reason": "transactional build: persistent adaptive analyze-patch-rerun cycle after Run #119",
+  "started_from_head": "05082d40943adf17d2c959226af8d2f1109bb2ae",
+  "contract": "No substantive research until adaptive control/state, new point-in-time hooks, adaptive research runner, post-run handoff, workflow persistence/dispatch, static contracts and protected-Core parity are verified on one coherent HEAD.",
+  "unlock_contract": "This unlock commit may trigger exactly one substantive targeted post-114 research run."
 }
