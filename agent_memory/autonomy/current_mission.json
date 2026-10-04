@@ -89,7 +89,7 @@
     "owner_core_active_fraction_approx": "0.10",
     "owner_core_idle_fraction_approx": "0.90",
     "owner_idle_fill_target_pct": "90",
-    "current_stage": "SATELLITE_V1_SECOND_BOUNDED_EVOLUTION",
+    "current_stage": "SATELLITE_V1_IDLE_HORIZON_EVOLUTION",
     "per_market_independent_development": true,
     "final_shared_account_usdc": "250",
     "core_is_protected_primary_engine": true,
@@ -97,7 +97,7 @@
     "no_future_information": true,
     "real_usdc_holdout_rejection_only": true
   },
-  "current_stage": "SATELLITE_V1_SECOND_BOUNDED_EVOLUTION",
+  "current_stage": "SATELLITE_V1_IDLE_HORIZON_EVOLUTION",
   "capital_model": {
     "user_input": "max_capital_usdc",
     "reference_research_capital_usdc": "250.00",

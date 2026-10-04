@@ -1,0 +1,100 @@
+{
+  "schema_version": 1,
+  "study": "SATELLITE_V1_IDLE_HORIZON_SOURCE_CHECKPOINT",
+  "protected_product_sha": "f6497acf8d4d852aaac0b69878762fabb53155d4",
+  "source_runs": {
+    "first_evolution": {
+      "run_id": 37189822138,
+      "run_number": 65,
+      "head_sha": "12033e72260568aa81c427f83afa75006d968ca7"
+    },
+    "second_evolution": {
+      "run_id": 37192566713,
+      "run_number": 67,
+      "head_sha": "a736bbf473635d6cefc183a032c319ad7ba395a8"
+    }
+  },
+  "hypothesis_basis": "Short maximum holding time is justified by the mission and TRAINING-only holding-time evidence; no holdout result selects a horizon.",
+  "per_symbol": {
+    "SUIUSDC": {
+      "source_run_id": 37192566713,
+      "training_champion": "LOCAL_atr_length_56",
+      "history_source_for_training": "SUIUSDT",
+      "parameters": {
+        "vidya_length": 10,
+        "momentum_length": 20,
+        "smoothing_length": 15,
+        "atr_length": 56,
+        "band_multiplier": 2,
+        "warmup_bars": 400
+      },
+      "training_stress_net_pnl": "142.520844179600000000",
+      "training_stress_completed_trades": 120,
+      "training_stress_median_holding_hours": 48.5
+    },
+    "NEARUSDC": {
+      "source_run_id": 37192566713,
+      "training_champion": "LOCAL_atr_length_64",
+      "history_source_for_training": "NEARUSDT",
+      "parameters": {
+        "vidya_length": 10,
+        "momentum_length": 20,
+        "smoothing_length": 15,
+        "atr_length": 64,
+        "band_multiplier": 2,
+        "warmup_bars": 400
+      },
+      "training_stress_net_pnl": "243.10397529300000000",
+      "training_stress_completed_trades": 113,
+      "training_stress_median_holding_hours": 51
+    },
+    "UNIUSDC": {
+      "source_run_id": 37189822138,
+      "training_champion": "BALANCED_B",
+      "history_source_for_training": "UNIUSDT",
+      "parameters": {
+        "vidya_length": 12,
+        "momentum_length": 20,
+        "smoothing_length": 10,
+        "atr_length": 120,
+        "band_multiplier": 2,
+        "warmup_bars": 400
+      },
+      "training_stress_net_pnl": "2.36982259405000000",
+      "training_stress_completed_trades": 102,
+      "training_stress_median_holding_hours": 68.5
+    },
+    "AAVEUSDC": {
+      "source_run_id": 37192566713,
+      "training_champion": "LOCAL_momentum_length_12",
+      "history_source_for_training": "AAVEUSDT",
+      "parameters": {
+        "vidya_length": 10,
+        "momentum_length": 12,
+        "smoothing_length": 15,
+        "atr_length": 200,
+        "band_multiplier": 2,
+        "warmup_bars": 400
+      },
+      "training_stress_net_pnl": "68.9859149926700000",
+      "training_stress_completed_trades": 119,
+      "training_stress_median_holding_hours": 58
+    },
+    "BCHUSDC": {
+      "source_run_id": 37192566713,
+      "training_champion": "LOCAL_band_multiplier_3.2",
+      "history_source_for_training": "BCHUSDT",
+      "parameters": {
+        "vidya_length": 10,
+        "momentum_length": 20,
+        "smoothing_length": 15,
+        "atr_length": 200,
+        "band_multiplier": 3.2,
+        "warmup_bars": 400
+      },
+      "training_stress_net_pnl": "195.223326486500000",
+      "training_stress_completed_trades": 53,
+      "training_stress_median_holding_hours": 108
+    }
+  }
+}

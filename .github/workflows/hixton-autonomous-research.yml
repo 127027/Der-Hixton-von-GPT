@@ -15,6 +15,7 @@ on:
       - "agent_memory/autonomy/hypothesis_queue.json"
       - "agent_memory/autonomy/satellite_step4_checkpoint.json"
       - "agent_memory/autonomy/satellite_v1_candidates.json"
+      - "agent_memory/autonomy/satellite_v1_idle_horizon_sources.json"
       - "scripts/autonomous_research_supervisor.py"
       - "scripts/baseline_freshness_guard.py"
       - "scripts/autonomous_red_team.py"
@@ -27,6 +28,7 @@ on:
       - "scripts/satellite_v1_evolution_research.py"
       - "scripts/satellite_v1_shared_core_idle_replay.py"
       - "scripts/satellite_v1_second_bounded_evolution.py"
+      - "scripts/satellite_v1_idle_horizon_research.py"
       - "scripts/satellite_shared_portfolio_research.py"
       - "scripts/satellite_filler_router_research.py"
       - "scripts/engineering_candidate_builder.py"
@@ -72,6 +74,7 @@ jobs:
             scripts/satellite_strategy_research.py \
             scripts/satellite_v1_shared_core_idle_replay.py \
             scripts/satellite_v1_second_bounded_evolution.py \
+            scripts/satellite_v1_idle_horizon_research.py \
             scripts/satellite_shared_portfolio_research.py \
             scripts/satellite_filler_router_research.py \
             scripts/engineering_candidate_builder.py \
@@ -125,6 +128,9 @@ jobs:
       - name: Satellite V1 second bounded per-market evolution
         if: steps.stage.outputs.priority_stage == 'SATELLITE_V1_SECOND_BOUNDED_EVOLUTION'
         run: python -m scripts.satellite_v1_second_bounded_evolution
+      - name: Satellite V1 exact-idle short-horizon evolution
+        if: steps.stage.outputs.priority_stage == 'SATELLITE_V1_IDLE_HORIZON_EVOLUTION'
+        run: python -m scripts.satellite_v1_idle_horizon_research
       - name: Step 5 shared 10-core + frozen-satellite portfolio research
         if: steps.stage.outputs.priority_stage == 'STEP5_SHARED_10_PLUS_SATELLITE_PORTFOLIO'
         run: python -m scripts.satellite_shared_portfolio_research
@@ -214,6 +220,7 @@ jobs:
             evidence/satellite-v1-evolution.json
             evidence/satellite-v1-shared-core-idle-replay.json
             evidence/satellite-v1-second-bounded-evolution.json
+            evidence/satellite-v1-idle-horizon-research.json
             evidence/satellite-strategy-research.json
             evidence/satellite-shared-portfolio-research.json
             evidence/satellite-filler-router-research.json
