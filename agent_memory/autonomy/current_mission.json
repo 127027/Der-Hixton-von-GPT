@@ -4,6 +4,7 @@
   "status": "ACTIVE",
   "objective": "Protect the validated 10-Core / one-shared-capital primary engine and add a secondary small-signal Satellite layer that trades only during Core quiet periods. The five primary Satellite markets are SUIUSDC, NEARUSDC, UNIUSDC, AAVEUSDC and BCHUSDC; additional markets are optional only if useful. Any executable Core entry has absolute priority and preempts an active Satellite at the next executable open.",
   "priorities": [
+    "Use canonical_core_baseline as the protected numerical reference; do not substitute stale 3x80, isolated 10x250 or remembered '~1500 profit' figures.",
     "Preserve the validated ten-Core product unchanged as the primary earnings engine.",
     "Develop dedicated short-duration small-signal Satellite fillers for SUI/NEAR/UNI/AAVE/BCH first; optional additional USDC markets may supplement the pool but never replace the Core mission.",
     "Satellites trade only while the Core engine is completely idle and are secondary to every executable Core entry signal.",
@@ -52,7 +53,7 @@
     "one-shared-250-USDC Core+Satellite replay",
     "short-horizon exits and handoff only after the five Satellite entry/exit strategies themselves are suitable"
   ],
-  "success_rule": "Mission success requires five independently developed Satellite-V1 profiles (or fewer if evidence rejects a market) that, together in one shared 250-USDC account, materially monetize protected Core idle time and improve or preserve after-cost baseline/stress shared equity with zero unacceptable Core opportunity displacement. The ~90% idle interval is the opportunity pool, not a quota that may override profitability or safety.",
+  "success_rule": "Mission success requires a secondary Satellite layer that, on like-for-like one-shared-C tests, preserves or exceeds the canonical protected f649 Core baseline after costs/stress while materially reducing long Core-idle gaps. The ten-Core engine remains primary and unchanged; Satellites may open only while Core is completely idle and must yield to any executable Core entry at the next executable open.",
   "frequency_tiers_3y": {
     "stretch_cycles": 1095,
     "stretch_label": "~1 completed position cycle per day",
@@ -167,5 +168,30 @@
     "run_74": 37202539649,
     "run_74_result": "SUCCESS_NO_SURVIVORS_FROM_V1_STYLE_REPLACEMENT_BASELINE",
     "run_74_detail": "Nine replacement markets completed the old V1-style 4/8/12h free-capacity baseline after ZECUSDC data-quality exclusion; none had a training-robust positive edge."
+  },
+  "canonical_core_baseline": {
+    "status": "PROTECTED_AND_VALIDATED",
+    "product_branch": "gpt/usdc-audit",
+    "product_sha": "f6497acf8d4d852aaac0b69878762fabb53155d4",
+    "exact_head_validation_run_id": 37034447882,
+    "validation_source": "A02 exact-head report; independently gated by A09/A11",
+    "report_start_utc": "2023-10-02T18:00:00+00:00",
+    "report_end_utc": "2026-10-02T18:00:00+00:00",
+    "starting_capital_usdc": "250.00",
+    "allocator": "CAPITAL-V1-2X50PCT",
+    "slot_count": 2,
+    "target_notional_usdc": "125.00",
+    "baseline_ending_equity_usdc": "1560.08098032189235000000",
+    "baseline_net_profit_usdc": "1310.08098032189235000000",
+    "baseline_return_pct": "524.032392128756940000",
+    "baseline_position_cycles": 84,
+    "baseline_slot_trades": 138,
+    "baseline_max_drawdown_pct": "30.02250609909379042476876819",
+    "stress_ending_equity_usdc": "1469.7623654035115000000",
+    "stress_net_profit_usdc": "1219.7623654035115000000",
+    "a09_gate": "QA_PASS",
+    "a11_gate": "GOVERNANCE_PASS",
+    "owner_shorthand_note": "Treat '~1500' as approximate ending equity language, not +1500 net profit.",
+    "comparison_rule": "Every Satellite architecture must be compared on a like-for-like one-shared-C basis against the protected Core. Old shared-3x80 and isolated-10x250 numbers are diagnostics only."
   }
 }
