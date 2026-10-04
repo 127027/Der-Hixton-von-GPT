@@ -1,16 +1,16 @@
 {
   "schema_version": 1,
-  "completed_run_number": 136,
-  "completed_run_id": 37237166036,
-  "completed_round": 11,
-  "completed_family": "LOCAL_REGIME_COMBINATION",
+  "completed_run_number": 137,
+  "completed_run_id": 37237364952,
+  "completed_round": 12,
+  "completed_family": "TRAINING_SEED_CONSOLIDATION",
   "economic_progress": false,
   "accepted_reference_updates": [],
   "mature_symbols_after": [
     "NEARUSDC"
   ],
   "next_stage": "SATELLITE_ISOLATED_5X250_ADAPTIVE_CYCLE",
-  "next_round": 12,
+  "next_round": 13,
   "dispatch_next": true,
-  "reason": "advance from adaptive round 11 to 12; next causal family is predeclared and different"
+  "reason": "advance from adaptive round 12 to 13; next causal family is predeclared and different"
 }
