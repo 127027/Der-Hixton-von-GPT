@@ -101,5 +101,8 @@
     "future_scale_usdc": "1000",
     "phase_a": "ISOLATED_15X250_RESEARCH",
     "phase_b": "SHARED_250_CORE_PLUS_IDLE_FILLERS"
-  }
+  },
+  "current_stage": "SATELLITE_ISOLATED_5X250_REGIME_REENTRY_REFINEMENT",
+  "last_transition": "NO_ECONOMIC_PROGRESS -> NEW_CAUSAL_FAMILY_REGIME_REENTRY",
+  "validated_incumbent_separate_from_training_seed": true
 }
