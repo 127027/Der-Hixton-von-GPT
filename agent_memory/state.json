@@ -56,7 +56,7 @@
   },
   "target_architecture": {
     "universe": "10 protected Core + 5 independently evolved V1-derived Satellites",
-    "current_stage": "SATELLITE_ISOLATED_5X250_POST114_TARGETED_REFINEMENT",
+    "current_stage": "SATELLITE_ISOLATED_5X250_ADAPTIVE_CYCLE",
     "satellites": [
       "SUIUSDC",
       "NEARUSDC",
@@ -102,7 +102,10 @@
     "phase_a": "ISOLATED_15X250_RESEARCH",
     "phase_b": "SHARED_250_CORE_PLUS_IDLE_FILLERS"
   },
-  "current_stage": "SATELLITE_ISOLATED_5X250_POST114_TARGETED_REFINEMENT",
-  "last_transition": "RUN_114_ECONOMIC_PROGRESS -> TARGETED_POST114_REFINEMENT",
-  "validated_incumbent_separate_from_training_seed": true
+  "current_stage": "SATELLITE_ISOLATED_5X250_ADAPTIVE_CYCLE",
+  "last_transition": "RUN_119_ECONOMIC_PROGRESS -> PERSISTENT_ADAPTIVE_CYCLE",
+  "validated_incumbent_separate_from_training_seed": true,
+  "persistent_adaptive_cycle": true,
+  "adaptive_round": 1,
+  "adaptive_max_rounds": 24
 }
