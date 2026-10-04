@@ -22,6 +22,11 @@ on:
       - "agent_memory/autonomy/satellite_holding_seeds.json"
       - "agent_memory/autonomy/satellite_validated_incumbents.json"
       - "agent_memory/autonomy/satellite_post114_state.json"
+      - "agent_memory/autonomy/satellite_adaptive_control.json"
+      - "agent_memory/autonomy/satellite_adaptive_state.json"
+      - "agent_memory/autonomy/satellite_adaptive_handoff.json"
+      - "agent_memory/autonomy/satellite_run_delta_history.json"
+      - "agent_memory/autonomy/satellite_run_delta_latest.json"
       - "agent_memory/autonomy/satellite_holding_control.json"
       - "scripts/autonomous_research_supervisor.py"
       - "scripts/baseline_freshness_guard.py"
@@ -40,6 +45,8 @@ on:
       - "scripts/satellite_micro_filler_research.py"
       - "scripts/satellite_shared_portfolio_research.py"
       - "scripts/satellite_filler_router_research.py"
+      - "scripts/satellite_isolated_5x250_adaptive_cycle.py"
+      - "scripts/satellite_adaptive_autocontinue.py"
       - "scripts/engineering_candidate_builder.py"
       - "scripts/eth_slot_collision_audit.py"
       - "scripts/event_reaction_study.py"
@@ -94,6 +101,8 @@ jobs:
             scripts/satellite_isolated_5x250_holding_refinement.py \
             scripts/satellite_isolated_5x250_regime_reentry_refinement.py \
             scripts/satellite_isolated_5x250_post114_targeted_refinement.py \
+            scripts/satellite_isolated_5x250_adaptive_cycle.py \
+            scripts/satellite_adaptive_autocontinue.py \
             scripts/satellite_autocontinue.py \
             src/hixton/domain/trade_policy.py \
             src/hixton/backtest/engine.py \
@@ -197,6 +206,9 @@ jobs:
       - name: Satellite isolated 5x250 post114 targeted refinement
         if: steps.stage.outputs.priority_stage == 'SATELLITE_ISOLATED_5X250_POST114_TARGETED_REFINEMENT'
         run: python -m scripts.satellite_isolated_5x250_post114_targeted_refinement
+      - name: Satellite isolated 5x250 persistent adaptive cycle
+        if: steps.stage.outputs.priority_stage == 'SATELLITE_ISOLATED_5X250_ADAPTIVE_CYCLE'
+        run: python -m scripts.satellite_isolated_5x250_adaptive_cycle
       - name: Step 5 shared 10-core + frozen-satellite portfolio research
         if: steps.stage.outputs.priority_stage == 'STEP5_SHARED_10_PLUS_SATELLITE_PORTFOLIO'
         run: python -m scripts.satellite_shared_portfolio_research
@@ -298,11 +310,84 @@ jobs:
             evidence/satellite-isolated-5x250-holding-refinement.json
             evidence/satellite-isolated-5x250-regime-reentry-refinement.json
             evidence/satellite-isolated-5x250-post114-targeted-refinement.json
+            evidence/satellite-isolated-5x250-adaptive-cycle.json
+            evidence/satellite-adaptive-run-delta.md
             evidence/satellite-strategy-research.json
             evidence/satellite-shared-portfolio-research.json
             evidence/satellite-filler-router-research.json
           retention-days: 30
           if-no-files-found: error
+      - name: Prepare persistent adaptive Satellite handoff
+        id: adaptive_prepare
+        if: steps.stage.outputs.priority_stage == 'SATELLITE_ISOLATED_5X250_ADAPTIVE_CYCLE' && steps.stage.outputs.build_locked != 'true'
+        shell: bash
+        run: |
+          set -euo pipefail
+          python -m scripts.satellite_adaptive_autocontinue
+          python - <<'PY' >> "$GITHUB_OUTPUT"
+          import json
+          h=json.load(open("agent_memory/autonomy/satellite_adaptive_handoff.json", encoding="utf-8"))
+          print("dispatch_next=" + ("true" if h.get("dispatch_next") else "false"))
+          print("next_round=" + str(h.get("next_round", "done")))
+          print("economic_progress=" + ("true" if h.get("economic_progress") else "false"))
+          PY
+
+      - name: Persist persistent adaptive Satellite handoff
+        id: adaptive_persist
+        if: steps.stage.outputs.priority_stage == 'SATELLITE_ISOLATED_5X250_ADAPTIVE_CYCLE' && steps.stage.outputs.build_locked != 'true'
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          echo "advanced=false" >> "$GITHUB_OUTPUT"
+          branch="gpt/autonomous-research-v1"
+          git fetch origin "$branch"
+          remote_head="$(git rev-parse "origin/$branch")"
+          if [ "$remote_head" != "$GITHUB_SHA" ]; then
+            echo "::warning::Research HEAD moved during adaptive run ($remote_head != $GITHUB_SHA); do not persist/dispatch stale evidence."
+            exit 0
+          fi
+          git config user.name "hixton-autonomy[bot]"
+          git config user.email "hixton-autonomy@users.noreply.github.com"
+          git add \
+            agent_memory/autonomy/current_mission.json \
+            agent_memory/autonomy/heartbeat.json \
+            agent_memory/autonomy/satellite_adaptive_control.json \
+            agent_memory/autonomy/satellite_adaptive_state.json \
+            agent_memory/autonomy/satellite_adaptive_handoff.json \
+            agent_memory/autonomy/satellite_run_delta_history.json \
+            agent_memory/autonomy/satellite_run_delta_latest.json
+          if git diff --cached --quiet; then
+            echo "No adaptive state transition to persist."
+            exit 0
+          fi
+          next_round="${{ steps.adaptive_prepare.outputs.next_round }}"
+          git commit -m "autonomy(satellite): persist adaptive round -> ${next_round}"
+          git remote set-url origin "https://x-access-token:${GH_TOKEN}@github.com/${GITHUB_REPOSITORY}.git"
+          git push origin "HEAD:$branch"
+          echo "advanced=true" >> "$GITHUB_OUTPUT"
+
+      - name: Publish adaptive RUN DELTA
+        if: steps.adaptive_persist.outputs.advanced == 'true'
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          gh issue comment 3 --repo "$GITHUB_REPOSITORY" --body-file evidence/satellite-adaptive-run-delta.md
+
+      - name: Dispatch next persistent adaptive Satellite run
+        if: steps.adaptive_persist.outputs.advanced == 'true' && steps.adaptive_prepare.outputs.dispatch_next == 'true'
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          branch="gpt/autonomous-research-v1"
+          echo "Dispatching next adaptive Satellite run on $branch."
+          gh workflow run hixton-autonomous-research.yml --ref "$branch"
+
       - name: Prepare bounded automatic Satellite handoff
         if: steps.stage.outputs.priority_stage == 'SATELLITE_ISOLATED_5X250_HOLDING_REFINEMENT' && steps.stage.outputs.build_locked != 'true'
         run: python -m scripts.satellite_autocontinue
