@@ -80,6 +80,7 @@ jobs:
             scripts/satellite_v1_idle_horizon_research.py \
             scripts/satellite_v1_replacement_baseline.py \
             scripts/satellite_micro_filler_research.py \
+            scripts/satellite_micro_signal_census.py \
             scripts/satellite_shared_portfolio_research.py \
             scripts/satellite_filler_router_research.py \
             scripts/engineering_candidate_builder.py \
@@ -145,6 +146,9 @@ jobs:
       - name: Satellite small-signal micro-filler research
         if: steps.stage.outputs.priority_stage == 'SATELLITE_MICRO_FILLER_RESEARCH'
         run: python -m scripts.satellite_micro_filler_research
+      - name: Satellite micro-signal excursion census
+        if: steps.stage.outputs.priority_stage == 'SATELLITE_MICRO_FILLER_SIGNAL_CENSUS'
+        run: python -m scripts.satellite_micro_signal_census
       - name: Step 5 shared 10-core + frozen-satellite portfolio research
         if: steps.stage.outputs.priority_stage == 'STEP5_SHARED_10_PLUS_SATELLITE_PORTFOLIO'
         run: python -m scripts.satellite_shared_portfolio_research
@@ -237,6 +241,7 @@ jobs:
             evidence/satellite-v1-idle-horizon-research.json
             evidence/satellite-v1-replacement-baseline.json
             evidence/satellite-micro-filler-research.json
+            evidence/satellite-micro-signal-census.json
             evidence/satellite-strategy-research.json
             evidence/satellite-shared-portfolio-research.json
             evidence/satellite-filler-router-research.json
