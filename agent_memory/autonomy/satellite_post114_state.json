@@ -1,0 +1,122 @@
+{
+  "schema_version": 1,
+  "source_run": 114,
+  "source_run_id": 37232873126,
+  "per_symbol": {
+    "SUIUSDC": {
+      "status": "VALIDATED_INCUMBENT",
+      "reference": {
+        "validation_stress_net_pnl": "27.525076315340000000",
+        "validation_stress_trades": 23,
+        "full_3y_stress_net_pnl": "294.673052174170000000",
+        "full_3y_stress_trades": 69,
+        "full_3y_stress_max_drawdown_pct": "46.20275456462671044118361040",
+        "full_3y_stress_profit_per_position_hour": "0.04035511533472610243768830457"
+      },
+      "base_spec": {
+        "name": "VOL_MAX_2PCT",
+        "reentry": false,
+        "horizon_hours": 0,
+        "min_atr_pct": 0,
+        "max_atr_pct": 0.02,
+        "min_trend_atr": -999,
+        "max_trend_atr": 999,
+        "min_breakout_atr": 0,
+        "min_abs_cmo": 0
+      },
+      "reference_source_run": 114,
+      "profitability_pass": true,
+      "maturity_pass": false
+    },
+    "NEARUSDC": {
+      "status": "FROZEN_MATURE_INCUMBENT",
+      "reference": {
+        "validation_stress_net_pnl": "123.69366249120000000",
+        "validation_stress_trades": 61,
+        "full_3y_stress_net_pnl": "331.60670464360000000",
+        "full_3y_stress_trades": 191,
+        "full_3y_stress_max_drawdown_pct": "36.17099795728092254546654214",
+        "full_3y_stress_profit_per_position_hour": "0.04017040637717746820109024833"
+      },
+      "base_spec": null,
+      "reference_source_run": 101,
+      "profitability_pass": true,
+      "maturity_pass": true
+    },
+    "UNIUSDC": {
+      "status": "VALIDATED_INCUMBENT",
+      "reference": {
+        "validation_stress_net_pnl": "160.85488637841000000",
+        "validation_stress_trades": 19,
+        "full_3y_stress_net_pnl": "261.33936268335000000",
+        "full_3y_stress_trades": 63,
+        "full_3y_stress_max_drawdown_pct": "33.89846134855061034345681268",
+        "full_3y_stress_profit_per_position_hour": "0.04540294695680159833217512161"
+      },
+      "base_spec": {
+        "name": "INCUMBENT",
+        "reentry": false,
+        "horizon_hours": 0,
+        "min_atr_pct": 0,
+        "max_atr_pct": 1,
+        "min_trend_atr": -999,
+        "max_trend_atr": 999,
+        "min_breakout_atr": 0,
+        "min_abs_cmo": 0
+      },
+      "reference_source_run": 95,
+      "profitability_pass": true,
+      "maturity_pass": false
+    },
+    "AAVEUSDC": {
+      "status": "RESEARCH_BENCHMARK",
+      "reference": {
+        "validation_stress_net_pnl": "-87.3768653460000000",
+        "validation_stress_trades": 46,
+        "full_3y_stress_net_pnl": "297.9405412139000000",
+        "full_3y_stress_trades": 126,
+        "full_3y_stress_max_drawdown_pct": "38.61891276886049705587209238",
+        "full_3y_stress_profit_per_position_hour": "0.03283815069038906646092802822"
+      },
+      "base_spec": {
+        "name": "REGIME_BALANCED",
+        "reentry": false,
+        "horizon_hours": 0,
+        "min_atr_pct": 0.003,
+        "max_atr_pct": 0.025,
+        "min_trend_atr": 0.25,
+        "max_trend_atr": 2.5,
+        "min_breakout_atr": 0,
+        "min_abs_cmo": 0
+      },
+      "reference_source_run": 114,
+      "profitability_pass": false,
+      "maturity_pass": false
+    },
+    "BCHUSDC": {
+      "status": "RESEARCH_BENCHMARK",
+      "reference": {
+        "validation_stress_net_pnl": "-58.432709922100000",
+        "validation_stress_trades": 31,
+        "full_3y_stress_net_pnl": "279.906723360800000",
+        "full_3y_stress_trades": 73,
+        "full_3y_stress_max_drawdown_pct": "31.23418215152703731176153883",
+        "full_3y_stress_profit_per_position_hour": "0.02356117200006734006734006734"
+      },
+      "base_spec": {
+        "name": "VOL_MAX_2PCT",
+        "reentry": false,
+        "horizon_hours": 0,
+        "min_atr_pct": 0,
+        "max_atr_pct": 0.02,
+        "min_trend_atr": -999,
+        "max_trend_atr": 999,
+        "min_breakout_atr": 0,
+        "min_abs_cmo": 0
+      },
+      "reference_source_run": 114,
+      "profitability_pass": false,
+      "maturity_pass": false
+    }
+  }
+}
