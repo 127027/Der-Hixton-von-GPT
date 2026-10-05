@@ -20,22 +20,20 @@
         "trail_atr": 0
       },
       "training_seed": {
-        "name": "AUTO_R34_SEED",
+        "name": "AUTO_REF_RESET_AFTER_R34_REF_RUN119_VOL_CAP_0.0175",
         "horizon_hours": 0,
         "min_atr_pct": 0,
         "max_atr_pct": 0.0175,
         "min_trend_atr": -999,
         "max_trend_atr": 999,
         "min_breakout_atr": 0,
-        "max_breakout_atr": 999.0,
+        "max_breakout_atr": 999,
         "min_abs_cmo": 0,
-        "reentry_atr_level": 0.25,
+        "reentry_atr_level": null,
         "atr_direction": null,
         "trend_health_exit": null,
-        "min_rank_strength": -999.0,
-        "max_rank_strength": 999.0,
-        "policy_cmo_floor": null,
-        "policy_slope_bars": null
+        "min_rank_strength": -999,
+        "max_rank_strength": 999
       },
       "reference_status": "VALIDATED_INCUMBENT",
       "reference_source_run": 119,
@@ -49,9 +47,9 @@
         "full_3y_stress_max_drawdown_pct": "25.72800378674776043553283649",
         "full_3y_stress_profit_per_position_hour": "0.08021666239266234792226260073"
       },
-      "training_seed_source_run": 198,
-      "training_seed_source_round": 34,
-      "training_seed_selection_mode": "REFERENCE_ANCHORED_STABLE_ACTIVITY_90PCT_PNL",
+      "training_seed_source_run": 119,
+      "training_seed_source_round": null,
+      "training_seed_selection_mode": "RESET_TO_ACCEPTED_REFERENCE_AFTER_R34_REJECTION",
       "reference_seed": {
         "name": "REF_RUN119_VOL_CAP_0.0175",
         "horizon_hours": 0,
@@ -85,17 +83,20 @@
         "trail_atr": 0
       },
       "training_seed": {
-        "name": "RUN101_HOLD48",
+        "name": "AUTO_REF_RESET_AFTER_R34_REF_RUN101_HOLD48",
         "horizon_hours": 48,
         "min_atr_pct": 0,
         "max_atr_pct": 1,
         "min_trend_atr": -999,
         "max_trend_atr": 999,
         "min_breakout_atr": 0,
+        "max_breakout_atr": 999,
         "min_abs_cmo": 0,
         "reentry_atr_level": null,
         "atr_direction": null,
-        "trend_health_exit": null
+        "trend_health_exit": null,
+        "min_rank_strength": -999,
+        "max_rank_strength": 999
       },
       "reference_status": "FROZEN_MATURE_INCUMBENT",
       "reference_source_run": 101,
@@ -124,7 +125,10 @@
         "trend_health_exit": null,
         "min_rank_strength": -999,
         "max_rank_strength": 999
-      }
+      },
+      "training_seed_source_run": 101,
+      "training_seed_source_round": null,
+      "training_seed_selection_mode": "RESET_TO_ACCEPTED_REFERENCE_AFTER_R34_REJECTION"
     },
     "UNIUSDC": {
       "parameters": {
@@ -142,7 +146,7 @@
         "trail_atr": 0
       },
       "training_seed": {
-        "name": "AUTO_R34_SEED",
+        "name": "AUTO_REF_RESET_AFTER_R34_REF_RUN141_CMO_0.15_REENTRY_0.50",
         "horizon_hours": 0,
         "min_atr_pct": 0,
         "max_atr_pct": 1,
@@ -155,9 +159,7 @@
         "atr_direction": null,
         "trend_health_exit": null,
         "min_rank_strength": -999,
-        "max_rank_strength": 999,
-        "policy_cmo_floor": null,
-        "policy_slope_bars": null
+        "max_rank_strength": 999
       },
       "reference_status": "VALIDATED_INCUMBENT",
       "reference_source_run": 141,
@@ -171,9 +173,9 @@
         "full_3y_stress_max_drawdown_pct": "32.74500737997216506907925508",
         "full_3y_stress_profit_per_position_hour": "0.03757962168166865458015267176"
       },
-      "training_seed_source_run": 198,
-      "training_seed_source_round": 34,
-      "training_seed_selection_mode": "REFERENCE_ANCHORED_STABLE_ACTIVITY_90PCT_PNL",
+      "training_seed_source_run": 141,
+      "training_seed_source_round": 16,
+      "training_seed_selection_mode": "RESET_TO_ACCEPTED_REFERENCE_AFTER_R34_REJECTION",
       "reference_source_round": 16,
       "reference_seed": {
         "name": "REF_RUN141_CMO_0.15_REENTRY_0.50",
@@ -208,22 +210,20 @@
         "trail_atr": 0
       },
       "training_seed": {
-        "name": "AUTO_R34_SEED",
+        "name": "AUTO_REF_RESET_AFTER_R34_REF_R33_REF_AAVE_A0.0050_0.0250_T0.50_2.50_C0.00_H120",
         "horizon_hours": 120,
         "min_atr_pct": 0.005,
         "max_atr_pct": 0.025,
         "min_trend_atr": 0.5,
         "max_trend_atr": 2.5,
         "min_breakout_atr": 0,
-        "max_breakout_atr": 999.0,
-        "min_abs_cmo": 0.0,
+        "max_breakout_atr": 999,
+        "min_abs_cmo": 0,
         "reentry_atr_level": null,
         "atr_direction": null,
         "trend_health_exit": null,
-        "min_rank_strength": -999.0,
-        "max_rank_strength": 999.0,
-        "policy_cmo_floor": null,
-        "policy_slope_bars": null
+        "min_rank_strength": -999,
+        "max_rank_strength": 999
       },
       "reference_status": "RESEARCH_BENCHMARK",
       "reference_source_run": 193,
@@ -237,9 +237,9 @@
         "full_3y_stress_max_drawdown_pct": "38.09803073679226760589964938",
         "full_3y_stress_profit_per_position_hour": "0.03768234767483152901106921299"
       },
-      "training_seed_source_run": 198,
-      "training_seed_source_round": 34,
-      "training_seed_selection_mode": "FOLD_STABILITY_PROFIT_FIRST_TRAINING_SELECTION",
+      "training_seed_source_run": 193,
+      "training_seed_source_round": 33,
+      "training_seed_selection_mode": "RESET_TO_ACCEPTED_REFERENCE_AFTER_R34_REJECTION",
       "reference_source_round": 33,
       "reference_seed": {
         "name": "REF_R33_REF_AAVE_A0.0050_0.0250_T0.50_2.50_C0.00_H120",
@@ -249,13 +249,13 @@
         "min_trend_atr": 0.5,
         "max_trend_atr": 2.5,
         "min_breakout_atr": 0,
-        "max_breakout_atr": 999.0,
-        "min_abs_cmo": 0.0,
+        "max_breakout_atr": 999,
+        "min_abs_cmo": 0,
         "reentry_atr_level": null,
         "atr_direction": null,
         "trend_health_exit": null,
-        "min_rank_strength": -999.0,
-        "max_rank_strength": 999.0
+        "min_rank_strength": -999,
+        "max_rank_strength": 999
       }
     },
     "BCHUSDC": {
@@ -274,12 +274,12 @@
         "trail_atr": 0
       },
       "training_seed": {
-        "name": "AUTO_R34_R34_BCH_H72_CMO0.05",
-        "horizon_hours": 72,
+        "name": "AUTO_REF_RESET_AFTER_R34_REF_RUN114_VOL_MAX_2PCT",
+        "horizon_hours": 0,
         "min_atr_pct": 0,
         "max_atr_pct": 0.02,
-        "min_trend_atr": -999.0,
-        "max_trend_atr": 999.0,
+        "min_trend_atr": -999,
+        "max_trend_atr": 999,
         "min_breakout_atr": 0,
         "max_breakout_atr": 999,
         "min_abs_cmo": 0,
@@ -287,9 +287,7 @@
         "atr_direction": null,
         "trend_health_exit": null,
         "min_rank_strength": -999,
-        "max_rank_strength": 999,
-        "policy_cmo_floor": 0.05,
-        "policy_slope_bars": 0
+        "max_rank_strength": 999
       },
       "reference_status": "RESEARCH_BENCHMARK",
       "reference_source_run": 114,
@@ -303,9 +301,9 @@
         "full_3y_stress_max_drawdown_pct": "31.23418215152703731176153883",
         "full_3y_stress_profit_per_position_hour": "0.02356117200006734006734006734"
       },
-      "training_seed_source_run": 198,
-      "training_seed_source_round": 34,
-      "training_seed_selection_mode": "FOLD_STABILITY_PROFIT_FIRST_TRAINING_SELECTION",
+      "training_seed_source_run": 114,
+      "training_seed_source_round": null,
+      "training_seed_selection_mode": "RESET_TO_ACCEPTED_REFERENCE_AFTER_R34_REJECTION",
       "reference_seed": {
         "name": "REF_RUN114_VOL_MAX_2PCT",
         "horizon_hours": 0,
