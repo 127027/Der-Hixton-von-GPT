@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "phase": "PAUSED_FOR_OWNER_REVIEW",
+  "phase": "READY_TO_RUN",
   "completed_run_number": 233,
   "completed_run_id": 37332860468,
   "completed_round": 37,
@@ -8,18 +8,18 @@
   "next_round": 38,
   "next_stage": "SATELLITE_ISOLATED_5X250_ADAPTIVE_CYCLE",
   "economic_progress": false,
-  "ready_for_dispatch": false,
+  "ready_for_dispatch": true,
   "analysis_checkpoint": "2026-10-05T09:45:00+02:00",
   "analysis_summary": {
-    "SUIUSDC": "Refine locally between accepted R35 reference and strong R36 training basin; seek more turnover/lower DD without repeating rejected exact point.",
-    "NEARUSDC": "MATURE_INCUMBENT_PROTECTED; no mutation.",
-    "UNIUSDC": "Keep robust slope/reentry structure; search bounded holding-time and moderate slope/reentry neighborhood for useful idle-capital turnover.",
-    "AAVEUSDC": "Robustly profitable; seek shorter occupancy and ~17 additional cycles toward maturity around stop2.0 plus narrow ATR admission.",
-    "BCHUSDC": "Generalization blocker; refine momentum12 with tight volatility/direction/risk envelope instead of aggressive VIDYA overtrading."
+    "SUIUSDC": "Accepted stop2.50/cap1.75% basin; test 2.20-2.30 band interpolation with close-based ATR profit harvesting.",
+    "NEARUSDC": "Mature H48 incumbent; stop shortening was harmful. Test profit harvesting and tight band/ATR neighborhood while requiring maturity preservation.",
+    "UNIUSDC": "Preserve slope72/CMO/reentry core; test narrow ATR/band neighborhood plus profit harvesting, profit before raw activity.",
+    "AAVEUSDC": "Strong H96 training basin around stop2.0-2.25; interpolate H90-120 and add profit harvesting.",
+    "BCHUSDC": "Validation blocker; test profit harvesting plus narrow band/momentum variants to reduce winner give-back without frequency gaming."
   },
-  "prepared_family": "FINAL_MANUAL_BALANCED_GAP_FILLER_PASS",
-  "launch_policy": "NEXT_QUARTER_HOUR_TICK_ONLY",
-  "last_transition_source": "manual_final_round37_complete",
+  "prepared_family": "FINAL_PROVISIONAL_PROFIT_TAKE_PASS",
+  "launch_policy": "EXACTLY_ONE_MANUAL_RUN_THEN_PAUSE",
+  "last_transition_source": "manual_round38_final_provisional",
   "analysis_controller_run_id": 37302952731,
   "analysis_policy": "completed result reviewed on this quarter-hour tick; dispatch forbidden until a later tick",
   "dispatch_controller_run_id": 37332824612,
@@ -27,10 +27,11 @@
   "repair_commit": "c6f6e73902334855773d1b9616cef68226e25e7f",
   "repair_reason": "Fixed post-registry technical_family label IndexError for round > family_sequence length.",
   "manual_repair": {
-    "purpose": "Final manual balanced 5x250 gap-filler pass",
-    "code_head": "8567faaa3f0b82143494b153fe4d10f6e3c19f29",
-    "verification": "Round37 consolidated code push #231 SUCCESS; product-critical trade_policy byte-matches gpt/usdc-audit",
-    "launch_policy": "exactly one substantive Round37 run; all external research controllers paused afterward"
-  },
-  "pause_reason": "Owner requested one final manual backtest and then stop. Run #233 completed successfully; no accepted reference updates."
+    "purpose": "Last provisional five-Satellite manual optimization before integration decision",
+    "family": "FINAL_PROVISIONAL_PROFIT_TAKE_PASS",
+    "selection": "robust profit first; sensible activity second",
+    "verification": "router hook push #236 SUCCESS; round38 code push #237 SUCCESS; protected trade_policy byte-match confirmed",
+    "automation": "all external Hixton research controllers remain disabled",
+    "launch_policy": "exactly one substantive Round38 run"
+  }
 }
