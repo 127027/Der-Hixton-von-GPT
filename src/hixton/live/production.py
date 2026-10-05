@@ -22,7 +22,6 @@ from threading import Event, RLock
 from typing import Any, Protocol, cast
 
 from hixton.backtest.models import ExecutionRules
-from hixton.constants import SYMBOLS
 from hixton.domain.allocation import allocate_entry_slots
 from hixton.domain.capital import capital_plan
 from hixton.domain.models import IndicatorPoint, SignalAction
@@ -752,9 +751,14 @@ class LivePortfolioController:
         now = _utc(now)
         if not self.release_check():
             raise RuntimeError("Live release gate is closed")
-        if set(points) != set(self.strategy.symbols) or any(not points[symbol] for symbol in self.strategy.symbols):
-            raise RuntimeError("Live enable requires all ten synchronized markets")
-        latest = {symbol: _utc(points[symbol][-1].candle.close_time_utc) for symbol in self.strategy.symbols}
+        if set(points) != set(self.strategy.symbols) or any(
+            not points[symbol] for symbol in self.strategy.symbols
+        ):
+            raise RuntimeError("Live enable requires the complete synchronized strategy universe")
+        latest = {
+            symbol: _utc(points[symbol][-1].candle.close_time_utc)
+            for symbol in self.strategy.symbols
+        }
         if len(set(latest.values())) != 1:
             raise RuntimeError("Live enable requires aligned closed bars")
         plan, emergency = self._current_plan()
