@@ -707,7 +707,16 @@ def main() -> None:
     improved: list[str] = []
     profitability_pass: list[str] = []
     mature: list[str] = []
-    technical_family = control["family_sequence"][round_no - 1]
+    family_sequence = list(control.get("family_sequence") or [])
+    if round_no <= len(family_sequence):
+        technical_family = family_sequence[round_no - 1]
+    else:
+        # Post-registry rounds are generated dynamically. Do not index past the
+        # finite registry merely to label the evidence payload.
+        generation = round_no - 32
+        technical_family = (
+            f"GENERATED_POST_REGISTRY_G{generation}_BREAKOUT_RANK_HORIZON"
+        )
 
     for symbol in SATELLITES:
         row = state["per_symbol"][symbol]
