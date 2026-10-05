@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "phase": "NEEDS_ANALYSIS",
+  "phase": "READY_TO_RUN",
   "completed_run_number": 205,
   "completed_run_id": 37324151689,
   "completed_round": 35,
@@ -8,18 +8,18 @@
   "next_round": 36,
   "next_stage": "SATELLITE_ISOLATED_5X250_ADAPTIVE_CYCLE",
   "economic_progress": true,
-  "ready_for_dispatch": false,
+  "ready_for_dispatch": true,
   "analysis_checkpoint": "2026-10-05T09:45:00+02:00",
   "analysis_summary": {
-    "SUIUSDC": "R34 no-op seed was revalidated; rejected seed reset to run119 reference. R35 requires a distinct stop/trail challenger around accepted reference.",
+    "SUIUSDC": "Run205 stop2.50 candidate recovered as improved under corrected bounded filler gate: validation +18.78, +4 trades, DD -3.63pp, PPH +0.01883, 99.43% 3y PnL retained.",
     "NEARUSDC": "MATURE_INCUMBENT_PROTECTED",
-    "UNIUSDC": "Relaxing slope to 0/24 destroyed training robustness; keep slope72 reference and test risk-managed exits/holding only.",
-    "AAVEUSDC": "R34 selected the unchanged seed; R35 must validate a materially different stop/trail/holding challenger around accepted run193 benchmark.",
-    "BCHUSDC": "R34 72h/CMO challenger increased trades to 122 but worsened validation and 3y PnL; reset to run114 and test risk exits to retain frequency without regression."
+    "UNIUSDC": "No material policy/exit challenger survived training; round36 searches bounded VIDYA/smoothing/band neighborhoods around accepted run141 reference.",
+    "AAVEUSDC": "Run205 became robustly profitable and accepted; round36 searches base-parameter neighborhood for additional frequency/efficiency.",
+    "BCHUSDC": "No material stop/trail challenger survived training; round36 searches bounded VIDYA/band/momentum neighborhood around run114 benchmark."
   },
-  "prepared_family": "MATERIAL_CHALLENGER_RISK_EXIT_REPAIR",
+  "prepared_family": "BASE_STRATEGY_NEIGHBORHOOD_REPAIR",
   "launch_policy": "NEXT_QUARTER_HOUR_TICK_ONLY",
-  "last_transition_source": "research_completion",
+  "last_transition_source": "manual_1630_round36_analysis",
   "analysis_controller_run_id": 37302952731,
   "analysis_policy": "completed result reviewed on this quarter-hour tick; dispatch forbidden until a later tick",
   "dispatch_controller_run_id": 37324122727,
@@ -27,14 +27,15 @@
   "repair_commit": "c6f6e73902334855773d1b9616cef68226e25e7f",
   "repair_reason": "Fixed post-registry technical_family label IndexError for round > family_sequence length.",
   "manual_repair": {
-    "purpose": "Round 35 repair after no-op/seed-drift defect in run #198",
-    "material_challenger_required": true,
-    "rejected_challenger_reset_to_reference": true,
-    "new_policy_axes": [
-      "stop_atr",
-      "trail_atr"
+    "purpose": "Round36 after run205: correct over-strict filler gate and expand exhausted UNI/BCH search into base strategy parameters",
+    "bounded_tradeoff": "validation improves + >=99% 3y PnL retention + trades/DD/PPH all improve",
+    "recovered_reference_updates": [
+      "SUIUSDC"
     ],
-    "verification": "run #202 contract SUCCESS",
-    "launch_policy": "exactly one round-35 5x250 run"
+    "already_accepted_from_run205": [
+      "AAVEUSDC"
+    ],
+    "prepared_family": "BASE_STRATEGY_NEIGHBORHOOD_REPAIR",
+    "verification": "code contract #207 SUCCESS; state contract #209 SUCCESS"
   }
 }
