@@ -13,6 +13,13 @@ from dataclasses import dataclass
 from decimal import Decimal
 from pathlib import Path
 
+from validate_15coin_satellite_integration import (
+    _histories,
+    _maps,
+    _metrics,
+    _rules,
+)
+
 from hixton.backtest.models import BASELINE_COSTS, STRESS_COSTS
 from hixton.backtest.satellite_portfolio import RouterConfig, run_filler_router_portfolio
 from hixton.data.binance import BinancePublicClient
@@ -25,12 +32,6 @@ from hixton.domain.satellite_layer import (
 )
 from hixton.domain.strategy import HixtonStrategy
 from hixton.domain.trade_policy import TradePolicyGate
-from validate_15coin_satellite_integration import (
-    _histories,
-    _maps,
-    _metrics,
-    _rules,
-)
 
 D = Decimal
 OUTPUT = Path("evidence/shared-satellite-optimization.json")
