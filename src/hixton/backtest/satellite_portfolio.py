@@ -177,6 +177,7 @@ def run_filler_router_portfolio(
     trend_health_exit_by_symbol: dict[str, float] | None = None,
     profit_take_atr_by_symbol: dict[str, float] | None = None,
     filler_horizon_hours_by_symbol: dict[str, int] | None = None,
+    satellite_max_portfolio_drawdown_pct: Decimal | None = None,
 ) -> tuple[PortfolioBacktestResult, list[dict[str, object]]]:
     if tuple(candles_by_symbol) != symbols:
         raise ValueError("router input universe/order mismatch")
@@ -273,6 +274,14 @@ def run_filler_router_portfolio(
         raise ValueError("filler horizons are Satellite-only")
     if any(type(value) is not int or value <= 0 for value in filler_horizons.values()):
         raise ValueError("per-Satellite filler horizons must be positive integers")
+    if (
+        satellite_max_portfolio_drawdown_pct is not None
+        and (
+            satellite_max_portfolio_drawdown_pct < ZERO
+            or satellite_max_portfolio_drawdown_pct > HUNDRED
+        )
+    ):
+        raise ValueError("Satellite portfolio drawdown gate must be in [0, 100]")
 
     cash = starting_cash
     positions: dict[str, OpenTrade] = {}
@@ -294,6 +303,7 @@ def run_filler_router_portfolio(
     )
     risk_halted_at: datetime | None = None
     daily_paused_bars = 0
+    current_drawdown_pct = ZERO
 
     def close_position(symbol: str, *, at: datetime, candle: Candle, reason_id: str) -> bool:
         nonlocal cash
@@ -838,6 +848,7 @@ def run_filler_router_portfolio(
                 risk_halted_at = max(c.close_time_utc for c in row)
             risk_state = risk.state
             daily_paused = risk.daily_paused
+            current_drawdown_pct = risk.drawdown_pct
             daily_paused_bars += int(daily_paused)
 
             new_pending: list[Signal] = []
@@ -850,6 +861,15 @@ def run_filler_router_portfolio(
                     blocked.append(f"{signal.signal_id}:{decisions[symbol].block_reason}")
                     continue
                 if signal.action is SignalAction.ENTER_LONG:
+                    if (
+                        symbol in satellite_set
+                        and satellite_max_portfolio_drawdown_pct is not None
+                        and current_drawdown_pct > satellite_max_portfolio_drawdown_pct
+                    ):
+                        blocked.append(
+                            f"{signal.signal_id}:SATELLITE_PORTFOLIO_DRAWDOWN_GATE"
+                        )
+                        continue
                     entry_filter = entry_filters.get(symbol)
                     if entry_filter is not None:
                         filter_reason = entry_filter(points[symbol])
