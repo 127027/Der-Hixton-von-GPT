@@ -8,10 +8,10 @@ while bounding drawdown deterioration versus Core-only.
 from __future__ import annotations
 
 import json
+from collections.abc import Callable
 from dataclasses import dataclass
 from decimal import Decimal
 from pathlib import Path
-from typing import Callable
 
 from hixton.backtest.models import BASELINE_COSTS, STRESS_COSTS
 from hixton.backtest.satellite_portfolio import RouterConfig, run_filler_router_portfolio
