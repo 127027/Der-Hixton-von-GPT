@@ -21,7 +21,10 @@
     "activity_search_min_reference_training_pnl_retention_pct": 90,
     "candidate_level_trade_policy_overrides_training_only": true,
     "round_34_symbol_specific_repair": true,
-    "uni_policy_slope_gate_is_searchable": true
+    "uni_policy_slope_gate_is_searchable": true,
+    "material_challenger_required_from_round_35": true,
+    "rejected_challenger_resets_to_accepted_reference": true,
+    "candidate_level_stop_trail_overrides_training_only": true
   },
   "family_sequence": [
     "TARGETED_REENTRY_OR_TREND_EXIT",
@@ -57,7 +60,8 @@
     "BREAKOUT_CEILING_X_HORIZON",
     "BREAKOUT_CEILING_X_RANK_STRENGTH",
     "REFERENCE_ANCHORED_FOLD_STABILITY",
-    "SYMBOL_SPECIFIC_POLICY_AND_GENERALIZATION_REPAIR"
+    "SYMBOL_SPECIFIC_POLICY_AND_GENERALIZATION_REPAIR",
+    "MATERIAL_CHALLENGER_RISK_EXIT_REPAIR"
   ],
   "last_completed_round": 34
 }
