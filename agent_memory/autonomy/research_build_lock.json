@@ -1,8 +1,8 @@
 {
   "schema_version": 1,
-  "locked": false,
-  "reason": "Round36 repair complete: bounded filler-efficiency tradeoff gate, recovered SUI run205 reference, and base-strategy parameter neighborhood registered; contracts green.",
+  "locked": true,
+  "reason": "Verify behavioral-fingerprint no-op rejection before Round 37.",
   "started_from_head": "{\"ref\":\"refs/heads/gpt/autonomous-research-v1\",\"node_id\":\"REF_kwDOUcdQldoAJXJlZnMvaGVhZHMvZ3B0L2F1dG9ub21vdXMtcmVzZWFyY2gtdjE\",\"url\":\"https://api.github.com/repos/127027/Der-Hixton-von-GPT/git/refs/heads/gpt/autonomous-research-v1\",\"object\":{\"sha\":\"7c5c6566e81368804547c4e41212efe6966903c8\",\"type\":\"commit\",\"url\":\"https://api.github.com/repos/127027/Der-Hixton-von-GPT/git/commits/7c5c6566e81368804547c4e41212efe6966903c8\"}}",
   "contract": "No substantive research dispatch while locked. Patch reference anchors, fold-stability selection and targeted round-33 variants only; preserve validation rejection-only, NEAR mature freeze and protected Core.",
-  "unlock_contract": "Unlocked for exactly one Round36 5x250 substantive run. No immediate self-chain."
+  "unlock_contract": "Unlock only after contract validation succeeds on the no-op fingerprint fix. No substantive dispatch while locked."
 }
