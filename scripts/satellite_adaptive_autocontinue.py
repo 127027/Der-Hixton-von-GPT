@@ -5,8 +5,9 @@ validation evidence to choose the next TRAINING seed: the seed always comes from
 current round's training winner. Validation may only accept/reject promotion of the
 separate reference benchmark.
 
-If work remains and a predeclared different family exists, the workflow commits the
-state transition and explicitly dispatches exactly one next run.
+If work remains, the workflow persists the next hypothesis as ready state only.
+A later quarter-hour controller tick owns the next substantive launch; completion
+of this script must never self-dispatch another research run.
 """
 
 from __future__ import annotations
@@ -195,6 +196,8 @@ def main() -> None:
         "mature_symbols_after": mature_symbols,
         "per_symbol": delta_rows,
         "patch_complete": True,
+        "orchestration_phase": "READY_FOR_NEXT_QUARTER_TICK",
+        "earliest_launch_policy": "LATER_QUARTER_HOUR_TICK_ONLY",
         "next_stage": next_stage,
         "dispatch_next": dispatch_next,
         "next_reason": next_reason,
@@ -212,6 +215,8 @@ def main() -> None:
         "mature_symbols_after": mature_symbols,
         "next_stage": next_stage,
         "next_round": control.get("round"),
+        "orchestration_phase": "READY_FOR_NEXT_QUARTER_TICK",
+        "earliest_launch_policy": "LATER_QUARTER_HOUR_TICK_ONLY",
         "dispatch_next": dispatch_next,
         "reason": next_reason,
     }
