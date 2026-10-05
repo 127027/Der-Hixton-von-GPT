@@ -47,7 +47,7 @@ SOURCES = Path("agent_memory/autonomy/satellite_v1_idle_horizon_sources.json")
 CONTROL = Path("agent_memory/autonomy/satellite_adaptive_control.json")
 STATE = Path("agent_memory/autonomy/satellite_adaptive_state.json")
 OUTPUT = Path("evidence/satellite-isolated-5x250-adaptive-cycle.json")
-TRAINING_PNL_RETENTION_FOR_ACTIVITY = D("0.75")
+TRAINING_PNL_RETENTION_FOR_ACTIVITY = D("0.90")
 
 
 @dataclass(frozen=True, slots=True)
@@ -70,6 +70,10 @@ class AdaptiveSpec:
 
 def _seed(row: dict) -> AdaptiveSpec:
     return AdaptiveSpec(**row["training_seed"])
+
+
+def _reference_seed(row: dict) -> AdaptiveSpec:
+    return AdaptiveSpec(**row.get("reference_seed", row["training_seed"]))
 
 
 def _with(seed: AdaptiveSpec, name: str, **changes) -> AdaptiveSpec:
@@ -96,8 +100,15 @@ def _dedupe(rows: list[AdaptiveSpec]) -> tuple[AdaptiveSpec, ...]:
     return tuple(out)
 
 
-def _variants(symbol: str, seed: AdaptiveSpec, round_no: int) -> tuple[AdaptiveSpec, ...]:
+def _variants(
+    symbol: str,
+    seed: AdaptiveSpec,
+    round_no: int,
+    reference_seed: AdaptiveSpec | None = None,
+) -> tuple[AdaptiveSpec, ...]:
     rows: list[AdaptiveSpec] = [_with(seed, "SEED")]
+    if reference_seed is not None:
+        rows.append(_with(reference_seed, "REFERENCE_ANCHOR"))
 
     if round_no == 1:
         if symbol in {"SUIUSDC", "UNIUSDC"}:
@@ -433,6 +444,107 @@ def _variants(symbol: str, seed: AdaptiveSpec, round_no: int) -> tuple[AdaptiveS
         for hi in (0.50, 0.75, 1.00, 1.50, 2.00):
             for rank_lo in (0.0, 0.25, 0.50, 0.75):
                 rows.append(_with(seed, f"BREAKOUT_CAP_{hi:g}_RANK_{rank_lo:g}", max_breakout_atr=hi, min_rank_strength=rank_lo))
+    elif round_no == 33:
+        # Manual causal repair after repeated post-R24 failures:
+        # restart each search from the last accepted reference as a stable anchor,
+        # then explore bounded symbol-specific neighborhoods. This prevents a
+        # rejected TRAINING seed from dragging later rounds away from a proven
+        # incumbent while keeping all candidate generation TRAINING-only.
+        anchor = reference_seed or seed
+        if symbol == "SUIUSDC":
+            for max_atr in (0.0125, 0.0150, 0.0175, 0.0200):
+                for cmo in (0.0, 0.05, 0.10):
+                    rows.append(_with(
+                        anchor,
+                        f"REF_SUI_V{max_atr:.4f}_C{cmo:.2f}",
+                        horizon_hours=0,
+                        max_atr_pct=max_atr,
+                        min_abs_cmo=cmo,
+                        reentry_atr_level=None,
+                        trend_health_exit=None,
+                        min_rank_strength=-999.0,
+                        max_rank_strength=999.0,
+                        max_breakout_atr=999.0,
+                    ))
+            for level in (0.15, 0.25, 0.35):
+                rows.append(_with(
+                    anchor,
+                    f"REF_SUI_REENTRY_{level:.2f}",
+                    horizon_hours=0,
+                    reentry_atr_level=level,
+                    trend_health_exit=None,
+                    min_rank_strength=-999.0,
+                    max_rank_strength=999.0,
+                    max_breakout_atr=999.0,
+                ))
+        elif symbol == "UNIUSDC":
+            for cmo in (0.05, 0.10, 0.15):
+                for level in (0.25, 0.375, 0.50):
+                    rows.append(_with(
+                        anchor,
+                        f"REF_UNI_C{cmo:.3f}_R{level:.3f}",
+                        horizon_hours=0,
+                        min_abs_cmo=cmo,
+                        reentry_atr_level=level,
+                        trend_health_exit=None,
+                        min_rank_strength=-999.0,
+                        max_rank_strength=999.0,
+                        max_breakout_atr=999.0,
+                    ))
+            for hold in (48, 72, 120):
+                for level in (0.25, 0.50):
+                    rows.append(_with(
+                        anchor,
+                        f"REF_UNI_H{hold}_R{level:.2f}",
+                        horizon_hours=hold,
+                        reentry_atr_level=level,
+                        min_rank_strength=-999.0,
+                        max_rank_strength=999.0,
+                        max_breakout_atr=999.0,
+                    ))
+        elif symbol == "AAVEUSDC":
+            regimes = (
+                (0.0030, 0.0180, 0.25, 1.75),
+                (0.0030, 0.0225, 0.25, 2.00),
+                (0.0050, 0.0200, 0.50, 2.00),
+                (0.0050, 0.0250, 0.50, 2.50),
+                (0.0075, 0.0225, 0.75, 2.00),
+                (0.0075, 0.0250, 0.75, 2.50),
+            )
+            for lo_atr, hi_atr, lo_trend, hi_trend in regimes:
+                for cmo in (0.0, 0.10, 0.20):
+                    for hold in (120, 168):
+                        rows.append(_with(
+                            anchor,
+                            f"REF_AAVE_A{lo_atr:.4f}_{hi_atr:.4f}_T{lo_trend:.2f}_{hi_trend:.2f}_C{cmo:.2f}_H{hold}",
+                            horizon_hours=hold,
+                            min_atr_pct=lo_atr,
+                            max_atr_pct=hi_atr,
+                            min_trend_atr=lo_trend,
+                            max_trend_atr=hi_trend,
+                            min_abs_cmo=cmo,
+                            reentry_atr_level=None,
+                            min_rank_strength=-999.0,
+                            max_rank_strength=999.0,
+                            max_breakout_atr=999.0,
+                        ))
+        elif symbol == "BCHUSDC":
+            for max_atr in (0.0125, 0.0150, 0.0175, 0.0200):
+                for cmo in (0.05, 0.10, 0.15, 0.20):
+                    for trend_lo in (0.0, 0.25):
+                        rows.append(_with(
+                            anchor,
+                            f"REF_BCH_V{max_atr:.4f}_C{cmo:.2f}_T{trend_lo:.2f}",
+                            horizon_hours=0,
+                            max_atr_pct=max_atr,
+                            min_trend_atr=trend_lo,
+                            max_trend_atr=2.50,
+                            min_abs_cmo=cmo,
+                            reentry_atr_level=None,
+                            min_rank_strength=-999.0,
+                            max_rank_strength=999.0,
+                            max_breakout_atr=999.0,
+                        ))
     else:
         # Durable post-registry generator: exhaustion is not a terminal state.
         # Every generation changes a bounded point-in-time interaction grid derived
@@ -548,11 +660,13 @@ def _run(*, symbol, candles, rules, start, end, costs, params, policy, spec: Ada
     return result, events
 
 
-def _training_metrics(a, b) -> dict:
+def _training_metrics(a, b, folds) -> dict:
     pa, pb = D(str(a.metrics.net_pnl)), D(str(b.metrics.net_pnl))
     ha, hb = _position_hours(a), _position_hours(b)
     ppha = pa / ha if ha > 0 else D("-999")
     pphb = pb / hb if hb > 0 else D("-999")
+    fold_pnls = [D(str(result.metrics.net_pnl)) for result in folds]
+    fold_trades = [int(result.metrics.completed_trades) for result in folds]
     return {
         "min_pnl": min(pa, pb),
         "sum_pnl": pa + pb,
@@ -560,6 +674,10 @@ def _training_metrics(a, b) -> dict:
         "sum_trades": a.metrics.completed_trades + b.metrics.completed_trades,
         "min_pph": min(ppha, pphb),
         "max_dd": max(D(str(a.metrics.max_drawdown_pct)), D(str(b.metrics.max_drawdown_pct))),
+        "fold_positive_count": sum(1 for pnl in fold_pnls if pnl > 0),
+        "worst_fold_pnl": min(fold_pnls),
+        "median_fold_pnl": D(str(statistics.median(fold_pnls))),
+        "fold_trade_floor": min(fold_trades),
     }
 
 
@@ -568,36 +686,58 @@ def _choose(rows: list[dict], reference_profit: bool, reference_mature: bool) ->
     if not eligible:
         return None, "NO_TWO_YEAR_STRESS_POSITIVE_TRAINING_WINNER"
 
+    stable = [
+        row for row in eligible
+        if int(row["training_score"].get("fold_positive_count", 0)) >= 3
+    ]
+    pool = stable or eligible
     seed_row = next(row for row in rows if row["candidate"]["name"] == "SEED")
-    if reference_profit and not reference_mature and seed_row["training_both_positive"]:
-        seed_floor = D(seed_row["training_score"]["min_pnl"]) * TRAINING_PNL_RETENTION_FOR_ACTIVITY
+    anchor_row = next(
+        (row for row in rows if row["candidate"]["name"] == "REFERENCE_ANCHOR"),
+        None,
+    )
+    floor_row = (
+        anchor_row
+        if anchor_row is not None and anchor_row["training_both_positive"]
+        else seed_row
+    )
+
+    if reference_profit and not reference_mature and floor_row["training_both_positive"]:
+        pnl_floor = (
+            D(floor_row["training_score"]["min_pnl"])
+            * TRAINING_PNL_RETENTION_FOR_ACTIVITY
+        )
         activity_pool = [
-            row for row in eligible
-            if D(row["training_score"]["min_pnl"]) >= seed_floor
+            row for row in pool
+            if D(row["training_score"]["min_pnl"]) >= pnl_floor
         ]
         if activity_pool:
             activity_pool.sort(
                 key=lambda row: (
+                    int(row["training_score"].get("fold_positive_count", 0)),
                     int(row["training_score"]["min_trades"]),
+                    D(row["training_score"].get("worst_fold_pnl", "-999999")),
                     D(row["training_score"]["min_pnl"]),
                     D(row["training_score"]["min_pph"]),
                     -D(row["training_score"]["max_dd"]),
                 ),
                 reverse=True,
             )
-            return activity_pool[0], "ACTIVITY_WITHIN_75PCT_TRAINING_PNL_RETENTION"
+            return activity_pool[0], "REFERENCE_ANCHORED_STABLE_ACTIVITY_90PCT_PNL"
 
-    eligible.sort(
+    pool.sort(
         key=lambda row: (
+            int(row["training_score"].get("fold_positive_count", 0)),
+            D(row["training_score"].get("worst_fold_pnl", "-999999")),
             D(row["training_score"]["min_pnl"]),
             D(row["training_score"]["min_pph"]),
+            -D(row["training_score"]["max_dd"]),
             int(row["training_score"]["min_trades"]),
             D(row["training_score"]["sum_pnl"]),
-            -D(row["training_score"]["max_dd"]),
         ),
         reverse=True,
     )
-    return eligible[0], "PROFIT_FIRST_TRAINING_SELECTION"
+    return pool[0], "FOLD_STABILITY_PROFIT_FIRST_TRAINING_SELECTION"
 
 
 def _classification(reference_row: dict, v_stress, f_stress, profit_ok: bool, mature_ok: bool) -> dict:
@@ -746,7 +886,13 @@ def main() -> None:
         )
 
         candidates: list[dict] = []
-        for spec in _variants(symbol, _seed(row), round_no):
+        fold_bounds = (
+            (start, start + timedelta(days=182)),
+            (start + timedelta(days=182), train_a_end),
+            (train_a_end, train_a_end + timedelta(days=182)),
+            (train_a_end + timedelta(days=182), train_b_end),
+        )
+        for spec in _variants(symbol, _seed(row), round_no, _reference_seed(row)):
             ta, _ = _run(
                 symbol=symbol, candles=proxy, rules=rules,
                 start=start, end=train_a_end, costs=STRESS_COSTS,
@@ -757,13 +903,22 @@ def main() -> None:
                 start=train_a_end, end=train_b_end, costs=STRESS_COSTS,
                 params=params, policy=policy, spec=spec,
             )
-            tm = _training_metrics(ta, tb)
+            folds = []
+            for fold_start, fold_end in fold_bounds:
+                fold_result, _ = _run(
+                    symbol=symbol, candles=proxy, rules=rules,
+                    start=fold_start, end=fold_end, costs=STRESS_COSTS,
+                    params=params, policy=policy, spec=spec,
+                )
+                folds.append(fold_result)
+            tm = _training_metrics(ta, tb, folds)
             candidates.append({
                 "candidate": asdict(spec),
                 "training_both_positive": _positive(ta) and _positive(tb),
                 "training_score": {key: str(value) for key, value in tm.items()},
                 "train_a_stress": _payload(ta),
                 "train_b_stress": _payload(tb),
+                "training_fold_stress": [_payload(result) for result in folds],
             })
 
         winner, selection_mode = _choose(
@@ -857,7 +1012,9 @@ def main() -> None:
             "training_only_selects_next_seed": True,
             "validation_rejection_only": True,
             "two_independent_training_years_stress_positive_required": True,
-            "activity_search_requires_75pct_training_pnl_retention": True,
+            "activity_search_requires_90pct_reference_training_pnl_retention": True,
+            "post_round_32_requires_half_year_fold_stability": True,
+            "reference_anchor_is_always_in_candidate_pool": True,
             "validated_reference_separate_from_training_seed": True,
             "green_workflow_is_not_economic_progress": True,
         },
