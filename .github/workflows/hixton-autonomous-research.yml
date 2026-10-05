@@ -2,10 +2,6 @@ name: Hixton Autonomous Research Loop
 
 on:
   workflow_dispatch:
-  schedule:
-    # Quarter-hour controller ticks. A scheduled tick may observe/build or launch,
-    # but a completed research run must never self-dispatch its successor.
-    - cron: "*/15 * * * *"
   push:
     branches:
       - gpt/autonomous-research-v1
@@ -68,8 +64,10 @@ permissions:
   issues: write
 
 concurrency:
-  group: hixton-autonomous-research-v1
-  cancel-in-progress: false
+  # Coordination pushes must never block a substantive research run.
+  # Substantive manual/controller dispatches remain strictly serialized.
+  group: ${{ github.event_name == 'push' && 'hixton-autonomous-coordination-v1' || 'hixton-autonomous-research-v1' }}
+  cancel-in-progress: ${{ github.event_name == 'push' }}
 
 jobs:
   contract:
@@ -167,7 +165,7 @@ jobs:
         if: steps.stage.outputs.build_locked != 'true' && steps.stage.outputs.priority_stage != 'QUARTER_HOUR_WAIT'
         run: python -m scripts.baseline_freshness_guard
       - name: Install research environment
-        if: steps.stage.outputs.build_locked != 'true'
+        if: steps.stage.outputs.build_locked != 'true' && steps.stage.outputs.priority_stage != 'QUARTER_HOUR_WAIT'
         run: |
           python -m pip install --upgrade pip
           pip install -e '.[dev]'
@@ -289,7 +287,7 @@ jobs:
             --decision evidence/autonomous-research-decision.json \
             --output evidence/autonomous-next-hypothesis.json
       - uses: actions/upload-artifact@v4
-        if: steps.stage.outputs.build_locked != 'true'
+        if: steps.stage.outputs.build_locked != 'true' && steps.stage.outputs.priority_stage != 'QUARTER_HOUR_WAIT'
         with:
           name: hixton-autonomous-research-${{ github.run_id }}
           path: |
@@ -370,7 +368,8 @@ jobs:
             agent_memory/autonomy/satellite_adaptive_state.json \
             agent_memory/autonomy/satellite_adaptive_handoff.json \
             agent_memory/autonomy/satellite_run_delta_history.json \
-            agent_memory/autonomy/satellite_run_delta_latest.json
+            agent_memory/autonomy/satellite_run_delta_latest.json \
+            agent_memory/autonomy/quarter_hour_state.json
           if git diff --cached --quiet; then
             echo "No adaptive state transition to persist."
             exit 0
