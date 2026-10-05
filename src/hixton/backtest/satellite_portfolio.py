@@ -124,6 +124,7 @@ def _remaining_satellite_score(
     point: IndicatorPoint | None,
     at: datetime,
     config: RouterConfig,
+    horizon_hours: int | None = None,
 ) -> Decimal:
     """Point-in-time filler value: entry strength decays with occupancy; live trend can extend it."""
 
@@ -132,7 +133,7 @@ def _remaining_satellite_score(
         D("0"),
         D(str((at - trade.fill.fill_time_utc).total_seconds() / 3600)),
     )
-    horizon = D(config.filler_horizon_hours)
+    horizon = D(horizon_hours or config.filler_horizon_hours)
     age_factor = max(D("0"), ONE - age_hours / horizon)
     score = entry_strength * age_factor
     if point is not None and point.atr and point.vidya is not None and point.atr > 0:
@@ -176,6 +177,7 @@ def run_filler_router_portfolio(
     entry_atr_direction_by_symbol: dict[str, str] | None = None,
     trend_health_exit_by_symbol: dict[str, float] | None = None,
     profit_take_atr_by_symbol: dict[str, float] | None = None,
+    filler_horizon_hours_by_symbol: dict[str, int] | None = None,
 ) -> tuple[PortfolioBacktestResult, list[dict[str, object]]]:
     if tuple(candles_by_symbol) != symbols:
         raise ValueError("router input universe/order mismatch")
@@ -242,6 +244,7 @@ def run_filler_router_portfolio(
     atr_directions = entry_atr_direction_by_symbol or {}
     trend_health_exits = trend_health_exit_by_symbol or {}
     profit_take_levels = profit_take_atr_by_symbol or {}
+    filler_horizons = filler_horizon_hours_by_symbol or {}
     if not set(entry_filters).issubset(set(symbols)):
         raise ValueError("entry filters reference symbols outside the research universe")
     if not set(continuation_reentry).issubset(set(satellite_symbols)):
@@ -260,6 +263,10 @@ def run_filler_router_portfolio(
         raise ValueError("profit-take exits are research-only and Satellite-only")
     if any(value <= 0 or value > 20 for value in profit_take_levels.values()):
         raise ValueError("profit-take ATR thresholds must be in (0, 20]")
+    if not set(filler_horizons).issubset(set(satellite_symbols)):
+        raise ValueError("filler horizons are Satellite-only")
+    if any(type(value) is not int or value <= 0 for value in filler_horizons.values()):
+        raise ValueError("per-Satellite filler horizons must be positive integers")
 
     cash = starting_cash
     positions: dict[str, OpenTrade] = {}
@@ -494,6 +501,7 @@ def run_filler_router_portfolio(
                             point=point,
                             at=open_time,
                             config=router_config,
+                            horizon_hours=filler_horizons.get(symbol),
                         )
                         switch_cost = (
                             _switch_cost_score(
@@ -774,16 +782,18 @@ def run_filler_router_portfolio(
                 and position.is_satellite
                 and decisions[symbol].signal is None
             ):
+                horizon_hours = filler_horizons.get(symbol, router_config.filler_horizon_hours)
                 remaining = _remaining_satellite_score(
                     trade=position,
                     point=point,
                     at=point.candle.close_time_utc,
                     config=router_config,
+                    horizon_hours=horizon_hours,
                 )
                 age_hours = (
                     point.candle.close_time_utc - position.fill.fill_time_utc
                 ).total_seconds() / 3600
-                if age_hours >= router_config.filler_horizon_hours and remaining <= D("0.50"):
+                if age_hours >= horizon_hours and remaining <= D("0.50"):
                     forced = HixtonStrategy.signal_for(
                         replace(point, flip_down=True, flip_up=False),
                         is_long=True,
