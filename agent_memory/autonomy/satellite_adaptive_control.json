@@ -24,7 +24,11 @@
     "uni_policy_slope_gate_is_searchable": true,
     "material_challenger_required_from_round_35": true,
     "rejected_challenger_resets_to_accepted_reference": true,
-    "candidate_level_stop_trail_overrides_training_only": true
+    "candidate_level_stop_trail_overrides_training_only": true,
+    "filler_efficiency_tradeoff_requires_99pct_full3y_pnl_retention": true,
+    "filler_efficiency_tradeoff_requires_validation_dd_pph_and_trade_improvement": true,
+    "candidate_level_strategy_parameter_overrides_training_only": true,
+    "round_36_base_strategy_neighborhood": true
   },
   "family_sequence": [
     "TARGETED_REENTRY_OR_TREND_EXIT",
@@ -61,7 +65,8 @@
     "BREAKOUT_CEILING_X_RANK_STRENGTH",
     "REFERENCE_ANCHORED_FOLD_STABILITY",
     "SYMBOL_SPECIFIC_POLICY_AND_GENERALIZATION_REPAIR",
-    "MATERIAL_CHALLENGER_RISK_EXIT_REPAIR"
+    "MATERIAL_CHALLENGER_RISK_EXIT_REPAIR",
+    "BASE_STRATEGY_NEIGHBORHOOD_REPAIR"
   ],
   "last_completed_round": 35
 }
