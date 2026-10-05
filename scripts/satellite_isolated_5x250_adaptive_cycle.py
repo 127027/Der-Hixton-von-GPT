@@ -814,6 +814,78 @@ def _variants(
                     policy_slope_bars=0,
                 ))
 
+    elif round_no == 37:
+        # Manual final gap-filler refinement from Round-36 TRAINING evidence.
+        # Search is deliberately local around accepted references / strongest
+        # training neighbors. Validation remains rejection-only.
+        anchor = reference_seed or seed
+
+        if symbol == "SUIUSDC":
+            # Interpolate between the accepted V15/B2.30 reference and the
+            # strong but validation-weak V12/B2.15 training challenger.
+            for vidya in (13, 14, 15):
+                for band in (2.20, 2.25, 2.30):
+                    for stop in (2.25, 2.50):
+                        rows.append(_with(
+                            anchor,
+                            f"R37_SUI_V{vidya}_B{band:.2f}_STOP{stop:.2f}",
+                            strategy_vidya_length=vidya,
+                            strategy_band_multiplier=band,
+                            policy_stop_atr=stop,
+                        ))
+
+        elif symbol == "UNIUSDC":
+            # Avoid the failed 72->24 jump. Test moderate slope relaxation plus
+            # small CMO/reentry adjustments to release more entries while the
+            # 90%-training-PnL activity floor protects economics.
+            for slope in (48, 60, 72):
+                for policy_cmo in (0.25, 0.30):
+                    for abs_cmo in (0.10, 0.15):
+                        for reentry in (0.40, 0.50):
+                            rows.append(_with(
+                                anchor,
+                                f"R37_UNI_S{slope}_PC{policy_cmo:.2f}_AC{abs_cmo:.2f}_R{reentry:.2f}",
+                                policy_slope_bars=slope,
+                                policy_cmo_floor=policy_cmo,
+                                min_abs_cmo=abs_cmo,
+                                reentry_atr_level=reentry,
+                            ))
+
+        elif symbol == "AAVEUSDC":
+            # Already robustly profitable and close to maturity (140 vs 157
+            # trades). Search shorter occupancy / stop combinations around the
+            # accepted R35 stop-2.00 reference.
+            for hold in (72, 96, 108, 120):
+                for stop in (1.50, 1.75, 2.00, 2.25):
+                    rows.append(_with(
+                        anchor,
+                        f"R37_AAVE_H{hold}_STOP{stop:.2f}",
+                        horizon_hours=hold,
+                        policy_stop_atr=stop,
+                        policy_cmo_floor=0.30,
+                        policy_slope_bars=0,
+                    ))
+
+        elif symbol == "BCHUSDC":
+            # R36 V10/B3.20 nearly repaired the worst training fold but failed
+            # validation. Combine that structure with volatility-state and
+            # momentum controls to suppress the unstable regime rather than
+            # merely increasing trade count.
+            for momentum in (12, 16):
+                for atr_cap in (0.0125, 0.0150, 0.0175, 0.0200):
+                    for direction in (None, "EXPANDING", "CONTRACTING"):
+                        rows.append(_with(
+                            anchor,
+                            f"R37_BCH_M{momentum}_A{atr_cap:.4f}_{direction or 'ANY'}",
+                            strategy_vidya_length=10,
+                            strategy_momentum_length=momentum,
+                            strategy_band_multiplier=3.20,
+                            max_atr_pct=atr_cap,
+                            atr_direction=direction,
+                            policy_cmo_floor=0.0,
+                            policy_slope_bars=0,
+                        ))
+
     else:
         # Durable post-registry generator: exhaustion is not a terminal state.
         # Every generation changes a bounded point-in-time interaction grid derived
