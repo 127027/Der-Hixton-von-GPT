@@ -59,6 +59,11 @@ def test_vidya_slope_uses_only_preceding_24_bars() -> None:
     assert gate.decide(buy).block_reason == "POLICY_VIDYA_SLOPE"
 
 
+
+def test_intermediate_vidya_slope_lookbacks_are_valid() -> None:
+    assert TradePolicy(slope_bars=48).slope_bars == 48
+    assert TradePolicy(slope_bars=60).slope_bars == 60
+
 def test_screen_and_decimal_policy_engine_match_without_rounding() -> None:
     candles = deterministic_candles("BTCUSDC", 1600)
     parameters = replace(StrategyParameters(), band_multiplier=0.8)
