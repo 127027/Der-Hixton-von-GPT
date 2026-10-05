@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "phase": "RUN_DISPATCHED",
+  "phase": "READY_TO_RUN",
   "completed_run_number": 211,
   "completed_run_id": 37325972895,
   "completed_round": 36,
@@ -8,18 +8,18 @@
   "next_round": 37,
   "next_stage": "SATELLITE_ISOLATED_5X250_ADAPTIVE_CYCLE",
   "economic_progress": false,
-  "ready_for_dispatch": false,
+  "ready_for_dispatch": true,
   "analysis_checkpoint": "2026-10-05T09:45:00+02:00",
   "analysis_summary": {
-    "SUIUSDC": "Local interpolation between accepted V15/B2.30/STOP2.50 and strong-training V12/B2.15 challenger; seek lower DD/higher PPH without validation collapse.",
-    "NEARUSDC": "MATURE incumbent protected; no mutation.",
-    "UNIUSDC": "Moderate slope 48/60/72 + CMO/reentry neighborhood to release activity without repeating failed slope24 jump.",
-    "AAVEUSDC": "Shorter 72/96/108/120h occupancy + stop 1.50-2.25 around accepted robust reference to reach maturity with bounded economics.",
-    "BCHUSDC": "V10/B3.20 structure combined with momentum12/16 and ATR cap/direction to repair bad training regime and validation generalization."
+    "SUIUSDC": "Refine locally between accepted R35 reference and strong R36 training basin; seek more turnover/lower DD without repeating rejected exact point.",
+    "NEARUSDC": "MATURE_INCUMBENT_PROTECTED; no mutation.",
+    "UNIUSDC": "Keep robust slope/reentry structure; search bounded holding-time and moderate slope/reentry neighborhood for useful idle-capital turnover.",
+    "AAVEUSDC": "Robustly profitable; seek shorter occupancy and ~17 additional cycles toward maturity around stop2.0 plus narrow ATR admission.",
+    "BCHUSDC": "Generalization blocker; refine momentum12 with tight volatility/direction/risk envelope instead of aggressive VIDYA overtrading."
   },
-  "prepared_family": "MANUAL_FINAL_GAP_FILLER_REFINEMENT",
+  "prepared_family": "FINAL_MANUAL_BALANCED_GAP_FILLER_PASS",
   "launch_policy": "NEXT_QUARTER_HOUR_TICK_ONLY",
-  "last_transition_source": "quarter_hour_dispatch",
+  "last_transition_source": "manual_final_review",
   "analysis_controller_run_id": 37302952731,
   "analysis_policy": "completed result reviewed on this quarter-hour tick; dispatch forbidden until a later tick",
   "dispatch_controller_run_id": 37331426626,
@@ -27,12 +27,9 @@
   "repair_commit": "c6f6e73902334855773d1b9616cef68226e25e7f",
   "repair_reason": "Fixed post-registry technical_family label IndexError for round > family_sequence length.",
   "manual_repair": {
-    "purpose": "One final manual five-satellite refinement requested by owner",
-    "code_commit": "44d9e964eb32066359d38eb444cab2418222dea6",
-    "control_commit": "1e8b4e9247b0435c49fb9fd57ae8a4a0e0eb6242",
-    "verification": "push run #217 contract SUCCESS",
-    "launch_policy": "exactly one substantive Round37 run; all external research controllers remain paused afterwards",
-    "retry_of_failed_run": 219,
-    "slope_guard_fix_commit": "2bddad9b289aa813ab779cce0e53966b95245345"
+    "purpose": "Final manual balanced 5x250 gap-filler pass",
+    "code_head": "b6cb32baa06747255d8c54f64492d80a093dcd4d",
+    "verification": "round37 consolidated code #229 SUCCESS; control contract #230 SUCCESS",
+    "launch_policy": "exactly one run, no automatic continuation"
   }
 }
