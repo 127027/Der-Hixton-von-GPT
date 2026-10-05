@@ -1,16 +1,6 @@
 name: Hixton Shared Satellite DD Gate
 
 on:
-  push:
-    branches:
-      - gpt/15coin-satellite-integration
-    paths:
-      - .github/workflows/hixton-shared-satellite-dd-gate.yml
-      - scripts/optimize_shared_drawdown_gate.py
-      - scripts/optimize_shared_satellite_fillers.py
-      - scripts/validate_15coin_satellite_integration.py
-      - src/hixton/backtest/satellite_portfolio.py
-      - src/hixton/domain/satellite_layer.py
   workflow_dispatch:
 
 permissions:
