@@ -1,18 +1,20 @@
 {
   "schema_version": 1,
-  "completed_run_number": 180,
-  "completed_run_id": 37281023577,
-  "completed_round": 32,
-  "completed_family": "BREAKOUT_CEILING_X_RANK_STRENGTH",
-  "economic_progress": false,
-  "accepted_reference_updates": [],
+  "completed_run_number": 193,
+  "completed_run_id": 37304717587,
+  "completed_round": 33,
+  "completed_family": "REFERENCE_ANCHORED_FOLD_STABILITY",
+  "economic_progress": true,
+  "accepted_reference_updates": [
+    "AAVEUSDC"
+  ],
   "mature_symbols_after": [
     "NEARUSDC"
   ],
   "next_stage": "SATELLITE_ISOLATED_5X250_ADAPTIVE_CYCLE",
-  "next_round": 33,
+  "next_round": 34,
   "orchestration_phase": "NEEDS_ANALYSIS",
   "earliest_launch_policy": "ANALYSIS_TICK_THEN_LATER_LAUNCH_TICK",
   "dispatch_next": false,
-  "reason": "round 32 evaluated; next round 33 prepared. NEEDS_ANALYSIS at the next quarter-hour tick; immediate self-dispatch is forbidden."
+  "reason": "round 33 evaluated; next round 34 prepared. NEEDS_ANALYSIS at the next quarter-hour tick; immediate self-dispatch is forbidden."
 }

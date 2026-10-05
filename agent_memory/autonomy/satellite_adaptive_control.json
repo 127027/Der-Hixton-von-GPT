@@ -1,8 +1,8 @@
 {
   "schema_version": 1,
-  "round": 33,
-  "max_rounds": 33,
-  "status": "MANUAL_REFERENCE_ANCHORED_REPAIR_READY",
+  "round": 34,
+  "max_rounds": 34,
+  "status": "CONTINUE_GENERATED_CAUSAL_FAMILY",
   "source_run": 119,
   "stage": "SATELLITE_ISOLATED_5X250_ADAPTIVE_CYCLE",
   "contract": {
@@ -55,5 +55,5 @@
     "BREAKOUT_CEILING_X_RANK_STRENGTH",
     "REFERENCE_ANCHORED_FOLD_STABILITY"
   ],
-  "last_completed_round": 32
+  "last_completed_round": 33
 }
