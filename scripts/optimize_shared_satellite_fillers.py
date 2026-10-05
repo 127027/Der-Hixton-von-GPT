@@ -25,7 +25,6 @@ from hixton.domain.satellite_layer import (
 )
 from hixton.domain.strategy import HixtonStrategy
 from hixton.domain.trade_policy import TradePolicyGate
-
 from scripts.validate_15coin_satellite_integration import (
     _histories,
     _maps,
