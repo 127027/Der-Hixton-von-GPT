@@ -13,7 +13,12 @@
     "LINKUSDC",
     "AVAXUSDC",
     "DOTUSDC",
-    "DOGEUSDC"
+    "DOGEUSDC",
+    "SUIUSDC",
+    "NEARUSDC",
+    "UNIUSDC",
+    "AAVEUSDC",
+    "BCHUSDC"
   ],
   "backtest": {
     "starting_usdc_per_symbol": "250.00",
