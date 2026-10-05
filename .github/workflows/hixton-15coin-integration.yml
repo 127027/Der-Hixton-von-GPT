@@ -16,6 +16,7 @@ on:
       - src/hixton/runtime/supervisor.py
       - src/hixton/paper/engine.py
       - src/hixton/live/production.py
+      - tests/test_config.py
   workflow_dispatch:
 
 permissions:
@@ -65,6 +66,12 @@ jobs:
             src/hixton/paper/engine.py \
             src/hixton/live/production.py \
             scripts/validate_15coin_satellite_integration.py
+
+      - name: Verify modular capital configuration
+        shell: bash
+        run: |
+          set -euo pipefail
+          .venv/bin/pytest -q tests/test_config.py
 
       - name: Run 15x250 and shared-250 integration backtests
         shell: bash
