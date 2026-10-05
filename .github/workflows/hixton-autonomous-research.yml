@@ -3,7 +3,9 @@ name: Hixton Autonomous Research Loop
 on:
   workflow_dispatch:
   schedule:
-    - cron: "17 */6 * * *"
+    # Quarter-hour controller ticks. A scheduled tick may observe/build or launch,
+    # but a completed research run must never self-dispatch its successor.
+    - cron: "*/15 * * * *"
   push:
     branches:
       - gpt/autonomous-research-v1
@@ -379,16 +381,13 @@ jobs:
           set -euo pipefail
           gh issue comment 3 --repo "$GITHUB_REPOSITORY" --body-file evidence/satellite-adaptive-run-delta.md
 
-      - name: Dispatch next persistent adaptive Satellite run
-        if: always() && steps.adaptive_persist.outputs.advanced == 'true' && steps.adaptive_prepare.outputs.dispatch_next == 'true'
+      - name: Quarter-hour handoff barrier
+        if: always() && steps.adaptive_persist.outputs.advanced == 'true'
         shell: bash
-        env:
-          GH_TOKEN: ${{ github.token }}
         run: |
           set -euo pipefail
-          branch="gpt/autonomous-research-v1"
-          echo "Dispatching next adaptive Satellite run on $branch."
-          gh workflow run hixton-autonomous-research.yml --ref "$branch"
+          echo "Adaptive result persisted. Immediate self-dispatch is disabled."
+          echo "The next substantive run may start only from a later quarter-hour scheduled controller tick."
 
       - name: Prepare bounded automatic Satellite handoff
         if: steps.stage.outputs.priority_stage == 'SATELLITE_ISOLATED_5X250_HOLDING_REFINEMENT' && steps.stage.outputs.build_locked != 'true'
