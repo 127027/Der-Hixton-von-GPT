@@ -1,8 +1,8 @@
 {
   "schema_version": 1,
-  "locked": false,
-  "reason": "Quarter-hour orchestration repair complete: immediate self-dispatch paths removed; push-triggered runs are coordination-only; completed adaptive rounds persist the next hypothesis without launching it.",
+  "locked": true,
+  "reason": "Quarter-hour schedule repair in progress.",
   "started_from_head": "729f8c2a5901cf52dadfcde6fbf77747a24c90fa",
   "contract": "Substantive research may start only from an eligible quarter-hour controller tick. Push-triggered persistence/code commits are coordination-only. Preserve VALIDATED_INCUMBENT vs TRAINING_RESEARCH_SEED, NEAR mature freeze, validation rejection-only and protected Core.",
-  "unlock_contract": "Unlocked. A completed run may persist READY_FOR_NEXT_QUARTER_TICK, but may not launch its successor in the same invocation."
+  "unlock_contract": "Unlock after schedule wiring verification."
 }
