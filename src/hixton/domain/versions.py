@@ -15,6 +15,7 @@ from hixton.constants import (
 from hixton.domain.allocation import ONE_PER_SYMBOL, RANKED_REPEAT
 from hixton.domain.markets import symbols_for_quote
 from hixton.domain.models import StrategyParameters, StrategySemantics
+from hixton.domain.satellite_layer import SATELLITE_PROFILES, SATELLITE_SYMBOLS
 from hixton.domain.trade_policy import TradePolicy
 
 
@@ -37,16 +38,36 @@ class StrategyDefinition:
     slot_allocation: str
     coin_profiles: tuple[CoinProfile, ...] = ()
     quote_asset: str = "USDC"
+    satellite_symbols: tuple[str, ...] = ()
+    satellite_semantics: StrategySemantics | None = None
 
     @property
     def symbols(self) -> tuple[str, ...]:
+        if self.coin_profiles:
+            return tuple(profile.symbol for profile in self.coin_profiles)
         return symbols_for_quote(self.quote_asset)
 
     def __post_init__(self) -> None:
-        if self.coin_profiles and tuple(p.symbol for p in self.coin_profiles) != self.symbols:
-            raise ValueError("coin profiles require all ten symbols in DMS order")
+        profile_symbols = tuple(profile.symbol for profile in self.coin_profiles)
+        if len(set(profile_symbols)) != len(profile_symbols):
+            raise ValueError("coin profiles must use unique symbols")
+        if any(not symbol.endswith(self.quote_asset) for symbol in profile_symbols):
+            raise ValueError("coin profile quote asset mismatch")
+        if self.satellite_symbols and not set(self.satellite_symbols).issubset(profile_symbols):
+            raise ValueError("satellite symbols must be present in coin profiles")
+        if self.satellite_symbols and self.satellite_semantics is None:
+            raise ValueError("satellite semantics are required for a mixed strategy")
         if any(p.parameters.warmup_bars != self.parameters.warmup_bars for p in self.coin_profiles):
             raise ValueError("coin profiles require a shared warmup length")
+
+    def semantics_for(self, symbol: str) -> StrategySemantics:
+        normalized = symbol.replace("/", "").upper()
+        if normalized not in self.symbols:
+            raise ValueError(f"unsupported symbol: {symbol}")
+        if normalized in self.satellite_symbols:
+            assert self.satellite_semantics is not None
+            return self.satellite_semantics
+        return self.semantics
 
     def parameters_for(self, symbol: str) -> StrategyParameters:
         normalized = symbol.replace("/", "").upper()
@@ -256,6 +277,9 @@ _V6_PROFILES = (
         ),
         TradePolicy(cmo_floor=0.2, slope_bars=0, stop_atr=0, trail_atr=0),
     ),
+) + tuple(
+    CoinProfile(profile.symbol, profile.parameters, profile.trade_policy)
+    for profile in SATELLITE_PROFILES
 )
 _V6_DIGEST = hashlib.sha256(
     json.dumps([asdict(p) for p in _V6_PROFILES], sort_keys=True, separators=(",", ":")).encode()
@@ -272,6 +296,8 @@ V6_COIN_STRATEGY = StrategyDefinition(
     paper_approved=True,
     slot_allocation=RANKED_REPEAT,
     coin_profiles=_V6_PROFILES,
+    satellite_symbols=SATELLITE_SYMBOLS,
+    satellite_semantics=StrategySemantics.DMS_V1,
 )
 
 V7_USDC_STRATEGY = StrategyDefinition(
@@ -288,6 +314,8 @@ V7_USDC_STRATEGY = StrategyDefinition(
         for p in _V6_PROFILES
     ),
     quote_asset="USDC",
+    satellite_symbols=SATELLITE_SYMBOLS,
+    satellite_semantics=StrategySemantics.DMS_V1,
 )
 
 
