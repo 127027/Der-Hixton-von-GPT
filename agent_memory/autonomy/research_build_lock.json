@@ -1,8 +1,8 @@
 {
   "schema_version": 1,
-  "locked": true,
-  "reason": "Round 34 symbol-specific repair: add bounded candidate-level policy overrides and targeted SUI/UNI/AAVE/BCH families from run #193 TRAINING evidence before one fresh 5x250 run.",
+  "locked": false,
+  "reason": "Round 34 targeted repair complete and verified: candidate-level TradePolicy overrides + symbol-specific SUI/UNI/AAVE/BCH family registered; push contracts green.",
   "started_from_head": "e14416127830301350cf58a5f5dbbbc23cc44d0f",
   "contract": "No substantive research dispatch while locked. Patch reference anchors, fold-stability selection and targeted round-33 variants only; preserve validation rejection-only, NEAR mature freeze and protected Core.",
-  "unlock_contract": "Unlock only after Python syntax, adaptive contract, family registration, protected-Core invariants and READY_TO_RUN state are coherent on one HEAD."
+  "unlock_contract": "Unlocked for exactly one Round 34 5x250 substantive run. No automatic chain-run on completion."
 }
