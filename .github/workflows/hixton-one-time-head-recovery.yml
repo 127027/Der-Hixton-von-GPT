@@ -1,0 +1,38 @@
+name: Hixton One-Time Head Recovery
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - ".github/workflows/hixton-one-time-head-recovery.yml"
+
+permissions:
+  contents: write
+
+jobs:
+  recover:
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Restore active research run head
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          repo="127027/Der-Hixton-von-GPT"
+          branch="gpt/autonomous-research-v1"
+          expected="749ab1a76eb9494db8eb1aff2c0dbc861e6852f9"
+          target="38cc74a500de0975dfeafbec2d2a75fb1d3774b7"
+          current="$(gh api "repos/$repo/git/ref/heads/$branch" --jq '.object.sha')"
+          if [ "$current" = "$target" ]; then
+            echo "Research branch already restored."
+            exit 0
+          fi
+          if [ "$current" != "$expected" ]; then
+            echo "::error::Ref moved unexpectedly: $current"
+            exit 1
+          fi
+          gh api --method PATCH "repos/$repo/git/refs/heads/$branch" \
+            -f sha="$target" -F force=true >/dev/null
+          echo "Restored $branch to active run #180 head $target."
