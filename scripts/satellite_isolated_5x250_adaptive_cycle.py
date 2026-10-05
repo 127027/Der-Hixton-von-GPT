@@ -815,14 +815,17 @@ def _variants(
                 ))
 
     elif round_no == 37:
-        # Manual final gap-filler refinement from Round-36 TRAINING evidence.
-        # Search is deliberately local around accepted references / strongest
-        # training neighbors. Validation remains rejection-only.
+        # Final manual balanced gap-filler pass.
+        # Search direction comes from Round-36 TRAINING evidence and the owner
+        # objective: useful idle-capital turnover, lower occupancy/DD and robust
+        # after-cost profit. Validation remains rejection-only.
         anchor = reference_seed or seed
 
         if symbol == "SUIUSDC":
-            # Interpolate between the accepted V15/B2.30 reference and the
-            # strong but validation-weak V12/B2.15 training challenger.
+            # Accepted R35 is profitable and efficient. R36 found a strong local
+            # V12/B2.15 training basin but that exact point failed validation.
+            # Interpolate between that basin and the accepted V15/B2.30 shape,
+            # plus bounded holding-time variants for more useful turnover.
             for vidya in (13, 14, 15):
                 for band in (2.20, 2.25, 2.30):
                     for stop in (2.25, 2.50):
@@ -833,116 +836,47 @@ def _variants(
                             strategy_band_multiplier=band,
                             policy_stop_atr=stop,
                         ))
+            for hold in (36, 48, 60, 72):
+                for cap in (0.0150, 0.01625, 0.0175):
+                    rows.append(_with(
+                        anchor,
+                        f"R37_SUI_H{hold}_CAP{cap:.5f}",
+                        horizon_hours=hold,
+                        max_atr_pct=cap,
+                        policy_stop_atr=2.50,
+                    ))
 
         elif symbol == "UNIUSDC":
-            # Avoid the failed 72->24 jump. Test moderate slope relaxation plus
-            # small CMO/reentry adjustments to release more entries while the
-            # 90%-training-PnL activity floor protects economics.
+            # Large slope relaxation and aggressive VIDYA changes repeatedly
+            # destroyed robustness. Keep the proven structure and search moderate
+            # capital-release levers: holding time, slope 48/60/72 and tight
+            # reentry/CMO neighborhoods.
+            for hold in (24, 36, 48, 60, 72, 96):
+                for slope in (48, 60, 72):
+                    rows.append(_with(
+                        anchor,
+                        f"R37_UNI_H{hold}_S{slope}",
+                        horizon_hours=hold,
+                        policy_slope_bars=slope,
+                        policy_cmo_floor=0.30,
+                    ))
             for slope in (48, 60, 72):
-                for policy_cmo in (0.25, 0.30):
+                for reentry in (0.40, 0.50, 0.60):
                     for abs_cmo in (0.10, 0.15):
-                        for reentry in (0.40, 0.50):
-                            rows.append(_with(
-                                anchor,
-                                f"R37_UNI_S{slope}_PC{policy_cmo:.2f}_AC{abs_cmo:.2f}_R{reentry:.2f}",
-                                policy_slope_bars=slope,
-                                policy_cmo_floor=policy_cmo,
-                                min_abs_cmo=abs_cmo,
-                                reentry_atr_level=reentry,
-                            ))
-
-        elif symbol == "AAVEUSDC":
-            # Already robustly profitable and close to maturity (140 vs 157
-            # trades). Search shorter occupancy / stop combinations around the
-            # accepted R35 stop-2.00 reference.
-            for hold in (72, 96, 108, 120):
-                for stop in (1.50, 1.75, 2.00, 2.25):
-                    rows.append(_with(
-                        anchor,
-                        f"R37_AAVE_H{hold}_STOP{stop:.2f}",
-                        horizon_hours=hold,
-                        policy_stop_atr=stop,
-                        policy_cmo_floor=0.30,
-                        policy_slope_bars=0,
-                    ))
-
-        elif symbol == "BCHUSDC":
-            # R36 V10/B3.20 nearly repaired the worst training fold but failed
-            # validation. Combine that structure with volatility-state and
-            # momentum controls to suppress the unstable regime rather than
-            # merely increasing trade count.
-            for momentum in (12, 16):
-                for atr_cap in (0.0125, 0.0150, 0.0175, 0.0200):
-                    for direction in (None, "EXPANDING", "CONTRACTING"):
                         rows.append(_with(
                             anchor,
-                            f"R37_BCH_M{momentum}_A{atr_cap:.4f}_{direction or 'ANY'}",
-                            strategy_vidya_length=10,
-                            strategy_momentum_length=momentum,
-                            strategy_band_multiplier=3.20,
-                            max_atr_pct=atr_cap,
-                            atr_direction=direction,
-                            policy_cmo_floor=0.0,
-                            policy_slope_bars=0,
+                            f"R37_UNI_S{slope}_RE{reentry:.2f}_AC{abs_cmo:.2f}",
+                            policy_slope_bars=slope,
+                            policy_cmo_floor=0.30,
+                            reentry_atr_level=reentry,
+                            min_abs_cmo=abs_cmo,
                         ))
-
-    elif round_no == 37:
-        # Final manual local refinement from round-36 TRAINING evidence.
-        # NEAR remains frozen before candidate generation.
-        anchor = reference_seed or seed
-        if symbol == "SUIUSDC":
-            # R36 showed a strong V12/B2.15/stop2.5 training basin but that exact
-            # point failed validation. Explore only the local causal neighborhood
-            # with bounded occupancy/risk changes; never repeat the rejected point.
-            for vidya in (11, 12, 13):
-                for band in (2.10, 2.20):
-                    for stop in (2.25, 2.75):
-                        rows.append(_with(
-                            anchor,
-                            f"R37_SUI_V{vidya}_B{band:.2f}_STOP{stop:.2f}",
-                            strategy_vidya_length=vidya,
-                            strategy_band_multiplier=band,
-                            policy_stop_atr=stop,
-                        ))
-            for hold in (72, 96, 120):
-                rows.append(_with(
-                    anchor,
-                    f"R37_SUI_H{hold}_STOP2.50",
-                    horizon_hours=hold,
-                    policy_stop_atr=2.50,
-                    strategy_vidya_length=12,
-                    strategy_band_multiplier=2.15,
-                ))
-
-        elif symbol == "UNIUSDC":
-            # Slope/CMO and simple VIDYA/smoothing variants are exhausted.
-            # Search slower/faster volatility memory plus momentum and bounded
-            # holding time while keeping the accepted entry-quality policy.
-            for atr_len in (96, 120, 160):
-                for momentum in (16, 20, 24):
-                    rows.append(_with(
-                        anchor,
-                        f"R37_UNI_ATR{atr_len}_M{momentum}",
-                        strategy_atr_length=atr_len,
-                        strategy_momentum_length=momentum,
-                        policy_cmo_floor=0.30,
-                        policy_slope_bars=72,
-                    ))
-            for hold in (48, 72, 96):
-                for atr_len in (96, 160):
-                    rows.append(_with(
-                        anchor,
-                        f"R37_UNI_H{hold}_ATR{atr_len}",
-                        horizon_hours=hold,
-                        strategy_atr_length=atr_len,
-                        policy_cmo_floor=0.30,
-                        policy_slope_bars=72,
-                    ))
 
         elif symbol == "AAVEUSDC":
-            # Accepted R35 is robust; only try to reduce capital occupancy and
-            # improve filler efficiency around the proven stop-at-2.0 basin.
-            for hold in (72, 96, 120, 144):
+            # R35 turned AAVE robustly profitable and left it only ~17 completed
+            # cycles below the maturity target. Search shorter occupancy around
+            # the accepted stop=2.0 basin plus a narrow ATR admission envelope.
+            for hold in (60, 72, 84, 96, 108, 120):
                 for stop in (1.75, 2.00, 2.25):
                     rows.append(_with(
                         anchor,
@@ -952,151 +886,44 @@ def _variants(
                         policy_cmo_floor=0.30,
                         policy_slope_bars=0,
                     ))
-            for trail in (1.75, 2.00, 2.25):
-                rows.append(_with(
-                    anchor,
-                    f"R37_AAVE_TRAIL{trail:.2f}",
-                    policy_stop_atr=2.00,
-                    policy_trail_atr=trail,
-                    policy_cmo_floor=0.30,
-                    policy_slope_bars=0,
-                ))
-
-        elif symbol == "BCHUSDC":
-            # R36 TRAINING evidence favored momentum12 as the least-bad
-            # activity/risk tradeoff. Refine that basin rather than repeating
-            # the rejected aggressive VIDYA10 candidate.
-            for band in (3.00, 3.20, 3.40):
-                for stop in (1.50, 2.00, 2.50):
-                    rows.append(_with(
-                        anchor,
-                        f"R37_BCH_M12_B{band:.2f}_STOP{stop:.2f}",
-                        strategy_momentum_length=12,
-                        strategy_band_multiplier=band,
-                        policy_stop_atr=stop,
-                        policy_cmo_floor=0.0,
-                        policy_slope_bars=0,
-                    ))
-            for hold in (48, 72, 96):
-                for band in (3.00, 3.40):
-                    rows.append(_with(
-                        anchor,
-                        f"R37_BCH_M12_H{hold}_B{band:.2f}",
-                        strategy_momentum_length=12,
-                        strategy_band_multiplier=band,
-                        horizon_hours=hold,
-                        policy_cmo_floor=0.0,
-                        policy_slope_bars=0,
-                    ))
-
-    elif round_no == 37:
-        # Final manual symbol-specific gap-filler pass.
-        # Objective: more useful completed cycles / lower occupancy with robust
-        # after-cost profitability, not raw trade-count maximization.
-        anchor = reference_seed or seed
-
-        if symbol == "SUIUSDC":
-            # Run205 stop=2.50 is the validated anchor. Search shorter bounded
-            # occupancy and a tight volatility neighborhood without touching the
-            # failed base-indicator move from round36.
-            for hold in (24, 36, 48, 60, 72):
-                rows.append(_with(
-                    anchor, f"R37_SUI_H{hold}_STOP2.50",
-                    horizon_hours=hold,
-                    policy_stop_atr=2.50,
-                ))
-            for cap in (0.0150, 0.01625, 0.0175, 0.01875):
-                for hold in (36, 48):
-                    rows.append(_with(
-                        anchor, f"R37_SUI_CAP{cap:.5f}_H{hold}",
-                        max_atr_pct=cap,
-                        horizon_hours=hold,
-                        policy_stop_atr=2.50,
-                    ))
-            for cmo in (0.35, 0.40, 0.45):
-                rows.append(_with(
-                    anchor, f"R37_SUI_CMO{cmo:.2f}_H48",
-                    horizon_hours=48,
-                    policy_cmo_floor=cmo,
-                    policy_stop_atr=2.50,
-                ))
-
-        elif symbol == "NEARUSDC":
-            # Mature incumbent: risk-only neighborhood. Acceptance is additionally
-            # gated below so a mature reference can never be replaced by a
-            # non-mature candidate.
-            for hold in (36, 48, 60, 72):
-                for stop in (2.0, 2.5, 3.0):
-                    rows.append(_with(
-                        anchor, f"R37_NEAR_H{hold}_STOP{stop:.1f}",
-                        horizon_hours=hold,
-                        policy_stop_atr=stop,
-                    ))
-
-        elif symbol == "UNIUSDC":
-            # Keep the proven slope72/reentry structure. Search capital release
-            # rather than looser entries, which repeatedly destroyed robustness.
-            for hold in (24, 36, 48, 60, 72, 96):
-                rows.append(_with(
-                    anchor, f"R37_UNI_H{hold}",
-                    horizon_hours=hold,
-                    policy_cmo_floor=0.30,
-                    policy_slope_bars=72,
-                ))
-            for level in (0.35, 0.50, 0.65):
-                for hold in (36, 48, 72):
-                    rows.append(_with(
-                        anchor, f"R37_UNI_RE{level:.2f}_H{hold}",
-                        reentry_atr_level=level,
-                        horizon_hours=hold,
-                        policy_cmo_floor=0.30,
-                        policy_slope_bars=72,
-                    ))
-
-        elif symbol == "AAVEUSDC":
-            # Run35 showed H72/H96+stop2.0 were strong TRAINING neighbors but only
-            # the stop-only winner was validated. Revisit those nearby horizons
-            # now that AAVE has a profitable accepted anchor, plus a narrow ATR
-            # admission neighborhood to seek the final ~17 mature cycles.
-            for hold in (60, 72, 84, 96, 108, 120):
-                rows.append(_with(
-                    anchor, f"R37_AAVE_H{hold}_STOP2.00",
-                    horizon_hours=hold,
-                    policy_stop_atr=2.00,
-                    policy_cmo_floor=0.30,
-                    policy_slope_bars=0,
-                ))
             for lo in (0.0035, 0.0045, 0.0050, 0.0055):
                 for hi in (0.0225, 0.0250, 0.0275):
-                    if lo < hi:
-                        rows.append(_with(
-                            anchor, f"R37_AAVE_ATR{lo:.4f}_{hi:.4f}",
-                            min_atr_pct=lo,
-                            max_atr_pct=hi,
-                            policy_stop_atr=2.00,
-                            policy_cmo_floor=0.30,
-                            policy_slope_bars=0,
-                        ))
-
-        elif symbol == "BCHUSDC":
-            # BCH is profitable over 3y but negative in validation. Prior stop/
-            # trail and wider base-parameter changes overtraded. Test a tighter
-            # point-in-time volatility/regime envelope around the Run114 anchor.
-            for cap in (0.0125, 0.0150, 0.0175, 0.0200):
-                for cmo in (0.00, 0.05, 0.10, 0.15):
                     rows.append(_with(
-                        anchor, f"R37_BCH_CAP{cap:.4f}_CMO{cmo:.2f}",
-                        max_atr_pct=cap,
-                        min_abs_cmo=cmo,
-                        policy_cmo_floor=0.0,
+                        anchor,
+                        f"R37_AAVE_ATR{lo:.4f}_{hi:.4f}",
+                        min_atr_pct=lo,
+                        max_atr_pct=hi,
+                        policy_stop_atr=2.00,
+                        policy_cmo_floor=0.30,
                         policy_slope_bars=0,
                     ))
-            for cap in (0.0150, 0.0175):
-                for direction in ("EXPANDING", "CONTRACTING"):
+
+        elif symbol == "BCHUSDC":
+            # BCH remains the generalization blocker. R36 training favored the
+            # momentum-12 neighborhood while aggressive VIDYA expansion
+            # overtraded. Combine momentum12 with a tighter point-in-time
+            # volatility/regime envelope and bounded risk exits.
+            for cap in (0.0125, 0.0150, 0.0175, 0.0200):
+                for direction in (None, "EXPANDING", "CONTRACTING"):
+                    for stop in (1.50, 2.00):
+                        rows.append(_with(
+                            anchor,
+                            f"R37_BCH_M12_CAP{cap:.4f}_{direction or 'ANY'}_STOP{stop:.2f}",
+                            strategy_momentum_length=12,
+                            max_atr_pct=cap,
+                            atr_direction=direction,
+                            policy_stop_atr=stop,
+                            policy_cmo_floor=0.0,
+                            policy_slope_bars=0,
+                        ))
+            for band in (3.00, 3.20, 3.40):
+                for hold in (48, 72, 96):
                     rows.append(_with(
-                        anchor, f"R37_BCH_{direction}_CAP{cap:.4f}",
-                        max_atr_pct=cap,
-                        atr_direction=direction,
+                        anchor,
+                        f"R37_BCH_M12_B{band:.2f}_H{hold}",
+                        strategy_momentum_length=12,
+                        strategy_band_multiplier=band,
+                        horizon_hours=hold,
                         policy_cmo_floor=0.0,
                         policy_slope_bars=0,
                     ))
