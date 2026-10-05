@@ -1,7 +1,7 @@
 {
   "cycle": "satellite-v1-cleanstart-2026-10-04",
   "timestamp_utc": "2026-10-04T08:40:00Z",
-  "reason": "advance from adaptive round 26 to 27; next causal family is predeclared and different",
+  "reason": "advance from adaptive round 27 to 28; next causal family is predeclared and different",
   "current_stage": "SATELLITE_V1_PER_MARKET_EVOLUTION",
   "frozen_satellite_pool": [
     "SUIUSDC",
@@ -32,11 +32,11 @@
     "real_orders": false,
     "testnet_orders": false
   },
-  "sequence": 33,
+  "sequence": 34,
   "target_stage": "SATELLITE_ISOLATED_5X250_ADAPTIVE_CYCLE",
   "fixed_commit": "cb149f34a9d11c4980c583760f299d11e7b2db22",
   "failed_run_id": 37219976312,
   "last_completed_autonomous_round": 6,
-  "last_completed_adaptive_round": 26,
-  "last_completed_research_run": 156
+  "last_completed_adaptive_round": 27,
+  "last_completed_research_run": 157
 }

@@ -1,16 +1,16 @@
 {
   "schema_version": 1,
-  "completed_run_number": 156,
-  "completed_run_id": 37274039417,
-  "completed_round": 26,
-  "completed_family": "RANK_STRENGTH_WINDOW",
+  "completed_run_number": 157,
+  "completed_run_id": 37274417606,
+  "completed_round": 27,
+  "completed_family": "RANK_STRENGTH_X_HORIZON",
   "economic_progress": false,
   "accepted_reference_updates": [],
   "mature_symbols_after": [
     "NEARUSDC"
   ],
   "next_stage": "SATELLITE_ISOLATED_5X250_ADAPTIVE_CYCLE",
-  "next_round": 27,
+  "next_round": 28,
   "dispatch_next": true,
-  "reason": "advance from adaptive round 26 to 27; next causal family is predeclared and different"
+  "reason": "advance from adaptive round 27 to 28; next causal family is predeclared and different"
 }
