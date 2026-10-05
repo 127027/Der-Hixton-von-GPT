@@ -18,7 +18,10 @@
     "next_substantive_run_requires_later_quarter_hour_tick": true,
     "reference_strategy_spec_persisted_with_metrics": true,
     "post_round_32_half_year_fold_stability": true,
-    "activity_search_min_reference_training_pnl_retention_pct": 90
+    "activity_search_min_reference_training_pnl_retention_pct": 90,
+    "candidate_level_trade_policy_overrides_training_only": true,
+    "round_34_symbol_specific_repair": true,
+    "uni_policy_slope_gate_is_searchable": true
   },
   "family_sequence": [
     "TARGETED_REENTRY_OR_TREND_EXIT",
@@ -53,7 +56,8 @@
     "BREAKOUT_STRENGTH_WINDOW",
     "BREAKOUT_CEILING_X_HORIZON",
     "BREAKOUT_CEILING_X_RANK_STRENGTH",
-    "REFERENCE_ANCHORED_FOLD_STABILITY"
+    "REFERENCE_ANCHORED_FOLD_STABILITY",
+    "SYMBOL_SPECIFIC_POLICY_AND_GENERALIZATION_REPAIR"
   ],
   "last_completed_round": 33
 }
