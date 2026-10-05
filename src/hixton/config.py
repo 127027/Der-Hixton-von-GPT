@@ -86,24 +86,25 @@ def load_project_config(path: Path, *, project_root: Path) -> ProjectConfig:
         raise ValueError("primary_window_years must be 3")
     starting = Decimal(str(backtest.get("starting_usdc_per_symbol")))
     target = Decimal(str(backtest.get("target_notional_usdc")))
-    if starting != Decimal("250.00") or target != Decimal("250.00"):
-        raise ValueError("isolated backtests require fixed 250.00 USDC")
+    if starting <= 0 or target <= 0:
+        raise ValueError("backtest capital inputs must be positive")
 
     paper = _required_mapping(root.get("paper"), "paper")
-    allowed_starting_cash = ("250.00",) if definition.coin_profiles else ("240.00", "250.00")
-    if paper.get("starting_cash_usdc") not in allowed_starting_cash:
-        raise ValueError("paper starting cash must be 250.00 (legacy V2 also accepts 240.00)")
-    expected_paper: dict[str, object] = {
-        "starting_cash_usdc": paper["starting_cash_usdc"],
-        "max_capital_usdc": "250.00",
-        "poll_seconds": 30,
-        "daily_audit_utc": "00:05",
-    }
-    _reject_unknown(paper, set(expected_paper), "paper")
-    if paper != expected_paper:
-        raise ValueError("paper settings must use the canonical 250-USDC maximum budget")
+    _reject_unknown(
+        paper,
+        {"starting_cash_usdc", "max_capital_usdc", "poll_seconds", "daily_audit_utc"},
+        "paper",
+    )
+    if paper.get("poll_seconds") != 30 or paper.get("daily_audit_utc") != "00:05":
+        raise ValueError("paper timing settings must use the canonical values")
     paper_max_capital = Decimal(str(paper["max_capital_usdc"]))
     paper_plan = capital_plan(paper_max_capital)
+    paper_starting_cash = Decimal(str(paper["starting_cash_usdc"]))
+    if paper_starting_cash != paper_plan.max_capital_usdc:
+        raise ValueError(
+            "paper starting cash must equal configured max capital; "
+            "the allocator derives two 50-percent slots from that amount"
+        )
 
     ui = _required_mapping(root.get("ui"), "ui")
     expected_ui: dict[str, object] = {
@@ -134,7 +135,7 @@ def load_project_config(path: Path, *, project_root: Path) -> ProjectConfig:
         target_notional_usdc=target,
         run_baseline_and_stress=False,
         paper_poll_seconds=int(paper["poll_seconds"]),
-        paper_starting_cash_usdc=Decimal(str(paper["starting_cash_usdc"])),
+        paper_starting_cash_usdc=paper_starting_cash,
         paper_slot_count=paper_plan.slot_count,
         paper_target_notional_usdc=paper_plan.target_notional_usdc,
         daily_audit_utc=str(paper["daily_audit_utc"]),
