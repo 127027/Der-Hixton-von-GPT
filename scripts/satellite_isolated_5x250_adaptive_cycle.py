@@ -981,6 +981,17 @@ def _training_metrics(a, b, folds) -> dict:
     }
 
 
+def _same_training_behavior(a: dict, b: dict) -> bool:
+    # Different labels/explicit overrides can still resolve to the exact same
+    # effective strategy/policy. Do not count those as a new hypothesis.
+    return (
+        a.get("training_score") == b.get("training_score")
+        and a.get("train_a_stress") == b.get("train_a_stress")
+        and a.get("train_b_stress") == b.get("train_b_stress")
+        and a.get("training_fold_stress") == b.get("training_fold_stress")
+    )
+
+
 def _choose(
     rows: list[dict],
     reference_profit: bool,
@@ -997,15 +1008,6 @@ def _choose(
         if int(row["training_score"].get("fold_positive_count", 0)) >= 3
     ]
     pool = stable or eligible
-    if require_material_challenger:
-        challengers = [
-            row for row in pool
-            if row["candidate"]["name"] not in {"SEED", "REFERENCE_ANCHOR"}
-        ]
-        if challengers:
-            pool = challengers
-        else:
-            return None, "NO_MATERIAL_TRAINING_CHALLENGER"
     seed_row = next(row for row in rows if row["candidate"]["name"] == "SEED")
     anchor_row = next(
         (row for row in rows if row["candidate"]["name"] == "REFERENCE_ANCHOR"),
@@ -1016,7 +1018,16 @@ def _choose(
         if anchor_row is not None and anchor_row["training_both_positive"]
         else seed_row
     )
-
+    if require_material_challenger:
+        challengers = [
+            row for row in pool
+            if row["candidate"]["name"] not in {"SEED", "REFERENCE_ANCHOR"}
+            and not _same_training_behavior(row, floor_row)
+        ]
+        if challengers:
+            pool = challengers
+        else:
+            return None, "NO_MATERIAL_TRAINING_CHALLENGER"
     if reference_profit and not reference_mature and floor_row["training_both_positive"]:
         pnl_floor = (
             D(floor_row["training_score"]["min_pnl"])
