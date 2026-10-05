@@ -213,12 +213,22 @@ def _occupancy_metrics(result) -> dict[str, object]:
         if total_hours > 0
         else D("0")
     )
+    # EquityPoint is emitted once per report bar and includes open-at-end positions,
+    # so it is the authoritative source for the owner's idle-gap objective.
+    curve_hours = len(result.equity_curve)
+    zero_curve_hours = sum(not point.active_position for point in result.equity_curve)
+    zero_curve_pct = (
+        D(zero_curve_hours) / D(curve_hours) * D("100")
+        if curve_hours
+        else D("0")
+    )
     return {
-        "zero_position_hours": str(hours[0]),
-        "one_slot_hours": str(hours[1]),
-        "two_slot_hours": str(hours[2]),
+        "zero_position_hours": str(zero_curve_hours),
+        "zero_position_pct": str(zero_curve_pct),
+        "one_slot_hours_completed_trade_ledger": str(hours[1]),
+        "two_slot_hours_completed_trade_ledger": str(hours[2]),
         "max_occupancy_from_trades": max_occupancy,
-        "slot_utilization_pct": str(utilization),
+        "slot_utilization_pct_completed_trade_ledger": str(utilization),
     }
 
 
@@ -398,8 +408,8 @@ def main() -> None:
                     - D(integrated["zero_position_hours"])
                 ),
                 "slot_utilization_pct_gain": str(
-                    D(integrated["slot_utilization_pct"])
-                    - D(core_only["slot_utilization_pct"])
+                    D(integrated["slot_utilization_pct_completed_trade_ledger"])
+                    - D(core_only["slot_utilization_pct_completed_trade_ledger"])
                 ),
                 "max_drawdown_pct": str(
                     D(integrated["max_drawdown_pct"]) - D(core_only["max_drawdown_pct"])
