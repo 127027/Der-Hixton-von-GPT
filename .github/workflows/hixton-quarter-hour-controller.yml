@@ -1,0 +1,160 @@
+name: Hixton Quarter-Hour Controller
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: "*/15 * * * *"
+
+permissions:
+  contents: write
+  actions: write
+
+concurrency:
+  group: hixton-quarter-hour-controller-v1
+  cancel-in-progress: true
+
+jobs:
+  control:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: gpt/autonomous-research-v1
+          fetch-depth: 0
+
+      - name: Inspect quarter-hour state
+        id: gate
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          branch="gpt/autonomous-research-v1"
+          repo="$GITHUB_REPOSITORY"
+
+          # Old push-triggered runs are coordination only. If an older workflow SHA
+          # is still doing substantive work because of the repaired gating bug,
+          # cancel it so it cannot block or race the current controller.
+          gh run list --repo "$repo" --workflow hixton-autonomous-research.yml --branch "$branch" --limit 50 \
+            --json databaseId,event,status \
+            --jq '.[] | select(.event == "push" and (.status == "in_progress" or .status == "queued" or .status == "pending" or .status == "waiting" or .status == "requested")) | .databaseId' |
+          while read -r run_id; do
+            [ -z "$run_id" ] && continue
+            echo "Cancelling stale coordination push run $run_id"
+            gh run cancel "$run_id" --repo "$repo" || true
+          done
+
+          active="$(
+            gh run list --repo "$repo" --workflow hixton-autonomous-research.yml --branch "$branch" --limit 50 \
+              --json event,status \
+              --jq '[.[] | select(.event != "push" and (.status == "in_progress" or .status == "queued" or .status == "pending" or .status == "waiting" or .status == "requested"))] | length'
+          )"
+          if [ "$active" -gt 0 ]; then
+            echo "Substantive research is active/queued; this tick is OBSERVE-only."
+            echo "action=observe" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          locked="$(python - <<'PY'
+          import json
+          print("true" if json.load(open("agent_memory/autonomy/research_build_lock.json"))["locked"] else "false")
+          PY
+          )"
+          if [ "$locked" = "true" ]; then
+            echo "Build lock is active; no research dispatch."
+            echo "action=hold_lock" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          phase="$(python - <<'PY'
+          import json
+          print(json.load(open("agent_memory/autonomy/quarter_hour_state.json")).get("phase", "UNKNOWN"))
+          PY
+          )"
+
+          case "$phase" in
+            NEEDS_ANALYSIS)
+              python - <<'PY'
+          import json, os
+          from pathlib import Path
+          p=Path("agent_memory/autonomy/quarter_hour_state.json")
+          q=json.loads(p.read_text())
+          q["phase"]="READY_TO_RUN"
+          q["ready_for_dispatch"]=True
+          q["analysis_controller_run_id"]=int(os.environ["GITHUB_RUN_ID"])
+          q["analysis_policy"]="completed result reviewed on this quarter-hour tick; dispatch forbidden until a later tick"
+          q["last_transition_source"]="quarter_hour_analysis"
+          p.write_text(json.dumps(q, indent=2)+"\n")
+          PY
+              git config user.name "hixton-quarter-hour[bot]"
+              git config user.email "hixton-quarter-hour@users.noreply.github.com"
+              git add agent_memory/autonomy/quarter_hour_state.json
+              git commit -m "autonomy: quarter-hour analysis -> ready" || true
+              git remote set-url origin "https://x-access-token:${GH_TOKEN}@github.com/${GITHUB_REPOSITORY}.git"
+              git push origin "HEAD:$branch"
+              echo "action=analyzed" >> "$GITHUB_OUTPUT"
+              ;;
+            READY_TO_RUN)
+              echo "action=dispatch" >> "$GITHUB_OUTPUT"
+              ;;
+            RUN_DISPATCHED)
+              # If no substantive run is active but completion did not persist a
+              # NEEDS_ANALYSIS transition, fail closed rather than rerunning blindly.
+              python - <<'PY'
+          import json, os
+          from pathlib import Path
+          p=Path("agent_memory/autonomy/quarter_hour_state.json")
+          q=json.loads(p.read_text())
+          q["phase"]="NEEDS_REPAIR"
+          q["ready_for_dispatch"]=False
+          q["repair_reason"]="dispatched research is no longer active but completion did not persist NEEDS_ANALYSIS"
+          q["repair_detected_by_controller_run_id"]=int(os.environ["GITHUB_RUN_ID"])
+          q["last_transition_source"]="quarter_hour_fail_closed"
+          p.write_text(json.dumps(q, indent=2)+"\n")
+          PY
+              git config user.name "hixton-quarter-hour[bot]"
+              git config user.email "hixton-quarter-hour@users.noreply.github.com"
+              git add agent_memory/autonomy/quarter_hour_state.json
+              git commit -m "autonomy: fail closed on missing research handoff" || true
+              git remote set-url origin "https://x-access-token:${GH_TOKEN}@github.com/${GITHUB_REPOSITORY}.git"
+              git push origin "HEAD:$branch"
+              echo "action=needs_repair" >> "$GITHUB_OUTPUT"
+              ;;
+            NEEDS_REPAIR|ALL_COMPLETE)
+              echo "action=hold" >> "$GITHUB_OUTPUT"
+              ;;
+            *)
+              echo "Unknown quarter-hour phase: $phase"
+              echo "action=hold" >> "$GITHUB_OUTPUT"
+              ;;
+          esac
+
+      - name: Dispatch exactly one substantive research run
+        if: steps.gate.outputs.action == 'dispatch'
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          branch="gpt/autonomous-research-v1"
+          repo="$GITHUB_REPOSITORY"
+          gh workflow run hixton-autonomous-research.yml --repo "$repo" --ref "$branch"
+
+          python - <<'PY'
+          import json, os
+          from pathlib import Path
+          p=Path("agent_memory/autonomy/quarter_hour_state.json")
+          q=json.loads(p.read_text())
+          q["phase"]="RUN_DISPATCHED"
+          q["ready_for_dispatch"]=False
+          q["dispatch_controller_run_id"]=int(os.environ["GITHUB_RUN_ID"])
+          q["last_transition_source"]="quarter_hour_dispatch"
+          p.write_text(json.dumps(q, indent=2)+"\n")
+          PY
+          git config user.name "hixton-quarter-hour[bot]"
+          git config user.email "hixton-quarter-hour@users.noreply.github.com"
+          git add agent_memory/autonomy/quarter_hour_state.json
+          git commit -m "autonomy: quarter-hour dispatch recorded"
+          git remote set-url origin "https://x-access-token:${GH_TOKEN}@github.com/${GITHUB_REPOSITORY}.git"
+          git push origin "HEAD:$branch"
