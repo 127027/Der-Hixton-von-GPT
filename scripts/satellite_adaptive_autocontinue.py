@@ -78,9 +78,14 @@ def main() -> None:
     for symbol, evidence_row in result["per_symbol"].items():
         state_row = state["per_symbol"][symbol]
 
-        # Search direction is TRAINING-only. This happens regardless of validation.
+        # TRAINING proposes a challenger; validation remains rejection-only.
+        # A rejected/no-improvement challenger must not become the next active
+        # seed, otherwise later rounds drift away from the accepted reference.
         winner = evidence_row.get("training_winner")
-        if winner and winner.get("candidate"):
+        classification = str(evidence_row.get("classification", "UNCHANGED"))
+        delta = evidence_row.get("economic_delta_vs_reference") or {}
+
+        if classification == "IMPROVED" and winner and winner.get("candidate"):
             candidate = dict(winner["candidate"])
             candidate["name"] = (
                 f"AUTO_R{round_no}_{candidate.get('name', 'TRAINING_WINNER')}"
@@ -89,9 +94,25 @@ def main() -> None:
             state_row["training_seed_source_run"] = run_number
             state_row["training_seed_source_round"] = round_no
             state_row["training_seed_selection_mode"] = evidence_row.get("selection_mode")
-
-        classification = str(evidence_row.get("classification", "UNCHANGED"))
-        delta = evidence_row.get("economic_delta_vs_reference") or {}
+            state_row.pop("last_rejected_training_candidate", None)
+        else:
+            if winner and winner.get("candidate"):
+                rejected = dict(winner["candidate"])
+                rejected["round"] = round_no
+                rejected["run_number"] = run_number
+                rejected["classification"] = classification
+                state_row["last_rejected_training_candidate"] = rejected
+            reference_seed = state_row.get("reference_seed")
+            if reference_seed:
+                reset_seed = dict(reference_seed)
+                reset_seed["name"] = (
+                    f"AUTO_REF_RESET_R{round_no}_"
+                    f"{reset_seed.get('name', 'REFERENCE')}"
+                )
+                state_row["training_seed"] = reset_seed
+                state_row["training_seed_source_run"] = state_row.get("reference_source_run")
+                state_row["training_seed_source_round"] = state_row.get("reference_source_round")
+                state_row["training_seed_selection_mode"] = "RESET_TO_ACCEPTED_REFERENCE_AFTER_REJECTION"
 
         # Validation is rejection-only: it can permit a reference replacement,
         # but it never chooses the next training seed above.
