@@ -45,7 +45,7 @@
     "Binance public market-data endpoint availability and policy are external facts and must fail closed rather than trigger synthetic operational candles.",
     "Historical performance does not guarantee future profitability."
   ],
-  "notes": "Owner clarified that historical 10x250 means 250 USDC separately per Core market for per-coin optimization. Extend the research view to 15x250 by optimizing five Satellites independently first. Isolated 15x250 is not live capital. Final product remains one shared 250-USDC account with absolute Core priority. Run #114 produced real economic progress (SUI robustly profitable; AAVE/BCH research benchmarks improved). Next run is a targeted local refinement, not a blind rerun.",
+  "notes": "Run #149 exhausted all 24 predeclared adaptive families with NO_ECONOMIC_PROGRESS. NEAR remains the frozen mature validated incumbent. SUI/UNI require frequency/efficiency improvement without PnL/risk regression; AAVE/BCH require validation generalization. research_build_lock remains true until a genuinely new causal family is completely implemented and wired. Do not rerun the exhausted family queue unchanged.",
   "current_product": {
     "max_capital_source": "max_capital_usdc",
     "allocator_version": "CAPITAL-V1-2X50PCT",
@@ -56,7 +56,7 @@
   },
   "target_architecture": {
     "universe": "10 protected Core + 5 independently evolved V1-derived Satellites",
-    "current_stage": "SATELLITE_ISOLATED_5X250_ADAPTIVE_CYCLE",
+    "current_stage": "SATELLITE_ISOLATED_5X250_NEEDS_NEW_CAUSAL_FAMILY",
     "satellites": [
       "SUIUSDC",
       "NEARUSDC",
@@ -102,10 +102,10 @@
     "phase_a": "ISOLATED_15X250_RESEARCH",
     "phase_b": "SHARED_250_CORE_PLUS_IDLE_FILLERS"
   },
-  "current_stage": "SATELLITE_ISOLATED_5X250_ADAPTIVE_CYCLE",
-  "last_transition": "RUN_119_ECONOMIC_PROGRESS -> PERSISTENT_ADAPTIVE_CYCLE",
+  "current_stage": "SATELLITE_ISOLATED_5X250_NEEDS_NEW_CAUSAL_FAMILY",
+  "last_transition": "RUN_149_NO_ECONOMIC_PROGRESS -> ADAPTIVE_FAMILIES_EXHAUSTED -> TRANSACTIONAL_BUILD_LOCK",
   "validated_incumbent_separate_from_training_seed": true,
-  "persistent_adaptive_cycle": true,
-  "adaptive_round": 1,
+  "persistent_adaptive_cycle": false,
+  "adaptive_round": 24,
   "adaptive_max_rounds": 24
 }
