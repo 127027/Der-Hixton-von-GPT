@@ -63,6 +63,8 @@ class AdaptiveSpec:
     reentry_atr_level: float | None = None
     atr_direction: str | None = None
     trend_health_exit: float | None = None
+    min_rank_strength: float = -999.0
+    max_rank_strength: float = 999.0
 
 
 def _seed(row: dict) -> AdaptiveSpec:
@@ -85,7 +87,7 @@ def _dedupe(rows: list[AdaptiveSpec]) -> tuple[AdaptiveSpec, ...]:
             row.horizon_hours, row.min_atr_pct, row.max_atr_pct,
             row.min_trend_atr, row.max_trend_atr, row.min_breakout_atr,
             row.min_abs_cmo, row.reentry_atr_level, row.atr_direction,
-            row.trend_health_exit,
+            row.trend_health_exit, row.min_rank_strength, row.max_rank_strength,
         )
         if key not in seen:
             seen.add(key)
@@ -393,6 +395,24 @@ def _variants(symbol: str, seed: AdaptiveSpec, round_no: int) -> tuple[AdaptiveS
                         reentry_atr_level=level,
                         trend_health_exit=threshold,
                     ))
+    elif round_no == 25:
+        # New causal axis: point-in-time rank_strength, not searched in rounds 1-24.
+        for lo in (-999.0, 0.0, 0.25, 0.50, 0.75, 1.0):
+            rows.append(_with(seed, f"RANK_FLOOR_{lo:g}", min_rank_strength=lo))
+    elif round_no == 26:
+        for lo in (0.0, 0.25, 0.50, 0.75):
+            for hi in (1.0, 1.5, 2.0, 3.0, 999.0):
+                if lo < hi:
+                    rows.append(_with(seed, f"RANK_WINDOW_{lo:g}_{hi:g}", min_rank_strength=lo, max_rank_strength=hi))
+    elif round_no == 27:
+        for lo in (0.0, 0.25, 0.50, 0.75):
+            for hold in (24, 48, 72, 120):
+                rows.append(_with(seed, f"RANK_{lo:g}_H{hold}", min_rank_strength=lo, horizon_hours=hold))
+    elif round_no == 28:
+        base_max = seed.max_atr_pct if seed.max_atr_pct < 0.9 else 0.03
+        for lo in (0.0, 0.25, 0.50, 0.75):
+            for mult in (0.8, 1.0, 1.2):
+                rows.append(_with(seed, f"RANK_{lo:g}_VOL_{mult:.1f}", min_rank_strength=lo, max_atr_pct=_clamp(base_max * mult, 0.008, 0.08)))
     else:
         raise RuntimeError(f"unsupported adaptive round {round_no}")
 
@@ -410,6 +430,27 @@ def _regime(spec: AdaptiveSpec) -> RegimeSpec:
         min_breakout_atr=spec.min_breakout_atr,
         min_abs_cmo=spec.min_abs_cmo,
     )
+
+
+def _adaptive_entry_filter(spec: AdaptiveSpec):
+    base_gate = _entry_filter(_regime(spec))
+
+    def gate(point: IndicatorPoint) -> str | None:
+        blocked = base_gate(point)
+        if blocked is not None:
+            return blocked
+        rank = point.rank_strength
+        if rank is None:
+            if spec.min_rank_strength > -999.0 or spec.max_rank_strength < 999.0:
+                return "RANK_STRENGTH_UNAVAILABLE"
+            return None
+        if rank < spec.min_rank_strength:
+            return "RANK_STRENGTH_TOO_LOW"
+        if rank > spec.max_rank_strength:
+            return "RANK_STRENGTH_TOO_HIGH"
+        return None
+
+    return gate
 
 
 def _run(*, symbol, candles, rules, start, end, costs, params, policy, spec: AdaptiveSpec):
@@ -435,7 +476,7 @@ def _run(*, symbol, candles, rules, start, end, costs, params, policy, spec: Ada
         strategy_semantics_by_symbol={symbol: V1_STRATEGY.semantics},
         strict_core_idle_mask=False,
         soft_filler_exit_enabled=bool(spec.horizon_hours),
-        entry_filter_by_symbol={symbol: _entry_filter(_regime(spec))},
+        entry_filter_by_symbol={symbol: _adaptive_entry_filter(spec)},
         continuation_reentry_symbols=frozenset(),
         band_reentry_symbols=frozenset(),
         atr_reentry_level_by_symbol=(
