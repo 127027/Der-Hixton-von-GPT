@@ -20,7 +20,7 @@
         "trail_atr": 0
       },
       "training_seed": {
-        "name": "AUTO_REF_RESET_R37_REF_R35_R35_SUI_STOP_2.50",
+        "name": "AUTO_REF_RESET_R38_REF_R35_R35_SUI_STOP_2.50",
         "horizon_hours": 0,
         "min_atr_pct": 0,
         "max_atr_pct": 0.0175,
@@ -77,7 +77,7 @@
       "reference_source_round": 35,
       "reference_acceptance_reason": "FILLER_EFFICIENCY_TRADEOFF_99PCT_PNL_RETENTION",
       "last_rejected_training_candidate": {
-        "name": "R37_SUI_V15_B2.20_STOP2.50",
+        "name": "R38_SUI_B2.200_PT4.00",
         "horizon_hours": 0,
         "min_atr_pct": 0,
         "max_atr_pct": 0.0175,
@@ -95,14 +95,15 @@
         "policy_slope_bars": null,
         "policy_stop_atr": 2.5,
         "policy_trail_atr": null,
-        "strategy_vidya_length": 15,
+        "strategy_vidya_length": null,
         "strategy_momentum_length": null,
         "strategy_smoothing_length": null,
         "strategy_atr_length": null,
         "strategy_band_multiplier": 2.2,
-        "round": 37,
-        "run_number": 233,
-        "classification": "UNCHANGED"
+        "profit_take_atr": 4.0,
+        "round": 38,
+        "run_number": 240,
+        "classification": "WORSE"
       }
     },
     "NEARUSDC": {
@@ -121,7 +122,7 @@
         "trail_atr": 0
       },
       "training_seed": {
-        "name": "AUTO_REF_RESET_R37_REF_RUN101_HOLD48",
+        "name": "AUTO_REF_RESET_R38_REF_RUN101_HOLD48",
         "horizon_hours": 48,
         "min_atr_pct": 0,
         "max_atr_pct": 1,
@@ -184,7 +185,7 @@
         "trail_atr": 0
       },
       "training_seed": {
-        "name": "AUTO_REF_RESET_R37_REF_RUN141_CMO_0.15_REENTRY_0.50",
+        "name": "AUTO_REF_RESET_R38_REF_RUN141_CMO_0.15_REENTRY_0.50",
         "horizon_hours": 0,
         "min_atr_pct": 0,
         "max_atr_pct": 1,
@@ -276,7 +277,7 @@
         "trail_atr": 0
       },
       "training_seed": {
-        "name": "AUTO_REF_RESET_R37_REF_R35_R35_AAVE_STOP_2.00",
+        "name": "AUTO_REF_RESET_R38_REF_R35_R35_AAVE_STOP_2.00",
         "horizon_hours": 120,
         "min_atr_pct": 0.005,
         "max_atr_pct": 0.025,
@@ -376,7 +377,7 @@
         "trail_atr": 0
       },
       "training_seed": {
-        "name": "AUTO_REF_RESET_R37_REF_RUN114_VOL_MAX_2PCT",
+        "name": "AUTO_REF_RESET_R38_REF_RUN114_VOL_MAX_2PCT",
         "horizon_hours": 0,
         "min_atr_pct": 0,
         "max_atr_pct": 0.02,
@@ -423,7 +424,7 @@
         "max_rank_strength": 999
       },
       "last_rejected_training_candidate": {
-        "name": "R37_BCH_CAP0.0200_CMO0.15",
+        "name": "R38_BCH_B3.00_PT1.25",
         "horizon_hours": 0,
         "min_atr_pct": 0,
         "max_atr_pct": 0.02,
@@ -431,7 +432,7 @@
         "max_trend_atr": 999,
         "min_breakout_atr": 0,
         "max_breakout_atr": 999,
-        "min_abs_cmo": 0.15,
+        "min_abs_cmo": 0,
         "reentry_atr_level": null,
         "atr_direction": null,
         "trend_health_exit": null,
@@ -445,10 +446,11 @@
         "strategy_momentum_length": null,
         "strategy_smoothing_length": null,
         "strategy_atr_length": null,
-        "strategy_band_multiplier": null,
-        "round": 37,
-        "run_number": 233,
-        "classification": "UNCHANGED"
+        "strategy_band_multiplier": 3.0,
+        "profit_take_atr": 1.25,
+        "round": 38,
+        "run_number": 240,
+        "classification": "WORSE"
       }
     }
   }

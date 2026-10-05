@@ -1,18 +1,18 @@
 {
   "schema_version": 1,
-  "completed_run_number": 233,
-  "completed_run_id": 37332860468,
-  "completed_round": 37,
-  "completed_family": "FINAL_MANUAL_BALANCED_GAP_FILLER_PASS",
+  "completed_run_number": 240,
+  "completed_run_id": 37336202265,
+  "completed_round": 38,
+  "completed_family": "FINAL_PROVISIONAL_PROFIT_TAKE_PASS",
   "economic_progress": false,
   "accepted_reference_updates": [],
   "mature_symbols_after": [
     "NEARUSDC"
   ],
   "next_stage": "SATELLITE_ISOLATED_5X250_ADAPTIVE_CYCLE",
-  "next_round": 38,
+  "next_round": 39,
   "orchestration_phase": "NEEDS_ANALYSIS",
   "earliest_launch_policy": "ANALYSIS_TICK_THEN_LATER_LAUNCH_TICK",
   "dispatch_next": false,
-  "reason": "round 37 evaluated; next round 38 prepared. NEEDS_ANALYSIS at the next quarter-hour tick; immediate self-dispatch is forbidden."
+  "reason": "round 38 evaluated; next round 39 prepared. NEEDS_ANALYSIS at the next quarter-hour tick; immediate self-dispatch is forbidden."
 }
