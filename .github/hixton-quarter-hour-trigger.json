@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "sequence": 4,
-  "requested_by": "manual_round36_launch_1630",
-  "note": "Wake controller after corrected filler gate and verified Round36 base-strategy neighborhood repair."
+  "sequence": 5,
+  "requested_by": "manual_final_round37",
+  "note": "Dispatch exactly one manually prepared Round37 5x250 backtest; no autonomous continuation."
 }
