@@ -73,6 +73,11 @@ class AdaptiveSpec:
     policy_slope_bars: int | None = None
     policy_stop_atr: float | None = None
     policy_trail_atr: float | None = None
+    strategy_vidya_length: int | None = None
+    strategy_momentum_length: int | None = None
+    strategy_smoothing_length: int | None = None
+    strategy_atr_length: int | None = None
+    strategy_band_multiplier: float | None = None
 
 
 def _seed(row: dict) -> AdaptiveSpec:
@@ -102,6 +107,9 @@ def _dedupe(rows: list[AdaptiveSpec]) -> tuple[AdaptiveSpec, ...]:
             row.trend_health_exit, row.min_rank_strength, row.max_rank_strength,
             row.policy_cmo_floor, row.policy_slope_bars,
             row.policy_stop_atr, row.policy_trail_atr,
+            row.strategy_vidya_length, row.strategy_momentum_length,
+            row.strategy_smoothing_length, row.strategy_atr_length,
+            row.strategy_band_multiplier,
         )
         if key not in seen:
             seen.add(key)
@@ -746,6 +754,66 @@ def _variants(
                         policy_stop_atr=stop, policy_trail_atr=None,
                     ))
 
+    elif round_no == 36:
+        # Base-strategy neighborhood repair for symbols whose policy/regime
+        # neighborhoods are exhausted. All parameters remain causal and
+        # point-in-time; selection is TRAINING-only.
+        anchor = reference_seed or seed
+        if symbol == "SUIUSDC":
+            for vidya in (12, 15, 18):
+                for band in (2.15, 2.30, 2.45):
+                    rows.append(_with(
+                        anchor, f"R36_SUI_V{vidya}_B{band:.2f}_STOP2.50",
+                        policy_stop_atr=2.50,
+                        strategy_vidya_length=vidya,
+                        strategy_band_multiplier=band,
+                    ))
+        elif symbol == "UNIUSDC":
+            for vidya in (10, 12, 14):
+                for smooth in (8, 10, 12):
+                    rows.append(_with(
+                        anchor, f"R36_UNI_V{vidya}_S{smooth}",
+                        strategy_vidya_length=vidya,
+                        strategy_smoothing_length=smooth,
+                        policy_cmo_floor=0.30,
+                        policy_slope_bars=72,
+                    ))
+            for band in (1.80, 2.00, 2.20):
+                rows.append(_with(
+                    anchor, f"R36_UNI_B{band:.2f}",
+                    strategy_band_multiplier=band,
+                    policy_cmo_floor=0.30,
+                    policy_slope_bars=72,
+                ))
+        elif symbol == "AAVEUSDC":
+            for vidya in (8, 10, 12):
+                for band in (1.80, 2.00, 2.20):
+                    rows.append(_with(
+                        anchor, f"R36_AAVE_V{vidya}_B{band:.2f}",
+                        strategy_vidya_length=vidya,
+                        strategy_band_multiplier=band,
+                        policy_cmo_floor=0.30,
+                        policy_slope_bars=0,
+                        policy_stop_atr=2.00,
+                    ))
+        elif symbol == "BCHUSDC":
+            for vidya in (10, 13, 16):
+                for band in (2.80, 3.20, 3.60):
+                    rows.append(_with(
+                        anchor, f"R36_BCH_V{vidya}_B{band:.2f}",
+                        strategy_vidya_length=vidya,
+                        strategy_band_multiplier=band,
+                        policy_cmo_floor=0.0,
+                        policy_slope_bars=0,
+                    ))
+            for momentum in (12, 16, 20):
+                rows.append(_with(
+                    anchor, f"R36_BCH_M{momentum}",
+                    strategy_momentum_length=momentum,
+                    policy_cmo_floor=0.0,
+                    policy_slope_bars=0,
+                ))
+
     else:
         # Durable post-registry generator: exhaustion is not a terminal state.
         # Every generation changes a bounded point-in-time interaction grid derived
@@ -819,6 +887,14 @@ def _adaptive_entry_filter(spec: AdaptiveSpec):
 
 
 def _run(*, symbol, candles, rules, start, end, costs, params, policy, spec: AdaptiveSpec):
+    effective_params = replace(
+        params,
+        vidya_length=(spec.strategy_vidya_length if spec.strategy_vidya_length is not None else params.vidya_length),
+        momentum_length=(spec.strategy_momentum_length if spec.strategy_momentum_length is not None else params.momentum_length),
+        smoothing_length=(spec.strategy_smoothing_length if spec.strategy_smoothing_length is not None else params.smoothing_length),
+        atr_length=(spec.strategy_atr_length if spec.strategy_atr_length is not None else params.atr_length),
+        band_multiplier=(spec.strategy_band_multiplier if spec.strategy_band_multiplier is not None else params.band_multiplier),
+    )
     effective_policy = replace(
         policy,
         cmo_floor=(
@@ -851,7 +927,7 @@ def _run(*, symbol, candles, rules, start, end, costs, params, policy, spec: Ada
         slot_count=1,
         costs=costs,
         execution_rules={symbol: rules},
-        strategy_parameters_by_symbol={symbol: params},
+        strategy_parameters_by_symbol={symbol: effective_params},
         trade_policies_by_symbol={symbol: effective_policy},
         symbols=(symbol,),
         core_symbols=(),
@@ -1022,9 +1098,19 @@ def _classification(reference_row: dict, v_stress, f_stress, profit_ok: bool, ma
             and cand_dd <= ref_dd + D("5.0")
             and cand_pph >= ref_pph * D("0.60")
         )
+        filler_efficiency_tradeoff = (
+            cand_val > ref_val
+            and cand_full >= ref_full * D("0.99")
+            and cand_trades > ref_trades
+            and cand_dd < ref_dd
+            and cand_pph > ref_pph
+        )
         if strict:
             classification = "IMPROVED"
             reason = "ROBUST_DOMINANCE"
+        elif filler_efficiency_tradeoff:
+            classification = "IMPROVED"
+            reason = "FILLER_EFFICIENCY_TRADEOFF_99PCT_PNL_RETENTION"
         elif maturity_tradeoff:
             classification = "IMPROVED"
             reason = "MATURE_FILLER_TRADEOFF_WITH_BOUNDED_PNL_RETENTION"
