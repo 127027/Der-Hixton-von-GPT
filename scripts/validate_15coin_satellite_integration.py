@@ -20,6 +20,7 @@ from hixton.data.quality import audit_candles
 from hixton.domain.capital import capital_plan
 from hixton.domain.models import Candle
 from hixton.domain.satellite_layer import (
+    ACTIVE_SHARED_SATELLITES,
     ALL_15_SYMBOLS,
     CORE_SYMBOLS,
     SATELLITE_PROFILES,
@@ -330,7 +331,7 @@ def _shared(
 ):
     plan = capital_plan(max_capital)
     symbols = ALL_15_SYMBOLS if include_satellites else CORE_SYMBOLS
-    sats = SATELLITE_SYMBOLS if include_satellites else ()
+    sats = ACTIVE_SHARED_SATELLITES if include_satellites else ()
     result, events = _run(
         symbols=symbols,
         core_symbols=CORE_SYMBOLS,
@@ -387,7 +388,8 @@ def main() -> None:
         },
         "symbols": {
             "core": list(CORE_SYMBOLS),
-            "satellites": list(SATELLITE_SYMBOLS),
+            "satellites_research_universe": list(SATELLITE_SYMBOLS),
+            "active_shared_gap_fillers": list(ACTIVE_SHARED_SATELLITES),
             "all_15": list(ALL_15_SYMBOLS),
         },
         "provenance": provenance,
@@ -403,7 +405,7 @@ def main() -> None:
         evidence[key] = {
             "isolated_15x250": isolated,
             "shared_250_core_only": core_only,
-            "shared_250_core_plus_satellites": integrated,
+            "shared_250_core_plus_validated_gap_fillers": integrated,
             "shared_delta": {
                 "ending_equity": str(
                     D(integrated["ending_equity"]) - D(core_only["ending_equity"])
