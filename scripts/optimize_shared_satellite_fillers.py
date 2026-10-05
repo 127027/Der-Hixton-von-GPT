@@ -417,10 +417,67 @@ def main() -> None:
         for candidate in unique_stage2
     ]
     winner_row = max(stage2_rows, key=lambda row: row["_score"])
-    winner = Candidate(
+    stage2_winner = Candidate(
         winner_row["candidate"]["name"],
         tuple(winner_row["candidate"]["enabled"]),
         tuple(sorted(winner_row["candidate"]["min_breakout"].items())),
+    )
+
+    # Third training-only pass: retain the profitable Shared configuration but
+    # block fresh Satellite entries during deeper portfolio drawdowns.
+    stage3 = [
+        Candidate(
+            f"{stage2_winner.name}+DD{gate}",
+            stage2_winner.enabled,
+            stage2_winner.min_breakout,
+            D(gate),
+        )
+        for gate in ("5", "10", "15", "20", "25", "30", "40", "50")
+    ]
+    stage3_rows = [
+        _evaluate_training(
+            candidate=candidate,
+            candles=candles,
+            rules=rules,
+            windows=windows,
+            core_by_window=core_by_window,
+        )
+        for candidate in stage3
+    ]
+
+    base_fold_deltas = [
+        D(str(fold["delta"]["net_pnl"])) for fold in winner_row["folds"]
+    ]
+    retain_min = min(base_fold_deltas) * D("0.50")
+    retain_sum = sum(base_fold_deltas, D("0")) * D("0.50")
+
+    def risk_score(row):
+        fold_deltas = [D(str(fold["delta"]["net_pnl"])) for fold in row["folds"]]
+        fold_dd = [D(str(fold["delta"]["max_drawdown_pct"])) for fold in row["folds"]]
+        fold_idle = [
+            D(str(fold["delta"]["zero_position_hours_reduced"]))
+            for fold in row["folds"]
+        ]
+        retained = (
+            min(fold_deltas) >= retain_min
+            and sum(fold_deltas, D("0")) >= retain_sum
+            and all(value > 0 for value in fold_deltas)
+        )
+        max_dd = max(fold_dd)
+        return (
+            int(retained and max_dd <= D("0.50")),
+            -max_dd,
+            min(fold_deltas),
+            sum(fold_deltas, D("0")),
+            min(fold_idle),
+        )
+
+    risk_winner_row = max(stage3_rows, key=risk_score)
+    winner = Candidate(
+        risk_winner_row["candidate"]["name"],
+        tuple(risk_winner_row["candidate"]["enabled"]),
+        tuple(sorted(risk_winner_row["candidate"]["min_breakout"].items())),
+        D(str(risk_winner_row["candidate"]["max_portfolio_drawdown_pct"])),
     )
 
     validation_core = _core_only(
@@ -446,29 +503,27 @@ def main() -> None:
     )
 
     full_results: dict[str, object] = {}
-    if validation_pass:
-        for name, costs in (("baseline", BASELINE_COSTS), ("stress", STRESS_COSTS)):
-            core = _core_only(
-                candles=candles,
-                rules=rules,
-                report_start=report_start,
-                report_end=report_end,
-                costs=costs,
-            )
-            integrated = _run_shared(
-                candidate=winner,
-                candles=candles,
-                rules=rules,
-                report_start=report_start,
-                report_end=report_end,
-                costs=costs,
-            )
-            full_results[name] = {
-                "core_only": core,
-                "integrated": integrated,
-                "delta": _delta(integrated, core),
-            }
-
+    for name, costs in (("baseline", BASELINE_COSTS), ("stress", STRESS_COSTS)):
+        core = _core_only(
+            candles=candles,
+            rules=rules,
+            report_start=report_start,
+            report_end=report_end,
+            costs=costs,
+        )
+        integrated = _run_shared(
+            candidate=winner,
+            candles=candles,
+            rules=rules,
+            report_start=report_start,
+            report_end=report_end,
+            costs=costs,
+        )
+        full_results[name] = {
+            "core_only": core,
+            "integrated": integrated,
+            "delta": _delta(integrated, core),
+        }
     def clean(rows):
         result = []
         for row in rows:
@@ -494,7 +549,9 @@ def main() -> None:
         "breakout_quantiles_training_only": breakout_quantiles,
         "stage1_subset_search": clean(stage1_rows),
         "stage2_quality_search": clean(stage2_rows),
-        "training_winner": winner_row["candidate"],
+        "stage2_training_winner": winner_row["candidate"],
+        "stage3_drawdown_gate_search": clean(stage3_rows),
+        "training_winner": risk_winner_row["candidate"],
         "validation": {
             "core_only": validation_core,
             "integrated": validation_integrated,
