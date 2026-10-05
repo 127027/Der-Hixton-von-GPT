@@ -142,24 +142,21 @@ def main() -> None:
         next_stage = "SATELLITE_FIVE_MATURE_SHARED_IDLE_REPLAY"
         dispatch_next = False
         next_reason = "all five references are mature; build/verify shared idle replay bridge"
-    elif round_no < max_rounds:
+    else:
+        # Family-registry exhaustion is a transition, never a terminal state.
+        # Rounds beyond max_rounds are produced by the bounded TRAINING-only
+        # point-in-time interaction generator in satellite_isolated_5x250_adaptive_cycle.
         control["round"] = round_no + 1
-        control["status"] = "CONTINUE"
+        control["status"] = "CONTINUE_GENERATED_CAUSAL_FAMILY"
         control["last_completed_round"] = round_no
+        if round_no >= max_rounds:
+            control["max_rounds"] = round_no + 1
         next_stage = "SATELLITE_ISOLATED_5X250_ADAPTIVE_CYCLE"
         dispatch_next = True
         next_reason = (
             f"advance from adaptive round {round_no} to {round_no + 1}; "
-            "next causal family is predeclared and different"
-        )
-    else:
-        control["status"] = "ADAPTIVE_FAMILIES_EXHAUSTED_NEEDS_NEW_CAUSAL_FAMILY"
-        control["last_completed_round"] = round_no
-        next_stage = "SATELLITE_ISOLATED_5X250_NEEDS_NEW_CAUSAL_FAMILY"
-        dispatch_next = False
-        next_reason = (
-            f"{max_rounds} materially different adaptive families exhausted; controller must "
-            "build a new causal family under transactional lock"
+            "registry exhaustion transitions into a bounded TRAINING-only generated "
+            "point-in-time causal interaction family instead of stopping"
         )
 
     mission["current_stage"] = next_stage
