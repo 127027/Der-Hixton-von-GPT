@@ -66,6 +66,11 @@ class AdaptiveSpec:
     trend_health_exit: float | None = None
     min_rank_strength: float = -999.0
     max_rank_strength: float = 999.0
+    # Optional candidate-level TradePolicy overrides. These remain point-in-time:
+    # they only alter entry gates computed from information available on the
+    # current/previous closed bars.
+    policy_cmo_floor: float | None = None
+    policy_slope_bars: int | None = None
 
 
 def _seed(row: dict) -> AdaptiveSpec:
@@ -93,6 +98,7 @@ def _dedupe(rows: list[AdaptiveSpec]) -> tuple[AdaptiveSpec, ...]:
             row.min_trend_atr, row.max_trend_atr, row.min_breakout_atr,
             row.max_breakout_atr, row.min_abs_cmo, row.reentry_atr_level, row.atr_direction,
             row.trend_health_exit, row.min_rank_strength, row.max_rank_strength,
+            row.policy_cmo_floor, row.policy_slope_bars,
         )
         if key not in seen:
             seen.add(key)
@@ -545,6 +551,115 @@ def _variants(
                             max_rank_strength=999.0,
                             max_breakout_atr=999.0,
                         ))
+    elif round_no == 34:
+        # Symbol-specific repair from run #193 TRAINING evidence.
+        # NEAR is frozen before this function is called.
+        # SUI: increase opportunity count without repeating rejected ATR-reentry.
+        # UNI: vary the actual slope/CMO policy gate, which was fixed at slope=72.
+        # AAVE: preserve the improved R33 anchor while testing entry/exit quality.
+        # BCH: isolate point-in-time CMO/direction/horizon quality without the
+        # overly restrictive trend floor that produced zero-trade candidates.
+        anchor = reference_seed or seed
+        if symbol == "SUIUSDC":
+            for policy_cmo in (0.30, 0.35, 0.40, 0.45):
+                rows.append(_with(
+                    anchor,
+                    f"R34_SUI_POLICY_CMO_{policy_cmo:.2f}",
+                    horizon_hours=0,
+                    reentry_atr_level=None,
+                    trend_health_exit=None,
+                    policy_cmo_floor=policy_cmo,
+                    policy_slope_bars=0,
+                ))
+            for policy_cmo in (0.35, 0.40):
+                for hold in (48, 72, 120):
+                    rows.append(_with(
+                        anchor,
+                        f"R34_SUI_CMO_{policy_cmo:.2f}_H{hold}",
+                        horizon_hours=hold,
+                        reentry_atr_level=None,
+                        trend_health_exit=None,
+                        policy_cmo_floor=policy_cmo,
+                        policy_slope_bars=0,
+                    ))
+            for exit_threshold in (-0.50, -0.25, 0.0):
+                rows.append(_with(
+                    anchor,
+                    f"R34_SUI_EXIT_{exit_threshold:+.2f}",
+                    horizon_hours=0,
+                    reentry_atr_level=None,
+                    trend_health_exit=exit_threshold,
+                    policy_cmo_floor=0.40,
+                    policy_slope_bars=0,
+                ))
+
+        elif symbol == "UNIUSDC":
+            # The incumbent policy has slope_bars=72. Test whether 24/0 releases
+            # additional valid entries while the 90%-PnL-retention gate protects
+            # the incumbent economics.
+            for slope in (0, 24, 72):
+                for policy_cmo in (0.20, 0.25, 0.30, 0.35):
+                    rows.append(_with(
+                        anchor,
+                        f"R34_UNI_SLOPE{slope}_CMO{policy_cmo:.2f}",
+                        horizon_hours=0,
+                        policy_slope_bars=slope,
+                        policy_cmo_floor=policy_cmo,
+                    ))
+
+        elif symbol == "AAVEUSDC":
+            for direction in (None, "EXPANDING", "CONTRACTING"):
+                for policy_cmo in (0.20, 0.30, 0.40):
+                    rows.append(_with(
+                        anchor,
+                        f"R34_AAVE_{direction or 'ANY'}_CMO{policy_cmo:.2f}",
+                        atr_direction=direction,
+                        policy_cmo_floor=policy_cmo,
+                        policy_slope_bars=0,
+                    ))
+            for exit_threshold in (-0.50, -0.25, 0.0):
+                for hold in (96, 120, 144):
+                    rows.append(_with(
+                        anchor,
+                        f"R34_AAVE_H{hold}_EXIT{exit_threshold:+.2f}",
+                        horizon_hours=hold,
+                        trend_health_exit=exit_threshold,
+                        policy_cmo_floor=0.30,
+                        policy_slope_bars=0,
+                    ))
+            for cap in (0.75, 1.00, 1.50, 2.00):
+                rows.append(_with(
+                    anchor,
+                    f"R34_AAVE_BREAKOUT_CAP_{cap:.2f}",
+                    max_breakout_atr=cap,
+                    policy_cmo_floor=0.30,
+                    policy_slope_bars=0,
+                ))
+
+        elif symbol == "BCHUSDC":
+            for direction in (None, "EXPANDING", "CONTRACTING"):
+                for policy_cmo in (0.00, 0.05, 0.10, 0.15, 0.20):
+                    rows.append(_with(
+                        anchor,
+                        f"R34_BCH_{direction or 'ANY'}_CMO{policy_cmo:.2f}",
+                        atr_direction=direction,
+                        policy_cmo_floor=policy_cmo,
+                        policy_slope_bars=0,
+                        min_trend_atr=-999.0,
+                        max_trend_atr=999.0,
+                    ))
+            for hold in (48, 72, 120):
+                for policy_cmo in (0.05, 0.10, 0.15):
+                    rows.append(_with(
+                        anchor,
+                        f"R34_BCH_H{hold}_CMO{policy_cmo:.2f}",
+                        horizon_hours=hold,
+                        policy_cmo_floor=policy_cmo,
+                        policy_slope_bars=0,
+                        min_trend_atr=-999.0,
+                        max_trend_atr=999.0,
+                    ))
+
     else:
         # Durable post-registry generator: exhaustion is not a terminal state.
         # Every generation changes a bounded point-in-time interaction grid derived
@@ -618,6 +733,19 @@ def _adaptive_entry_filter(spec: AdaptiveSpec):
 
 
 def _run(*, symbol, candles, rules, start, end, costs, params, policy, spec: AdaptiveSpec):
+    effective_policy = replace(
+        policy,
+        cmo_floor=(
+            float(spec.policy_cmo_floor)
+            if spec.policy_cmo_floor is not None
+            else policy.cmo_floor
+        ),
+        slope_bars=(
+            int(spec.policy_slope_bars)
+            if spec.policy_slope_bars is not None
+            else policy.slope_bars
+        ),
+    )
     result, events = run_filler_router_portfolio(
         candles_by_symbol={symbol: candles},
         report_start_utc=start,
@@ -628,7 +756,7 @@ def _run(*, symbol, candles, rules, start, end, costs, params, policy, spec: Ada
         costs=costs,
         execution_rules={symbol: rules},
         strategy_parameters_by_symbol={symbol: params},
-        trade_policies_by_symbol={symbol: policy},
+        trade_policies_by_symbol={symbol: effective_policy},
         symbols=(symbol,),
         core_symbols=(),
         satellite_symbols=(symbol,),
