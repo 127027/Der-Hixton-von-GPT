@@ -1,14 +1,6 @@
 name: Hixton NEAR BCH Shared Risk
 
 on:
-  push:
-    branches:
-      - gpt/15coin-satellite-integration
-    paths:
-      - .github/workflows/hixton-near-bch-shared-risk.yml
-      - scripts/optimize_near_bch_shared_risk.py
-      - scripts/optimize_shared_satellite_fillers.py
-      - src/hixton/backtest/satellite_portfolio.py
   workflow_dispatch:
 
 permissions:
