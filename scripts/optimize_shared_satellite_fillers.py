@@ -1,4 +1,4 @@
-"""Optimize the five Satellites for the real shared 250-USDC gap-filler role.
+"""Optimize the five Satellites for the real shared-capital gap-filler role.
 
 Search direction uses two training folds only. The final year is rejection-only.
 The objective is incremental stressed shared-PnL first, then idle-hour reduction,
@@ -35,6 +35,7 @@ from hixton.domain.trade_policy import TradePolicyGate
 
 D = Decimal
 OUTPUT = Path("evidence/shared-satellite-optimization.json")
+REFERENCE_CAPITAL = D("250")
 
 
 @dataclass(frozen=True, slots=True)
@@ -122,17 +123,18 @@ def _run_shared(
     report_start,
     report_end,
     costs,
+    max_capital: D = REFERENCE_CAPITAL,
 ):
     parameters, policies, semantics, _filters, horizons, reentry = _maps()
     sats = candidate.enabled
     symbols = CORE_SYMBOLS + sats
     thresholds = candidate.thresholds
-    plan = capital_plan(D("250"))
+    plan = capital_plan(max_capital)
     result, events = run_filler_router_portfolio(
         candles_by_symbol={s: candles[s] for s in symbols},
         report_start_utc=report_start,
         report_end_utc=report_end,
-        starting_cash=D("250"),
+        starting_cash=plan.max_capital_usdc,
         target_notional=plan.target_notional_usdc,
         slot_count=plan.slot_count,
         costs=costs,
@@ -145,7 +147,7 @@ def _run_shared(
         router_config=RouterConfig(
             filler_horizon_hours=24,
             hysteresis_atr=D("0"),
-            satellite_budget_fraction_of_c=D("0.50"),
+            satellite_budget_fraction_of_c=D("1") / D(plan.slot_count),
         ),
         strategy_semantics_by_symbol={s: semantics[s] for s in symbols},
         strict_core_idle_mask=True,
@@ -534,7 +536,9 @@ def main() -> None:
 
     evidence = {
         "schema_version": 1,
-        "purpose": "SHARED_250_PREEMPTION_AWARE_SATELLITE_OPTIMIZATION",
+        "purpose": "SHARED_PREEMPTION_AWARE_SATELLITE_OPTIMIZATION",
+        "reference_capital_usdc": str(REFERENCE_CAPITAL),
+        "capital_rule": "two equal 50-percent slots derived from configured max capital",
         "report_start_utc": report_start.isoformat(),
         "report_end_utc": report_end.isoformat(),
         "training_windows": [
