@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "sequence": 7,
-  "requested_by": "manual_final_round37",
-  "note": "Dispatch exactly one verified final manual Round37 5x250 backtest. External research controllers are paused."
+  "sequence": 8,
+  "requested_by": "manual_round38_final_provisional",
+  "note": "Dispatch exactly one verified Round38 FINAL_PROVISIONAL_PROFIT_TAKE_PASS; all external research controllers remain paused; no successor."
 }
