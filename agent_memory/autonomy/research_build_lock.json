@@ -1,7 +1,7 @@
 {
   "schema_version": 1,
-  "locked": false,
-  "reason": "Schedule repair not applied; no partial research patch remains.",
+  "locked": true,
+  "reason": "Repairing round-33 post-registry family-label IndexError from run #183. No substantive research may dispatch until patch and state verification complete.",
   "started_from_head": "729f8c2a5901cf52dadfcde6fbf77747a24c90fa",
   "contract": "Substantive research may start only from an eligible quarter-hour controller tick. Push-triggered persistence/code commits are coordination-only. Preserve VALIDATED_INCUMBENT vs TRAINING_RESEARCH_SEED, NEAR mature freeze, validation rejection-only and protected Core.",
   "unlock_contract": "Unlocked."
