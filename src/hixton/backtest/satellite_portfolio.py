@@ -178,6 +178,7 @@ def run_filler_router_portfolio(
     profit_take_atr_by_symbol: dict[str, float] | None = None,
     filler_horizon_hours_by_symbol: dict[str, int] | None = None,
     satellite_max_portfolio_drawdown_pct: Decimal | None = None,
+    core_imminence_guard_atr: Decimal | None = None,
 ) -> tuple[PortfolioBacktestResult, list[dict[str, object]]]:
     if tuple(candles_by_symbol) != symbols:
         raise ValueError("router input universe/order mismatch")
@@ -282,6 +283,11 @@ def run_filler_router_portfolio(
         )
     ):
         raise ValueError("Satellite portfolio drawdown gate must be in [0, 100]")
+    if (
+        core_imminence_guard_atr is not None
+        and (core_imminence_guard_atr < ZERO or core_imminence_guard_atr > D("10"))
+    ):
+        raise ValueError("Core imminence guard must be in [0, 10] ATR")
 
     cash = starting_cash
     positions: dict[str, OpenTrade] = {}
@@ -606,12 +612,33 @@ def run_filler_router_portfolio(
                         reason_id="STRICT_CORE_IDLE_MASK",
                     )
             core_active = any(not trade.is_satellite for trade in positions.values())
+            core_imminent = False
+            if core_imminence_guard_atr is not None and not core_active:
+                for core_symbol in core_set:
+                    core_point = last_points.get(core_symbol)
+                    if (
+                        core_point is None
+                        or core_point.trend.value != "DOWN"
+                        or core_point.upper is None
+                        or core_point.atr is None
+                        or core_point.atr <= 0
+                    ):
+                        continue
+                    gap_atr = D(str(
+                        (core_point.upper - core_point.candle.close) / core_point.atr
+                    ))
+                    if ZERO <= gap_atr <= core_imminence_guard_atr:
+                        core_imminent = True
+                        break
             for signal in satellite_entries:
                 if signal.symbol in positions:
                     blocked.append(f"{signal.signal_id}:POSITION_ALREADY_OPEN")
                     continue
                 if core_active:
                     blocked.append(f"{signal.signal_id}:CORE_ACTIVE_FILLER_IDLE_ONLY")
+                    continue
+                if core_imminent:
+                    blocked.append(f"{signal.signal_id}:CORE_IMMINENT_FILLER_GUARD")
                     continue
                 used_slots = sum(p.slots for p in positions.values())
                 if used_slots >= slot_count:
