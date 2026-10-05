@@ -19,6 +19,11 @@ SATELLITE_SYMBOLS: tuple[str, ...] = (
     "SUIUSDC","NEARUSDC","UNIUSDC","AAVEUSDC","BCHUSDC",
 )
 ALL_15_SYMBOLS: tuple[str, ...] = CORE_SYMBOLS + SATELLITE_SYMBOLS
+# Shared-portfolio activation is deliberately narrower than the research
+# universe. All five remain available for isolated 15x250 evidence; only
+# Satellites that add stressed shared-PnL without harming the Core are active
+# gap fillers. Current validated shared winner: NEAR + BCH.
+ACTIVE_SHARED_SATELLITES: tuple[str, ...] = ("NEARUSDC", "BCHUSDC")
 
 
 @dataclass(frozen=True, slots=True)
