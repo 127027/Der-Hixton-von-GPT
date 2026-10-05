@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "phase": "NEEDS_ANALYSIS",
+  "phase": "READY_TO_RUN",
   "completed_run_number": 211,
   "completed_run_id": 37325972895,
   "completed_round": 36,
@@ -8,18 +8,18 @@
   "next_round": 37,
   "next_stage": "SATELLITE_ISOLATED_5X250_ADAPTIVE_CYCLE",
   "economic_progress": false,
-  "ready_for_dispatch": false,
+  "ready_for_dispatch": true,
   "analysis_checkpoint": "2026-10-05T09:45:00+02:00",
   "analysis_summary": {
-    "SUIUSDC": "Run205 stop2.50 candidate recovered as improved under corrected bounded filler gate: validation +18.78, +4 trades, DD -3.63pp, PPH +0.01883, 99.43% 3y PnL retained.",
-    "NEARUSDC": "MATURE_INCUMBENT_PROTECTED",
-    "UNIUSDC": "No material policy/exit challenger survived training; round36 searches bounded VIDYA/smoothing/band neighborhoods around accepted run141 reference.",
-    "AAVEUSDC": "Run205 became robustly profitable and accepted; round36 searches base-parameter neighborhood for additional frequency/efficiency.",
-    "BCHUSDC": "No material stop/trail challenger survived training; round36 searches bounded VIDYA/band/momentum neighborhood around run114 benchmark."
+    "SUIUSDC": "Local interpolation between accepted V15/B2.30/STOP2.50 and strong-training V12/B2.15 challenger; seek lower DD/higher PPH without validation collapse.",
+    "NEARUSDC": "MATURE incumbent protected; no mutation.",
+    "UNIUSDC": "Moderate slope 48/60/72 + CMO/reentry neighborhood to release activity without repeating failed slope24 jump.",
+    "AAVEUSDC": "Shorter 72/96/108/120h occupancy + stop 1.50-2.25 around accepted robust reference to reach maturity with bounded economics.",
+    "BCHUSDC": "V10/B3.20 structure combined with momentum12/16 and ATR cap/direction to repair bad training regime and validation generalization."
   },
-  "prepared_family": "BASE_STRATEGY_NEIGHBORHOOD_REPAIR",
+  "prepared_family": "MANUAL_FINAL_GAP_FILLER_REFINEMENT",
   "launch_policy": "NEXT_QUARTER_HOUR_TICK_ONLY",
-  "last_transition_source": "research_completion",
+  "last_transition_source": "manual_final_round37",
   "analysis_controller_run_id": 37302952731,
   "analysis_policy": "completed result reviewed on this quarter-hour tick; dispatch forbidden until a later tick",
   "dispatch_controller_run_id": 37325936704,
@@ -27,15 +27,10 @@
   "repair_commit": "c6f6e73902334855773d1b9616cef68226e25e7f",
   "repair_reason": "Fixed post-registry technical_family label IndexError for round > family_sequence length.",
   "manual_repair": {
-    "purpose": "Round36 after run205: correct over-strict filler gate and expand exhausted UNI/BCH search into base strategy parameters",
-    "bounded_tradeoff": "validation improves + >=99% 3y PnL retention + trades/DD/PPH all improve",
-    "recovered_reference_updates": [
-      "SUIUSDC"
-    ],
-    "already_accepted_from_run205": [
-      "AAVEUSDC"
-    ],
-    "prepared_family": "BASE_STRATEGY_NEIGHBORHOOD_REPAIR",
-    "verification": "code contract #207 SUCCESS; state contract #209 SUCCESS"
+    "purpose": "One final manual five-satellite refinement requested by owner",
+    "code_commit": "44d9e964eb32066359d38eb444cab2418222dea6",
+    "control_commit": "1e8b4e9247b0435c49fb9fd57ae8a4a0e0eb6242",
+    "verification": "push run #217 contract SUCCESS",
+    "launch_policy": "exactly one substantive Round37 run; all external research controllers remain paused afterwards"
   }
 }
