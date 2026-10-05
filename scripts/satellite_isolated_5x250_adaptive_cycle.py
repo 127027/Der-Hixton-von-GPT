@@ -886,6 +886,109 @@ def _variants(
                             policy_slope_bars=0,
                         ))
 
+    elif round_no == 37:
+        # Final manual local refinement from round-36 TRAINING evidence.
+        # NEAR remains frozen before candidate generation.
+        anchor = reference_seed or seed
+        if symbol == "SUIUSDC":
+            # R36 showed a strong V12/B2.15/stop2.5 training basin but that exact
+            # point failed validation. Explore only the local causal neighborhood
+            # with bounded occupancy/risk changes; never repeat the rejected point.
+            for vidya in (11, 12, 13):
+                for band in (2.10, 2.20):
+                    for stop in (2.25, 2.75):
+                        rows.append(_with(
+                            anchor,
+                            f"R37_SUI_V{vidya}_B{band:.2f}_STOP{stop:.2f}",
+                            strategy_vidya_length=vidya,
+                            strategy_band_multiplier=band,
+                            policy_stop_atr=stop,
+                        ))
+            for hold in (72, 96, 120):
+                rows.append(_with(
+                    anchor,
+                    f"R37_SUI_H{hold}_STOP2.50",
+                    horizon_hours=hold,
+                    policy_stop_atr=2.50,
+                    strategy_vidya_length=12,
+                    strategy_band_multiplier=2.15,
+                ))
+
+        elif symbol == "UNIUSDC":
+            # Slope/CMO and simple VIDYA/smoothing variants are exhausted.
+            # Search slower/faster volatility memory plus momentum and bounded
+            # holding time while keeping the accepted entry-quality policy.
+            for atr_len in (96, 120, 160):
+                for momentum in (16, 20, 24):
+                    rows.append(_with(
+                        anchor,
+                        f"R37_UNI_ATR{atr_len}_M{momentum}",
+                        strategy_atr_length=atr_len,
+                        strategy_momentum_length=momentum,
+                        policy_cmo_floor=0.30,
+                        policy_slope_bars=72,
+                    ))
+            for hold in (48, 72, 96):
+                for atr_len in (96, 160):
+                    rows.append(_with(
+                        anchor,
+                        f"R37_UNI_H{hold}_ATR{atr_len}",
+                        horizon_hours=hold,
+                        strategy_atr_length=atr_len,
+                        policy_cmo_floor=0.30,
+                        policy_slope_bars=72,
+                    ))
+
+        elif symbol == "AAVEUSDC":
+            # Accepted R35 is robust; only try to reduce capital occupancy and
+            # improve filler efficiency around the proven stop-at-2.0 basin.
+            for hold in (72, 96, 120, 144):
+                for stop in (1.75, 2.00, 2.25):
+                    rows.append(_with(
+                        anchor,
+                        f"R37_AAVE_H{hold}_STOP{stop:.2f}",
+                        horizon_hours=hold,
+                        policy_stop_atr=stop,
+                        policy_cmo_floor=0.30,
+                        policy_slope_bars=0,
+                    ))
+            for trail in (1.75, 2.00, 2.25):
+                rows.append(_with(
+                    anchor,
+                    f"R37_AAVE_TRAIL{trail:.2f}",
+                    policy_stop_atr=2.00,
+                    policy_trail_atr=trail,
+                    policy_cmo_floor=0.30,
+                    policy_slope_bars=0,
+                ))
+
+        elif symbol == "BCHUSDC":
+            # R36 TRAINING evidence favored momentum12 as the least-bad
+            # activity/risk tradeoff. Refine that basin rather than repeating
+            # the rejected aggressive VIDYA10 candidate.
+            for band in (3.00, 3.20, 3.40):
+                for stop in (1.50, 2.00, 2.50):
+                    rows.append(_with(
+                        anchor,
+                        f"R37_BCH_M12_B{band:.2f}_STOP{stop:.2f}",
+                        strategy_momentum_length=12,
+                        strategy_band_multiplier=band,
+                        policy_stop_atr=stop,
+                        policy_cmo_floor=0.0,
+                        policy_slope_bars=0,
+                    ))
+            for hold in (48, 72, 96):
+                for band in (3.00, 3.40):
+                    rows.append(_with(
+                        anchor,
+                        f"R37_BCH_M12_H{hold}_B{band:.2f}",
+                        strategy_momentum_length=12,
+                        strategy_band_multiplier=band,
+                        horizon_hours=hold,
+                        policy_cmo_floor=0.0,
+                        policy_slope_bars=0,
+                    ))
+
     else:
         # Durable post-registry generator: exhaustion is not a terminal state.
         # Every generation changes a bounded point-in-time interaction grid derived
