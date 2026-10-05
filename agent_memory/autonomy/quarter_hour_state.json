@@ -17,13 +17,25 @@
     "AAVEUSDC": "UNCHANGED_VALIDATION_GENERALIZATION_GAP",
     "BCHUSDC": "WORSE_PNL_AND_RISK_REGRESSION"
   },
-  "prepared_family": "BREAKOUT_CEILING_X_RANK_STRENGTH",
+  "prepared_family": "REFERENCE_ANCHORED_FOLD_STABILITY",
   "launch_policy": "NEXT_QUARTER_HOUR_TICK_ONLY",
-  "last_transition_source": "round33_technical_repair_verified",
+  "last_transition_source": "manual_five_satellite_reference_anchor_repair",
   "analysis_controller_run_id": 37302952731,
   "analysis_policy": "completed result reviewed on this quarter-hour tick; dispatch forbidden until a later tick",
   "dispatch_controller_run_id": 37302961657,
   "repair_of_run_number": 183,
   "repair_commit": "c6f6e73902334855773d1b9616cef68226e25e7f",
-  "repair_reason": "Fixed post-registry technical_family label IndexError for round > family_sequence length."
+  "repair_reason": "Fixed post-registry technical_family label IndexError for round > family_sequence length.",
+  "manual_repair": {
+    "purpose": "Recover all five Satellite strategies from seed drift and weak two-year generalization",
+    "reference_anchors": {
+      "SUIUSDC": 119,
+      "NEARUSDC": 101,
+      "UNIUSDC": 141,
+      "AAVEUSDC": 131,
+      "BCHUSDC": 114
+    },
+    "training_selection": "half-year fold stability + 90% reference-training PnL retention for activity searches",
+    "launch_policy": "exactly one controlled 5x250 run after unlock"
+  }
 }
