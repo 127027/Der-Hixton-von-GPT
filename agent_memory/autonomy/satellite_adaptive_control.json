@@ -1,8 +1,8 @@
 {
   "schema_version": 1,
-  "round": 24,
-  "max_rounds": 24,
-  "status": "ADAPTIVE_FAMILIES_EXHAUSTED_NEEDS_NEW_CAUSAL_FAMILY",
+  "round": 25,
+  "max_rounds": 28,
+  "status": "CONTINUE",
   "source_run": 119,
   "stage": "SATELLITE_ISOLATED_5X250_ADAPTIVE_CYCLE",
   "contract": {
@@ -12,7 +12,8 @@
     "validated_reference_never_overwritten_by_worse_candidate": true,
     "green_ci_is_not_economic_progress": true,
     "build_lock_required_for_code_family_changes": true,
-    "auto_commit_and_workflow_dispatch_after_completed_round": true
+    "auto_commit_and_workflow_dispatch_after_completed_round": true,
+    "post_exhaustion_new_family_must_be_materially_new": true
   },
   "family_sequence": [
     "TARGETED_REENTRY_OR_TREND_EXIT",
@@ -38,7 +39,11 @@
     "ATR_DIRECTION_X_BREAKOUT",
     "ATR_DIRECTION_X_CMO",
     "HORIZON_X_REENTRY_X_EXIT",
-    "FINAL_LOCAL_PARETO"
+    "FINAL_LOCAL_PARETO",
+    "POINT_IN_TIME_RANK_STRENGTH",
+    "RANK_STRENGTH_WINDOW",
+    "RANK_STRENGTH_X_HORIZON",
+    "RANK_STRENGTH_X_VOLATILITY"
   ],
   "last_completed_round": 24
 }
