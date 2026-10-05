@@ -141,6 +141,10 @@ jobs:
           from pathlib import Path
           mission = json.load(open("agent_memory/autonomy/current_mission.json", encoding="utf-8"))
           stage = str(mission.get("current_stage", "LEGACY_FULL_PIPELINE"))
+          # Pushes created by state persistence/code patches are coordination-only.
+          # Only manual dispatch or a quarter-hour schedule may execute substantive research.
+          if "${{ github.event_name }}" == "push":
+              stage = "QUARTER_HOUR_WAIT"
           lock_path = Path("agent_memory/autonomy/research_build_lock.json")
           build_locked = False
           if lock_path.exists():
@@ -153,8 +157,12 @@ jobs:
           print(f"build_locked={'true' if build_locked else 'false'}")
           print(f"full_candidate_pipeline={'false' if fast else 'true'}")
           PY
+      - name: Quarter-hour coordination wait
+        if: steps.stage.outputs.priority_stage == 'QUARTER_HOUR_WAIT'
+        run: echo "Push-triggered coordination run; substantive research waits for a quarter-hour tick."
+
       - name: Verify newest protected engineering baseline
-        if: steps.stage.outputs.build_locked != 'true'
+        if: steps.stage.outputs.build_locked != 'true' && steps.stage.outputs.priority_stage != 'QUARTER_HOUR_WAIT'
         run: python -m scripts.baseline_freshness_guard
       - name: Install research environment
         if: steps.stage.outputs.build_locked != 'true'
