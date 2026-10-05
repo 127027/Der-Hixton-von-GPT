@@ -19,7 +19,7 @@
   },
   "prepared_family": "FINAL_MANUAL_BALANCED_GAP_FILLER_PASS",
   "launch_policy": "NEXT_QUARTER_HOUR_TICK_ONLY",
-  "last_transition_source": "manual_final_review",
+  "last_transition_source": "manual_final_review_verified",
   "analysis_controller_run_id": 37302952731,
   "analysis_policy": "completed result reviewed on this quarter-hour tick; dispatch forbidden until a later tick",
   "dispatch_controller_run_id": 37331426626,
@@ -28,8 +28,8 @@
   "repair_reason": "Fixed post-registry technical_family label IndexError for round > family_sequence length.",
   "manual_repair": {
     "purpose": "Final manual balanced 5x250 gap-filler pass",
-    "code_head": "b6cb32baa06747255d8c54f64492d80a093dcd4d",
-    "verification": "round37 consolidated code #229 SUCCESS; control contract #230 SUCCESS",
-    "launch_policy": "exactly one run, no automatic continuation"
+    "code_head": "8567faaa3f0b82143494b153fe4d10f6e3c19f29",
+    "verification": "Round37 consolidated code push #231 SUCCESS; product-critical trade_policy byte-matches gpt/usdc-audit",
+    "launch_policy": "exactly one substantive Round37 run; all external research controllers paused afterward"
   }
 }
