@@ -71,6 +71,8 @@ class AdaptiveSpec:
     # current/previous closed bars.
     policy_cmo_floor: float | None = None
     policy_slope_bars: int | None = None
+    policy_stop_atr: float | None = None
+    policy_trail_atr: float | None = None
 
 
 def _seed(row: dict) -> AdaptiveSpec:
@@ -99,6 +101,7 @@ def _dedupe(rows: list[AdaptiveSpec]) -> tuple[AdaptiveSpec, ...]:
             row.max_breakout_atr, row.min_abs_cmo, row.reentry_atr_level, row.atr_direction,
             row.trend_health_exit, row.min_rank_strength, row.max_rank_strength,
             row.policy_cmo_floor, row.policy_slope_bars,
+            row.policy_stop_atr, row.policy_trail_atr,
         )
         if key not in seen:
             seen.add(key)
@@ -660,6 +663,89 @@ def _variants(
                         max_trend_atr=999.0,
                     ))
 
+    elif round_no == 35:
+        # Material-challenger repair after run #198. Every generated row differs
+        # from the accepted reference; SEED/REFERENCE_ANCHOR remain floors only.
+        anchor = reference_seed or seed
+        if symbol == "SUIUSDC":
+            for stop in (1.25, 1.50, 2.00, 2.50):
+                rows.append(_with(
+                    anchor, f"R35_SUI_STOP_{stop:.2f}",
+                    horizon_hours=0, reentry_atr_level=None,
+                    trend_health_exit=None, policy_stop_atr=stop,
+                    policy_trail_atr=None,
+                ))
+            for trail in (1.25, 1.50, 2.00, 2.50):
+                rows.append(_with(
+                    anchor, f"R35_SUI_TRAIL_{trail:.2f}",
+                    horizon_hours=0, reentry_atr_level=None,
+                    trend_health_exit=None, policy_stop_atr=None,
+                    policy_trail_atr=trail,
+                ))
+        elif symbol == "UNIUSDC":
+            for stop in (1.25, 1.50, 2.00, 2.50):
+                rows.append(_with(
+                    anchor, f"R35_UNI_STOP_{stop:.2f}",
+                    policy_cmo_floor=0.30, policy_slope_bars=72,
+                    policy_stop_atr=stop, policy_trail_atr=None,
+                ))
+            for trail in (1.25, 1.50, 2.00, 2.50):
+                rows.append(_with(
+                    anchor, f"R35_UNI_TRAIL_{trail:.2f}",
+                    policy_cmo_floor=0.30, policy_slope_bars=72,
+                    policy_stop_atr=None, policy_trail_atr=trail,
+                ))
+            for hold in (48, 72, 120):
+                for stop in (1.50, 2.00):
+                    rows.append(_with(
+                        anchor, f"R35_UNI_H{hold}_STOP{stop:.2f}",
+                        horizon_hours=hold,
+                        policy_cmo_floor=0.30, policy_slope_bars=72,
+                        policy_stop_atr=stop, policy_trail_atr=None,
+                    ))
+        elif symbol == "AAVEUSDC":
+            for stop in (1.25, 1.50, 2.00, 2.50):
+                rows.append(_with(
+                    anchor, f"R35_AAVE_STOP_{stop:.2f}",
+                    policy_cmo_floor=0.30, policy_slope_bars=0,
+                    policy_stop_atr=stop, policy_trail_atr=None,
+                ))
+            for trail in (1.25, 1.50, 2.00, 2.50):
+                rows.append(_with(
+                    anchor, f"R35_AAVE_TRAIL_{trail:.2f}",
+                    policy_cmo_floor=0.30, policy_slope_bars=0,
+                    policy_stop_atr=None, policy_trail_atr=trail,
+                ))
+            for hold in (72, 96, 144):
+                for stop in (1.50, 2.00):
+                    rows.append(_with(
+                        anchor, f"R35_AAVE_H{hold}_STOP{stop:.2f}",
+                        horizon_hours=hold,
+                        policy_cmo_floor=0.30, policy_slope_bars=0,
+                        policy_stop_atr=stop, policy_trail_atr=None,
+                    ))
+        elif symbol == "BCHUSDC":
+            for stop in (1.25, 1.50, 2.00, 2.50):
+                rows.append(_with(
+                    anchor, f"R35_BCH_STOP_{stop:.2f}",
+                    policy_cmo_floor=0.0, policy_slope_bars=0,
+                    policy_stop_atr=stop, policy_trail_atr=None,
+                ))
+            for trail in (1.25, 1.50, 2.00, 2.50):
+                rows.append(_with(
+                    anchor, f"R35_BCH_TRAIL_{trail:.2f}",
+                    policy_cmo_floor=0.0, policy_slope_bars=0,
+                    policy_stop_atr=None, policy_trail_atr=trail,
+                ))
+            for hold in (48, 72, 96):
+                for stop in (1.50, 2.00):
+                    rows.append(_with(
+                        anchor, f"R35_BCH_H{hold}_STOP{stop:.2f}",
+                        horizon_hours=hold,
+                        policy_cmo_floor=0.0, policy_slope_bars=0,
+                        policy_stop_atr=stop, policy_trail_atr=None,
+                    ))
+
     else:
         # Durable post-registry generator: exhaustion is not a terminal state.
         # Every generation changes a bounded point-in-time interaction grid derived
@@ -745,6 +831,16 @@ def _run(*, symbol, candles, rules, start, end, costs, params, policy, spec: Ada
             if spec.policy_slope_bars is not None
             else policy.slope_bars
         ),
+        stop_atr=(
+            float(spec.policy_stop_atr)
+            if spec.policy_stop_atr is not None
+            else policy.stop_atr
+        ),
+        trail_atr=(
+            float(spec.policy_trail_atr)
+            if spec.policy_trail_atr is not None
+            else policy.trail_atr
+        ),
     )
     result, events = run_filler_router_portfolio(
         candles_by_symbol={symbol: candles},
@@ -809,7 +905,13 @@ def _training_metrics(a, b, folds) -> dict:
     }
 
 
-def _choose(rows: list[dict], reference_profit: bool, reference_mature: bool) -> tuple[dict | None, str]:
+def _choose(
+    rows: list[dict],
+    reference_profit: bool,
+    reference_mature: bool,
+    *,
+    require_material_challenger: bool = False,
+) -> tuple[dict | None, str]:
     eligible = [row for row in rows if row["training_both_positive"]]
     if not eligible:
         return None, "NO_TWO_YEAR_STRESS_POSITIVE_TRAINING_WINNER"
@@ -819,6 +921,15 @@ def _choose(rows: list[dict], reference_profit: bool, reference_mature: bool) ->
         if int(row["training_score"].get("fold_positive_count", 0)) >= 3
     ]
     pool = stable or eligible
+    if require_material_challenger:
+        challengers = [
+            row for row in pool
+            if row["candidate"]["name"] not in {"SEED", "REFERENCE_ANCHOR"}
+        ]
+        if challengers:
+            pool = challengers
+        else:
+            return None, "NO_MATERIAL_TRAINING_CHALLENGER"
     seed_row = next(row for row in rows if row["candidate"]["name"] == "SEED")
     anchor_row = next(
         (row for row in rows if row["candidate"]["name"] == "REFERENCE_ANCHOR"),
@@ -1053,6 +1164,7 @@ def main() -> None:
             candidates,
             bool(row["reference_profitability_pass"]),
             bool(row["reference_maturity_pass"]),
+            require_material_challenger=round_no >= 35,
         )
         if winner is None:
             per_symbol[symbol] = {
