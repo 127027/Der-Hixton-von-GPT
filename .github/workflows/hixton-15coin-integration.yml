@@ -15,6 +15,7 @@ on:
       - src/hixton/runtime/analysis.py
       - src/hixton/runtime/supervisor.py
       - src/hixton/paper/engine.py
+      - src/hixton/paper/storage.py
       - src/hixton/live/production.py
       - tests/test_config.py
   workflow_dispatch:
@@ -58,6 +59,7 @@ jobs:
             src/hixton/domain/satellite_layer.py \
             src/hixton/backtest/satellite_portfolio.py \
             src/hixton/paper/engine.py \
+            src/hixton/paper/storage.py \
             src/hixton/live/production.py \
             scripts/validate_15coin_satellite_integration.py
           .venv/bin/ruff check \
