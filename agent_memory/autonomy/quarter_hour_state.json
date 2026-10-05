@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "phase": "NEEDS_ANALYSIS",
+  "phase": "READY_TO_RUN",
   "completed_run_number": 193,
   "completed_run_id": 37304717587,
   "completed_round": 33,
@@ -8,18 +8,18 @@
   "next_round": 34,
   "next_stage": "SATELLITE_ISOLATED_5X250_ADAPTIVE_CYCLE",
   "economic_progress": true,
-  "ready_for_dispatch": false,
+  "ready_for_dispatch": true,
   "analysis_checkpoint": "2026-10-05T09:45:00+02:00",
   "analysis_summary": {
-    "SUIUSDC": "WORSE_PNL_AND_RISK_REGRESSION",
+    "SUIUSDC": "REFERENCE_PROFITABLE_LOW_FREQUENCY; rejected reentry activity caused validation/DD regression; test policy CMO + bounded exits without reentry",
     "NEARUSDC": "MATURE_INCUMBENT_PROTECTED",
-    "UNIUSDC": "UNCHANGED_FREQUENCY_EFFICIENCY_GAP",
-    "AAVEUSDC": "UNCHANGED_VALIDATION_GENERALIZATION_GAP",
-    "BCHUSDC": "WORSE_PNL_AND_RISK_REGRESSION"
+    "UNIUSDC": "PROFITABLE_LOW_FREQUENCY; slope_bars=72 is now directly searchable with 0/24/72 under 90pct training-PnL retention",
+    "AAVEUSDC": "IMPROVED_BUT_VALIDATION_NEGATIVE; refine policy CMO/direction/exit around run193 reference",
+    "BCHUSDC": "VALIDATION_GENERALIZATION_GAP; isolate CMO/direction/horizon without zero-trade trend floor"
   },
-  "prepared_family": "REFERENCE_ANCHORED_FOLD_STABILITY",
+  "prepared_family": "SYMBOL_SPECIFIC_POLICY_AND_GENERALIZATION_REPAIR",
   "launch_policy": "NEXT_QUARTER_HOUR_TICK_ONLY",
-  "last_transition_source": "research_completion",
+  "last_transition_source": "manual_round34_analysis_patch",
   "analysis_controller_run_id": 37302952731,
   "analysis_policy": "completed result reviewed on this quarter-hour tick; dispatch forbidden until a later tick",
   "dispatch_controller_run_id": 37304694249,
@@ -27,15 +27,14 @@
   "repair_commit": "c6f6e73902334855773d1b9616cef68226e25e7f",
   "repair_reason": "Fixed post-registry technical_family label IndexError for round > family_sequence length.",
   "manual_repair": {
-    "purpose": "Recover all five Satellite strategies from seed drift and weak two-year generalization",
-    "reference_anchors": {
-      "SUIUSDC": 119,
-      "NEARUSDC": 101,
-      "UNIUSDC": 141,
-      "AAVEUSDC": 131,
-      "BCHUSDC": 114
-    },
-    "training_selection": "half-year fold stability + 90% reference-training PnL retention for activity searches",
-    "launch_policy": "exactly one controlled 5x250 run after unlock"
+    "purpose": "Round 34 targeted idle-filler repair after run #193",
+    "code_commit": "9bafb89fe809701f682a73586dba00a2030d0575",
+    "control_commit": "871dbe1b3144d1fc3b6ab5ebe9f63a8e06f93457",
+    "verification": "push contract #195 SUCCESS; #196 contract SUCCESS",
+    "policy_overrides": [
+      "policy_cmo_floor",
+      "policy_slope_bars"
+    ],
+    "launch_policy": "exactly one controlled 5x250 run"
   }
 }
