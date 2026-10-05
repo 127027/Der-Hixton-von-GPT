@@ -7,17 +7,14 @@ Satellite slots at the next executable open to restore the canonical Core alloca
 
 from __future__ import annotations
 
+from collections.abc import Callable
 from dataclasses import dataclass, replace
 from datetime import datetime
 from decimal import ROUND_DOWN, Decimal
-from typing import Callable
-
 from hixton.backtest.engine import candle_snapshot_sha256
 from hixton.backtest.metrics import calculate_metrics
 from hixton.backtest.models import (
-    BASELINE_COSTS,
     ONE,
-    STRESS_COSTS,
     ZERO,
     CostModel,
     EquityPoint,
@@ -29,7 +26,6 @@ from hixton.backtest.models import (
 from hixton.constants import TIMEFRAME_DELTA
 from hixton.data.quality import audit_candles
 from hixton.domain.allocation import RANKED_REPEAT, allocate_entry_slots
-from hixton.domain.capital import capital_plan
 from hixton.domain.models import (
     Candle,
     IndicatorPoint,
@@ -126,7 +122,7 @@ def _remaining_satellite_score(
     config: RouterConfig,
     horizon_hours: int | None = None,
 ) -> Decimal:
-    """Point-in-time filler value: entry strength decays with occupancy; live trend can extend it."""
+    """Score remaining filler value from entry strength, age and live trend."""
 
     entry_strength = max(D("0"), _d(trade.signal.breakout_strength or 0))
     age_hours = max(
@@ -421,14 +417,16 @@ def run_filler_router_portfolio(
 
             # Natural/soft filler exits happen before entries at the same executable open.
             for signal in exits:
-                if not close_position(
-                    signal.symbol,
-                    at=open_time,
-                    candle=candles[signal.symbol],
-                    reason_id=signal.signal_id,
+                if (
+                    not close_position(
+                        signal.symbol,
+                        at=open_time,
+                        candle=candles[signal.symbol],
+                        reason_id=signal.signal_id,
+                    )
+                    and signal.symbol not in positions
                 ):
-                    if signal.symbol not in positions:
-                        blocked.append(f"{signal.signal_id}:POSITION_ALREADY_CLOSED")
+                    blocked.append(f"{signal.signal_id}:POSITION_ALREADY_CLOSED")
 
             core_entries = [s for s in entries if s.symbol in core_set]
             satellite_entries = [s for s in entries if s.symbol in satellite_set]
@@ -870,7 +868,10 @@ def run_filler_router_portfolio(
                         if atr_direction == "EXPANDING" and current_point.atr <= previous_point.atr:
                             blocked.append(f"{signal.signal_id}:ATR_NOT_EXPANDING")
                             continue
-                        if atr_direction == "CONTRACTING" and current_point.atr >= previous_point.atr:
+                        if (
+                            atr_direction == "CONTRACTING"
+                            and current_point.atr >= previous_point.atr
+                        ):
                             blocked.append(f"{signal.signal_id}:ATR_NOT_CONTRACTING")
                             continue
                     if risk_state.halted:
