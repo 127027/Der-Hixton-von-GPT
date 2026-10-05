@@ -39,6 +39,7 @@ from hixton.domain.risk import PortfolioRiskState, evaluate_portfolio_risk
 from hixton.domain.strategy import HixtonStrategy, entry_priority
 from hixton.domain.trade_policy import TradePolicy, TradePolicyGate
 from hixton.domain.versions import V6_COIN_STRATEGY
+
 D = Decimal
 HUNDRED = D("100")
 VERSION = "HIXTON-V6-SATELLITE-15-CANDIDATE-1"
