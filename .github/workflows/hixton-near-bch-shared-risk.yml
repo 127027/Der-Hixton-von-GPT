@@ -1,0 +1,64 @@
+name: Hixton NEAR BCH Shared Risk
+
+on:
+  push:
+    branches:
+      - gpt/15coin-satellite-integration
+    paths:
+      - .github/workflows/hixton-near-bch-shared-risk.yml
+      - scripts/optimize_near_bch_shared_risk.py
+      - scripts/optimize_shared_satellite_fillers.py
+      - src/hixton/backtest/satellite_portfolio.py
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: hixton-near-bch-shared-risk
+  cancel-in-progress: true
+
+jobs:
+  search:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 120
+    steps:
+      - name: Checkout candidate branch
+        uses: actions/checkout@v4
+        with:
+          ref: gpt/15coin-satellite-integration
+          persist-credentials: false
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install locked project environment
+        shell: bash
+        run: |
+          set -euo pipefail
+          python -m venv .venv
+          .venv/bin/python -m pip install --upgrade pip
+          .venv/bin/pip install -e '.[dev]'
+
+      - name: Static validation
+        shell: bash
+        run: |
+          set -euo pipefail
+          .venv/bin/python -m py_compile scripts/optimize_near_bch_shared_risk.py
+          .venv/bin/ruff check scripts/optimize_near_bch_shared_risk.py
+
+      - name: Search NEAR BCH risk brake
+        shell: bash
+        run: |
+          set -euo pipefail
+          .venv/bin/python scripts/optimize_near_bch_shared_risk.py
+
+      - name: Upload evidence
+        uses: actions/upload-artifact@v4
+        with:
+          name: hixton-near-bch-shared-risk-${{ github.run_id }}
+          path: evidence/near-bch-shared-risk-gate.json
+          retention-days: 30
+          if-no-files-found: error
