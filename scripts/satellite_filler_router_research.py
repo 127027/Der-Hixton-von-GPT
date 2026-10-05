@@ -194,6 +194,7 @@ def run_filler_router_portfolio(
     atr_reentry_level_by_symbol: dict[str, float] | None = None,
     entry_atr_direction_by_symbol: dict[str, str] | None = None,
     trend_health_exit_by_symbol: dict[str, float] | None = None,
+    profit_take_atr_by_symbol: dict[str, float] | None = None,
 ) -> tuple[PortfolioBacktestResult, list[dict[str, object]]]:
     if tuple(candles_by_symbol) != symbols:
         raise ValueError("router input universe/order mismatch")
@@ -259,6 +260,7 @@ def run_filler_router_portfolio(
     atr_reentry_levels = atr_reentry_level_by_symbol or {}
     atr_directions = entry_atr_direction_by_symbol or {}
     trend_health_exits = trend_health_exit_by_symbol or {}
+    profit_take_levels = profit_take_atr_by_symbol or {}
     if not set(entry_filters).issubset(set(symbols)):
         raise ValueError("entry filters reference symbols outside the research universe")
     if not set(continuation_reentry).issubset(set(satellite_symbols)):
@@ -273,6 +275,10 @@ def run_filler_router_portfolio(
         raise ValueError("ATR-direction must be EXPANDING or CONTRACTING")
     if not set(trend_health_exits).issubset(set(satellite_symbols)):
         raise ValueError("trend-health exits are research-only and Satellite-only")
+    if not set(profit_take_levels).issubset(set(satellite_symbols)):
+        raise ValueError("profit-take exits are research-only and Satellite-only")
+    if any(value <= 0 or value > 20 for value in profit_take_levels.values()):
+        raise ValueError("profit-take ATR thresholds must be in (0, 20]")
 
     cash = starting_cash
     positions: dict[str, OpenTrade] = {}
@@ -722,6 +728,33 @@ def run_filler_router_portfolio(
                         )
 
             last_points[symbol] = point
+
+            # Point-in-time research-only profit take. Use the CLOSED candle
+            # and the entry signal ATR, then schedule the exit for the next open.
+            # This deliberately avoids intrabar highs and therefore does not add
+            # optimistic lookahead to short-horizon filler research.
+            profit_take_atr = profit_take_levels.get(symbol)
+            if (
+                in_report
+                and profit_take_atr is not None
+                and position is not None
+                and position.is_satellite
+                and decisions[symbol].signal is None
+                and position.signal.atr > 0
+            ):
+                entry_price = float(position.fill.fill_price)
+                profit_atr = (point.candle.close - entry_price) / position.signal.atr
+                if profit_atr >= float(profit_take_atr):
+                    forced = HixtonStrategy.signal_for(
+                        replace(point, flip_down=True, flip_up=False),
+                        is_long=True,
+                    )
+                    if forced is not None:
+                        decisions[symbol] = replace(
+                            decisions[symbol],
+                            signal=forced,
+                            exit_reason="RESEARCH_PROFIT_TAKE_ATR",
+                        )
 
             # Point-in-time research exit when trend health degrades below a
             # training-selected threshold. This is separate from the existing
