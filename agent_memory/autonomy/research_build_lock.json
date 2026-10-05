@@ -1,8 +1,8 @@
 {
   "schema_version": 1,
-  "locked": true,
-  "reason": "Repairing round-33 post-registry family-label IndexError from run #183. No substantive research may dispatch until patch and state verification complete.",
+  "locked": false,
+  "reason": "Round-33 post-registry family-label IndexError repaired and contract-verified by run #185 on c6f6e73902334855773d1b9616cef68226e25e7f.",
   "started_from_head": "729f8c2a5901cf52dadfcde6fbf77747a24c90fa",
   "contract": "Substantive research may start only from an eligible quarter-hour controller tick. Push-triggered persistence/code commits are coordination-only. Preserve VALIDATED_INCUMBENT vs TRAINING_RESEARCH_SEED, NEAR mature freeze, validation rejection-only and protected Core.",
-  "unlock_contract": "Unlocked."
+  "unlock_contract": "Unlocked after successful contract validation. Round 33 may be retried exactly once at the next quarter-hour heartbeat."
 }
