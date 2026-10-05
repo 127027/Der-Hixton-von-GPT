@@ -20,54 +20,7 @@
         "trail_atr": 0
       },
       "training_seed": {
-        "name": "AUTO_REF_RESET_R35_REF_RUN119_VOL_CAP_0.0175",
-        "horizon_hours": 0,
-        "min_atr_pct": 0,
-        "max_atr_pct": 0.0175,
-        "min_trend_atr": -999,
-        "max_trend_atr": 999,
-        "min_breakout_atr": 0,
-        "max_breakout_atr": 999,
-        "min_abs_cmo": 0,
-        "reentry_atr_level": null,
-        "atr_direction": null,
-        "trend_health_exit": null,
-        "min_rank_strength": -999,
-        "max_rank_strength": 999
-      },
-      "reference_status": "VALIDATED_INCUMBENT",
-      "reference_source_run": 119,
-      "reference_profitability_pass": true,
-      "reference_maturity_pass": false,
-      "reference": {
-        "validation_stress_net_pnl": "82.302315198180000000",
-        "validation_stress_trades": 21,
-        "full_3y_stress_net_pnl": "507.691256283160000000",
-        "full_3y_stress_trades": 57,
-        "full_3y_stress_max_drawdown_pct": "25.72800378674776043553283649",
-        "full_3y_stress_profit_per_position_hour": "0.08021666239266234792226260073"
-      },
-      "training_seed_source_run": 119,
-      "training_seed_source_round": null,
-      "training_seed_selection_mode": "RESET_TO_ACCEPTED_REFERENCE_AFTER_REJECTION",
-      "reference_seed": {
-        "name": "REF_RUN119_VOL_CAP_0.0175",
-        "horizon_hours": 0,
-        "min_atr_pct": 0,
-        "max_atr_pct": 0.0175,
-        "min_trend_atr": -999,
-        "max_trend_atr": 999,
-        "min_breakout_atr": 0,
-        "max_breakout_atr": 999,
-        "min_abs_cmo": 0,
-        "reentry_atr_level": null,
-        "atr_direction": null,
-        "trend_health_exit": null,
-        "min_rank_strength": -999,
-        "max_rank_strength": 999
-      },
-      "last_rejected_training_candidate": {
-        "name": "R35_SUI_STOP_2.50",
+        "name": "AUTO_R35_R35_SUI_STOP_2.50",
         "horizon_hours": 0,
         "min_atr_pct": 0,
         "max_atr_pct": 0.0175,
@@ -84,11 +37,45 @@
         "policy_cmo_floor": null,
         "policy_slope_bars": null,
         "policy_stop_atr": 2.5,
-        "policy_trail_atr": null,
-        "round": 35,
-        "run_number": 205,
-        "classification": "UNCHANGED"
-      }
+        "policy_trail_atr": null
+      },
+      "reference_status": "VALIDATED_INCUMBENT",
+      "reference_source_run": 205,
+      "reference_profitability_pass": true,
+      "reference_maturity_pass": false,
+      "reference": {
+        "validation_stress_net_pnl": "101.080422459360000000",
+        "validation_stress_trades": 23,
+        "full_3y_stress_net_pnl": "504.818102669060000000",
+        "full_3y_stress_trades": 61,
+        "full_3y_stress_max_drawdown_pct": "22.09928413381226958226106338",
+        "full_3y_stress_profit_per_position_hour": "0.09904220181853247008043947420"
+      },
+      "training_seed_source_run": 205,
+      "training_seed_source_round": 35,
+      "training_seed_selection_mode": "RECOVERED_AFTER_BOUNDED_FILLER_GATE_REPAIR",
+      "reference_seed": {
+        "name": "REF_R35_R35_SUI_STOP_2.50",
+        "horizon_hours": 0,
+        "min_atr_pct": 0,
+        "max_atr_pct": 0.0175,
+        "min_trend_atr": -999,
+        "max_trend_atr": 999,
+        "min_breakout_atr": 0,
+        "max_breakout_atr": 999,
+        "min_abs_cmo": 0,
+        "reentry_atr_level": null,
+        "atr_direction": null,
+        "trend_health_exit": null,
+        "min_rank_strength": -999,
+        "max_rank_strength": 999,
+        "policy_cmo_floor": null,
+        "policy_slope_bars": null,
+        "policy_stop_atr": 2.5,
+        "policy_trail_atr": null
+      },
+      "reference_source_round": 35,
+      "reference_acceptance_reason": "FILLER_EFFICIENCY_TRADEOFF_99PCT_PNL_RETENTION"
     },
     "NEARUSDC": {
       "parameters": {
@@ -249,7 +236,7 @@
         "max_rank_strength": 999,
         "policy_cmo_floor": 0.3,
         "policy_slope_bars": 0,
-        "policy_stop_atr": 2.0,
+        "policy_stop_atr": 2,
         "policy_trail_atr": null
       },
       "reference_status": "VALIDATED_INCUMBENT",
@@ -285,7 +272,7 @@
         "max_rank_strength": 999,
         "policy_cmo_floor": 0.3,
         "policy_slope_bars": 0,
-        "policy_stop_atr": 2.0,
+        "policy_stop_atr": 2,
         "policy_trail_atr": null
       }
     },
