@@ -24,6 +24,7 @@ LOCK = Path("agent_memory/autonomy/research_build_lock.json")
 HISTORY = Path("agent_memory/autonomy/satellite_run_delta_history.json")
 LATEST = Path("agent_memory/autonomy/satellite_run_delta_latest.json")
 HANDOFF = Path("agent_memory/autonomy/satellite_adaptive_handoff.json")
+QSTATE = Path("agent_memory/autonomy/quarter_hour_state.json")
 EVIDENCE = Path("evidence/satellite-isolated-5x250-adaptive-cycle.json")
 MARKDOWN = Path("evidence/satellite-adaptive-run-delta.md")
 
@@ -57,6 +58,7 @@ def main() -> None:
     mission = _read(MISSION)
     heartbeat = _read(HEARTBEAT)
     history = _read(HISTORY) if HISTORY.exists() else {"schema_version": 1, "records": []}
+    qstate = _read(QSTATE) if QSTATE.exists() else {"schema_version": 1}
 
     round_no = int(result["round"])
     if round_no != int(control["round"]):
@@ -154,11 +156,12 @@ def main() -> None:
             control["max_rounds"] = round_no + 1
         next_stage = "SATELLITE_ISOLATED_5X250_ADAPTIVE_CYCLE"
         # Persist the next hypothesis, but never chain-run immediately.
-        # A later quarter-hour controller tick owns the single next launch.
+        # The next quarter-hour controller tick is analysis-only; only a later
+        # quarter-hour tick may launch the prepared round.
         dispatch_next = False
         next_reason = (
-            f"round {round_no} evaluated; next round {round_no + 1} prepared and "
-            "READY_FOR_NEXT_QUARTER_TICK. Immediate self-dispatch is forbidden."
+            f"round {round_no} evaluated; next round {round_no + 1} prepared. "
+            "NEEDS_ANALYSIS at the next quarter-hour tick; immediate self-dispatch is forbidden."
         )
 
     mission["current_stage"] = next_stage
@@ -196,8 +199,8 @@ def main() -> None:
         "mature_symbols_after": mature_symbols,
         "per_symbol": delta_rows,
         "patch_complete": True,
-        "orchestration_phase": "READY_FOR_NEXT_QUARTER_TICK",
-        "earliest_launch_policy": "LATER_QUARTER_HOUR_TICK_ONLY",
+        "orchestration_phase": "NEEDS_ANALYSIS",
+        "earliest_launch_policy": "ANALYSIS_TICK_THEN_LATER_LAUNCH_TICK",
         "next_stage": next_stage,
         "dispatch_next": dispatch_next,
         "next_reason": next_reason,
@@ -215,11 +218,25 @@ def main() -> None:
         "mature_symbols_after": mature_symbols,
         "next_stage": next_stage,
         "next_round": control.get("round"),
-        "orchestration_phase": "READY_FOR_NEXT_QUARTER_TICK",
-        "earliest_launch_policy": "LATER_QUARTER_HOUR_TICK_ONLY",
+        "orchestration_phase": "NEEDS_ANALYSIS",
+        "earliest_launch_policy": "ANALYSIS_TICK_THEN_LATER_LAUNCH_TICK",
         "dispatch_next": dispatch_next,
         "reason": next_reason,
     }
+
+    qstate.update({
+        "schema_version": 1,
+        "phase": "NEEDS_ANALYSIS",
+        "completed_run_number": run_number,
+        "completed_run_id": run_id,
+        "completed_round": round_no,
+        "completed_family": family,
+        "next_round": control.get("round"),
+        "next_stage": next_stage,
+        "economic_progress": bool(result.get("economic_progress")),
+        "ready_for_dispatch": False,
+        "last_transition_source": "research_completion",
+    })
 
     _write(STATE, state)
     _write(CONTROL, control)
@@ -228,6 +245,7 @@ def main() -> None:
     _write(HISTORY, history)
     _write(LATEST, record)
     _write(HANDOFF, handoff)
+    _write(QSTATE, qstate)
 
     lines = [
         f"## RUN DELTA — #{run_number} / adaptive round {round_no}",
