@@ -13,6 +13,7 @@ from uuid import uuid4
 
 from hixton.constants import HIXTON_SPEC_VERSION, SYMBOLS
 from hixton.domain.capital import capital_plan
+from hixton.domain.versions import strategy_definition
 from hixton.paper.models import (
     PaperAccount,
     PaperEvent,
@@ -127,14 +128,21 @@ class PaperStore:
                     _time(moment),
                 ),
             )
+            settings_max = seed if strategy_key == "v6" else Decimal("250.00")
+            plan = capital_plan(settings_max)
             self._connection.execute(
                 """
                 INSERT OR IGNORE INTO paper_settings (
                     singleton, max_capital_text, slot_count, target_notional_text,
                     emergency_stop, updated_at_utc
-                ) VALUES (1, '250.00', 2, '125.00', 0, ?)
+                ) VALUES (1, ?, ?, ?, 0, ?)
                 """,
-                (_time(moment),),
+                (
+                    str(plan.max_capital_usdc),
+                    plan.slot_count,
+                    str(plan.target_notional_usdc),
+                    _time(moment),
+                ),
             )
             session = self._connection.execute(
                 "SELECT singleton FROM paper_strategy_state WHERE singleton=1"
@@ -185,6 +193,10 @@ class PaperStore:
                 f"{session.strategy_key}/{session.strategy_version}, configuration uses "
                 f"{strategy_key}/{strategy_version}; explicit activation required"
             )
+
+    def _active_symbols(self) -> tuple[str, ...]:
+        session = self.load_strategy_session()
+        return strategy_definition(session.strategy_key).symbols
 
     def load_account(self) -> PaperAccount:
         row = self._connection.execute("SELECT * FROM paper_account WHERE singleton=1").fetchone()
@@ -389,9 +401,12 @@ class PaperStore:
     ) -> None:
         """Atomically persist one deterministic bar-close processing cycle."""
 
-        unknown = set(processed_bars) - set(SYMBOLS)
-        if unknown or any(value < 0 for value in processed_bars.values()):
-            raise ValueError("processed paper bars must be non-negative DMS symbol counts")
+        if set(processed_bars) != set(checkpoints) or any(
+            value < 0 for value in processed_bars.values()
+        ):
+            raise ValueError(
+                "processed paper bars must be non-negative counts for the checkpoint universe"
+            )
 
         with self._connection:
             if dust is not None:
@@ -579,8 +594,8 @@ class PaperStore:
     ) -> None:
         """Close the old paper session and atomically start a clean strategy soak."""
 
-        if set(checkpoints) != set(SYMBOLS):
-            raise ValueError("strategy activation requires all ten checkpoints")
+        if not checkpoints:
+            raise ValueError("strategy activation requires a non-empty checkpoint universe")
         previous = self.load_strategy_session()
         if previous.strategy_key == strategy_key and previous.strategy_version == strategy_version:
             return
@@ -661,7 +676,7 @@ class PaperStore:
                     symbol, baseline_close_utc, processed_closed_bars
                 ) VALUES (?, ?, 0)
                 """,
-                [(symbol, _time(checkpoints[symbol])) for symbol in SYMBOLS],
+                [(symbol, _time(value)) for symbol, value in checkpoints.items()],
             )
             self._connection.execute(
                 """
@@ -715,8 +730,8 @@ class PaperStore:
         *,
         at: datetime | None = None,
     ) -> None:
-        if set(checkpoints) != set(SYMBOLS):
-            raise ValueError("paper soak baseline requires all ten DMS symbols")
+        if not checkpoints:
+            raise ValueError("paper soak baseline requires a non-empty checkpoint universe")
         moment = (at or _now()).astimezone(UTC)
         with self._connection:
             self._connection.execute(
@@ -733,15 +748,15 @@ class PaperStore:
                     symbol, baseline_close_utc, processed_closed_bars
                 ) VALUES (?, ?, 0)
                 """,
-                [(symbol, _time(checkpoints[symbol])) for symbol in SYMBOLS],
+                [(symbol, _time(value)) for symbol, value in checkpoints.items()],
             )
 
     def ensure_execution_epoch(
         self, checkpoints: Mapping[str, datetime], *, at: datetime | None = None
     ) -> bool:
         """Restart the technical soak once, preserving ledger, cash and positions."""
-        if set(checkpoints) != set(SYMBOLS):
-            raise ValueError("execution epoch requires all ten checkpoints")
+        if not checkpoints:
+            raise ValueError("execution epoch requires a non-empty checkpoint universe")
         action = "EXECUTION_NEXT_BAR_OPEN_V1_ACTIVATED"
         if self._connection.execute(
             "SELECT 1 FROM paper_audit WHERE action=?", (action,)
@@ -794,7 +809,7 @@ class PaperStore:
             """
         ).fetchall()
         bars = {str(row["symbol"]): int(row["processed_closed_bars"]) for row in rows}
-        if set(bars) != set(SYMBOLS):
+        if set(bars) != set(self._active_symbols()):
             raise RuntimeError("paper soak counters are incomplete")
         session = self.load_strategy_session()
         completed_row = self._connection.execute(
@@ -1060,4 +1075,4 @@ class PaperStore:
 
     def missing_checkpoint_symbols(self) -> tuple[str, ...]:
         present = set(self.all_checkpoints())
-        return tuple(symbol for symbol in SYMBOLS if symbol not in present)
+        return tuple(symbol for symbol in self._active_symbols() if symbol not in present)
