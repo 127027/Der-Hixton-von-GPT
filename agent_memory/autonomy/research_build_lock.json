@@ -1,8 +1,10 @@
 {
   "schema_version": 1,
-  "locked": true,
-  "reason": "Run #149 / adaptive round 24 exhausted the predeclared adaptive family queue with NO_ECONOMIC_PROGRESS; transactional lock set before constructing a genuinely new causal family.",
+  "locked": false,
+  "reason": "Round-25 rank-strength family implementation is complete and control, mission, state, and workflow stage are aligned.",
   "started_from_head": "f304eb4a10c4f88cdaf789a7ab21cf82bbcc83f0",
   "contract": "Do not dispatch/retry substantive research or mutate strategy opportunistically while the new post-round-24 causal family is being designed and wired. Preserve VALIDATED_INCUMBENTs; TRAINING_RESEARCH_SEED remains separate; NEAR mature incumbent frozen.",
-  "unlock_contract": "Unlock only after one coherent HEAD contains the new materially different point-in-time family, real workflow/stage handler wiring, py_compile/static contract checks and artifact paths, with no gate/economic weakening. Final explicit unlock may trigger exactly one substantive run."
+  "unlock_contract": "Unlock only after one coherent HEAD contains the new materially different point-in-time family, real workflow/stage handler wiring, py_compile/static contract checks and artifact paths, with no gate/economic weakening. Final explicit unlock may trigger exactly one substantive run.",
+  "completed_family": "POINT_IN_TIME_RANK_STRENGTH",
+  "next_round": 25
 }
