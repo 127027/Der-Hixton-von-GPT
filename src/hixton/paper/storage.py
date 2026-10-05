@@ -11,7 +11,7 @@ from pathlib import Path
 from types import TracebackType
 from uuid import uuid4
 
-from hixton.constants import HIXTON_SPEC_VERSION, SYMBOLS
+from hixton.constants import HIXTON_SPEC_VERSION
 from hixton.domain.capital import capital_plan
 from hixton.domain.versions import strategy_definition
 from hixton.paper.models import (
