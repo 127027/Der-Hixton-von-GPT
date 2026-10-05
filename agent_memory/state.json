@@ -45,7 +45,7 @@
     "Binance public market-data endpoint availability and policy are external facts and must fail closed rather than trigger synthetic operational candles.",
     "Historical performance does not guarantee future profitability."
   ],
-  "notes": "Run #149 exhausted all 24 predeclared adaptive families with NO_ECONOMIC_PROGRESS. NEAR remains the frozen mature validated incumbent. SUI/UNI require frequency/efficiency improvement without PnL/risk regression; AAVE/BCH require validation generalization. research_build_lock remains true until a genuinely new causal family is completely implemented and wired. Do not rerun the exhausted family queue unchanged.",
+  "notes": "Rounds 1-24 exhausted with no final resolution for four Satellites. New point-in-time rank_strength family is wired for rounds 25-28. NEAR remains frozen mature; validated incumbents remain separate from training seeds.",
   "current_product": {
     "max_capital_source": "max_capital_usdc",
     "allocator_version": "CAPITAL-V1-2X50PCT",
@@ -56,7 +56,7 @@
   },
   "target_architecture": {
     "universe": "10 protected Core + 5 independently evolved V1-derived Satellites",
-    "current_stage": "SATELLITE_ISOLATED_5X250_NEEDS_NEW_CAUSAL_FAMILY",
+    "current_stage": "SATELLITE_ISOLATED_5X250_ADAPTIVE_CYCLE",
     "satellites": [
       "SUIUSDC",
       "NEARUSDC",
@@ -102,10 +102,10 @@
     "phase_a": "ISOLATED_15X250_RESEARCH",
     "phase_b": "SHARED_250_CORE_PLUS_IDLE_FILLERS"
   },
-  "current_stage": "SATELLITE_ISOLATED_5X250_NEEDS_NEW_CAUSAL_FAMILY",
-  "last_transition": "RUN_149_NO_ECONOMIC_PROGRESS -> ADAPTIVE_FAMILIES_EXHAUSTED -> TRANSACTIONAL_BUILD_LOCK",
+  "current_stage": "SATELLITE_ISOLATED_5X250_ADAPTIVE_CYCLE",
+  "last_transition": "POST_R24_CAUSAL_FAMILY_BUILD -> R25_POINT_IN_TIME_RANK_STRENGTH",
   "validated_incumbent_separate_from_training_seed": true,
-  "persistent_adaptive_cycle": false,
-  "adaptive_round": 24,
-  "adaptive_max_rounds": 24
+  "persistent_adaptive_cycle": true,
+  "adaptive_round": 25,
+  "adaptive_max_rounds": 28
 }
