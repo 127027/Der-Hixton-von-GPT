@@ -23,7 +23,7 @@ class TradePolicy:
         if (
             self.cmo_floor > 1
             or type(self.slope_bars) is not int
-            or self.slope_bars not in (0, 24, 48, 60, 72)
+            or self.slope_bars not in (0, 24, 72)
         ):
             raise ValueError("invalid CMO threshold or slope lookback")
 
