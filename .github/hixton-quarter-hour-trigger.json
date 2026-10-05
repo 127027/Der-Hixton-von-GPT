@@ -1,0 +1,6 @@
+{
+  "schema_version": 1,
+  "sequence": 0,
+  "requested_by": "bootstrap",
+  "note": "External quarter-hour heartbeat. Updating this file triggers Hixton Quarter-Hour Controller on main."
+}
