@@ -65,7 +65,7 @@ class LiveIntent:
             not self.intent_id
             or len(self.intent_id) > 128
             or not self.account_fingerprint
-            or self.symbol not in SYMBOLS
+            or not self.symbol.endswith("USDC")
             or self.side not in {"BUY", "SELL"}
             or not self.strategy_version
             or type(self.slot_count) is not int
@@ -752,9 +752,9 @@ class LivePortfolioController:
         now = _utc(now)
         if not self.release_check():
             raise RuntimeError("Live release gate is closed")
-        if set(points) != set(SYMBOLS) or any(not points[symbol] for symbol in SYMBOLS):
+        if set(points) != set(self.strategy.symbols) or any(not points[symbol] for symbol in self.strategy.symbols):
             raise RuntimeError("Live enable requires all ten synchronized markets")
-        latest = {symbol: _utc(points[symbol][-1].candle.close_time_utc) for symbol in SYMBOLS}
+        latest = {symbol: _utc(points[symbol][-1].candle.close_time_utc) for symbol in self.strategy.symbols}
         if len(set(latest.values())) != 1:
             raise RuntimeError("Live enable requires aligned closed bars")
         plan, emergency = self._current_plan()
@@ -805,7 +805,7 @@ class LivePortfolioController:
                 )
                 connection.executemany(
                     "INSERT INTO live_checkpoints(symbol,last_close_utc) VALUES(?,?)",
-                    [(symbol, latest[symbol].isoformat()) for symbol in SYMBOLS],
+                    [(symbol, latest[symbol].isoformat()) for symbol in self.strategy.symbols],
                 )
                 return
             if row["account"] != account or row["strategy_json"] != self._strategy_json():
@@ -838,7 +838,7 @@ class LivePortfolioController:
                 # synchronized closed bar before enabling new entries again.
                 connection.executemany(
                     "UPDATE live_checkpoints SET last_close_utc=? WHERE symbol=?",
-                    [(latest[symbol].isoformat(), symbol) for symbol in SYMBOLS],
+                    [(latest[symbol].isoformat(), symbol) for symbol in self.strategy.symbols],
                 )
             connection.execute(
                 "UPDATE live_control SET state='LIVE_ENABLED',entries_enabled=1,"
@@ -904,6 +904,7 @@ class LivePortfolioController:
                 control is None
                 or control["account"] != intent.account_fingerprint
                 or control["strategy_json"] != self._strategy_json()
+                or intent.symbol not in self.strategy.symbols
                 or not self.release_check()
             ):
                 return False
@@ -982,10 +983,10 @@ class LivePortfolioController:
         points: Mapping[str, Sequence[IndicatorPoint]],
     ) -> tuple[datetime, dict[str, IndicatorPoint]] | None:
         checkpoints = self._checkpoints()
-        if set(checkpoints) != set(SYMBOLS):
+        if set(checkpoints) != set(self.strategy.symbols):
             raise RuntimeError("Live checkpoints incomplete")
         candidates: dict[str, IndicatorPoint] = {}
-        for symbol in SYMBOLS:
+        for symbol in self.strategy.symbols:
             values = [
                 point
                 for point in points.get(symbol, ())
@@ -1261,7 +1262,7 @@ class LivePortfolioController:
                 )
             connection.executemany(
                 "UPDATE live_checkpoints SET last_close_utc=? WHERE symbol=?",
-                [(boundary.isoformat(), symbol) for symbol in SYMBOLS],
+                [(boundary.isoformat(), symbol) for symbol in self.strategy.symbols],
             )
             connection.execute(
                 "UPDATE live_control SET updated_at=? WHERE singleton=1",
@@ -1309,7 +1310,7 @@ class LivePortfolioController:
             if pending is not None:
                 self._drive_pending(pending, now=now)
                 return self.report()
-            if not healthy or set(points) != set(SYMBOLS):
+            if not healthy or set(points) != set(self.strategy.symbols):
                 return self.report()
             try:
                 plan, emergency = self._current_plan()
@@ -1332,7 +1333,7 @@ class LivePortfolioController:
                 for symbol, point in group.items()
             }
 
-            for symbol in SYMBOLS:
+            for symbol in self.strategy.symbols:
                 position = positions.get(symbol)
                 decision = decisions[symbol]
                 signal = decision.signal
@@ -1359,7 +1360,7 @@ class LivePortfolioController:
 
             if control["state"] == "LIVE_ENABLED" and bool(control["entries_enabled"]):
                 candidates: list[tuple[Any, IndicatorPoint]] = []
-                for symbol in SYMBOLS:
+                for symbol in self.strategy.symbols:
                     if symbol in positions:
                         continue
                     decision = decisions[symbol]
