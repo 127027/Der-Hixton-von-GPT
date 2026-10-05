@@ -5,7 +5,7 @@ from __future__ import annotations
 from datetime import datetime
 from pathlib import Path
 
-from hixton.constants import SYMBOLS, TIMEFRAME_DELTA
+from hixton.constants import TIMEFRAME_DELTA
 from hixton.data.quality import DataQualityReport, audit_candles
 from hixton.data.storage import CandleStore
 from hixton.domain.models import Candle, IndicatorPoint
@@ -56,7 +56,7 @@ def rebuild_analysis(
     with CandleStore(database_path) as store:
         if not store.integrity_check():
             raise RuntimeError("SQLite integrity check failed")
-        for symbol in SYMBOLS:
+        for symbol in strategy.symbols:
             actual_start = starts_by_symbol[symbol] if starts_by_symbol is not None else start
             if actual_start < start or actual_start >= end_exclusive:
                 raise ValueError(f"{symbol}: invalid available history window")
@@ -79,7 +79,7 @@ def rebuild_analysis(
                     symbol,
                     candles,
                     parameters=strategy.parameters_for(symbol),
-                    semantics=strategy.semantics,
+                    semantics=strategy.semantics_for(symbol),
                     strategy_version=strategy.version,
                 )
             )
