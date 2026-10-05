@@ -178,6 +178,50 @@ def _run(
     return result, events
 
 
+def _occupancy_metrics(result) -> dict[str, object]:
+    events: dict[object, int] = {}
+    for trade in result.trades:
+        events[trade.entry_time_utc] = events.get(trade.entry_time_utc, 0) + trade.slot_count
+        events[trade.exit_time_utc] = events.get(trade.exit_time_utc, 0) - trade.slot_count
+
+    hours = {0: D("0"), 1: D("0"), 2: D("0")}
+    occupancy = 0
+    previous = result.report_start_utc
+    max_occupancy = 0
+    for at in sorted(events):
+        clipped = min(max(at, result.report_start_utc), result.report_end_utc)
+        if clipped > previous:
+            if occupancy not in hours:
+                raise RuntimeError(f"shared occupancy escaped 0..2 slots: {occupancy}")
+            hours[occupancy] += D(str((clipped - previous).total_seconds() / 3600))
+            previous = clipped
+        occupancy += events[at]
+        if occupancy < 0 or occupancy > 2:
+            raise RuntimeError(f"shared occupancy escaped 0..2 slots: {occupancy}")
+        max_occupancy = max(max_occupancy, occupancy)
+    if previous < result.report_end_utc:
+        if occupancy not in hours:
+            raise RuntimeError(f"shared occupancy escaped 0..2 slots: {occupancy}")
+        hours[occupancy] += D(
+            str((result.report_end_utc - previous).total_seconds() / 3600)
+        )
+
+    total_hours = sum(hours.values(), D("0"))
+    used_slot_hours = hours[1] + D("2") * hours[2]
+    utilization = (
+        used_slot_hours / (D("2") * total_hours) * D("100")
+        if total_hours > 0
+        else D("0")
+    )
+    return {
+        "zero_position_hours": str(hours[0]),
+        "one_slot_hours": str(hours[1]),
+        "two_slot_hours": str(hours[2]),
+        "max_occupancy_from_trades": max_occupancy,
+        "slot_utilization_pct": str(utilization),
+    }
+
+
 def _metrics(result):
     m = result.metrics
     per_symbol = {}
@@ -188,6 +232,7 @@ def _metrics(result):
             "completed_trades": len(trades),
             "slot_trades": sum(t.slot_count for t in trades),
         }
+    occupancy = _occupancy_metrics(result)
     return {
         "starting_equity": str(m.starting_equity),
         "ending_equity": str(m.ending_equity),
@@ -198,6 +243,7 @@ def _metrics(result):
         "max_drawdown_pct": str(m.max_drawdown_pct),
         "max_concurrent_slots": result.max_concurrent_positions,
         "per_symbol": per_symbol,
+        **occupancy,
     }
 
 
@@ -346,6 +392,14 @@ def main() -> None:
                 "completed_trades": (
                     int(integrated["completed_trades"])
                     - int(core_only["completed_trades"])
+                ),
+                "zero_position_hours_reduced": str(
+                    D(core_only["zero_position_hours"])
+                    - D(integrated["zero_position_hours"])
+                ),
+                "slot_utilization_pct_gain": str(
+                    D(integrated["slot_utilization_pct"])
+                    - D(core_only["slot_utilization_pct"])
                 ),
                 "max_drawdown_pct": str(
                     D(integrated["max_drawdown_pct"]) - D(core_only["max_drawdown_pct"])
