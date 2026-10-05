@@ -1,10 +1,10 @@
 {
   "schema_version": 1,
-  "locked": true,
-  "reason": "Post-round-28 HANDOFF_STALL repair: wire a materially new point-in-time breakout-strength ceiling/window family before any substantive rerun.",
+  "locked": false,
+  "reason": "Post-round-28 terminal-state repair complete: rounds 29-32 add point-in-time breakout ceiling/window families; post-registry rounds use a bounded TRAINING-only interaction generator; autocontinue no longer emits dispatch_next=false on family exhaustion.",
   "started_from_head": "729f8c2a5901cf52dadfcde6fbf77747a24c90fa",
   "contract": "Do not dispatch/retry substantive research or mutate strategy opportunistically while the new post-round-24 causal family is being designed and wired. Preserve VALIDATED_INCUMBENTs; TRAINING_RESEARCH_SEED remains separate; NEAR mature incumbent frozen.",
-  "unlock_contract": "Unlock only after one coherent HEAD contains the new materially different point-in-time family, real workflow/stage handler wiring, py_compile/static contract checks and artifact paths, with no gate/economic weakening. Final explicit unlock may trigger exactly one substantive run.",
-  "completed_family": null,
+  "unlock_contract": "Unlocked after coherent code/control/mission wiring. Workflow contract gate must pass before substantive research; exactly one latest-head adaptive run may proceed.",
+  "completed_family": "POINT_IN_TIME_BREAKOUT_CEILING",
   "next_round": 29
 }
