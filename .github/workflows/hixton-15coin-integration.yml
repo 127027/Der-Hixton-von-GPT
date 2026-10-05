@@ -9,6 +9,11 @@ on:
       - src/hixton/domain/satellite_layer.py
       - src/hixton/backtest/satellite_portfolio.py
       - scripts/validate_15coin_satellite_integration.py
+      - config/examples/config.example.json
+      - src/hixton/config.py
+      - src/hixton/domain/versions.py
+      - src/hixton/runtime/analysis.py
+      - src/hixton/runtime/supervisor.py
   workflow_dispatch:
 
 permissions:
