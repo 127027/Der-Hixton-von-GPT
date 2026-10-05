@@ -148,7 +148,7 @@
     "run_69_head": "9314df9baeae1c907d98472823d2e7ccd3e4eaa4",
     "result": "SUCCESS_NO_SURVIVORS",
     "detail": "2/4/6h exact-full-Core-idle horizon family; UNI training winner 6h but direct-USDC rejected; SUI/NEAR/AAVE/BCH had no fully robust training horizon.",
-    "next": "round 33 evaluated; next round 34 prepared. NEEDS_ANALYSIS at the next quarter-hour tick; immediate self-dispatch is forbidden.",
+    "next": "round 34 evaluated; next round 35 prepared. NEEDS_ANALYSIS at the next quarter-hour tick; immediate self-dispatch is forbidden.",
     "run_70": 37198769433,
     "run_70_head": "736ee30f610f85044bb5476992ab81fd8606263c",
     "run_70_result": "SUCCESS_10_NEW_ELIGIBLE_REPLACEMENTS",
@@ -5370,6 +5370,156 @@
               "full_3y_stress_trades": 73,
               "full_3y_stress_max_drawdown_pct": "31.23418215152703731176153883",
               "full_3y_stress_profit_per_position_hour": "0.02356117200006734006734006734"
+            }
+          },
+          "accepted_as_new_reference": false,
+          "reference_source_run_after": 114,
+          "reference_maturity_after": false
+        }
+      }
+    },
+    "adaptive_round_34": {
+      "run_number": 198,
+      "run_id": 37322177502,
+      "family": "SYMBOL_SPECIFIC_POLICY_AND_GENERALIZATION_REPAIR",
+      "economic_progress": false,
+      "improved_symbols": [],
+      "accepted_reference_updates": [],
+      "mature_symbols_after": [
+        "NEARUSDC"
+      ],
+      "per_symbol": {
+        "SUIUSDC": {
+          "classification": "WORSE",
+          "reason": "PNL_AND_RISK_REGRESSION",
+          "problem_after_round": "FREQUENCY_OR_EFFICIENCY_GAP",
+          "training_winner": "SEED",
+          "selection_mode": "REFERENCE_ANCHORED_STABLE_ACTIVITY_90PCT_PNL",
+          "profitability_pass": false,
+          "maturity_pass": false,
+          "economic_delta_vs_reference": {
+            "classification": "WORSE",
+            "reason": "PNL_AND_RISK_REGRESSION",
+            "validation_stress_net_pnl_delta": "-158.981718294290000000",
+            "full_3y_stress_net_pnl_delta": "-125.609072079490000000",
+            "full_3y_stress_completed_trades_delta": 30,
+            "full_3y_stress_max_drawdown_pct_delta": "15.86826267994874652461815901",
+            "full_3y_stress_profit_per_position_hour_delta": "-0.03317379312355744765139335670",
+            "candidate_profitability_pass": false,
+            "candidate_maturity_pass": false,
+            "candidate_reference": {
+              "validation_stress_net_pnl": "-76.679403096110000000",
+              "validation_stress_trades": 36,
+              "full_3y_stress_net_pnl": "382.082184203670000000",
+              "full_3y_stress_trades": 87,
+              "full_3y_stress_max_drawdown_pct": "41.59626646669650696015099550",
+              "full_3y_stress_profit_per_position_hour": "0.04704286926910490027086924403"
+            }
+          },
+          "accepted_as_new_reference": false,
+          "reference_source_run_after": 119,
+          "reference_maturity_after": false
+        },
+        "NEARUSDC": {
+          "classification": "UNCHANGED",
+          "reason": "MATURE_INCUMBENT_PROTECTED",
+          "problem_after_round": "MATURE",
+          "training_winner": null,
+          "selection_mode": null,
+          "profitability_pass": null,
+          "maturity_pass": null,
+          "economic_delta_vs_reference": null,
+          "accepted_as_new_reference": false,
+          "reference_source_run_after": 101,
+          "reference_maturity_after": true
+        },
+        "UNIUSDC": {
+          "classification": "UNCHANGED",
+          "reason": "NO_VALIDATED_IMPROVEMENT",
+          "problem_after_round": "FREQUENCY_OR_EFFICIENCY_GAP",
+          "training_winner": "SEED",
+          "selection_mode": "REFERENCE_ANCHORED_STABLE_ACTIVITY_90PCT_PNL",
+          "profitability_pass": true,
+          "maturity_pass": false,
+          "economic_delta_vs_reference": {
+            "classification": "UNCHANGED",
+            "reason": "NO_VALIDATED_IMPROVEMENT",
+            "validation_stress_net_pnl_delta": "0E-17",
+            "full_3y_stress_net_pnl_delta": "0E-17",
+            "full_3y_stress_completed_trades_delta": 0,
+            "full_3y_stress_max_drawdown_pct_delta": "0E-26",
+            "full_3y_stress_profit_per_position_hour_delta": "0E-29",
+            "candidate_profitability_pass": true,
+            "candidate_maturity_pass": false,
+            "candidate_reference": {
+              "validation_stress_net_pnl": "161.33589135036000000",
+              "validation_stress_trades": 38,
+              "full_3y_stress_net_pnl": "315.06754817911000000",
+              "full_3y_stress_trades": 100,
+              "full_3y_stress_max_drawdown_pct": "32.74500737997216506907925508",
+              "full_3y_stress_profit_per_position_hour": "0.03757962168166865458015267176"
+            }
+          },
+          "accepted_as_new_reference": false,
+          "reference_source_run_after": 141,
+          "reference_maturity_after": false
+        },
+        "AAVEUSDC": {
+          "classification": "UNCHANGED",
+          "reason": "NO_VALIDATED_IMPROVEMENT",
+          "problem_after_round": "VALIDATION_GENERALIZATION_GAP",
+          "training_winner": "SEED",
+          "selection_mode": "FOLD_STABILITY_PROFIT_FIRST_TRAINING_SELECTION",
+          "profitability_pass": false,
+          "maturity_pass": false,
+          "economic_delta_vs_reference": {
+            "classification": "UNCHANGED",
+            "reason": "NO_VALIDATED_IMPROVEMENT",
+            "validation_stress_net_pnl_delta": "0E-16",
+            "full_3y_stress_net_pnl_delta": "0E-16",
+            "full_3y_stress_completed_trades_delta": 0,
+            "full_3y_stress_max_drawdown_pct_delta": "0E-26",
+            "full_3y_stress_profit_per_position_hour_delta": "0E-29",
+            "candidate_profitability_pass": false,
+            "candidate_maturity_pass": false,
+            "candidate_reference": {
+              "validation_stress_net_pnl": "-62.9948613217300000",
+              "validation_stress_trades": 48,
+              "full_3y_stress_net_pnl": "309.7865802347900000",
+              "full_3y_stress_trades": 130,
+              "full_3y_stress_max_drawdown_pct": "38.09803073679226760589964938",
+              "full_3y_stress_profit_per_position_hour": "0.03768234767483152901106921299"
+            }
+          },
+          "accepted_as_new_reference": false,
+          "reference_source_run_after": 193,
+          "reference_maturity_after": false
+        },
+        "BCHUSDC": {
+          "classification": "WORSE",
+          "reason": "PNL_AND_RISK_REGRESSION",
+          "problem_after_round": "VALIDATION_GENERALIZATION_GAP",
+          "training_winner": "R34_BCH_H72_CMO0.05",
+          "selection_mode": "FOLD_STABILITY_PROFIT_FIRST_TRAINING_SELECTION",
+          "profitability_pass": false,
+          "maturity_pass": false,
+          "economic_delta_vs_reference": {
+            "classification": "WORSE",
+            "reason": "PNL_AND_RISK_REGRESSION",
+            "validation_stress_net_pnl_delta": "-3.547533303600000",
+            "full_3y_stress_net_pnl_delta": "-60.515541805400000",
+            "full_3y_stress_completed_trades_delta": 49,
+            "full_3y_stress_max_drawdown_pct_delta": "6.75385094065169770485923710",
+            "full_3y_stress_profit_per_position_hour_delta": "0.00467086783462574962510620727",
+            "candidate_profitability_pass": false,
+            "candidate_maturity_pass": false,
+            "candidate_reference": {
+              "validation_stress_net_pnl": "-61.980243225700000",
+              "validation_stress_trades": 45,
+              "full_3y_stress_net_pnl": "219.391181555400000",
+              "full_3y_stress_trades": 122,
+              "full_3y_stress_max_drawdown_pct": "37.98803309217873501662077593",
+              "full_3y_stress_profit_per_position_hour": "0.02823203983469308969244627461"
             }
           },
           "accepted_as_new_reference": false,
