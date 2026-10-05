@@ -152,7 +152,9 @@ jobs:
               build_locked = bool(lock.get("locked", False))
           if build_locked:
               stage = "BUILD_LOCKED"
-          fast = build_locked or stage.startswith(("SATELLITE_", "STEP4_", "STEP5_", "STEP5B_", "STEP6_", "STEP7_", "STEP8_", "STEP9_"))
+          # QUARTER_HOUR_WAIT is also a hard fast-path: push-triggered runs
+          # must never fall through into the legacy full candidate pipeline.
+          fast = build_locked or stage == "QUARTER_HOUR_WAIT" or stage.startswith(("SATELLITE_", "STEP4_", "STEP5_", "STEP5B_", "STEP6_", "STEP7_", "STEP8_", "STEP9_"))
           print(f"priority_stage={stage}")
           print(f"build_locked={'true' if build_locked else 'false'}")
           print(f"full_candidate_pipeline={'false' if fast else 'true'}")
