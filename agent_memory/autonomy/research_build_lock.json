@@ -1,8 +1,8 @@
 {
   "schema_version": 1,
-  "locked": true,
-  "reason": "Manual five-Satellite repair: fix training-seed drift and weak training generalization before one controlled 5x250 backtest.",
+  "locked": false,
+  "reason": "Manual five-Satellite repair complete: reference anchors restored, accepted reference specs are persisted durably, round 33 is reference-anchored and uses four half-year TRAINING stress folds plus 90% reference-training PnL retention for activity search.",
   "started_from_head": "729f8c2a5901cf52dadfcde6fbf77747a24c90fa",
   "contract": "No substantive research dispatch while locked. Patch reference anchors, fold-stability selection and targeted round-33 variants only; preserve validation rejection-only, NEAR mature freeze and protected Core.",
-  "unlock_contract": "Unlock only after modified Python parses cleanly and state/control/reference anchors are coherent."
+  "unlock_contract": "Unlocked for exactly one controlled round-33 5x250 research run after latest-head contract/py_compile passes."
 }
