@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "phase": "RUN_DISPATCHED",
+  "phase": "READY_TO_RUN",
   "completed_run_number": 211,
   "completed_run_id": 37325972895,
   "completed_round": 36,
@@ -8,7 +8,7 @@
   "next_round": 37,
   "next_stage": "SATELLITE_ISOLATED_5X250_ADAPTIVE_CYCLE",
   "economic_progress": false,
-  "ready_for_dispatch": false,
+  "ready_for_dispatch": true,
   "analysis_checkpoint": "2026-10-05T09:45:00+02:00",
   "analysis_summary": {
     "SUIUSDC": "Local interpolation between accepted V15/B2.30/STOP2.50 and strong-training V12/B2.15 challenger; seek lower DD/higher PPH without validation collapse.",
@@ -19,7 +19,7 @@
   },
   "prepared_family": "MANUAL_FINAL_GAP_FILLER_REFINEMENT",
   "launch_policy": "NEXT_QUARTER_HOUR_TICK_ONLY",
-  "last_transition_source": "quarter_hour_dispatch",
+  "last_transition_source": "manual_round37_retry_after_slope_guard_fix",
   "analysis_controller_run_id": 37302952731,
   "analysis_policy": "completed result reviewed on this quarter-hour tick; dispatch forbidden until a later tick",
   "dispatch_controller_run_id": 37330480669,
@@ -31,6 +31,8 @@
     "code_commit": "44d9e964eb32066359d38eb444cab2418222dea6",
     "control_commit": "1e8b4e9247b0435c49fb9fd57ae8a4a0e0eb6242",
     "verification": "push run #217 contract SUCCESS",
-    "launch_policy": "exactly one substantive Round37 run; all external research controllers remain paused afterwards"
+    "launch_policy": "exactly one substantive Round37 run; all external research controllers remain paused afterwards",
+    "retry_of_failed_run": 219,
+    "slope_guard_fix_commit": "2bddad9b289aa813ab779cce0e53966b95245345"
   }
 }
