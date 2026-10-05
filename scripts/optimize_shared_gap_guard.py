@@ -22,6 +22,7 @@ from hixton.domain.capital import capital_plan
 from hixton.domain.satellite_layer import CORE_SYMBOLS, SATELLITE_SYMBOLS
 
 D = Decimal
+REFERENCE_CAPITAL = D("250")
 OUTPUT = Path("evidence/shared-gap-guard-optimization.json")
 
 
@@ -44,7 +45,7 @@ def _run(
     report_start,
     report_end,
     costs,
-    max_capital: D = D("250"),
+    max_capital: D = REFERENCE_CAPITAL,
 ):
     parameters, policies, semantics, filters, horizons, reentry = _maps()
     plan = capital_plan(max_capital)
@@ -120,7 +121,7 @@ def _run(
     return metrics
 
 
-def _core(*, candles, rules, start, end, costs, max_capital=D("250")):
+def _core(*, candles, rules, start, end, costs, max_capital=REFERENCE_CAPITAL):
     return _run(
         candidate=Candidate("CORE_ONLY", ()),
         candles=candles,
