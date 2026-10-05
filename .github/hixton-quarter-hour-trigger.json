@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "sequence": 2,
-  "requested_by": "manual_round34_launch",
-  "note": "Wake controller after verified Round 34 patch; dispatch exactly one substantive 5x250 run."
+  "sequence": 3,
+  "requested_by": "manual_1615_round35_launch",
+  "note": "Wake controller after verified Round 35 material-challenger repair; dispatch exactly one substantive run."
 }
