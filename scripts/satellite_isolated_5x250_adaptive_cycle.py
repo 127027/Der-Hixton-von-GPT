@@ -78,6 +78,7 @@ class AdaptiveSpec:
     strategy_smoothing_length: int | None = None
     strategy_atr_length: int | None = None
     strategy_band_multiplier: float | None = None
+    profit_take_atr: float | None = None
 
 
 def _seed(row: dict) -> AdaptiveSpec:
@@ -109,7 +110,7 @@ def _dedupe(rows: list[AdaptiveSpec]) -> tuple[AdaptiveSpec, ...]:
             row.policy_stop_atr, row.policy_trail_atr,
             row.strategy_vidya_length, row.strategy_momentum_length,
             row.strategy_smoothing_length, row.strategy_atr_length,
-            row.strategy_band_multiplier,
+            row.strategy_band_multiplier, row.profit_take_atr,
         )
         if key not in seen:
             seen.add(key)
@@ -938,6 +939,119 @@ def _variants(
                             policy_slope_bars=0,
                         ))
 
+    elif round_no == 38:
+        # Final provisional manual pass: optimize each accepted/reference basin
+        # independently for robust profit and capital efficiency. A new research-
+        # only close-based ATR profit take is the primary causal family.
+        anchor = reference_seed or seed
+
+        if symbol == "SUIUSDC":
+            # Strong accepted stop2.50/cap1.75% basin. Interpolate band width and
+            # bank winners earlier without forcing extra entries.
+            for band in (2.20, 2.225, 2.25, 2.275, 2.30):
+                for take in (1.50, 2.00, 2.50, 3.00, 4.00):
+                    rows.append(_with(
+                        anchor,
+                        f"R38_SUI_B{band:.3f}_PT{take:.2f}",
+                        policy_stop_atr=2.50,
+                        strategy_band_multiplier=band,
+                        profit_take_atr=take,
+                    ))
+
+        elif symbol == "NEARUSDC":
+            # Mature H48 reference: prior stop-based shortening damaged training.
+            # Test profit harvesting while preserving the H48 cadence.
+            for take in (1.50, 2.00, 2.50, 3.00, 3.50, 4.00, 5.00):
+                rows.append(_with(
+                    anchor, f"R38_NEAR_PT{take:.2f}",
+                    horizon_hours=48,
+                    profit_take_atr=take,
+                ))
+            for band in (2.60, 2.70, 2.80, 2.90, 3.00):
+                for take in (2.00, 3.00):
+                    rows.append(_with(
+                        anchor, f"R38_NEAR_B{band:.2f}_PT{take:.2f}",
+                        horizon_hours=48,
+                        strategy_band_multiplier=band,
+                        profit_take_atr=take,
+                    ))
+            for atr_len in (160, 200, 240):
+                rows.append(_with(
+                    anchor, f"R38_NEAR_ATR{atr_len}_PT2.50",
+                    horizon_hours=48,
+                    strategy_atr_length=atr_len,
+                    profit_take_atr=2.50,
+                ))
+
+        elif symbol == "UNIUSDC":
+            # Keep the proven slope72/CMO/reentry structure. Search a tight
+            # ATR/band neighborhood plus profit harvesting, not more raw entries.
+            for atr_len in (108, 120, 132):
+                for band in (1.90, 2.00, 2.10):
+                    for take in (1.50, 2.00, 2.50):
+                        rows.append(_with(
+                            anchor,
+                            f"R38_UNI_ATR{atr_len}_B{band:.2f}_PT{take:.2f}",
+                            policy_cmo_floor=0.30,
+                            policy_slope_bars=72,
+                            strategy_atr_length=atr_len,
+                            strategy_band_multiplier=band,
+                            profit_take_atr=take,
+                        ))
+            for reentry in (0.45, 0.50, 0.55):
+                rows.append(_with(
+                    anchor, f"R38_UNI_RE{reentry:.2f}_PT2.00",
+                    reentry_atr_level=reentry,
+                    policy_cmo_floor=0.30,
+                    policy_slope_bars=72,
+                    profit_take_atr=2.00,
+                ))
+
+        elif symbol == "AAVEUSDC":
+            # Training showed H96 as the strongest profit basin and H72 as more
+            # active but fragile. Interpolate occupancy and pair with profit take.
+            for hold in (90, 96, 102, 108, 120):
+                for stop in (2.00, 2.25):
+                    for take in (1.50, 2.00, 2.50):
+                        rows.append(_with(
+                            anchor,
+                            f"R38_AAVE_H{hold}_S{stop:.2f}_PT{take:.2f}",
+                            horizon_hours=hold,
+                            policy_stop_atr=stop,
+                            policy_cmo_floor=0.30,
+                            policy_slope_bars=0,
+                            profit_take_atr=take,
+                        ))
+
+        elif symbol == "BCHUSDC":
+            # Validation remains the blocker. Do not chase frequency; instead
+            # test whether banking ATR-sized winners reduces give-back.
+            for take in (1.00, 1.25, 1.50, 1.75, 2.00, 2.50, 3.00):
+                rows.append(_with(
+                    anchor, f"R38_BCH_PT{take:.2f}",
+                    profit_take_atr=take,
+                    policy_cmo_floor=0.0,
+                    policy_slope_bars=0,
+                ))
+            for band in (3.00, 3.20, 3.40):
+                for take in (1.25, 1.75, 2.25):
+                    rows.append(_with(
+                        anchor, f"R38_BCH_B{band:.2f}_PT{take:.2f}",
+                        strategy_band_multiplier=band,
+                        profit_take_atr=take,
+                        policy_cmo_floor=0.0,
+                        policy_slope_bars=0,
+                    ))
+            for momentum in (12, 14, 16):
+                for take in (1.50, 2.00):
+                    rows.append(_with(
+                        anchor, f"R38_BCH_M{momentum}_PT{take:.2f}",
+                        strategy_momentum_length=momentum,
+                        profit_take_atr=take,
+                        policy_cmo_floor=0.0,
+                        policy_slope_bars=0,
+                    ))
+
     else:
         # Durable post-registry generator: exhaustion is not a terminal state.
         # Every generation changes a bounded point-in-time interaction grid derived
@@ -1080,6 +1194,11 @@ def _run(*, symbol, candles, rules, start, end, costs, params, policy, spec: Ada
             if spec.trend_health_exit is not None
             else {}
         ),
+        profit_take_atr_by_symbol=(
+            {symbol: float(spec.profit_take_atr)}
+            if spec.profit_take_atr is not None
+            else {}
+        ),
     )
     return result, events
 
@@ -1122,6 +1241,7 @@ def _choose(
     reference_mature: bool,
     *,
     require_material_challenger: bool = False,
+    prefer_profit_over_activity: bool = False,
 ) -> tuple[dict | None, str]:
     eligible = [row for row in rows if row["training_both_positive"]]
     if not eligible:
@@ -1166,6 +1286,20 @@ def _choose(
             and D(row["training_score"]["max_dd"]) <= dd_ceiling
         ]
         if activity_pool:
+            if prefer_profit_over_activity:
+                activity_pool.sort(
+                    key=lambda row: (
+                        int(row["training_score"].get("fold_positive_count", 0)),
+                        D(row["training_score"].get("worst_fold_pnl", "-999999")),
+                        D(row["training_score"]["min_pnl"]),
+                        D(row["training_score"]["sum_pnl"]),
+                        D(row["training_score"]["min_pph"]),
+                        -D(row["training_score"]["max_dd"]),
+                        int(row["training_score"]["min_trades"]),
+                    ),
+                    reverse=True,
+                )
+                return activity_pool[0], "REFERENCE_ANCHORED_PROFIT_FIRST_FILLER"
             activity_pool.sort(
                 key=lambda row: (
                     int(row["training_score"].get("fold_positive_count", 0)),
@@ -1326,7 +1460,7 @@ def main() -> None:
 
     for symbol in SATELLITES:
         row = state["per_symbol"][symbol]
-        if bool(row["reference_maturity_pass"]) and round_no != 37:
+        if bool(row["reference_maturity_pass"]) and round_no not in (37, 38):
             per_symbol[symbol] = {
                 "status": "FROZEN_MATURE_INCUMBENT",
                 "classification": "UNCHANGED",
@@ -1392,6 +1526,7 @@ def main() -> None:
             bool(row["reference_profitability_pass"]),
             bool(row["reference_maturity_pass"]),
             require_material_challenger=round_no >= 35,
+            prefer_profit_over_activity=round_no >= 38,
         )
         if winner is None:
             per_symbol[symbol] = {
