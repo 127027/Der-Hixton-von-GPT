@@ -23,7 +23,6 @@ from hixton.domain.satellite_layer import (
     ALL_15_SYMBOLS,
     CORE_SYMBOLS,
     SATELLITE_PROFILES,
-    SATELLITE_PROFILE_BY_SYMBOL,
     SATELLITE_SYMBOLS,
 )
 from hixton.domain.versions import V6_COIN_STRATEGY
@@ -110,7 +109,7 @@ def _histories(client: BinancePublicClient):
 def _maps():
     parameters = {p.symbol: p.parameters for p in V6_COIN_STRATEGY.coin_profiles}
     policies = {p.symbol: p.trade_policy for p in V6_COIN_STRATEGY.coin_profiles}
-    semantics = {symbol: V6_COIN_STRATEGY.semantics for symbol in CORE_SYMBOLS}
+    semantics = dict.fromkeys(CORE_SYMBOLS, V6_COIN_STRATEGY.semantics)
     entry_filters = {}
     horizons = {}
     reentry = {}
@@ -141,7 +140,6 @@ def _run(
     slot_count: int,
 ):
     parameters, policies, semantics, filters, horizons, reentry = _maps()
-    chosen_satellites = set(satellite_symbols)
     result, events = run_filler_router_portfolio(
         candles_by_symbol={s: candles[s] for s in symbols},
         report_start_utc=report_start,
@@ -323,7 +321,10 @@ def main() -> None:
                     D(integrated["ending_equity"]) - D(core_only["ending_equity"])
                 ),
                 "net_pnl": str(D(integrated["net_pnl"]) - D(core_only["net_pnl"])),
-                "completed_trades": int(integrated["completed_trades"]) - int(core_only["completed_trades"]),
+                "completed_trades": (
+                    int(integrated["completed_trades"])
+                    - int(core_only["completed_trades"])
+                ),
                 "max_drawdown_pct": str(
                     D(integrated["max_drawdown_pct"]) - D(core_only["max_drawdown_pct"])
                 ),
