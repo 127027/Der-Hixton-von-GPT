@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "sequence": 3,
-  "requested_by": "manual_1615_round35_launch",
-  "note": "Wake controller after verified Round 35 material-challenger repair; dispatch exactly one substantive run."
+  "sequence": 4,
+  "requested_by": "manual_round36_launch_1630",
+  "note": "Wake controller after corrected filler gate and verified Round36 base-strategy neighborhood repair."
 }
