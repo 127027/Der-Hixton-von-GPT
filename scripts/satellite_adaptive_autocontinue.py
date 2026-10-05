@@ -158,7 +158,7 @@ def main() -> None:
         next_stage = "SATELLITE_ISOLATED_5X250_NEEDS_NEW_CAUSAL_FAMILY"
         dispatch_next = False
         next_reason = (
-            "24 materially different adaptive families exhausted; controller must "
+            f"{max_rounds} materially different adaptive families exhausted; controller must "
             "build a new causal family under transactional lock"
         )
 
