@@ -141,8 +141,10 @@ jobs:
           branch="gpt/autonomous-research-v1"
           repo="$GITHUB_REPOSITORY"
           research_workflow_id="372346623"
-          gh workflow run "$research_workflow_id" --repo "$repo" --ref "$branch"
 
+          # Persist RUN_DISPATCHED BEFORE launching so the research run starts on
+          # the exact resulting HEAD. This prevents a controller state commit from
+          # moving HEAD underneath an active research run and invalidating its handoff.
           python - <<'PY'
           import json, os
           from pathlib import Path
@@ -160,3 +162,5 @@ jobs:
           git commit -m "autonomy: quarter-hour dispatch recorded"
           git remote set-url origin "https://x-access-token:${GH_TOKEN}@github.com/${GITHUB_REPOSITORY}.git"
           git push origin "HEAD:$branch"
+
+          gh workflow run "$research_workflow_id" --repo "$repo" --ref "$branch"
