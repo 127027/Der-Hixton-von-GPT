@@ -59,6 +59,7 @@ class AdaptiveSpec:
     min_trend_atr: float = -999.0
     max_trend_atr: float = 999.0
     min_breakout_atr: float = 0.0
+    max_breakout_atr: float = 999.0
     min_abs_cmo: float = 0.0
     reentry_atr_level: float | None = None
     atr_direction: str | None = None
@@ -86,7 +87,7 @@ def _dedupe(rows: list[AdaptiveSpec]) -> tuple[AdaptiveSpec, ...]:
         key = (
             row.horizon_hours, row.min_atr_pct, row.max_atr_pct,
             row.min_trend_atr, row.max_trend_atr, row.min_breakout_atr,
-            row.min_abs_cmo, row.reentry_atr_level, row.atr_direction,
+            row.max_breakout_atr, row.min_abs_cmo, row.reentry_atr_level, row.atr_direction,
             row.trend_health_exit, row.min_rank_strength, row.max_rank_strength,
         )
         if key not in seen:
@@ -413,6 +414,25 @@ def _variants(symbol: str, seed: AdaptiveSpec, round_no: int) -> tuple[AdaptiveS
         for lo in (0.0, 0.25, 0.50, 0.75):
             for mult in (0.8, 1.0, 1.2):
                 rows.append(_with(seed, f"RANK_{lo:g}_VOL_{mult:.1f}", min_rank_strength=lo, max_atr_pct=_clamp(base_max * mult, 0.008, 0.08)))
+    elif round_no == 29:
+        # New causal axis after R28 exhaustion: reject point-in-time overextended breakouts.
+        # breakout_strength is computed at the decision candle; no future/holdout input.
+        for hi in (0.50, 0.75, 1.00, 1.50, 2.00, 3.00, 999.0):
+            if seed.min_breakout_atr < hi:
+                rows.append(_with(seed, f"BREAKOUT_CAP_{hi:g}", max_breakout_atr=hi))
+    elif round_no == 30:
+        for lo in (0.0, 0.05, 0.10, 0.20, 0.30):
+            for hi in (0.50, 0.75, 1.00, 1.50, 2.00):
+                if lo < hi:
+                    rows.append(_with(seed, f"BREAKOUT_WINDOW_{lo:g}_{hi:g}", min_breakout_atr=lo, max_breakout_atr=hi))
+    elif round_no == 31:
+        for hi in (0.50, 0.75, 1.00, 1.50, 2.00):
+            for hold in (24, 48, 72, 120):
+                rows.append(_with(seed, f"BREAKOUT_CAP_{hi:g}_H{hold}", max_breakout_atr=hi, horizon_hours=hold))
+    elif round_no == 32:
+        for hi in (0.50, 0.75, 1.00, 1.50, 2.00):
+            for rank_lo in (0.0, 0.25, 0.50, 0.75):
+                rows.append(_with(seed, f"BREAKOUT_CAP_{hi:g}_RANK_{rank_lo:g}", max_breakout_atr=hi, min_rank_strength=rank_lo))
     else:
         raise RuntimeError(f"unsupported adaptive round {round_no}")
 
@@ -448,6 +468,13 @@ def _adaptive_entry_filter(spec: AdaptiveSpec):
             return "RANK_STRENGTH_TOO_LOW"
         if rank > spec.max_rank_strength:
             return "RANK_STRENGTH_TOO_HIGH"
+        breakout = point.breakout_strength
+        if breakout is None:
+            if spec.max_breakout_atr < 999.0:
+                return "BREAKOUT_STRENGTH_UNAVAILABLE"
+            return None
+        if breakout > spec.max_breakout_atr:
+            return "BREAKOUT_STRENGTH_TOO_HIGH"
         return None
 
     return gate
