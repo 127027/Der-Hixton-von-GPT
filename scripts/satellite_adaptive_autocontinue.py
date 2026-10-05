@@ -152,11 +152,12 @@ def main() -> None:
         if round_no >= max_rounds:
             control["max_rounds"] = round_no + 1
         next_stage = "SATELLITE_ISOLATED_5X250_ADAPTIVE_CYCLE"
-        dispatch_next = True
+        # Persist the next hypothesis, but never chain-run immediately.
+        # A later quarter-hour controller tick owns the single next launch.
+        dispatch_next = False
         next_reason = (
-            f"advance from adaptive round {round_no} to {round_no + 1}; "
-            "registry exhaustion transitions into a bounded TRAINING-only generated "
-            "point-in-time causal interaction family instead of stopping"
+            f"round {round_no} evaluated; next round {round_no + 1} prepared and "
+            "READY_FOR_NEXT_QUARTER_TICK. Immediate self-dispatch is forbidden."
         )
 
     mission["current_stage"] = next_stage
