@@ -42,6 +42,7 @@ class Candidate:
     name: str
     enabled: tuple[str, ...]
     min_breakout: tuple[tuple[str, float], ...] = ()
+    max_portfolio_drawdown_pct: Decimal | None = None
 
     @property
     def thresholds(self) -> dict[str, float]:
@@ -153,6 +154,7 @@ def _run_shared(
         entry_filter_by_symbol={s: _filter(s, thresholds.get(s, 0.0)) for s in sats},
         atr_reentry_level_by_symbol={s: reentry[s] for s in sats if s in reentry},
         filler_horizon_hours_by_symbol={s: horizons[s] for s in sats if s in horizons},
+        satellite_max_portfolio_drawdown_pct=candidate.max_portfolio_drawdown_pct,
     )
     metrics = _metrics(result)
     metrics["strict_idle_handoffs"] = sum(
@@ -281,6 +283,11 @@ def _evaluate_training(
             "name": candidate.name,
             "enabled": list(candidate.enabled),
             "min_breakout": dict(candidate.min_breakout),
+            "max_portfolio_drawdown_pct": (
+                None
+                if candidate.max_portfolio_drawdown_pct is None
+                else str(candidate.max_portfolio_drawdown_pct)
+            ),
         },
         "folds": folds,
         "score": [
