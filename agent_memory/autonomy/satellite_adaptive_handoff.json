@@ -1,20 +1,18 @@
 {
   "schema_version": 1,
-  "completed_run_number": 205,
-  "completed_run_id": 37324151689,
-  "completed_round": 35,
-  "completed_family": "MATERIAL_CHALLENGER_RISK_EXIT_REPAIR",
-  "economic_progress": true,
-  "accepted_reference_updates": [
-    "AAVEUSDC"
-  ],
+  "completed_run_number": 211,
+  "completed_run_id": 37325972895,
+  "completed_round": 36,
+  "completed_family": "BASE_STRATEGY_NEIGHBORHOOD_REPAIR",
+  "economic_progress": false,
+  "accepted_reference_updates": [],
   "mature_symbols_after": [
     "NEARUSDC"
   ],
   "next_stage": "SATELLITE_ISOLATED_5X250_ADAPTIVE_CYCLE",
-  "next_round": 36,
+  "next_round": 37,
   "orchestration_phase": "NEEDS_ANALYSIS",
   "earliest_launch_policy": "ANALYSIS_TICK_THEN_LATER_LAUNCH_TICK",
   "dispatch_next": false,
-  "reason": "round 35 evaluated; next round 36 prepared. NEEDS_ANALYSIS at the next quarter-hour tick; immediate self-dispatch is forbidden."
+  "reason": "round 36 evaluated; next round 37 prepared. NEEDS_ANALYSIS at the next quarter-hour tick; immediate self-dispatch is forbidden."
 }
