@@ -29,6 +29,7 @@ from hixton.domain.versions import V6_COIN_STRATEGY
 from hixton.runtime.supervisor import safe_closed_window
 
 D = Decimal
+REFERENCE_CAPITAL = D("250")
 BAR_HOURS = 1
 OUTPUT = Path("evidence/15coin-satellite-integration.json")
 VERSION = "HIXTON-V6-SATELLITE-15-CANDIDATE-1"
@@ -325,7 +326,7 @@ def _shared(
     report_end,
     include_satellites: bool,
     *,
-    max_capital: D = D("250"),
+    max_capital: D = REFERENCE_CAPITAL,
 ):
     plan = capital_plan(max_capital)
     symbols = ALL_15_SYMBOLS if include_satellites else CORE_SYMBOLS
