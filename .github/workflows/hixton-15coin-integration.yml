@@ -1,0 +1,64 @@
+name: Hixton 15-Coin Satellite Integration
+
+on:
+  push:
+    branches:
+      - gpt/15coin-satellite-integration
+    paths:
+      - .github/workflows/hixton-15coin-integration.yml
+      - src/hixton/domain/satellite_layer.py
+      - src/hixton/backtest/satellite_portfolio.py
+      - scripts/validate_15coin_satellite_integration.py
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: hixton-15coin-satellite-integration
+  cancel-in-progress: true
+
+jobs:
+  validate:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 120
+    steps:
+      - name: Checkout candidate branch
+        uses: actions/checkout@v4
+        with:
+          ref: gpt/15coin-satellite-integration
+          persist-credentials: false
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install locked project environment
+        shell: bash
+        run: |
+          set -euo pipefail
+          python -m venv .venv
+          .venv/bin/python -m pip install --upgrade pip
+          .venv/bin/pip install -e '.[dev]'
+
+      - name: Static validation
+        shell: bash
+        run: |
+          set -euo pipefail
+          .venv/bin/python -m py_compile             src/hixton/domain/satellite_layer.py             src/hixton/backtest/satellite_portfolio.py             scripts/validate_15coin_satellite_integration.py
+          .venv/bin/ruff check             src/hixton/domain/satellite_layer.py             src/hixton/backtest/satellite_portfolio.py             scripts/validate_15coin_satellite_integration.py
+
+      - name: Run 15x250 and shared-250 integration backtests
+        shell: bash
+        run: |
+          set -euo pipefail
+          .venv/bin/python scripts/validate_15coin_satellite_integration.py
+
+      - name: Upload integration evidence
+        uses: actions/upload-artifact@v4
+        with:
+          name: hixton-15coin-integration-${{ github.run_id }}
+          path: evidence/15coin-satellite-integration.json
+          retention-days: 30
+          if-no-files-found: error
