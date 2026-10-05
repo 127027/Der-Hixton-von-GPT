@@ -1,16 +1,16 @@
 {
   "schema_version": 1,
-  "completed_run_number": 165,
-  "completed_run_id": 37276204571,
-  "completed_round": 29,
-  "completed_family": "POINT_IN_TIME_BREAKOUT_CEILING",
+  "completed_run_number": 166,
+  "completed_run_id": 37276510773,
+  "completed_round": 30,
+  "completed_family": "BREAKOUT_STRENGTH_WINDOW",
   "economic_progress": false,
   "accepted_reference_updates": [],
   "mature_symbols_after": [
     "NEARUSDC"
   ],
   "next_stage": "SATELLITE_ISOLATED_5X250_ADAPTIVE_CYCLE",
-  "next_round": 30,
+  "next_round": 31,
   "dispatch_next": true,
-  "reason": "advance from adaptive round 29 to 30; registry exhaustion transitions into a bounded TRAINING-only generated point-in-time causal interaction family instead of stopping"
+  "reason": "advance from adaptive round 30 to 31; registry exhaustion transitions into a bounded TRAINING-only generated point-in-time causal interaction family instead of stopping"
 }

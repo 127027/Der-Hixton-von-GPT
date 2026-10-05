@@ -1,9 +1,9 @@
 {
-  "run_number": 165,
-  "run_id": 37276204571,
-  "head_sha": "d3e0299682e8fe70b98bf08d05fae34278d75459",
-  "adaptive_round": 29,
-  "family": "POINT_IN_TIME_BREAKOUT_CEILING",
+  "run_number": 166,
+  "run_id": 37276510773,
+  "head_sha": "06a1fb7f1665a920a32458af804fcd1e69d425d2",
+  "adaptive_round": 30,
+  "family": "BREAKOUT_STRENGTH_WINDOW",
   "technical_success": true,
   "economic_progress": false,
   "improved_symbols": [],
@@ -122,7 +122,7 @@
       "classification": "UNCHANGED",
       "reason": "NO_VALIDATED_IMPROVEMENT",
       "problem_after_round": "VALIDATION_GENERALIZATION_GAP",
-      "training_winner": "BREAKOUT_CAP_3",
+      "training_winner": "SEED",
       "selection_mode": "PROFIT_FIRST_TRAINING_SELECTION",
       "profitability_pass": false,
       "maturity_pass": false,
@@ -153,5 +153,5 @@
   "patch_complete": true,
   "next_stage": "SATELLITE_ISOLATED_5X250_ADAPTIVE_CYCLE",
   "dispatch_next": true,
-  "next_reason": "advance from adaptive round 29 to 30; registry exhaustion transitions into a bounded TRAINING-only generated point-in-time causal interaction family instead of stopping"
+  "next_reason": "advance from adaptive round 30 to 31; registry exhaustion transitions into a bounded TRAINING-only generated point-in-time causal interaction family instead of stopping"
 }
