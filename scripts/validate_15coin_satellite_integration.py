@@ -237,6 +237,30 @@ def _isolated(costs, candles, rules, report_start, report_end):
     }
 
 
+def _assert_shared_contract(result, events, *, include_satellites: bool) -> None:
+    if result.max_concurrent_positions > 2:
+        raise RuntimeError("candidate exceeded two shared 125-USDC slots")
+    satellite_trades = [trade for trade in result.trades if trade.symbol in SATELLITE_SYMBOLS]
+    core_trades = [trade for trade in result.trades if trade.symbol in CORE_SYMBOLS]
+    if any(trade.slot_count != 1 for trade in satellite_trades):
+        raise RuntimeError("a Satellite consumed more than one 125-USDC slot")
+    if include_satellites:
+        if not any(event.get("decision") == "STRICT_IDLE_HANDOFF" for event in events):
+            raise RuntimeError("integration test did not exercise Core preemption")
+        if not any(trade.slot_count == 2 for trade in core_trades):
+            raise RuntimeError("integration test did not exercise 2x125 Core allocation")
+        for satellite in satellite_trades:
+            for core in core_trades:
+                overlaps = (
+                    satellite.entry_time_utc < core.exit_time_utc
+                    and core.entry_time_utc < satellite.exit_time_utc
+                )
+                if overlaps:
+                    raise RuntimeError(
+                        "strict idle contract violated: Core and Satellite overlapped"
+                    )
+
+
 def _shared(costs, candles, rules, report_start, report_end, include_satellites: bool):
     plan = capital_plan(D("250"))
     symbols = ALL_15_SYMBOLS if include_satellites else CORE_SYMBOLS
@@ -254,7 +278,9 @@ def _shared(costs, candles, rules, report_start, report_end, include_satellites:
         target_notional=plan.target_notional_usdc,
         slot_count=plan.slot_count,
     )
+    _assert_shared_contract(result, events, include_satellites=include_satellites)
     metrics = _metrics(result)
+    metrics["contract_passed"] = True
     metrics["strict_idle_handoffs"] = sum(
         event.get("decision") == "STRICT_IDLE_HANDOFF" for event in events
     )
@@ -272,10 +298,6 @@ def _shared(costs, candles, rules, report_start, report_end, include_satellites:
     metrics["satellite_multi_slot_cycles"] = sum(
         t.symbol in SATELLITE_SYMBOLS and t.slot_count != 1 for t in result.trades
     )
-    if result.max_concurrent_positions > 2:
-        raise RuntimeError("candidate exceeded two shared 125-USDC slots")
-    if metrics["satellite_multi_slot_cycles"]:
-        raise RuntimeError("a Satellite consumed more than one 125-USDC slot")
     return metrics
 
 
