@@ -2,7 +2,7 @@
   "schema_version": 1,
   "round": 38,
   "max_rounds": 38,
-  "status": "PAUSED_AFTER_FINAL_MANUAL_RUN",
+  "status": "MANUAL_FINAL_PROVISIONAL_READY",
   "source_run": 119,
   "stage": "SATELLITE_ISOLATED_5X250_ADAPTIVE_CYCLE",
   "contract": {
@@ -38,7 +38,12 @@
     "balanced_activity_requires_80pct_training_pph_retention": true,
     "balanced_activity_limits_training_dd_regression_pp": 5,
     "mature_incumbent_may_only_be_replaced_by_mature_candidate": true,
-    "round_37_manual_symbol_specific_gap_filler": true
+    "round_37_manual_symbol_specific_gap_filler": true,
+    "round_38_close_based_profit_take_research_only": true,
+    "round_38_profit_first_activity_second": true,
+    "round_38_all_five_revisited": true,
+    "round_38_near_mature_replacement_requires_mature_candidate": true,
+    "round_38_no_automatic_continuation": true
   },
   "family_sequence": [
     "TARGETED_REENTRY_OR_TREND_EXIT",
@@ -77,9 +82,8 @@
     "SYMBOL_SPECIFIC_POLICY_AND_GENERALIZATION_REPAIR",
     "MATERIAL_CHALLENGER_RISK_EXIT_REPAIR",
     "BASE_STRATEGY_NEIGHBORHOOD_REPAIR",
-    "FINAL_MANUAL_BALANCED_GAP_FILLER_PASS"
+    "FINAL_MANUAL_BALANCED_GAP_FILLER_PASS",
+    "FINAL_PROVISIONAL_PROFIT_TAKE_PASS"
   ],
-  "last_completed_round": 37,
-  "paused_after_run": 233,
-  "pause_reason": "Owner requested one final manual five-satellite optimization/backtest, then stop for review."
+  "last_completed_round": 37
 }
