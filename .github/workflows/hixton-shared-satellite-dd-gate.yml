@@ -1,0 +1,66 @@
+name: Hixton Shared Satellite DD Gate
+
+on:
+  push:
+    branches:
+      - gpt/15coin-satellite-integration
+    paths:
+      - .github/workflows/hixton-shared-satellite-dd-gate.yml
+      - scripts/optimize_shared_drawdown_gate.py
+      - scripts/optimize_shared_satellite_fillers.py
+      - scripts/validate_15coin_satellite_integration.py
+      - src/hixton/backtest/satellite_portfolio.py
+      - src/hixton/domain/satellite_layer.py
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: hixton-shared-satellite-dd-gate
+  cancel-in-progress: true
+
+jobs:
+  optimize:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 90
+    steps:
+      - name: Checkout candidate branch
+        uses: actions/checkout@v4
+        with:
+          ref: gpt/15coin-satellite-integration
+          persist-credentials: false
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install locked project environment
+        shell: bash
+        run: |
+          set -euo pipefail
+          python -m venv .venv
+          .venv/bin/python -m pip install --upgrade pip
+          .venv/bin/pip install -e '.[dev]'
+
+      - name: Static validation
+        shell: bash
+        run: |
+          set -euo pipefail
+          .venv/bin/python -m py_compile scripts/optimize_shared_drawdown_gate.py
+          .venv/bin/ruff check scripts/optimize_shared_drawdown_gate.py
+
+      - name: Optimize Shared drawdown gate
+        shell: bash
+        run: |
+          set -euo pipefail
+          .venv/bin/python scripts/optimize_shared_drawdown_gate.py
+
+      - name: Upload DD-gate evidence
+        uses: actions/upload-artifact@v4
+        with:
+          name: hixton-shared-satellite-dd-gate-${{ github.run_id }}
+          path: evidence/shared-satellite-dd-gate.json
+          retention-days: 30
+          if-no-files-found: error
