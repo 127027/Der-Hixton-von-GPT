@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "phase": "RUN_DISPATCHED",
+  "phase": "READY_TO_RUN",
   "completed_run_number": 180,
   "completed_run_id": 37281023577,
   "completed_round": 32,
@@ -8,7 +8,7 @@
   "next_round": 33,
   "next_stage": "SATELLITE_ISOLATED_5X250_ADAPTIVE_CYCLE",
   "economic_progress": false,
-  "ready_for_dispatch": false,
+  "ready_for_dispatch": true,
   "analysis_checkpoint": "2026-10-05T09:45:00+02:00",
   "analysis_summary": {
     "SUIUSDC": "WORSE_PNL_AND_RISK_REGRESSION",
@@ -19,8 +19,11 @@
   },
   "prepared_family": "BREAKOUT_CEILING_X_RANK_STRENGTH",
   "launch_policy": "NEXT_QUARTER_HOUR_TICK_ONLY",
-  "last_transition_source": "quarter_hour_dispatch",
+  "last_transition_source": "round33_technical_repair_verified",
   "analysis_controller_run_id": 37302952731,
   "analysis_policy": "completed result reviewed on this quarter-hour tick; dispatch forbidden until a later tick",
-  "dispatch_controller_run_id": 37302961657
+  "dispatch_controller_run_id": 37302961657,
+  "repair_of_run_number": 183,
+  "repair_commit": "c6f6e73902334855773d1b9616cef68226e25e7f",
+  "repair_reason": "Fixed post-registry technical_family label IndexError for round > family_sequence length."
 }
