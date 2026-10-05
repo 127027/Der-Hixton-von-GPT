@@ -2,7 +2,7 @@
   "schema_version": 1,
   "round": 33,
   "max_rounds": 33,
-  "status": "CONTINUE_GENERATED_CAUSAL_FAMILY",
+  "status": "MANUAL_REFERENCE_ANCHORED_REPAIR_READY",
   "source_run": 119,
   "stage": "SATELLITE_ISOLATED_5X250_ADAPTIVE_CYCLE",
   "contract": {
@@ -15,7 +15,10 @@
     "auto_commit_and_workflow_dispatch_after_completed_round": false,
     "post_exhaustion_new_family_must_be_materially_new": true,
     "completed_round_persists_ready_state_only": true,
-    "next_substantive_run_requires_later_quarter_hour_tick": true
+    "next_substantive_run_requires_later_quarter_hour_tick": true,
+    "reference_strategy_spec_persisted_with_metrics": true,
+    "post_round_32_half_year_fold_stability": true,
+    "activity_search_min_reference_training_pnl_retention_pct": 90
   },
   "family_sequence": [
     "TARGETED_REENTRY_OR_TREND_EXIT",
@@ -49,7 +52,8 @@
     "POINT_IN_TIME_BREAKOUT_CEILING",
     "BREAKOUT_STRENGTH_WINDOW",
     "BREAKOUT_CEILING_X_HORIZON",
-    "BREAKOUT_CEILING_X_RANK_STRENGTH"
+    "BREAKOUT_CEILING_X_RANK_STRENGTH",
+    "REFERENCE_ANCHORED_FOLD_STABILITY"
   ],
   "last_completed_round": 32
 }
