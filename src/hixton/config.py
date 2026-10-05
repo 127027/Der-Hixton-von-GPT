@@ -9,7 +9,6 @@ from decimal import Decimal
 from pathlib import Path
 from typing import Any
 
-from hixton.constants import SYMBOLS
 from hixton.domain.capital import DEFAULT_MAX_CAPITAL_USDC, capital_plan
 from hixton.domain.versions import strategy_definition
 
@@ -70,8 +69,8 @@ def load_project_config(path: Path, *, project_root: Path) -> ProjectConfig:
         raise ValueError(f"strategy {definition.version} is not approved for paper")
 
     markets = root.get("markets")
-    if not isinstance(markets, list) or tuple(markets) != SYMBOLS:
-        raise ValueError("markets must contain the ten DMS symbols in fixed order")
+    if not isinstance(markets, list) or tuple(markets) != definition.symbols:
+        raise ValueError("markets must contain the active strategy symbols in fixed order")
 
     backtest = _required_mapping(root.get("backtest"), "backtest")
     _reject_unknown(
