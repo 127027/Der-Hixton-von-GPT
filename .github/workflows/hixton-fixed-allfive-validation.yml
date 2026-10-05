@@ -1,15 +1,6 @@
 name: Hixton Fixed All-Five Shared Validation
 
 on:
-  push:
-    branches:
-      - gpt/15coin-satellite-integration
-    paths:
-      - .github/workflows/hixton-fixed-allfive-validation.yml
-      - scripts/validate_fixed_allfive_shared.py
-      - scripts/validate_15coin_satellite_integration.py
-      - src/hixton/backtest/satellite_portfolio.py
-      - src/hixton/domain/satellite_layer.py
   workflow_dispatch:
 
 permissions:
