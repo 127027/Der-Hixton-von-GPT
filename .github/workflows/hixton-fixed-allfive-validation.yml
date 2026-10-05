@@ -1,0 +1,50 @@
+name: Hixton Fixed All-Five Shared Validation
+
+on:
+  push:
+    branches:
+      - gpt/15coin-satellite-integration
+    paths:
+      - .github/workflows/hixton-fixed-allfive-validation.yml
+      - scripts/validate_fixed_allfive_shared.py
+      - scripts/validate_15coin_satellite_integration.py
+      - src/hixton/backtest/satellite_portfolio.py
+      - src/hixton/domain/satellite_layer.py
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: hixton-fixed-allfive-validation
+  cancel-in-progress: true
+
+jobs:
+  validate:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: gpt/15coin-satellite-integration
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install
+        run: |
+          python -m venv .venv
+          .venv/bin/python -m pip install --upgrade pip
+          .venv/bin/pip install -e '.[dev]'
+      - name: Static
+        run: |
+          .venv/bin/python -m py_compile scripts/validate_fixed_allfive_shared.py
+          .venv/bin/ruff check scripts/validate_fixed_allfive_shared.py
+      - name: Validate fixed all-five final year
+        run: .venv/bin/python scripts/validate_fixed_allfive_shared.py
+      - uses: actions/upload-artifact@v4
+        with:
+          name: hixton-fixed-allfive-validation-${{ github.run_id }}
+          path: evidence/fixed-allfive-shared-validation.json
+          retention-days: 30
+          if-no-files-found: error
