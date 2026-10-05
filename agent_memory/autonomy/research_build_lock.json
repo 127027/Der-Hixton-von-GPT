@@ -1,8 +1,8 @@
 {
   "schema_version": 1,
   "locked": true,
-  "reason": "Manual final 5-coin optimization: balanced gap-filler selection, mature-incumbent protection, symbol-specific round-37 neighborhoods, then exactly one 5x250 backtest.",
+  "reason": "Manual final Round 37: local SUI stability/turnover refinement, UNI ATR-momentum-horizon repair, AAVE occupancy reduction around accepted stop2.0, BCH momentum12-band-risk generalization.",
   "started_from_head": "{\"ref\":\"refs/heads/gpt/autonomous-research-v1\",\"node_id\":\"REF_kwDOUcdQldoAJXJlZnMvaGVhZHMvZ3B0L2F1dG9ub21vdXMtcmVzZWFyY2gtdjE\",\"url\":\"https://api.github.com/repos/127027/Der-Hixton-von-GPT/git/refs/heads/gpt/autonomous-research-v1\",\"object\":{\"sha\":\"7c5c6566e81368804547c4e41212efe6966903c8\",\"type\":\"commit\",\"url\":\"https://api.github.com/repos/127027/Der-Hixton-von-GPT/git/commits/7c5c6566e81368804547c4e41212efe6966903c8\"}}",
   "contract": "No substantive research dispatch while locked. Patch reference anchors, fold-stability selection and targeted round-33 variants only; preserve validation rejection-only, NEAR mature freeze and protected Core.",
-  "unlock_contract": "Unlock only after round-37 manual family, balanced activity selection, mature-preservation gate, syntax/contracts and state are coherent. Then run exactly one substantive backtest; keep external research controllers paused."
+  "unlock_contract": "Unlock only after Round37 code/control/state contracts pass on one coherent HEAD; launch exactly one 5x250 backtest; keep external research controllers disabled afterward."
 }
