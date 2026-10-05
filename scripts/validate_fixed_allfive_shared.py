@@ -10,7 +10,7 @@ import json
 from decimal import Decimal
 from pathlib import Path
 
-from validate_15coin_satellite_integration import _histories, _shared, _rules
+from validate_15coin_satellite_integration import _histories, _rules, _shared
 
 from hixton.backtest.models import STRESS_COSTS
 from hixton.data.binance import BinancePublicClient
