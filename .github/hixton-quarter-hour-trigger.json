@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "sequence": 1,
-  "requested_by": "manual_five_satellite_backtest",
-  "note": "Single manual wake after reference-anchor + fold-stability repair. Periodic Hixton automations are disabled."
+  "sequence": 2,
+  "requested_by": "manual_round34_launch",
+  "note": "Wake controller after verified Round 34 patch; dispatch exactly one substantive 5x250 run."
 }
