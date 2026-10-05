@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "phase": "NEEDS_ANALYSIS",
+  "phase": "READY_TO_RUN",
   "completed_run_number": 198,
   "completed_run_id": 37322177502,
   "completed_round": 34,
@@ -8,18 +8,18 @@
   "next_round": 35,
   "next_stage": "SATELLITE_ISOLATED_5X250_ADAPTIVE_CYCLE",
   "economic_progress": false,
-  "ready_for_dispatch": false,
+  "ready_for_dispatch": true,
   "analysis_checkpoint": "2026-10-05T09:45:00+02:00",
   "analysis_summary": {
-    "SUIUSDC": "REFERENCE_PROFITABLE_LOW_FREQUENCY; rejected reentry activity caused validation/DD regression; test policy CMO + bounded exits without reentry",
+    "SUIUSDC": "R34 no-op seed was revalidated; rejected seed reset to run119 reference. R35 requires a distinct stop/trail challenger around accepted reference.",
     "NEARUSDC": "MATURE_INCUMBENT_PROTECTED",
-    "UNIUSDC": "PROFITABLE_LOW_FREQUENCY; slope_bars=72 is now directly searchable with 0/24/72 under 90pct training-PnL retention",
-    "AAVEUSDC": "IMPROVED_BUT_VALIDATION_NEGATIVE; refine policy CMO/direction/exit around run193 reference",
-    "BCHUSDC": "VALIDATION_GENERALIZATION_GAP; isolate CMO/direction/horizon without zero-trade trend floor"
+    "UNIUSDC": "Relaxing slope to 0/24 destroyed training robustness; keep slope72 reference and test risk-managed exits/holding only.",
+    "AAVEUSDC": "R34 selected the unchanged seed; R35 must validate a materially different stop/trail/holding challenger around accepted run193 benchmark.",
+    "BCHUSDC": "R34 72h/CMO challenger increased trades to 122 but worsened validation and 3y PnL; reset to run114 and test risk exits to retain frequency without regression."
   },
-  "prepared_family": "SYMBOL_SPECIFIC_POLICY_AND_GENERALIZATION_REPAIR",
+  "prepared_family": "MATERIAL_CHALLENGER_RISK_EXIT_REPAIR",
   "launch_policy": "NEXT_QUARTER_HOUR_TICK_ONLY",
-  "last_transition_source": "research_completion",
+  "last_transition_source": "manual_1615_round35_repair",
   "analysis_controller_run_id": 37302952731,
   "analysis_policy": "completed result reviewed on this quarter-hour tick; dispatch forbidden until a later tick",
   "dispatch_controller_run_id": 37322143415,
@@ -27,14 +27,14 @@
   "repair_commit": "c6f6e73902334855773d1b9616cef68226e25e7f",
   "repair_reason": "Fixed post-registry technical_family label IndexError for round > family_sequence length.",
   "manual_repair": {
-    "purpose": "Round 34 targeted idle-filler repair after run #193",
-    "code_commit": "9bafb89fe809701f682a73586dba00a2030d0575",
-    "control_commit": "871dbe1b3144d1fc3b6ab5ebe9f63a8e06f93457",
-    "verification": "push contract #195 SUCCESS; #196 contract SUCCESS",
-    "policy_overrides": [
-      "policy_cmo_floor",
-      "policy_slope_bars"
+    "purpose": "Round 35 repair after no-op/seed-drift defect in run #198",
+    "material_challenger_required": true,
+    "rejected_challenger_reset_to_reference": true,
+    "new_policy_axes": [
+      "stop_atr",
+      "trail_atr"
     ],
-    "launch_policy": "exactly one controlled 5x250 run"
+    "verification": "run #202 contract SUCCESS",
+    "launch_policy": "exactly one round-35 5x250 run"
   }
 }
