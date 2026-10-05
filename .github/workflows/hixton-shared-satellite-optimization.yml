@@ -1,15 +1,6 @@
 name: Hixton Shared Satellite Optimization
 
 on:
-  push:
-    branches:
-      - gpt/15coin-satellite-integration
-    paths:
-      - .github/workflows/hixton-shared-satellite-optimization.yml
-      - scripts/optimize_shared_satellite_fillers.py
-      - scripts/validate_15coin_satellite_integration.py
-      - src/hixton/domain/satellite_layer.py
-      - src/hixton/backtest/satellite_portfolio.py
   workflow_dispatch:
 
 permissions:
