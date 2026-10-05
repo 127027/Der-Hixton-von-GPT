@@ -434,7 +434,32 @@ def _variants(symbol: str, seed: AdaptiveSpec, round_no: int) -> tuple[AdaptiveS
             for rank_lo in (0.0, 0.25, 0.50, 0.75):
                 rows.append(_with(seed, f"BREAKOUT_CAP_{hi:g}_RANK_{rank_lo:g}", max_breakout_atr=hi, min_rank_strength=rank_lo))
     else:
-        raise RuntimeError(f"unsupported adaptive round {round_no}")
+        # Durable post-registry generator: exhaustion is not a terminal state.
+        # Every generation changes a bounded point-in-time interaction grid derived
+        # only from the TRAINING seed. Validation/holdout data never enters here.
+        generation = round_no - 32
+        breakout_caps = tuple(round(v, 3) for v in (
+            0.45 + 0.05 * (generation % 5),
+            0.80 + 0.10 * (generation % 4),
+            1.25 + 0.15 * (generation % 3),
+        ))
+        rank_floors = tuple(round(v, 3) for v in (
+            0.10 * (generation % 4),
+            0.25 + 0.10 * (generation % 5),
+            0.60 + 0.05 * (generation % 4),
+        ))
+        holds = (24 + 12 * (generation % 3), 48 + 24 * (generation % 4), 96 + 24 * (generation % 5))
+        for hi in breakout_caps:
+            for rank_lo in rank_floors:
+                for hold in holds:
+                    if seed.min_breakout_atr < hi:
+                        rows.append(_with(
+                            seed,
+                            f"AUTO_G{generation}_BC{hi:g}_R{rank_lo:g}_H{hold}",
+                            max_breakout_atr=hi,
+                            min_rank_strength=rank_lo,
+                            horizon_hours=hold,
+                        ))
 
     return _dedupe(rows)
 
