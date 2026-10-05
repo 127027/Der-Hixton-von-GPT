@@ -1,10 +1,8 @@
 {
   "schema_version": 1,
   "locked": false,
-  "reason": "Post-round-28 terminal-state repair complete: rounds 29-32 add point-in-time breakout ceiling/window families; post-registry rounds use a bounded TRAINING-only interaction generator; autocontinue no longer emits dispatch_next=false on family exhaustion.",
+  "reason": "Quarter-hour orchestration repair complete: immediate self-dispatch paths removed; push-triggered runs are coordination-only; completed adaptive rounds persist the next hypothesis without launching it.",
   "started_from_head": "729f8c2a5901cf52dadfcde6fbf77747a24c90fa",
-  "contract": "Do not dispatch/retry substantive research or mutate strategy opportunistically while the new post-round-24 causal family is being designed and wired. Preserve VALIDATED_INCUMBENTs; TRAINING_RESEARCH_SEED remains separate; NEAR mature incumbent frozen.",
-  "unlock_contract": "Unlocked after coherent code/control/mission wiring. Workflow contract gate must pass before substantive research; exactly one latest-head adaptive run may proceed.",
-  "completed_family": "POINT_IN_TIME_BREAKOUT_CEILING",
-  "next_round": 29
+  "contract": "Substantive research may start only from an eligible quarter-hour controller tick. Push-triggered persistence/code commits are coordination-only. Preserve VALIDATED_INCUMBENT vs TRAINING_RESEARCH_SEED, NEAR mature freeze, validation rejection-only and protected Core.",
+  "unlock_contract": "Unlocked. A completed run may persist READY_FOR_NEXT_QUARTER_TICK, but may not launch its successor in the same invocation."
 }
