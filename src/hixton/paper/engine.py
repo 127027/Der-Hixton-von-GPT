@@ -15,7 +15,7 @@ from hixton.domain.models import Candle, IndicatorPoint, Signal, SignalAction
 from hixton.domain.risk import PortfolioRiskState, evaluate_portfolio_risk
 from hixton.domain.strategy import entry_priority
 from hixton.domain.trade_policy import TradePolicy, TradePolicyGate
-from hixton.domain.versions import StrategyDefinition
+from hixton.domain.versions import StrategyDefinition, strategy_definition
 from hixton.paper.models import (
     PaperAccount,
     PaperEvent,
@@ -53,10 +53,11 @@ def initialize_paper_at_latest(
 ) -> bool:
     """Arm a new account at latest; preserve checkpoints on every later restart."""
 
-    if set(points_by_symbol) != set(SYMBOLS):
-        raise ValueError("paper initialization requires all ten DMS symbols")
+    symbols = strategy_definition(strategy_key).symbols
+    if set(points_by_symbol) != set(symbols):
+        raise ValueError("paper initialization requires the complete strategy universe")
     checkpoints: dict[str, datetime] = {}
-    for symbol in SYMBOLS:
+    for symbol in symbols:
         points = points_by_symbol[symbol]
         if not points:
             raise ValueError(f"cannot initialize paper without candles for {symbol}")
@@ -70,7 +71,7 @@ def initialize_paper_at_latest(
         )
         store.require_strategy(strategy_key, strategy_version)
         existing = store.all_checkpoints()
-        if existing and set(existing) != set(SYMBOLS):
+        if existing and set(existing) != set(symbols):
             raise RuntimeError("paper checkpoints are incomplete; recovery must fail closed")
         first_start = not existing
         if first_start:
@@ -165,12 +166,13 @@ def process_new_closed_points(
 ) -> tuple[PaperEvent, ...]:
     """Process every not-yet-checkpointed bar atomically and exactly once."""
 
-    if set(points_by_symbol) != set(SYMBOLS):
-        raise ValueError("paper processing requires all ten DMS symbols")
-    if set(rules_by_symbol) != set(SYMBOLS):
-        raise ValueError("paper processing requires exchange rules for all symbols")
-    if trade_policies_by_symbol is not None and set(trade_policies_by_symbol) != set(SYMBOLS):
-        raise ValueError("paper trade policies require all ten symbols")
+    symbols = strategy_definition(strategy_key).symbols
+    if set(points_by_symbol) != set(symbols):
+        raise ValueError("paper processing requires the complete strategy universe")
+    if set(rules_by_symbol) != set(symbols):
+        raise ValueError("paper processing requires exchange rules for the strategy universe")
+    if trade_policies_by_symbol is not None and set(trade_policies_by_symbol) != set(symbols):
+        raise ValueError("paper trade policies require the complete strategy universe")
     if any(
         p != TradePolicy() for p in (trade_policies_by_symbol or {}).values()
     ) and not strategy_version.startswith("HIXTON-V6-"):
@@ -184,7 +186,7 @@ def process_new_closed_points(
     )
     # Validate the allocation policy even when this cycle has no entry candidates.
     allocate_entry_slots((), free_slots=0, policy=effective_allocation)
-    policy_gates = {s: TradePolicyGate((trade_policies_by_symbol or {}).get(s)) for s in SYMBOLS}
+    policy_gates = {s: TradePolicyGate((trade_policies_by_symbol or {}).get(s)) for s in symbols}
 
     with PaperStore(database_path) as store:
         store.initialize(
@@ -197,12 +199,12 @@ def process_new_closed_points(
         positions = {position.symbol: position for position in store.load_positions()}
         dust = store.load_dust()
         checkpoints = store.all_checkpoints()
-        if set(checkpoints) != set(SYMBOLS):
+        if set(checkpoints) != set(symbols):
             raise RuntimeError("paper checkpoints are incomplete; run startup initialization")
         store.ensure_soak_started(checkpoints)
 
         pending: dict[datetime, list[IndicatorPoint]] = {}
-        processed_bars = dict.fromkeys(SYMBOLS, 0)
+        processed_bars = dict.fromkeys(symbols, 0)
         latest_prices: dict[str, Decimal] = {}
         execution = {
             symbol: {candle.open_time_utc: candle for candle in candles}
@@ -214,7 +216,7 @@ def process_new_closed_points(
                 }
             ).items()
         }
-        for symbol in SYMBOLS:
+        for symbol in symbols:
             history = [
                 p
                 for p in points_by_symbol[symbol]
@@ -238,12 +240,12 @@ def process_new_closed_points(
         processed_time: datetime | None = None
         for boundary, group in sorted(pending.items()):
             group_by_symbol = {point.symbol: point for point in group}
-            if set(group_by_symbol) != set(SYMBOLS):
+            if set(group_by_symbol) != set(symbols):
                 raise RuntimeError("paper replay requires aligned bars for all ten symbols")
             # Keep the last bar pending until the true next-bar OPEN is available.
-            if any(boundary not in execution.get(symbol, {}) for symbol in SYMBOLS):
+            if any(boundary not in execution.get(symbol, {}) for symbol in symbols):
                 break
-            fill_candles = {symbol: execution[symbol][boundary] for symbol in SYMBOLS}
+            fill_candles = {symbol: execution[symbol][boundary] for symbol in symbols}
             if any(not candle.ohlc_is_valid for candle in fill_candles.values()):
                 raise RuntimeError("invalid execution candle")
             close_time = max(point.candle.close_time_utc for point in group)
@@ -327,7 +329,7 @@ def process_new_closed_points(
                         continue
                     candidates.append((signal, point))
             candidates.sort(
-                key=lambda item: entry_priority(item[1].rank_strength, item[0].symbol, SYMBOLS)
+                key=lambda item: entry_priority(item[1].rank_strength, item[0].symbol, symbols)
             )
 
             used_slots = sum(position.slot_count for position in positions.values())
@@ -435,11 +437,12 @@ def activate_paper_strategy(
 
     if not strategy.paper_approved:
         raise ValueError(f"strategy {strategy.version} is not approved for paper")
-    if set(points_by_symbol) != set(SYMBOLS) or set(rules_by_symbol) != set(SYMBOLS):
-        raise ValueError("paper strategy activation requires all ten symbols")
+    symbols = strategy.symbols
+    if set(points_by_symbol) != set(symbols) or set(rules_by_symbol) != set(symbols):
+        raise ValueError("paper strategy activation requires the complete strategy universe")
     moment = (at or datetime.now(UTC)).astimezone(UTC)
-    checkpoints = {symbol: points_by_symbol[symbol][-1].candle.close_time_utc for symbol in SYMBOLS}
-    latest_prices = {symbol: _d(points_by_symbol[symbol][-1].candle.close) for symbol in SYMBOLS}
+    checkpoints = {symbol: points_by_symbol[symbol][-1].candle.close_time_utc for symbol in symbols}
+    latest_prices = {symbol: _d(points_by_symbol[symbol][-1].candle.close) for symbol in symbols}
     with PaperStore(database_path) as store:
         store.initialize(at=moment)
         previous = store.load_strategy_session()
