@@ -11,6 +11,7 @@ from collections.abc import Callable
 from dataclasses import dataclass, replace
 from datetime import datetime
 from decimal import ROUND_DOWN, Decimal
+
 from hixton.backtest.engine import candle_snapshot_sha256
 from hixton.backtest.metrics import calculate_metrics
 from hixton.backtest.models import (
