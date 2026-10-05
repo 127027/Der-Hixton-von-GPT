@@ -1,14 +1,6 @@
 name: Hixton Shared Gap Guard Search
 
 on:
-  push:
-    branches:
-      - gpt/15coin-satellite-integration
-    paths:
-      - .github/workflows/hixton-shared-gap-guard.yml
-      - scripts/optimize_shared_gap_guard.py
-      - src/hixton/backtest/satellite_portfolio.py
-      - src/hixton/domain/satellite_layer.py
   workflow_dispatch:
 
 permissions:
