@@ -1,8 +1,8 @@
 {
   "schema_version": 1,
-  "round": 28,
-  "max_rounds": 28,
-  "status": "ADAPTIVE_FAMILIES_EXHAUSTED_NEEDS_NEW_CAUSAL_FAMILY",
+  "round": 29,
+  "max_rounds": 32,
+  "status": "CONTINUE",
   "source_run": 119,
   "stage": "SATELLITE_ISOLATED_5X250_ADAPTIVE_CYCLE",
   "contract": {
@@ -43,7 +43,11 @@
     "POINT_IN_TIME_RANK_STRENGTH",
     "RANK_STRENGTH_WINDOW",
     "RANK_STRENGTH_X_HORIZON",
-    "RANK_STRENGTH_X_VOLATILITY"
+    "RANK_STRENGTH_X_VOLATILITY",
+    "POINT_IN_TIME_BREAKOUT_CEILING",
+    "BREAKOUT_STRENGTH_WINDOW",
+    "BREAKOUT_CEILING_X_HORIZON",
+    "BREAKOUT_CEILING_X_RANK_STRENGTH"
   ],
   "last_completed_round": 28
 }
