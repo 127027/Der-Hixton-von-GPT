@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "phase": "NEEDS_ANALYSIS",
+  "phase": "PAUSED_FOR_OWNER_REVIEW",
   "completed_run_number": 240,
   "completed_run_id": 37336202265,
   "completed_round": 38,
@@ -18,8 +18,8 @@
     "BCHUSDC": "Validation blocker; test profit harvesting plus narrow band/momentum variants to reduce winner give-back without frequency gaming."
   },
   "prepared_family": "FINAL_PROVISIONAL_PROFIT_TAKE_PASS",
-  "launch_policy": "EXACTLY_ONE_MANUAL_RUN_THEN_PAUSE",
-  "last_transition_source": "research_completion",
+  "launch_policy": "PAUSED_NO_SUCCESSOR",
+  "last_transition_source": "manual_round38_complete",
   "analysis_controller_run_id": 37302952731,
   "analysis_policy": "completed result reviewed on this quarter-hour tick; dispatch forbidden until a later tick",
   "dispatch_controller_run_id": 37336175013,
@@ -33,5 +33,6 @@
     "verification": "router hook push #236 SUCCESS; round38 code push #237 SUCCESS; protected trade_policy byte-match confirmed",
     "automation": "all external Hixton research controllers remain disabled",
     "launch_policy": "exactly one substantive Round38 run"
-  }
+  },
+  "pause_reason": "Owner requested one last provisional five-Satellite optimization/backtest, then stop. Run #240 completed SUCCESS with no accepted reference updates."
 }
