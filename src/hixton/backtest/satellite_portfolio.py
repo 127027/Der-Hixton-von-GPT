@@ -170,6 +170,7 @@ def run_filler_router_portfolio(
     strategy_semantics_by_symbol: dict[str, StrategySemantics] | None = None,
     strict_core_idle_mask: bool = False,
     soft_filler_exit_enabled: bool = True,
+    soft_filler_exit_symbols: frozenset[str] | None = None,
     entry_filter_by_symbol: dict[str, Callable[[IndicatorPoint], str | None]] | None = None,
     continuation_reentry_symbols: frozenset[str] | None = None,
     band_reentry_symbols: frozenset[str] | None = None,
@@ -238,6 +239,11 @@ def run_filler_router_portfolio(
     core_set = frozenset(core_symbols)
     satellite_set = frozenset(satellite_symbols)
     entry_filters = entry_filter_by_symbol or {}
+    soft_exit_symbols = (
+        frozenset(satellite_symbols)
+        if soft_filler_exit_symbols is None
+        else soft_filler_exit_symbols
+    )
     continuation_reentry = continuation_reentry_symbols or frozenset()
     band_reentry = band_reentry_symbols or frozenset()
     atr_reentry_levels = atr_reentry_level_by_symbol or {}
@@ -246,7 +252,9 @@ def run_filler_router_portfolio(
     profit_take_levels = profit_take_atr_by_symbol or {}
     filler_horizons = filler_horizon_hours_by_symbol or {}
     if not set(entry_filters).issubset(set(symbols)):
-        raise ValueError("entry filters reference symbols outside the research universe")
+        raise ValueError("entry filters reference symbols outside the candidate universe")
+    if not set(soft_exit_symbols).issubset(set(satellite_symbols)):
+        raise ValueError("soft filler exits are Satellite-only")
     if not set(continuation_reentry).issubset(set(satellite_symbols)):
         raise ValueError("continuation re-entry is research-only and Satellite-only")
     if not set(band_reentry).issubset(set(satellite_symbols)):
@@ -777,6 +785,7 @@ def run_filler_router_portfolio(
             # schedule an exit for the next open.
             if (
                 soft_filler_exit_enabled
+                and symbol in soft_exit_symbols
                 and in_report
                 and position is not None
                 and position.is_satellite
