@@ -15,7 +15,11 @@ from hixton.constants import (
 from hixton.domain.allocation import ONE_PER_SYMBOL, RANKED_REPEAT
 from hixton.domain.markets import symbols_for_quote
 from hixton.domain.models import StrategyParameters, StrategySemantics
-from hixton.domain.satellite_layer import SATELLITE_PROFILES, SATELLITE_SYMBOLS
+from hixton.domain.satellite_layer import (
+    ACTIVE_SHARED_SATELLITES,
+    SATELLITE_PROFILES,
+    SATELLITE_SYMBOLS,
+)
 from hixton.domain.trade_policy import TradePolicy
 
 
@@ -39,6 +43,7 @@ class StrategyDefinition:
     coin_profiles: tuple[CoinProfile, ...] = ()
     quote_asset: str = "USDC"
     satellite_symbols: tuple[str, ...] = ()
+    active_shared_satellites: tuple[str, ...] = ()
     satellite_semantics: StrategySemantics | None = None
 
     @property
@@ -57,6 +62,8 @@ class StrategyDefinition:
             raise ValueError("satellite symbols must be present in coin profiles")
         if self.satellite_symbols and self.satellite_semantics is None:
             raise ValueError("satellite semantics are required for a mixed strategy")
+        if not set(self.active_shared_satellites).issubset(set(self.satellite_symbols)):
+            raise ValueError("active shared Satellites must be a subset of Satellite symbols")
         if any(p.parameters.warmup_bars != self.parameters.warmup_bars for p in self.coin_profiles):
             raise ValueError("coin profiles require a shared warmup length")
 
@@ -113,6 +120,9 @@ class StrategyDefinition:
         else:
             payload.update(asdict(self.parameters))
         payload["quote_asset"] = self.quote_asset
+        if self.satellite_symbols:
+            payload["satellite_symbols"] = list(self.satellite_symbols)
+            payload["active_shared_satellites"] = list(self.active_shared_satellites)
         return payload
 
 
@@ -297,6 +307,7 @@ V6_COIN_STRATEGY = StrategyDefinition(
     slot_allocation=RANKED_REPEAT,
     coin_profiles=_V6_PROFILES,
     satellite_symbols=SATELLITE_SYMBOLS,
+    active_shared_satellites=ACTIVE_SHARED_SATELLITES,
     satellite_semantics=StrategySemantics.DMS_V1,
 )
 
