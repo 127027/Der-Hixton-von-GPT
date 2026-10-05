@@ -2,8 +2,6 @@ name: Hixton Quarter-Hour Controller
 
 on:
   workflow_dispatch:
-  schedule:
-    - cron: "*/15 * * * *"
   push:
     branches:
       - main
