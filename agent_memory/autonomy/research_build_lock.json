@@ -1,8 +1,8 @@
 {
   "schema_version": 1,
-  "locked": true,
-  "reason": "Quarter-hour schedule repair in progress.",
+  "locked": false,
+  "reason": "Schedule repair not applied; no partial research patch remains.",
   "started_from_head": "729f8c2a5901cf52dadfcde6fbf77747a24c90fa",
   "contract": "Substantive research may start only from an eligible quarter-hour controller tick. Push-triggered persistence/code commits are coordination-only. Preserve VALIDATED_INCUMBENT vs TRAINING_RESEARCH_SEED, NEAR mature freeze, validation rejection-only and protected Core.",
-  "unlock_contract": "Unlock after schedule wiring verification."
+  "unlock_contract": "Unlocked."
 }
