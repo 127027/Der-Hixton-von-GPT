@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "round": 25,
+  "round": 26,
   "max_rounds": 28,
   "status": "CONTINUE",
   "source_run": 119,
@@ -45,5 +45,5 @@
     "RANK_STRENGTH_X_HORIZON",
     "RANK_STRENGTH_X_VOLATILITY"
   ],
-  "last_completed_round": 24
+  "last_completed_round": 25
 }
