@@ -20,7 +20,7 @@
         "trail_atr": 0
       },
       "training_seed": {
-        "name": "AUTO_REF_RESET_AFTER_R34_REF_RUN119_VOL_CAP_0.0175",
+        "name": "AUTO_REF_RESET_R35_REF_RUN119_VOL_CAP_0.0175",
         "horizon_hours": 0,
         "min_atr_pct": 0,
         "max_atr_pct": 0.0175,
@@ -49,7 +49,7 @@
       },
       "training_seed_source_run": 119,
       "training_seed_source_round": null,
-      "training_seed_selection_mode": "RESET_TO_ACCEPTED_REFERENCE_AFTER_R34_REJECTION",
+      "training_seed_selection_mode": "RESET_TO_ACCEPTED_REFERENCE_AFTER_REJECTION",
       "reference_seed": {
         "name": "REF_RUN119_VOL_CAP_0.0175",
         "horizon_hours": 0,
@@ -65,6 +65,29 @@
         "trend_health_exit": null,
         "min_rank_strength": -999,
         "max_rank_strength": 999
+      },
+      "last_rejected_training_candidate": {
+        "name": "R35_SUI_STOP_2.50",
+        "horizon_hours": 0,
+        "min_atr_pct": 0,
+        "max_atr_pct": 0.0175,
+        "min_trend_atr": -999,
+        "max_trend_atr": 999,
+        "min_breakout_atr": 0,
+        "max_breakout_atr": 999,
+        "min_abs_cmo": 0,
+        "reentry_atr_level": null,
+        "atr_direction": null,
+        "trend_health_exit": null,
+        "min_rank_strength": -999,
+        "max_rank_strength": 999,
+        "policy_cmo_floor": null,
+        "policy_slope_bars": null,
+        "policy_stop_atr": 2.5,
+        "policy_trail_atr": null,
+        "round": 35,
+        "run_number": 205,
+        "classification": "UNCHANGED"
       }
     },
     "NEARUSDC": {
@@ -83,7 +106,7 @@
         "trail_atr": 0
       },
       "training_seed": {
-        "name": "AUTO_REF_RESET_AFTER_R34_REF_RUN101_HOLD48",
+        "name": "AUTO_REF_RESET_R35_REF_RUN101_HOLD48",
         "horizon_hours": 48,
         "min_atr_pct": 0,
         "max_atr_pct": 1,
@@ -128,7 +151,7 @@
       },
       "training_seed_source_run": 101,
       "training_seed_source_round": null,
-      "training_seed_selection_mode": "RESET_TO_ACCEPTED_REFERENCE_AFTER_R34_REJECTION"
+      "training_seed_selection_mode": "RESET_TO_ACCEPTED_REFERENCE_AFTER_REJECTION"
     },
     "UNIUSDC": {
       "parameters": {
@@ -146,7 +169,7 @@
         "trail_atr": 0
       },
       "training_seed": {
-        "name": "AUTO_REF_RESET_AFTER_R34_REF_RUN141_CMO_0.15_REENTRY_0.50",
+        "name": "AUTO_REF_RESET_R35_REF_RUN141_CMO_0.15_REENTRY_0.50",
         "horizon_hours": 0,
         "min_atr_pct": 0,
         "max_atr_pct": 1,
@@ -175,7 +198,7 @@
       },
       "training_seed_source_run": 141,
       "training_seed_source_round": 16,
-      "training_seed_selection_mode": "RESET_TO_ACCEPTED_REFERENCE_AFTER_R34_REJECTION",
+      "training_seed_selection_mode": "RESET_TO_ACCEPTED_REFERENCE_AFTER_REJECTION",
       "reference_source_round": 16,
       "reference_seed": {
         "name": "REF_RUN141_CMO_0.15_REENTRY_0.50",
@@ -210,7 +233,7 @@
         "trail_atr": 0
       },
       "training_seed": {
-        "name": "AUTO_REF_RESET_AFTER_R34_REF_R33_REF_AAVE_A0.0050_0.0250_T0.50_2.50_C0.00_H120",
+        "name": "AUTO_R35_R35_AAVE_STOP_2.00",
         "horizon_hours": 120,
         "min_atr_pct": 0.005,
         "max_atr_pct": 0.025,
@@ -223,26 +246,30 @@
         "atr_direction": null,
         "trend_health_exit": null,
         "min_rank_strength": -999,
-        "max_rank_strength": 999
+        "max_rank_strength": 999,
+        "policy_cmo_floor": 0.3,
+        "policy_slope_bars": 0,
+        "policy_stop_atr": 2.0,
+        "policy_trail_atr": null
       },
-      "reference_status": "RESEARCH_BENCHMARK",
-      "reference_source_run": 193,
-      "reference_profitability_pass": false,
+      "reference_status": "VALIDATED_INCUMBENT",
+      "reference_source_run": 205,
+      "reference_profitability_pass": true,
       "reference_maturity_pass": false,
       "reference": {
-        "validation_stress_net_pnl": "-62.9948613217300000",
-        "validation_stress_trades": 48,
-        "full_3y_stress_net_pnl": "309.7865802347900000",
-        "full_3y_stress_trades": 130,
-        "full_3y_stress_max_drawdown_pct": "38.09803073679226760589964938",
-        "full_3y_stress_profit_per_position_hour": "0.03768234767483152901106921299"
+        "validation_stress_net_pnl": "28.0073845412700000",
+        "validation_stress_trades": 49,
+        "full_3y_stress_net_pnl": "376.2283048858900000",
+        "full_3y_stress_trades": 140,
+        "full_3y_stress_max_drawdown_pct": "29.43419518553414104612313328",
+        "full_3y_stress_profit_per_position_hour": "0.05376994496011004716306988709"
       },
-      "training_seed_source_run": 193,
-      "training_seed_source_round": 33,
-      "training_seed_selection_mode": "RESET_TO_ACCEPTED_REFERENCE_AFTER_R34_REJECTION",
-      "reference_source_round": 33,
+      "training_seed_source_run": 205,
+      "training_seed_source_round": 35,
+      "training_seed_selection_mode": "FOLD_STABILITY_PROFIT_FIRST_TRAINING_SELECTION",
+      "reference_source_round": 35,
       "reference_seed": {
-        "name": "REF_R33_REF_AAVE_A0.0050_0.0250_T0.50_2.50_C0.00_H120",
+        "name": "REF_R35_R35_AAVE_STOP_2.00",
         "horizon_hours": 120,
         "min_atr_pct": 0.005,
         "max_atr_pct": 0.025,
@@ -255,7 +282,11 @@
         "atr_direction": null,
         "trend_health_exit": null,
         "min_rank_strength": -999,
-        "max_rank_strength": 999
+        "max_rank_strength": 999,
+        "policy_cmo_floor": 0.3,
+        "policy_slope_bars": 0,
+        "policy_stop_atr": 2.0,
+        "policy_trail_atr": null
       }
     },
     "BCHUSDC": {
@@ -274,7 +305,7 @@
         "trail_atr": 0
       },
       "training_seed": {
-        "name": "AUTO_REF_RESET_AFTER_R34_REF_RUN114_VOL_MAX_2PCT",
+        "name": "AUTO_REF_RESET_R35_REF_RUN114_VOL_MAX_2PCT",
         "horizon_hours": 0,
         "min_atr_pct": 0,
         "max_atr_pct": 0.02,
@@ -303,7 +334,7 @@
       },
       "training_seed_source_run": 114,
       "training_seed_source_round": null,
-      "training_seed_selection_mode": "RESET_TO_ACCEPTED_REFERENCE_AFTER_R34_REJECTION",
+      "training_seed_selection_mode": "RESET_TO_ACCEPTED_REFERENCE_AFTER_REJECTION",
       "reference_seed": {
         "name": "REF_RUN114_VOL_MAX_2PCT",
         "horizon_hours": 0,

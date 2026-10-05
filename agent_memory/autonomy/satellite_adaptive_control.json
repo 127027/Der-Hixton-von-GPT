@@ -1,7 +1,7 @@
 {
   "schema_version": 1,
-  "round": 35,
-  "max_rounds": 35,
+  "round": 36,
+  "max_rounds": 36,
   "status": "CONTINUE_GENERATED_CAUSAL_FAMILY",
   "source_run": 119,
   "stage": "SATELLITE_ISOLATED_5X250_ADAPTIVE_CYCLE",
@@ -63,5 +63,5 @@
     "SYMBOL_SPECIFIC_POLICY_AND_GENERALIZATION_REPAIR",
     "MATERIAL_CHALLENGER_RISK_EXIT_REPAIR"
   ],
-  "last_completed_round": 34
+  "last_completed_round": 35
 }
