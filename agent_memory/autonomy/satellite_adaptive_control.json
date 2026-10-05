@@ -2,7 +2,7 @@
   "schema_version": 1,
   "round": 39,
   "max_rounds": 39,
-  "status": "CONTINUE_GENERATED_CAUSAL_FAMILY",
+  "status": "PAUSED_AFTER_FINAL_PROVISIONAL_RUN",
   "source_run": 119,
   "stage": "SATELLITE_ISOLATED_5X250_ADAPTIVE_CYCLE",
   "contract": {
@@ -85,5 +85,7 @@
     "FINAL_MANUAL_BALANCED_GAP_FILLER_PASS",
     "FINAL_PROVISIONAL_PROFIT_TAKE_PASS"
   ],
-  "last_completed_round": 38
+  "last_completed_round": 38,
+  "paused_after_run": 240,
+  "pause_reason": "Round38 profit-take pass completed with no accepted reference updates; owner requested stop before integration decision."
 }
