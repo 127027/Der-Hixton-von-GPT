@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "sequence": 0,
-  "requested_by": "bootstrap",
-  "note": "External quarter-hour heartbeat. Updating this file triggers Hixton Quarter-Hour Controller on main."
+  "sequence": 1,
+  "requested_by": "manual_five_satellite_backtest",
+  "note": "Single manual wake after reference-anchor + fold-stability repair. Periodic Hixton automations are disabled."
 }
