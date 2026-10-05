@@ -18,7 +18,7 @@ from hixton.backtest.models import CURRENT_COSTS, ExecutionRules
 from hixton.backtest.portfolio import run_shared_portfolio_backtest
 from hixton.backtest.reporting import RunResult, write_report_bundle
 from hixton.config import ProjectConfig
-from hixton.constants import SYMBOLS, TIMEFRAME_DELTA
+from hixton.constants import TIMEFRAME_DELTA
 from hixton.data.binance import BinancePublicClient, parse_websocket_kline
 from hixton.data.quality import DataQualityReport
 from hixton.data.storage import CandleStore
@@ -245,7 +245,7 @@ class RuntimeSupervisor:
         if mode not in {"all", "single", "portfolio"}:
             raise ValueError("backtest mode must be all, single or portfolio")
         normalized = symbol.replace("/", "").upper() if symbol else None
-        if mode == "single" and normalized not in SYMBOLS:
+        if mode == "single" and normalized not in self.strategy.symbols:
             raise ValueError("single backtest requires one DMS symbol")
         selected_strategy_key = strategy_key or self.strategy.key
         if selected_strategy_key != self.strategy.key:
@@ -330,7 +330,7 @@ class RuntimeSupervisor:
                 if not initial and any(
                     not previous.get(symbol)
                     or previous[symbol][-1].candle.close_time_utc < oldest_close
-                    for symbol in SYMBOLS
+                    for symbol in self.strategy.symbols
                 ):
                     delay = (datetime.now(UTC) - oldest_close).total_seconds()
                     # Measure publication for the independent live loop, before Paper
@@ -442,7 +442,7 @@ class RuntimeSupervisor:
                 store.put_candles(current_candles)
         with ThreadPoolExecutor(max_workers=4, thread_name_prefix="hixton-public-sync") as pool:
             # Exhaust map so every failure is propagated before state can be published.
-            list(pool.map(synchronize_market, SYMBOLS))
+            list(pool.map(synchronize_market, self.strategy.symbols))
         points, quality = rebuild_analysis(
             self.config.database_path,
             start=warmup_start,
@@ -450,12 +450,12 @@ class RuntimeSupervisor:
             strategy=self.strategy,
             starts_by_symbol={
                 symbol: max(warmup_start, max(self._available_starts.values()))
-                for symbol in SYMBOLS
+                for symbol in self.strategy.symbols
             },
         )
         rules: dict[str, ExecutionRules] = {}
         with CandleStore(self.config.database_path) as store:
-            for symbol in SYMBOLS:
+            for symbol in self.strategy.symbols:
                 stored = store.load_symbol_rules(symbol)
                 if stored is None:
                     raise RuntimeError(f"Binance filters missing for {symbol}")
@@ -479,7 +479,7 @@ class RuntimeSupervisor:
         if source_fingerprint() != self.execution_source_sha256:
             raise RuntimeError("Python-Code seit Botstart geändert: vor neuem Backtest neu starten")
         points = self.state.points()
-        if set(points) != set(SYMBOLS):
+        if set(points) != set(self.strategy.symbols):
             raise RuntimeError("backtest requires synchronized data for all ten symbols")
         report_end = (
             min(values[-1].candle.open_time_utc for values in points.values()) + TIMEFRAME_DELTA
@@ -496,7 +496,7 @@ class RuntimeSupervisor:
         }
         rules: dict[str, ExecutionRules] = {}
         with CandleStore(self.config.database_path) as store:
-            for item_symbol in SYMBOLS:
+            for item_symbol in self.strategy.symbols:
                 stored = store.load_symbol_rules(item_symbol)
                 if stored is None:
                     raise RuntimeError(f"Binance filters missing for {item_symbol}")
@@ -578,7 +578,7 @@ class RuntimeSupervisor:
         )
 
     async def _stream_loop(self) -> None:
-        streams = "/".join(f"{symbol.lower()}@kline_1h" for symbol in SYMBOLS)
+        streams = "/".join(f"{symbol.lower()}@kline_1h" for symbol in self.strategy.symbols)
         url = f"wss://stream.binance.com:9443/stream?streams={streams}"
         delay = 1
         last_stream_error: str | None = None
@@ -666,7 +666,7 @@ class RuntimeSupervisor:
             overdue = (now - boundary).total_seconds() >= 120 and any(
                 not points.get(symbol)
                 or points[symbol][-1].candle.open_time_utc < boundary - TIMEFRAME_DELTA
-                for symbol in SYMBOLS
+                for symbol in self.strategy.symbols
             )
             if self._closed_bar_event.is_set() or overdue:
                 await asyncio.sleep(2)
