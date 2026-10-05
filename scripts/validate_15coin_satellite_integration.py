@@ -157,7 +157,7 @@ def _run(
         router_config=RouterConfig(
             filler_horizon_hours=24,
             hysteresis_atr=D("0"),
-            satellite_budget_fraction_of_c=D("0.50") if slot_count == 2 else D("1"),
+            satellite_budget_fraction_of_c=D("1") / D(slot_count),
         ),
         strategy_semantics_by_symbol={s: semantics[s] for s in symbols},
         strict_core_idle_mask=bool(core_symbols and satellite_symbols),
@@ -295,11 +295,11 @@ def _isolated(costs, candles, rules, report_start, report_end):
 
 def _assert_shared_contract(result, events, *, include_satellites: bool) -> None:
     if result.max_concurrent_positions > 2:
-        raise RuntimeError("candidate exceeded two shared 125-USDC slots")
+        raise RuntimeError("candidate exceeded the two configured shared capital slots")
     satellite_trades = [trade for trade in result.trades if trade.symbol in SATELLITE_SYMBOLS]
     core_trades = [trade for trade in result.trades if trade.symbol in CORE_SYMBOLS]
     if any(trade.slot_count != 1 for trade in satellite_trades):
-        raise RuntimeError("a Satellite consumed more than one 125-USDC slot")
+        raise RuntimeError("a Satellite consumed more than one shared capital slot")
     if include_satellites:
         if not any(event.get("decision") == "STRICT_IDLE_HANDOFF" for event in events):
             raise RuntimeError("integration test did not exercise Core preemption")
@@ -317,8 +317,17 @@ def _assert_shared_contract(result, events, *, include_satellites: bool) -> None
                     )
 
 
-def _shared(costs, candles, rules, report_start, report_end, include_satellites: bool):
-    plan = capital_plan(D("250"))
+def _shared(
+    costs,
+    candles,
+    rules,
+    report_start,
+    report_end,
+    include_satellites: bool,
+    *,
+    max_capital: D = D("250"),
+):
+    plan = capital_plan(max_capital)
     symbols = ALL_15_SYMBOLS if include_satellites else CORE_SYMBOLS
     sats = SATELLITE_SYMBOLS if include_satellites else ()
     result, events = _run(
@@ -330,7 +339,7 @@ def _shared(costs, candles, rules, report_start, report_end, include_satellites:
         report_start=report_start,
         report_end=report_end,
         costs=costs,
-        starting_cash=D("250"),
+        starting_cash=plan.max_capital_usdc,
         target_notional=plan.target_notional_usdc,
         slot_count=plan.slot_count,
     )
@@ -368,9 +377,9 @@ def main() -> None:
         "report_start_utc": report_start.isoformat(),
         "report_end_utc": report_end.isoformat(),
         "capital_contract": {
-            "shared_max_usdc": "250",
+            "reference_shared_max_usdc": "250",
             "slot_count": 2,
-            "slot_notional_usdc": "125",
+            "slot_notional_rule": "max_capital_usdc / 2",
             "satellite_max_slots_per_symbol": 1,
             "core_ranked_repeat": True,
             "core_preempts_satellites_next_open": True,
@@ -413,6 +422,46 @@ def main() -> None:
                 ),
                 "max_drawdown_pct": str(
                     D(integrated["max_drawdown_pct"]) - D(core_only["max_drawdown_pct"])
+                ),
+            },
+        }
+
+    # Capital modularity proof: the same exact routing contract must hold when
+    # configured capital changes. 250 remains the reference case, not a code constant.
+    evidence["capital_scale_validation"] = {}
+    for capital in (D("250"), D("1000")):
+        core = _shared(
+            STRESS_COSTS,
+            candles,
+            rules,
+            report_start,
+            report_end,
+            False,
+            max_capital=capital,
+        )
+        integrated = _shared(
+            STRESS_COSTS,
+            candles,
+            rules,
+            report_start,
+            report_end,
+            True,
+            max_capital=capital,
+        )
+        plan = capital_plan(capital)
+        evidence["capital_scale_validation"][str(capital)] = {
+            "max_capital_usdc": str(plan.max_capital_usdc),
+            "slot_count": plan.slot_count,
+            "slot_notional_usdc": str(plan.target_notional_usdc),
+            "core_only": core,
+            "integrated": integrated,
+            "delta": {
+                "net_pnl": str(D(integrated["net_pnl"]) - D(core["net_pnl"])),
+                "zero_position_hours_reduced": str(
+                    D(core["zero_position_hours"]) - D(integrated["zero_position_hours"])
+                ),
+                "max_drawdown_pct": str(
+                    D(integrated["max_drawdown_pct"]) - D(core["max_drawdown_pct"])
                 ),
             },
         }
