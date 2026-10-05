@@ -989,6 +989,118 @@ def _variants(
                         policy_slope_bars=0,
                     ))
 
+    elif round_no == 37:
+        # Final manual symbol-specific gap-filler pass.
+        # Objective: more useful completed cycles / lower occupancy with robust
+        # after-cost profitability, not raw trade-count maximization.
+        anchor = reference_seed or seed
+
+        if symbol == "SUIUSDC":
+            # Run205 stop=2.50 is the validated anchor. Search shorter bounded
+            # occupancy and a tight volatility neighborhood without touching the
+            # failed base-indicator move from round36.
+            for hold in (24, 36, 48, 60, 72):
+                rows.append(_with(
+                    anchor, f"R37_SUI_H{hold}_STOP2.50",
+                    horizon_hours=hold,
+                    policy_stop_atr=2.50,
+                ))
+            for cap in (0.0150, 0.01625, 0.0175, 0.01875):
+                for hold in (36, 48):
+                    rows.append(_with(
+                        anchor, f"R37_SUI_CAP{cap:.5f}_H{hold}",
+                        max_atr_pct=cap,
+                        horizon_hours=hold,
+                        policy_stop_atr=2.50,
+                    ))
+            for cmo in (0.35, 0.40, 0.45):
+                rows.append(_with(
+                    anchor, f"R37_SUI_CMO{cmo:.2f}_H48",
+                    horizon_hours=48,
+                    policy_cmo_floor=cmo,
+                    policy_stop_atr=2.50,
+                ))
+
+        elif symbol == "NEARUSDC":
+            # Mature incumbent: risk-only neighborhood. Acceptance is additionally
+            # gated below so a mature reference can never be replaced by a
+            # non-mature candidate.
+            for hold in (36, 48, 60, 72):
+                for stop in (2.0, 2.5, 3.0):
+                    rows.append(_with(
+                        anchor, f"R37_NEAR_H{hold}_STOP{stop:.1f}",
+                        horizon_hours=hold,
+                        policy_stop_atr=stop,
+                    ))
+
+        elif symbol == "UNIUSDC":
+            # Keep the proven slope72/reentry structure. Search capital release
+            # rather than looser entries, which repeatedly destroyed robustness.
+            for hold in (24, 36, 48, 60, 72, 96):
+                rows.append(_with(
+                    anchor, f"R37_UNI_H{hold}",
+                    horizon_hours=hold,
+                    policy_cmo_floor=0.30,
+                    policy_slope_bars=72,
+                ))
+            for level in (0.35, 0.50, 0.65):
+                for hold in (36, 48, 72):
+                    rows.append(_with(
+                        anchor, f"R37_UNI_RE{level:.2f}_H{hold}",
+                        reentry_atr_level=level,
+                        horizon_hours=hold,
+                        policy_cmo_floor=0.30,
+                        policy_slope_bars=72,
+                    ))
+
+        elif symbol == "AAVEUSDC":
+            # Run35 showed H72/H96+stop2.0 were strong TRAINING neighbors but only
+            # the stop-only winner was validated. Revisit those nearby horizons
+            # now that AAVE has a profitable accepted anchor, plus a narrow ATR
+            # admission neighborhood to seek the final ~17 mature cycles.
+            for hold in (60, 72, 84, 96, 108, 120):
+                rows.append(_with(
+                    anchor, f"R37_AAVE_H{hold}_STOP2.00",
+                    horizon_hours=hold,
+                    policy_stop_atr=2.00,
+                    policy_cmo_floor=0.30,
+                    policy_slope_bars=0,
+                ))
+            for lo in (0.0035, 0.0045, 0.0050, 0.0055):
+                for hi in (0.0225, 0.0250, 0.0275):
+                    if lo < hi:
+                        rows.append(_with(
+                            anchor, f"R37_AAVE_ATR{lo:.4f}_{hi:.4f}",
+                            min_atr_pct=lo,
+                            max_atr_pct=hi,
+                            policy_stop_atr=2.00,
+                            policy_cmo_floor=0.30,
+                            policy_slope_bars=0,
+                        ))
+
+        elif symbol == "BCHUSDC":
+            # BCH is profitable over 3y but negative in validation. Prior stop/
+            # trail and wider base-parameter changes overtraded. Test a tighter
+            # point-in-time volatility/regime envelope around the Run114 anchor.
+            for cap in (0.0125, 0.0150, 0.0175, 0.0200):
+                for cmo in (0.00, 0.05, 0.10, 0.15):
+                    rows.append(_with(
+                        anchor, f"R37_BCH_CAP{cap:.4f}_CMO{cmo:.2f}",
+                        max_atr_pct=cap,
+                        min_abs_cmo=cmo,
+                        policy_cmo_floor=0.0,
+                        policy_slope_bars=0,
+                    ))
+            for cap in (0.0150, 0.0175):
+                for direction in ("EXPANDING", "CONTRACTING"):
+                    rows.append(_with(
+                        anchor, f"R37_BCH_{direction}_CAP{cap:.4f}",
+                        max_atr_pct=cap,
+                        atr_direction=direction,
+                        policy_cmo_floor=0.0,
+                        policy_slope_bars=0,
+                    ))
+
     else:
         # Durable post-registry generator: exhaustion is not a terminal state.
         # Every generation changes a bounded point-in-time interaction grid derived
@@ -1208,23 +1320,28 @@ def _choose(
             D(floor_row["training_score"]["min_pnl"])
             * TRAINING_PNL_RETENTION_FOR_ACTIVITY
         )
+        pph_floor = D(floor_row["training_score"]["min_pph"]) * D("0.80")
+        dd_ceiling = D(floor_row["training_score"]["max_dd"]) + D("5.0")
         activity_pool = [
             row for row in pool
             if D(row["training_score"]["min_pnl"]) >= pnl_floor
+            and D(row["training_score"]["min_pph"]) >= pph_floor
+            and D(row["training_score"]["max_dd"]) <= dd_ceiling
         ]
         if activity_pool:
             activity_pool.sort(
                 key=lambda row: (
                     int(row["training_score"].get("fold_positive_count", 0)),
                     int(row["training_score"]["min_trades"]),
-                    D(row["training_score"].get("worst_fold_pnl", "-999999")),
-                    D(row["training_score"]["min_pnl"]),
                     D(row["training_score"]["min_pph"]),
                     -D(row["training_score"]["max_dd"]),
+                    D(row["training_score"].get("worst_fold_pnl", "-999999")),
+                    D(row["training_score"]["min_pnl"]),
+                    D(row["training_score"]["sum_pnl"]),
                 ),
                 reverse=True,
             )
-            return activity_pool[0], "REFERENCE_ANCHORED_STABLE_ACTIVITY_90PCT_PNL"
+            return activity_pool[0], "REFERENCE_ANCHORED_BALANCED_FILLER_ACTIVITY"
 
     pool.sort(
         key=lambda row: (
@@ -1291,10 +1408,11 @@ def _classification(reference_row: dict, v_stress, f_stress, profit_ok: bool, ma
             and cand_dd < ref_dd
             and cand_pph > ref_pph
         )
-        if strict:
+        preserve_mature = (not ref_mature) or mature_ok
+        if strict and preserve_mature:
             classification = "IMPROVED"
             reason = "ROBUST_DOMINANCE"
-        elif filler_efficiency_tradeoff:
+        elif filler_efficiency_tradeoff and preserve_mature:
             classification = "IMPROVED"
             reason = "FILLER_EFFICIENCY_TRADEOFF_99PCT_PNL_RETENTION"
         elif maturity_tradeoff:
@@ -1371,7 +1489,7 @@ def main() -> None:
 
     for symbol in SATELLITES:
         row = state["per_symbol"][symbol]
-        if bool(row["reference_maturity_pass"]):
+        if bool(row["reference_maturity_pass"]) and round_no != 37:
             per_symbol[symbol] = {
                 "status": "FROZEN_MATURE_INCUMBENT",
                 "classification": "UNCHANGED",
