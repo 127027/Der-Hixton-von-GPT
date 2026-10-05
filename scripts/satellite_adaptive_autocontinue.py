@@ -97,6 +97,12 @@ def main() -> None:
         # but it never chooses the next training seed above.
         if classification == "IMPROVED" and delta.get("candidate_reference"):
             state_row["reference"] = delta["candidate_reference"]
+            if winner and winner.get("candidate"):
+                reference_seed = dict(winner["candidate"])
+                reference_seed["name"] = (
+                    f"REF_R{round_no}_{reference_seed.get('name', 'TRAINING_WINNER')}"
+                )
+                state_row["reference_seed"] = reference_seed
             state_row["reference_source_run"] = run_number
             state_row["reference_source_round"] = round_no
             state_row["reference_profitability_pass"] = bool(
