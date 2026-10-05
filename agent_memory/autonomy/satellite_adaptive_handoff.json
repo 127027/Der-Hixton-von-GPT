@@ -1,16 +1,16 @@
 {
   "schema_version": 1,
-  "completed_run_number": 158,
-  "completed_run_id": 37274718110,
-  "completed_round": 28,
-  "completed_family": "RANK_STRENGTH_X_VOLATILITY",
+  "completed_run_number": 165,
+  "completed_run_id": 37276204571,
+  "completed_round": 29,
+  "completed_family": "POINT_IN_TIME_BREAKOUT_CEILING",
   "economic_progress": false,
   "accepted_reference_updates": [],
   "mature_symbols_after": [
     "NEARUSDC"
   ],
-  "next_stage": "SATELLITE_ISOLATED_5X250_NEEDS_NEW_CAUSAL_FAMILY",
-  "next_round": 28,
-  "dispatch_next": false,
-  "reason": "28 materially different adaptive families exhausted; controller must build a new causal family under transactional lock"
+  "next_stage": "SATELLITE_ISOLATED_5X250_ADAPTIVE_CYCLE",
+  "next_round": 30,
+  "dispatch_next": true,
+  "reason": "advance from adaptive round 29 to 30; registry exhaustion transitions into a bounded TRAINING-only generated point-in-time causal interaction family instead of stopping"
 }
