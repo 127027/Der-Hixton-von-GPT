@@ -438,16 +438,13 @@ jobs:
           git push origin "HEAD:$branch"
           echo "advanced=true" >> "$GITHUB_OUTPUT"
 
-      - name: Dispatch next bounded Satellite round
+      - name: Quarter-hour bounded-handoff barrier
         if: steps.handoff.outputs.advanced == 'true'
         shell: bash
-        env:
-          GH_TOKEN: ${{ github.token }}
         run: |
           set -euo pipefail
-          branch="gpt/autonomous-research-v1"
-          echo "Dispatching next autonomous research run on $branch after bot-authored handoff commit."
-          gh workflow run hixton-autonomous-research.yml --ref "$branch"
+          echo "Bounded refinement state persisted. Immediate self-dispatch is disabled."
+          echo "A later quarter-hour scheduled tick owns the next substantive run."
 
   build-candidate:
     needs: research
