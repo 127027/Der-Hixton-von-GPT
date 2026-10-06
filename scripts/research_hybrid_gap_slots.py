@@ -10,7 +10,7 @@ import json
 from decimal import ROUND_DOWN, Decimal
 from pathlib import Path
 
-from validate_15coin_satellite_integration import _histories, _maps, _metrics, _rules
+from validate_15coin_satellite_integration import _histories, _maps, _rules
 
 from hixton.backtest.models import BASELINE_COSTS, STRESS_COSTS
 from hixton.backtest.satellite_portfolio import RouterConfig, run_filler_router_portfolio
@@ -106,7 +106,43 @@ def _run(
         satellite_position_limit=satellite_count,
         satellite_target_notional=sat_notional,
     )
-    metrics = _metrics(result)
+    m = result.metrics
+    zero_position_hours = sum(
+        not point.active_position for point in result.equity_curve
+    )
+    per_symbol = {
+        symbol: {
+            "trades": sum(trade.symbol == symbol for trade in result.trades),
+            "net_pnl": str(
+                sum(
+                    (
+                        trade.realized_pnl
+                        for trade in result.trades
+                        if trade.symbol == symbol
+                    ),
+                    D("0"),
+                )
+            ),
+        }
+        for symbol in result.symbols
+    }
+    metrics = {
+        "starting_equity": str(m.starting_equity),
+        "ending_equity": str(m.ending_equity),
+        "net_pnl": str(m.net_pnl),
+        "return_pct": str(m.return_pct),
+        "completed_trades": m.completed_trades,
+        "completed_slot_trades": m.completed_slot_trades,
+        "max_drawdown_pct": str(m.max_drawdown_pct),
+        "zero_position_hours": str(zero_position_hours),
+        "zero_position_pct": str(
+            D(zero_position_hours) / D(len(result.equity_curve)) * D("100")
+            if result.equity_curve
+            else D("0")
+        ),
+        "max_concurrent_positions": result.max_concurrent_positions,
+        "per_symbol": per_symbol,
+    }
     metrics.update(_exposure(result, capital))
     metrics["core_slot_count"] = core_plan.slot_count
     metrics["core_slot_notional_usdc"] = str(core_plan.target_notional_usdc)
