@@ -12,6 +12,8 @@ from dataclasses import dataclass
 from decimal import ROUND_DOWN, Decimal
 from pathlib import Path
 
+from validate_15coin_satellite_integration import _histories, _maps, _rules
+
 from hixton.backtest.models import BASELINE_COSTS, STRESS_COSTS
 from hixton.backtest.satellite_portfolio import RouterConfig, run_filler_router_portfolio
 from hixton.data.binance import BinancePublicClient
@@ -21,8 +23,6 @@ from hixton.domain.satellite_layer import (
     CORE_SYMBOLS,
     SATELLITE_SYMBOLS,
 )
-
-from validate_15coin_satellite_integration import _histories, _maps, _rules
 
 D = Decimal
 CENT = D("0.01")
