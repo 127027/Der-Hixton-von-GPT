@@ -1,8 +1,8 @@
 {
   "schema_version": 1,
-  "round_id": "COORD-2026-10-06-SLOT15-008",
+  "round_id": "COORD-2026-10-06-RELEASE15-009",
   "status": "DISPATCHED",
-  "owner_objective": "Audit and optimize the 15-market Hixton candidate as a modular shared-capital system. Preserve the proven ten-coin Core as priority, compare fixed-total-capital slot layouts 2/3/4/5 including true 5x50 one_per_symbol at 250 USDC, verify scaling at 1000 USDC, quantify occupancy/NO_FREE_SLOT/preemption effects, retain NEAR+BCH unless evidence rejects them, and develop bounded preemption-aware improvements for AAVE then SUI/UNI. Research only; no Paper/Live activation or product promotion.",
+  "owner_objective": "Final release audit of the 15-market Hixton candidate. Preserve the proven ten-coin Core behavior and modular 2x50-percent capital plan, activate only the validated NEAR/BCH idle-gap Satellite layer, keep SUI/UNI/AAVE research-only, prove point-in-time/no-lookahead behavior over the rolling three-year backtest model, verify Backtest/Paper/Live/UI parity, and promote to gpt/usdc-audit only if all A01-A11 gates pass on one exact commit. Do not enable Live entries or send orders.",
   "target_branch": "gpt/15coin-satellite-integration",
   "commit_policy": "PIN_EXACT_COMMIT_AT_RUN_START",
   "repair_policy": "ANY_PATCH_INVALIDATES_AFFECTED_EVIDENCE_AND_REQUIRES_A_NEW_PINNED_RUN",
@@ -21,7 +21,13 @@
     "paper_live_parity": "A03/A06 identify any mismatch between research router and Paper/Live semantics before promotion.",
     "exchange_minimums": "A07 verifies 50-USDC and scaled tranches satisfy current Binance USDC filters for all 15 targets.",
     "qa": "A09 requires fresh exact-head static/tests/backtest evidence and rejects stale/mixed runs.",
-    "governance": "A11 requires fresh QA_PASS and complete A01-A10 evidence; no promotion or live activation in this round."
+    "governance": "A11 requires fresh QA_PASS and complete A01-A10 evidence; no promotion or live activation in this round.",
+    "release_candidate": "The exact candidate commit must have a fresh green 15-coin integration workflow, reproducible UI build, full Python/UI regression coverage, and no stale/mixed evidence.",
+    "future_safety": "A01/A02/A08 must confirm all signals/filters/exits are point-in-time and use only information available at each closed bar; no future/validation leakage may steer live decisions.",
+    "product_shape": "Ten Core profiles remain the primary engine; NEAR/BCH are idle-only Satellites; SUI/UNI/AAVE remain visible research-only and cannot allocate capital.",
+    "capital_modularity": "Configured max capital X must derive two equal 50-percent slots; 250/125 are reference examples only, not product constants.",
+    "live_safety": "Promotion may make the code runnable but must not arm Live entries, alter exchange credentials, or send real/testnet orders.",
+    "promotion": "After fresh A09 QA_PASS and A11 GOVERNANCE_PASS on the same exact commit, the candidate may be promoted to gpt/usdc-audit. Any patch invalidates the round."
   },
   "communication_rules": {
     "all_reports_must_include": [
@@ -41,23 +47,19 @@
     "cloud_real_money_orders_allowed": false
   },
   "diagnostic_chain": [
-    "pin exact 15coin candidate head and build isolated environment",
-    "static and regression verification of router allocator parameterization",
-    "load exact three-year closed 1h Binance-public history plus warmup",
-    "freeze canonical ten Core profiles and five Satellite profiles",
-    "run 250-USDC Core10 slot matrix baseline/stress",
-    "run 250-USDC Core+NEAR/BCH slot matrix baseline/stress",
-    "run 250-USDC Core+all-five slot matrix baseline/stress",
-    "compare ranked_repeat against true one_per_symbol",
-    "quantify zero/partial/full occupancy and NO_FREE_SLOT opportunity loss",
-    "repeat shortlisted layouts at 1000 USDC with derived tranche sizes",
-    "analyze Core preemption cost and Satellite contribution",
-    "freeze slot architecture before any AAVE/SUI/UNI parameter research",
-    "A03 Paper/Live parity review",
-    "A06 regression",
-    "A10 synthesis",
-    "A09 independent QA",
-    "A11 governance; research only"
+    "pin exact release candidate commit",
+    "verify point-in-time/no-lookahead contracts and rolling three-year methodology",
+    "verify ten-Core behavior and two-slot modular allocator",
+    "verify NEAR/BCH idle-only entry filters, horizon exits and Core preemption at next executable open",
+    "verify SUI/UNI/AAVE research-only cannot allocate capital",
+    "reproduce exact 15coin integration baseline/stress and 250/1000 scaling evidence",
+    "verify Paper/Live decision parity and fail-closed behavior",
+    "verify UI exposes 15 markets and roles without presenting inactive Satellites as active",
+    "run full static/Python/UI/browser regression",
+    "A10 synthesize exact-head evidence",
+    "A09 emit QA_PASS only if all release gates are green",
+    "A11 emit GOVERNANCE_PASS only after fresh QA_PASS",
+    "promote code only; leave Live entries disabled"
   ],
   "assignments": {
     "A01": {
@@ -252,6 +254,6 @@
   },
   "research_brief_file": "agent_memory/swarm/research_brief_2026-10-01.md",
   "promotion_brief_file": "agent_memory/swarm/promotion_brief_2026-10-01.md",
-  "dispatch_generation": 1,
-  "dispatch_note": "Final candidate audit trigger after slot-matrix code stabilized; A02 capitalbudget must independently challenge 2x125 vs higher-slot layouts."
+  "dispatch_generation": 2,
+  "dispatch_note": "Final release audit after integration #43 and UI build passed; pin exact current candidate head. Promotion allowed only after same-head A09/A11; Live remains disabled."
 }
