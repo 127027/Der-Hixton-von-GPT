@@ -6,9 +6,17 @@ They are intentionally separate from the ten protected Core profiles.
 
 from __future__ import annotations
 
+import hashlib
 from dataclasses import dataclass
+from datetime import datetime
 
-from hixton.domain.models import IndicatorPoint, StrategyParameters, StrategySemantics
+from hixton.domain.models import (
+    IndicatorPoint,
+    Signal,
+    SignalAction,
+    StrategyParameters,
+    StrategySemantics,
+)
 from hixton.domain.trade_policy import TradePolicy
 
 CORE_SYMBOLS: tuple[str, ...] = (
@@ -142,3 +150,64 @@ SATELLITE_PROFILES: tuple[SatelliteProfile, ...] = (
 )
 
 SATELLITE_PROFILE_BY_SYMBOL = {profile.symbol: profile for profile in SATELLITE_PROFILES}
+
+def shared_satellite_entry_block_reason(
+    symbol: str,
+    point: IndicatorPoint,
+) -> str | None:
+    """Return the frozen shared-gap entry gate for one active Satellite."""
+
+    profile = SATELLITE_PROFILE_BY_SYMBOL.get(symbol.replace("/", "").upper())
+    if profile is None or profile.symbol not in ACTIVE_SHARED_SATELLITES:
+        return "SATELLITE_RESEARCH_ONLY"
+    return profile.entry_block_reason(point)
+
+
+def shared_satellite_horizon_exit(
+    symbol: str,
+    point: IndicatorPoint,
+    *,
+    entry_time_utc: datetime,
+) -> Signal | None:
+    """Create the tested next-open max-hold exit for an active filler.
+
+    The accepted NEAR profile uses a 48-hour filler horizon. In the research
+    router the remaining-value score is guaranteed <= 0.50 once age reaches
+    that horizon, so the product-equivalent rule is a deterministic 48-hour
+    max hold evaluated only on a fully closed bar.
+    """
+
+    normalized = symbol.replace("/", "").upper()
+    profile = SATELLITE_PROFILE_BY_SYMBOL.get(normalized)
+    if (
+        profile is None
+        or normalized not in ACTIVE_SHARED_SATELLITES
+        or profile.horizon_hours <= 0
+    ):
+        return None
+    age_hours = (point.candle.close_time_utc - entry_time_utc).total_seconds() / 3600
+    if age_hours < profile.horizon_hours:
+        return None
+    upper = point.upper if point.upper is not None else point.candle.close
+    lower = point.lower if point.lower is not None else point.candle.close
+    atr = point.atr if point.atr is not None else 0.0
+    digest = hashlib.sha256(
+        (
+            f"SATELLITE_MAX_HOLD|{normalized}|{entry_time_utc.isoformat()}|"
+            f"{point.candle.close_time_utc.isoformat()}|{profile.horizon_hours}"
+        ).encode()
+    ).hexdigest()
+    return Signal(
+        signal_id=digest,
+        symbol=normalized,
+        action=SignalAction.EXIT_LONG,
+        candle_close_time_utc=point.candle.close_time_utc,
+        strategy_version=point.strategy_version,
+        point_index=point.index,
+        close=point.candle.close,
+        upper=float(upper),
+        lower=float(lower),
+        atr=float(atr),
+        breakout_strength=point.breakout_strength,
+    )
+
