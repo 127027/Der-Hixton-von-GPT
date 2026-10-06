@@ -35,7 +35,7 @@ jobs:
       - name: Checkout candidate branch
         uses: actions/checkout@v4
         with:
-          ref: gpt/15coin-satellite-integration
+          ref: ${{ github.sha }}
           persist-credentials: false
 
       - name: Set up Python
