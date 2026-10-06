@@ -1,0 +1,68 @@
+name: Hixton Slot Layout Research
+
+on:
+  push:
+    branches:
+      - gpt/15coin-satellite-integration
+    paths:
+      - .github/workflows/hixton-slot-layout-research.yml
+      - scripts/research_slot_layout_matrix.py
+      - src/hixton/backtest/satellite_portfolio.py
+      - src/hixton/domain/satellite_layer.py
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: hixton-slot-layout-research
+  cancel-in-progress: true
+
+jobs:
+  research:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 120
+    steps:
+      - name: Checkout candidate branch
+        uses: actions/checkout@v4
+        with:
+          ref: gpt/15coin-satellite-integration
+          persist-credentials: false
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install environment
+        shell: bash
+        run: |
+          set -euo pipefail
+          python -m venv .venv
+          .venv/bin/python -m pip install --upgrade pip
+          .venv/bin/pip install -e '.[dev]'
+
+      - name: Static validation
+        shell: bash
+        run: |
+          set -euo pipefail
+          .venv/bin/python -m py_compile \
+            src/hixton/backtest/satellite_portfolio.py \
+            scripts/research_slot_layout_matrix.py
+          .venv/bin/ruff check \
+            src/hixton/backtest/satellite_portfolio.py \
+            scripts/research_slot_layout_matrix.py
+
+      - name: Run controlled slot matrix
+        shell: bash
+        run: |
+          set -euo pipefail
+          .venv/bin/python scripts/research_slot_layout_matrix.py
+
+      - name: Upload slot-layout evidence
+        uses: actions/upload-artifact@v4
+        with:
+          name: hixton-slot-layout-${{ github.run_id }}
+          path: evidence/slot-layout-matrix.json
+          retention-days: 30
+          if-no-files-found: error
