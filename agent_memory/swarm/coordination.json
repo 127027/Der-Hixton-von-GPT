@@ -252,6 +252,6 @@
   },
   "research_brief_file": "agent_memory/swarm/research_brief_2026-10-01.md",
   "promotion_brief_file": "agent_memory/swarm/promotion_brief_2026-10-01.md",
-  "dispatch_generation": 6,
-  "dispatch_note": "Rerun after explicit DMS 2x125 example repair. Exact-head integration and A01-A11 only; no trading logic change."
+  "dispatch_generation": 7,
+  "dispatch_note": "Final exact-head V8 release gate after 15-market UI source and shipped bundle synchronization. No further changes unless a gate finds a real defect."
 }
