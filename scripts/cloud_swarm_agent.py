@@ -21,6 +21,7 @@ from pathlib import Path
 from typing import Any
 
 from hixton.domain.capital import DEFAULT_MAX_CAPITAL_USDC, capital_plan
+from hixton.domain.versions import V6_COIN_STRATEGY, strategy_definition
 from hixton.paper.storage import PaperStore
 from scripts.swarm_core import (
     AGENT_IDS,
@@ -174,14 +175,21 @@ def check_state_db() -> dict[str, Any]:
             "SELECT max_capital_text, slot_count, target_notional_text, emergency_stop "
             "FROM paper_settings WHERE singleton=1"
         ).fetchone()
+        strategy_session = connection.execute(
+            "SELECT strategy_key, strategy_version FROM paper_strategy_state "
+            "WHERE singleton=1"
+        ).fetchone()
         checkpoint_count = connection.execute(
             "SELECT COUNT(*) FROM paper_checkpoints"
         ).fetchone()[0]
         latest_checkpoint = connection.execute(
             "SELECT MAX(last_close_utc) FROM paper_checkpoints"
         ).fetchone()[0]
-    if account is None or settings is None:
-        raise CheckFailure("Paper account/settings are not initialized")
+    if account is None or settings is None or strategy_session is None:
+        raise CheckFailure("Paper account/settings/strategy state are not initialized")
+    definition = strategy_definition(str(strategy_session[0]))
+    expected_checkpoint_count = len(definition.symbols)
+    session_is_current = str(strategy_session[1]) == definition.version
     plan = capital_plan(DEFAULT_MAX_CAPITAL_USDC)
     if (
         str(settings[0]) != str(plan.max_capital_usdc)
@@ -191,8 +199,19 @@ def check_state_db() -> dict[str, Any]:
         raise CheckFailure(f"Paper sizing drifted from canonical max-budget plan: {settings}")
     if int(settings[3]) != 0:
         raise CheckFailure("Paper emergency stop is active")
-    if int(checkpoint_count) != 10:
-        raise CheckFailure(f"expected 10 Paper checkpoints, got {checkpoint_count}")
+    if session_is_current and int(checkpoint_count) != expected_checkpoint_count:
+        raise CheckFailure(
+            "current Paper strategy checkpoint universe is incomplete: "
+            f"expected {expected_checkpoint_count}, got {checkpoint_count}"
+        )
+    if not session_is_current and int(checkpoint_count) not in {
+        len(V6_COIN_STRATEGY.symbols),
+        10,
+    }:
+        raise CheckFailure(
+            "legacy Paper strategy has an unexpected checkpoint universe: "
+            f"{checkpoint_count}"
+        )
     return {
         "cash_usdc": str(account[0]),
         "starting_cash_usdc": str(account[1]),
@@ -204,6 +223,11 @@ def check_state_db() -> dict[str, Any]:
         "target_notional_usdc": str(settings[2]),
         "allocator_version": plan.version,
         "checkpoint_count": int(checkpoint_count),
+        "expected_current_checkpoint_count": expected_checkpoint_count,
+        "strategy_version_matches_current": session_is_current,
+        "checkpoint_universe_current": (
+            session_is_current and int(checkpoint_count) == expected_checkpoint_count
+        ),
         "latest_checkpoint_utc": latest_checkpoint,
     }
 
@@ -310,7 +334,9 @@ def _current_strategy_activity() -> dict[str, Any]:
         "filled_entries_since_activation": filled_entries,
         "blocked_entries_since_activation": blocked_entries,
         "recent_events_since_activation": recent,
-        "all_ten_checkpoints_present": len(checkpoints) == 10,
+        "all_strategy_checkpoints_present": bool(
+            state.get("checkpoint_universe_current")
+        ),
         "latest_checkpoint_utc": max(checkpoints) if checkpoints else None,
     }
 
@@ -485,7 +511,10 @@ def _live_audit_a05() -> list[dict[str, Any]]:
     technical_blockers: list[str] = []
     if bool(state.get("halted")):
         technical_blockers.append("PAPER_HALTED")
-    if not bool(activity.get("all_ten_checkpoints_present")):
+    if (
+        bool(activity["paper_state"].get("strategy_version_matches_current"))
+        and not bool(activity.get("all_strategy_checkpoints_present"))
+    ):
         technical_blockers.append("MISSING_CHECKPOINTS")
     if int(activity.get("open_positions", 0)) > plan.slot_count:
         technical_blockers.append("TOO_MANY_OPEN_POSITIONS")
@@ -523,7 +552,7 @@ def _live_audit_a06() -> list[dict[str, Any]]:
         ),
         "production": (
             "test_live_intent_accepts_only_two_budget_slots_and_explicit_quote",
-            "test_ten_simultaneous_signals_never_exceed_two_slots",
+            "test_all_simultaneous_signals_never_exceed_two_slots",
             "test_timeout_restart_reconciles_without_duplicate_submit",
             "test_settings_change_or_emergency_stop_blocks_new_live_entry",
             "test_repeated_scheduler_ticks_do_not_duplicate_orders",
@@ -573,7 +602,7 @@ def _live_audit_a06() -> list[dict[str, Any]]:
                 "duplicate_delivery",
                 "timeout_query_without_resubmit",
                 "restart_reserved_entry",
-                "ten_simultaneous_signals",
+                "all_simultaneous_signals",
                 "budget_change_while_live",
                 "invalid_or_huge_notional",
                 "account_reconciliation_mismatch",
@@ -587,10 +616,8 @@ def _live_audit_a06() -> list[dict[str, Any]]:
 def _live_audit_a07() -> list[dict[str, Any]]:
     exchange = _json_url("/api/v3/exchangeInfo")
     symbols = {str(item.get("symbol")): item for item in exchange.get("symbols", [])}
-    from hixton.constants import SYMBOLS
-
     result: dict[str, dict[str, Any]] = {}
-    for symbol in SYMBOLS:
+    for symbol in V6_COIN_STRATEGY.symbols:
         item = symbols.get(symbol)
         if not isinstance(item, dict):
             raise CheckFailure(f"{symbol}: exchangeInfo missing")
@@ -2299,26 +2326,26 @@ def role_a07() -> list[dict[str, Any]]:
     paper_runtime_contract()
     exchange = _json_url("/api/v3/exchangeInfo")
     symbols = {str(item.get("symbol")): item for item in exchange.get("symbols", [])}
-    from hixton.constants import SYMBOLS
+    active_symbols = V6_COIN_STRATEGY.symbols
 
-    missing = [symbol for symbol in SYMBOLS if symbol not in symbols]
+    missing = [symbol for symbol in active_symbols if symbol not in symbols]
     nontrading = [
         symbol
-        for symbol in SYMBOLS
+        for symbol in active_symbols
         if symbol in symbols and symbols[symbol].get("status") != "TRADING"
     ]
     if missing or nontrading:
         detail = f"missing={missing} nontrading={nontrading}"
         raise CheckFailure(f"Binance USDC market problem {detail}")
     server_time = _json_url("/api/v3/time")
-    sample_path = f"/api/v3/klines?symbol={SYMBOLS[0]}&interval=1h&limit=2"
+    sample_path = f"/api/v3/klines?symbol={active_symbols[0]}&interval=1h&limit=2"
     sample = _json_url(sample_path)
     if not isinstance(sample, list) or len(sample) < 2:
         raise CheckFailure("Binance public kline sample invalid")
     return [
         {
             "endpoint": MARKET_DATA_URL,
-            "markets": list(SYMBOLS),
+            "markets": list(active_symbols),
             "server_time": server_time,
             "kline_sample_count": len(sample),
         },
