@@ -194,7 +194,7 @@ def main() -> None:
             folds = []
             for label, start, end in windows:
                 integrated = _run(
-                    satellites=INCUMBENT + (symbol,),
+                    satellites=(*INCUMBENT, symbol),
                     horizon_override={symbol: horizon},
                     candles=candles,
                     rules=rules,
@@ -247,7 +247,7 @@ def main() -> None:
             costs=STRESS_COSTS,
         )
         candidate_validation = _run(
-            satellites=INCUMBENT + (symbol,),
+            satellites=(*INCUMBENT, symbol),
             horizon_override={symbol: winner.horizon_hours},
             candles=candles,
             rules=rules,
