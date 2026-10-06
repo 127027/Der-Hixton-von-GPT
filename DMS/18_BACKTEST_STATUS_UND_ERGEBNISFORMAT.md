@@ -2,7 +2,7 @@
 
 Status: CURRENT · 06.10.2026
 
-Der aktuelle Produktnachweis wird frisch auf dem exakten Release-Commit erzeugt. Historische Ergebniswerte sind keine unveränderliche Zukunftsreferenz.
+Der aktuelle Produktnachweis wird frisch auf dem exakten Release-Commit erzeugt. Historische Ergebniswerte sind keine unveränderliche Zukunftsreferenz.\n\nStatische alte 3×80-Ergebniswerte sind keine aktuelle Produktreferenz mehr.
 
 Aktuelle Modelle:
 - **V6 Core:** eingefrorener Zehn-Coin-Regressionsanker;
