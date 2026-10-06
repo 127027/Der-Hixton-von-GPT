@@ -211,4 +211,4 @@ def shared_satellite_horizon_exit(
         breakout_strength=point.breakout_strength,
     )
 
-# Release audit trigger: exact-head integration and swarm verification share this source.
+# Release audit trigger v2: exact-head integration and swarm verification share this source.

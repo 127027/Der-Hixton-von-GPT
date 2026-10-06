@@ -1,7 +1,7 @@
 {
   "schema_version": 1,
   "round_id": "COORD-2026-10-06-RELEASE15-011",
-  "status": "DISPATCHED",
+  "status": "DISPATCHED_FINAL_EXACT_HEAD",
   "owner_objective": "Final exact-head release audit for V8. Preserve V6 as the exact frozen ten-coin Core regression anchor. V8 is the current 15-market product: unchanged V6 Core plus five Satellite profiles, with only NEARUSDC/BCHUSDC active as strict Core-idle gap fillers and SUIUSDC/UNIUSDC/AAVEUSDC research-only. Verify rolling three-year point-in-time/no-lookahead evidence, 2x50-percent modular capital scaling, Backtest/Paper/Live/UI parity, full regression and fail-closed safety. Promote code to gpt/usdc-audit only after same-head A09 QA_PASS and A11 GOVERNANCE_PASS. Do not activate Live or send orders.",
   "target_branch": "gpt/15coin-satellite-integration",
   "commit_policy": "PIN_EXACT_COMMIT_AT_RUN_START",
@@ -252,6 +252,6 @@
   },
   "research_brief_file": "agent_memory/swarm/research_brief_2026-10-01.md",
   "promotion_brief_file": "agent_memory/swarm/promotion_brief_2026-10-01.md",
-  "dispatch_generation": 4,
-  "dispatch_note": "Final V8 release dispatch after successful strengthened integration #59 and documentation/mission alignment. Discard all earlier swarm rounds; only this exact-head round may authorize promotion."
+  "dispatch_generation": 5,
+  "dispatch_note": "Final same-head V8 integration + A01-A11 audit after release blocker repairs; no strategy/economic gate weakened."
 }
