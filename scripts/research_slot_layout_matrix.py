@@ -18,7 +18,6 @@ from hixton.data.binance import BinancePublicClient
 from hixton.domain.allocation import ONE_PER_SYMBOL, RANKED_REPEAT
 from hixton.domain.satellite_layer import (
     ACTIVE_SHARED_SATELLITES,
-    ALL_15_SYMBOLS,
     CORE_SYMBOLS,
     SATELLITE_SYMBOLS,
 )
@@ -266,8 +265,8 @@ def main() -> None:
         "orders_sent": False,
         "paper_state_modified": False,
         "layouts": [
-            {"name": l.name, "slots": l.slots, "policy": l.policy}
-            for l in LAYOUTS
+            {"name": layout.name, "slots": layout.slots, "policy": layout.policy}
+            for layout in LAYOUTS
         ],
         "universes": {
             key: list(CORE_SYMBOLS + satellites)
