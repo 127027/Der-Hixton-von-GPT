@@ -1946,11 +1946,12 @@ def _capital_budget_audit_a06() -> list[dict[str, Any]]:
 def _capital_budget_audit_a07() -> list[dict[str, Any]]:
     exchange = _json_url("/api/v3/exchangeInfo")
     symbols = {str(item.get("symbol")): item for item in exchange.get("symbols", [])}
-    from hixton.constants import SYMBOLS
+    from hixton.domain.versions import V6_COIN_STRATEGY
 
+    active_symbols = V6_COIN_STRATEGY.symbols
     invalid = [
         symbol
-        for symbol in SYMBOLS
+        for symbol in active_symbols
         if symbol not in symbols
         or symbols[symbol].get("status") != "TRADING"
         or symbols[symbol].get("quoteAsset") != "USDC"
@@ -1958,7 +1959,7 @@ def _capital_budget_audit_a07() -> list[dict[str, Any]]:
     if invalid:
         raise CheckFailure(f"capital-budget Binance universe invalid: {invalid}")
     return [
-        {"capital_budget_binance_symbols": list(SYMBOLS)},
+        {"capital_budget_binance_symbols": list(active_symbols)},
         coverage("capital_budget_binance_rules"),
     ]
 
