@@ -553,7 +553,7 @@ def create_app(
         if normalized is not None and mode != "single":
             raise HTTPException(status_code=400, detail="Coinfilter gilt nur fuer Einzeltests")
         if strategy.lower() != config.strategy_key:
-            raise HTTPException(status_code=400, detail="Nur die aktuell aktive V6 ist verfügbar")
+            raise HTTPException(status_code=400, detail="Nur die aktuell aktive V8 ist verfügbar")
         definition = supervisor.strategy
         output_root = config.run_output_root.parents[1] / definition.backtest_version / "runs"
         try:
@@ -619,7 +619,7 @@ def create_app(
             raise HTTPException(status_code=400, detail="Ungueltige Backtest-Anfrage")
         requested_strategy = str(payload.get("strategy", config.strategy_key)).lower()
         if requested_strategy != config.strategy_key:
-            raise HTTPException(status_code=400, detail="Nur die aktuell aktive V6 ist verfügbar")
+            raise HTTPException(status_code=400, detail="Nur die aktuell aktive V8 ist verfügbar")
         try:
             started = supervisor.start_backtest(
                 mode=str(payload.get("mode", "")),
