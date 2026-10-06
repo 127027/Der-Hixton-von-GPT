@@ -256,12 +256,16 @@ def test_supervisors_reuse_closed_history_and_fill_only_at_real_next_open(tmp_pa
         config = config_for(tmp_path / str(number))
         supervisor = supervisor_type(config)
         strategy = supervisor.strategy
+        active_symbols = strategy.symbols
         initial = {
             symbol: tuple(
-                replace(_point(symbol, start - timedelta(hours=24-offset)),
-                        strategy_version=strategy.version)
+                replace(
+                    _point(symbol, start - timedelta(hours=24 - offset)),
+                    strategy_version=strategy.version,
+                )
                 for offset in range(25)
-            ) for symbol in SYMBOLS
+            )
+            for symbol in active_symbols
         }
         initialize_paper_at_latest(
             str(config.database_path), initial, at=start,
@@ -270,10 +274,10 @@ def test_supervisors_reuse_closed_history_and_fill_only_at_real_next_open(tmp_pa
         at = start + timedelta(hours=1)
         points = {
             symbol: initial[symbol] + (replace(
-                _point(symbol, at, flip_up=symbol == SYMBOLS[0], strength=1),
+                _point(symbol, at, flip_up=symbol == active_symbols[0], strength=1),
                 strategy_version=strategy.version,
             ),)
-            for symbol in SYMBOLS
+            for symbol in active_symbols
         }
         # The database contains only the provisional execution bar. The validated
         # closed history must come from the analysis snapshot, including recovery bars.
@@ -285,8 +289,10 @@ def test_supervisors_reuse_closed_history_and_fill_only_at_real_next_open(tmp_pa
                     open=150, high=151, low=149, close=150, closed=False,
                 ) for values in points.values()
             ])
-        events = supervisor._process_paper(points, _rules())
+        base_rule = next(iter(_rules().values()))
+        active_rules = dict.fromkeys(active_symbols, base_rule)
+        events = supervisor._process_paper(points, active_rules)
         assert len(events) == 1
         assert events[0].reference_price == Decimal("150")
         assert events[0].execution_price == Decimal("150.075")
-        assert supervisor._process_paper(points, _rules()) == ()
+        assert supervisor._process_paper(points, active_rules) == ()
