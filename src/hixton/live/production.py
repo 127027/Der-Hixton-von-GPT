@@ -1045,6 +1045,50 @@ class LivePortfolioController:
                 ),
             )
 
+    def _reserve_forced_exit(
+        self,
+        *,
+        symbol: str,
+        point: IndicatorPoint,
+        slot_count: int,
+        quantity: Decimal,
+        core_signal_id: str,
+    ) -> None:
+        signal_id = hashlib.sha256(
+            (
+                f"LIVE_STRICT_IDLE_HANDOFF|{symbol}|{core_signal_id}|"
+                f"{point.candle.close_time_utc.isoformat()}"
+            ).encode()
+        ).hexdigest()
+        identity = "live-" + hashlib.sha256(
+            f"{signal_id}|EXIT_LONG".encode()
+        ).hexdigest()
+        payload = {
+            "reference_price": str(point.candle.close),
+            "atr": str(point.atr or 0.0),
+            "bar_close": _utc(point.candle.close_time_utc).isoformat(),
+            "slot_count": slot_count,
+            "base_quantity": str(quantity),
+            "quote_budget": "0",
+        }
+        with self.journal._connect() as connection:
+            connection.execute("BEGIN IMMEDIATE")
+            connection.execute(
+                "INSERT OR IGNORE INTO live_events("
+                "signal_id,occurred_at_utc,symbol,action,status,reason,intent_id,payload_json"
+                ") VALUES(?,?,?,?,?,?,?,?)",
+                (
+                    signal_id,
+                    _utc(point.candle.close_time_utc).isoformat(),
+                    symbol,
+                    "EXIT_LONG",
+                    "ORDER_PENDING",
+                    f"STRICT_IDLE_HANDOFF::{core_signal_id}",
+                    identity,
+                    json.dumps(payload, sort_keys=True),
+                ),
+            )
+
     def _blocked(self, signal: Any, reason: str) -> None:
         with self.journal._connect() as connection:
             connection.execute(
@@ -1337,10 +1381,29 @@ class LivePortfolioController:
                 for symbol, point in group.items()
             }
 
+            active_satellites = frozenset(self.strategy.active_shared_satellites)
+            satellite_symbols = frozenset(self.strategy.satellite_symbols)
+            core_symbols = frozenset(self.strategy.symbols) - satellite_symbols
+
             for symbol in self.strategy.symbols:
                 position = positions.get(symbol)
                 decision = decisions[symbol]
                 signal = decision.signal
+                exit_reason = decision.exit_reason
+                if (
+                    position is not None
+                    and symbol in active_satellites
+                    and signal is None
+                ):
+                    signal = shared_satellite_horizon_exit(
+                        symbol,
+                        group[symbol],
+                        entry_time_utc=datetime.fromisoformat(
+                            str(position["entry_time_utc"])
+                        ).astimezone(UTC),
+                    )
+                    if signal is not None:
+                        exit_reason = "SATELLITE_MAX_HOLD"
                 if (
                     position is not None
                     and signal is not None
@@ -1358,12 +1421,13 @@ class LivePortfolioController:
                         action="EXIT_LONG",
                         slot_count=int(position["slot_count"]),
                         quantity=quantity,
-                        reason=decision.exit_reason,
+                        reason=exit_reason,
                     )
                     return self.report()
 
             if control["state"] == "LIVE_ENABLED" and bool(control["entries_enabled"]):
-                candidates: list[tuple[Any, IndicatorPoint]] = []
+                core_candidates: list[tuple[Any, IndicatorPoint]] = []
+                satellite_candidates: list[tuple[Any, IndicatorPoint]] = []
                 for symbol in self.strategy.symbols:
                     if symbol in positions:
                         continue
@@ -1373,13 +1437,74 @@ class LivePortfolioController:
                         continue
                     if decision.block_reason:
                         self._blocked(signal, decision.block_reason)
+                        continue
+                    if symbol in satellite_symbols:
+                        satellite_reason = shared_satellite_entry_block_reason(
+                            symbol,
+                            group[symbol],
+                        )
+                        if satellite_reason is not None:
+                            self._blocked(signal, satellite_reason)
+                            continue
+                    if symbol in core_symbols:
+                        core_candidates.append((signal, group[symbol]))
+                    elif symbol in active_satellites:
+                        satellite_candidates.append((signal, group[symbol]))
                     else:
-                        candidates.append((signal, group[symbol]))
-                candidates.sort(
+                        self._blocked(signal, "SATELLITE_RESEARCH_ONLY")
+
+                core_order = tuple(
+                    symbol for symbol in self.strategy.symbols if symbol in core_symbols
+                )
+                satellite_order = tuple(
+                    symbol
+                    for symbol in self.strategy.symbols
+                    if symbol in active_satellites
+                )
+                core_candidates.sort(
                     key=lambda item: entry_priority(
-                        item[1].rank_strength, item[0].symbol, self.strategy.symbols
+                        item[1].rank_strength, item[0].symbol, core_order
                     )
                 )
+                satellite_candidates.sort(
+                    key=lambda item: entry_priority(
+                        item[1].rank_strength, item[0].symbol, satellite_order
+                    )
+                )
+
+                # Process one persistent forced exit at a time. The boundary is not
+                # finalized until every required Satellite handoff has reconciled.
+                if core_candidates:
+                    core_signal = core_candidates[0][0]
+                    for satellite_symbol in sorted(
+                        symbol for symbol in positions if symbol in active_satellites
+                    ):
+                        row = positions[satellite_symbol]
+                        rules = self.rules()[satellite_symbol]
+                        quantity = _round_down(
+                            Decimal(row["quantity"]),
+                            rules.step_size,
+                        )
+                        if quantity < rules.min_qty:
+                            self.fail_closed("EXIT_BELOW_MINIMUM_REQUIRES_REVIEW")
+                            return self.report()
+                        self._reserve_forced_exit(
+                            symbol=satellite_symbol,
+                            point=group[satellite_symbol],
+                            slot_count=int(row["slot_count"]),
+                            quantity=quantity,
+                            core_signal_id=core_signal.signal_id,
+                        )
+                        return self.report()
+
+                core_active = any(symbol in core_symbols for symbol in positions)
+                candidates = core_candidates if core_candidates else (
+                    [] if core_active else satellite_candidates
+                )
+                for signal, _point in satellite_candidates:
+                    if core_candidates or core_active:
+                        self._blocked(signal, "CORE_ACTIVE_FILLER_IDLE_ONLY")
+
                 snapshot = self.snapshot()
                 proof = self.reconciler.check(snapshot, now=datetime.now(UTC))
                 if proof["passed"] is not True:
@@ -1392,7 +1517,11 @@ class LivePortfolioController:
                 allocations = allocate_entry_slots(
                     [signal.symbol for signal, _ in candidates],
                     free_slots=free_slots,
-                    policy=self.strategy.slot_allocation,
+                    policy=(
+                        self.strategy.slot_allocation
+                        if candidates is core_candidates
+                        else "one_per_symbol"
+                    ),
                 )
                 for signal, point in candidates:
                     if self._event(signal.signal_id) is not None:
@@ -1404,6 +1533,8 @@ class LivePortfolioController:
                         self._blocked(signal, "DAILY_LOSS_5_PERCENT")
                         continue
                     allocated = allocations.get(signal.symbol, 0)
+                    if signal.symbol in active_satellites:
+                        allocated = min(allocated, 1)
                     if allocated <= 0:
                         self._blocked(signal, "NO_FREE_SLOT")
                         continue
