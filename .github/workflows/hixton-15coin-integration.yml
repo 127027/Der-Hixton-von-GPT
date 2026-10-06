@@ -17,7 +17,12 @@ on:
       - src/hixton/paper/engine.py
       - src/hixton/paper/storage.py
       - src/hixton/live/production.py
+      - src/hixton/ui/api.py
       - tests/test_config.py
+      - tests/test_ui_api.py
+      - tests/test_paper_slot_parity.py
+      - tests/test_runtime_parity.py
+      - tests/test_live_production.py
   workflow_dispatch:
 
 permissions:
@@ -61,19 +66,26 @@ jobs:
             src/hixton/paper/engine.py \
             src/hixton/paper/storage.py \
             src/hixton/live/production.py \
+            src/hixton/ui/api.py \
             scripts/validate_15coin_satellite_integration.py
           .venv/bin/ruff check \
             src/hixton/domain/satellite_layer.py \
             src/hixton/backtest/satellite_portfolio.py \
             src/hixton/paper/engine.py \
             src/hixton/live/production.py \
+            src/hixton/ui/api.py \
             scripts/validate_15coin_satellite_integration.py
 
-      - name: Verify modular capital configuration
+      - name: Verify product parity and UI contracts
         shell: bash
         run: |
           set -euo pipefail
-          .venv/bin/pytest -q tests/test_config.py
+          .venv/bin/pytest -q \
+            tests/test_config.py \
+            tests/test_ui_api.py \
+            tests/test_paper_slot_parity.py \
+            tests/test_runtime_parity.py \
+            tests/test_live_production.py
 
       - name: Run 15x250 and shared-250 integration backtests
         shell: bash
