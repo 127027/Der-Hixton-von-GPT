@@ -37,7 +37,7 @@
     "state": "IN_PROGRESS",
     "completion_mode": "one_shot_research_candidate",
     "started_at_utc": "2026-10-06T00:00:00+00:00",
-    "last_transition_reason": "Architecture was corrected so V6 remains the exact ten-Core regression anchor and V8 is the current 15-market product. Integration #59 passed the strengthened V6/V8 parity and three-year backtest gates; final exact-head release audit is now required.",
+    "last_transition_reason": "Final release blockers repaired; dispatching one exact-head integration + A01-A11 release audit. No strategy/economic gate was weakened.",
     "owner_instruction_date": "2026-10-06",
     "primary_agents": [
       "A01",
@@ -126,5 +126,7 @@
     "testnet_orders_allowed": false,
     "binance_private_credentials_allowed": false,
     "automatic_merge_allowed": false
-  }
+  },
+  "dispatch_generation": 1,
+  "dispatch_note": "Final exact-head V8 release audit after V6 invariant, DMS guard, swarm mission tests and release evidence-contract repairs. Integration and A01-A11 must use this same commit."
 }
