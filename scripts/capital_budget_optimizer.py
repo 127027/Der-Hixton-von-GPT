@@ -9,7 +9,7 @@ Paper state or Live state and never places an order.
 from __future__ import annotations
 
 import json
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
 from datetime import UTC, datetime
 from decimal import Decimal as D
 from pathlib import Path
@@ -164,7 +164,7 @@ def _run(
         strategy_version="HIXTON-V6-CAPITAL-250-LAYOUT-RESEARCH",
         slot_allocation=layout.policy,
         apply_risk_limits=True,
-        symbols=V6_COIN_STRATEGY.symbols,
+        symbols=tuple(profiles),
     )
     no_free = sum(1 for item in result.blocked_signals if item.endswith(":NO_FREE_SLOT"))
     return {
@@ -215,9 +215,29 @@ def main() -> None:
     rules = _rules()
     # This is a capital-layout experiment, not another coin-profile optimization.
     # Every layout uses the exact active canonical V6 profile map.
-    profiles = _candidate_map(research=False)
+    core_symbols = tuple(
+        symbol
+        for symbol in V6_COIN_STRATEGY.symbols
+        if symbol not in set(V6_COIN_STRATEGY.satellite_symbols)
+    )
+    profiles = {
+        symbol: candidate
+        for symbol, candidate in _candidate_map(research=False).items()
+        if symbol in core_symbols
+    }
+    core_strategy = replace(
+        V6_COIN_STRATEGY,
+        coin_profiles=tuple(
+            profile
+            for profile in V6_COIN_STRATEGY.coin_profiles
+            if profile.symbol in core_symbols
+        ),
+        satellite_symbols=(),
+        active_shared_satellites=(),
+        satellite_semantics=None,
+    )
     history = load_continuity_history(
-        strategy=V6_COIN_STRATEGY,
+        strategy=core_strategy,
         report_start_utc=start,
         report_end_utc=end,
         execution_rules=rules,
