@@ -31,6 +31,7 @@ on:
       - tests/test_runtime_parity.py
       - tests/test_live_production.py
       - tests/test_satellite_product_rules.py
+      - tests/test_current_v6_product_contract.py
   workflow_dispatch:
 
 permissions:
@@ -94,7 +95,8 @@ jobs:
             tests/test_paper_slot_parity.py \
             tests/test_runtime_parity.py \
             tests/test_live_production.py \
-            tests/test_satellite_product_rules.py
+            tests/test_satellite_product_rules.py \
+            tests/test_current_v6_product_contract.py
 
       - name: Run 15x250 and shared-250 integration backtests
         shell: bash
