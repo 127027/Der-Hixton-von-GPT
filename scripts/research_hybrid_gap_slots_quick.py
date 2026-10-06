@@ -6,12 +6,12 @@ import json
 from decimal import Decimal
 from pathlib import Path
 
+from research_hybrid_gap_slots import _delta, _run
+from validate_15coin_satellite_integration import _histories, _rules
+
 from hixton.backtest.models import STRESS_COSTS
 from hixton.data.binance import BinancePublicClient
 from hixton.domain.satellite_layer import ACTIVE_SHARED_SATELLITES, SATELLITE_SYMBOLS
-
-from research_hybrid_gap_slots import _delta, _run
-from validate_15coin_satellite_integration import _histories, _rules
 
 D = Decimal
 OUTPUT = Path("evidence/hybrid-gap-slot-quick.json")
