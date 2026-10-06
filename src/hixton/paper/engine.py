@@ -183,15 +183,11 @@ def process_new_closed_points(
         raise ValueError("paper trade policies require the complete strategy universe")
     if any(
         p != TradePolicy() for p in (trade_policies_by_symbol or {}).values()
-    ) and not strategy_version.startswith("HIXTON-V6-"):
-        raise ValueError("paper policies require an explicit HIXTON-V6 version")
-    if strategy_key == "v6" and trade_policies_by_symbol is None:
-        raise ValueError("V6 paper requires its complete coin-policy map")
-    effective_allocation = (
-        RANKED_REPEAT
-        if slot_allocation is None and strategy_key == "v6"
-        else slot_allocation or ONE_PER_SYMBOL
-    )
+    ) and strategy_version != definition.version:
+        raise ValueError("paper policies require the exact active strategy version")
+    if definition.coin_profiles and trade_policies_by_symbol is None:
+        raise ValueError("profiled paper strategy requires its complete coin-policy map")
+    effective_allocation = slot_allocation or definition.slot_allocation
     # Validate the allocation policy even when this cycle has no entry candidates.
     allocate_entry_slots((), free_slots=0, policy=effective_allocation)
     policy_gates = {s: TradePolicyGate((trade_policies_by_symbol or {}).get(s)) for s in symbols}
@@ -624,8 +620,8 @@ def activate_paper_strategy(
             halt_reason=None,
             updated_at_utc=moment,
         )
-        if strategy.key == "v6":
-            # A new research session must not erase an account-wide risk halt or high-water mark.
+        if strategy.coin_profiles:
+            # A profiled product session must not erase account-wide risk history.
             activated_account, _, _ = _risk_account(
                 replace(account, cash_usdc=cash), equity=session_equity, at=moment
             )
