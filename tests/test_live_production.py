@@ -9,8 +9,6 @@ from pathlib import Path
 
 from hixton.backtest.models import ExecutionRules
 from hixton.domain.versions import V6_COIN_STRATEGY as V6
-
-SYMBOLS = V6.symbols
 from hixton.live.exchange import ExchangeRequestError
 from hixton.live.orders import ExchangeFill, ExchangeOrder
 from hixton.live.production import (
@@ -23,6 +21,7 @@ from hixton.live.production import (
 )
 from tests.test_paper_engine import _point
 
+SYMBOLS = V6.symbols
 NOW = datetime.now(UTC).replace(second=0, microsecond=0)
 
 
