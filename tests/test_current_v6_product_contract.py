@@ -31,24 +31,15 @@ def test_product_config_selects_v8_without_mutating_v6() -> None:
     assert tuple(V8_SATELLITE_STRATEGY.symbols[10:]) == tuple(SATELLITE_SYMBOLS)
 
 
-def test_v8_preserves_core_profiles_and_activates_only_validated_fillers() -> None:
+def test_v8_preserves_core_profiles_and_activates_five_capacity_fillers() -> None:
     for symbol in SYMBOLS:
-        assert (
-            V8_SATELLITE_STRATEGY.parameters_for(symbol)
-            == V6_COIN_STRATEGY.parameters_for(symbol)
+        assert V8_SATELLITE_STRATEGY.parameters_for(symbol) == V6_COIN_STRATEGY.parameters_for(
+            symbol
         )
-        assert (
-            V8_SATELLITE_STRATEGY.policy_for(symbol)
-            == V6_COIN_STRATEGY.policy_for(symbol)
-        )
+        assert V8_SATELLITE_STRATEGY.policy_for(symbol) == V6_COIN_STRATEGY.policy_for(symbol)
     assert V8_SATELLITE_STRATEGY.satellite_symbols == SATELLITE_SYMBOLS
     assert V8_SATELLITE_STRATEGY.active_shared_satellites == ACTIVE_SHARED_SATELLITES
-    assert ACTIVE_SHARED_SATELLITES == ("NEARUSDC", "BCHUSDC")
-    assert set(SATELLITE_SYMBOLS) - set(ACTIVE_SHARED_SATELLITES) == {
-        "SUIUSDC",
-        "UNIUSDC",
-        "AAVEUSDC",
-    }
+    assert ACTIVE_SHARED_SATELLITES == SATELLITE_SYMBOLS
 
 
 def test_promoted_core_profiles_stay_exact() -> None:

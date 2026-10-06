@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="color-scheme" content="dark" />
     <title>Der Hixton</title>
-    <script type="module" crossorigin src="/assets/index-CvSv_o0k.js"></script>
+    <script type="module" crossorigin src="/assets/index-BCpn3BJ6.js"></script>
     <link rel="stylesheet" crossorigin href="/assets/index-Z-ZZCW1w.css">
   </head>
   <body>
@@ -112,7 +112,7 @@
           <article class="action-card">
             <div><strong>Historischer Test</strong><p>Gewählte Handelsregeln rückwirkend simulieren: bis zu drei Jahre verfügbare Daten, 400 Warm-up-Bars, aktuelle Kosten und Next-Bar-Open. Das tatsächliche Fenster steht beim Ergebnis. VALID bestätigt die Berechnung, nicht die Binance-Ausführung oder künftigen Gewinn.</p></div>
             <select id="backtest-strategy" aria-label="Backteststrategie"><option value="v8">Aktuelle V8 · Core + Gap-Satellites</option></select>
-            <select id="backtest-symbol" aria-label="Backtestart"><option value="PORTFOLIO">Gemeinsames Portfolio</option><option value="ALL">10×250 isoliert (Forschung)</option></select>
+            <select id="backtest-symbol" aria-label="Backtestart"><option value="PORTFOLIO">Gemeinsames Portfolio</option><option value="ALL">Alle 15 einzeln · Budget je Coin</option></select>
             <button id="backtest-button" class="button primary">Backtest starten</button>
           </article>
           <p class="backtest-note">Historische Simulation der aktuell aktiven V8 mit den aktuellen Bot-, Kosten- und Ausführungsregeln. Es gibt genau ein Ergebnis; die Ausführung ändert den laufenden Paperbot nicht.</p>
@@ -150,6 +150,7 @@
               <form id="trading-form" class="settings-form">
                 <div class="settings-fields">
                   <label>Maximaler USDC-Einsatz<input id="capital-input" type="number" min="100" max="1000000" step="1" value="250" required /></label>
+                  <label><input id="gap-fillers-input" type="checkbox" checked /> Zwischenfüller mit Core-Vorrang (nur wenn alle zehn Core-Coins inaktiv sind)</label>
                   <label><input id="entry-pause-input" type="checkbox" /> Einstiegspause für neue Trades</label>
                 </div>
                 <p id="settings-validation" class="negative" role="alert"></p>
@@ -251,5 +252,6 @@
       </main>
     </div>
     <div id="toast" class="toast hidden" role="status"></div>
+
   </body>
 </html>

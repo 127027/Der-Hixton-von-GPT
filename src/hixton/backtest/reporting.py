@@ -111,6 +111,7 @@ def write_report_bundle(
     report_end_utc: datetime,
     strategy: StrategyDefinition = V1_STRATEGY,
     python_source_sha256: str | None = None,
+    history_data: dict[str, object] | None = None,
 ) -> Path:
     """Create one new run directory; existing runs are never overwritten."""
 
@@ -144,7 +145,7 @@ def write_report_bundle(
     )
     _write_trades(run_directory / "trades.csv", scenarios)
     _write_equity(run_directory / "equity.csv", scenarios)
-    _write_html(run_directory / "report.html", run_id, metrics_payload, strategy)
+    _write_html(run_directory / "report.html", run_id, metrics_payload, strategy, history_data)
 
     manifest = {
         "schema_version": 1,
@@ -192,6 +193,22 @@ def write_report_bundle(
         "artifacts": ["metrics.json", "trades.csv", "equity.csv", "report.html"],
         "warning": "Historical results are not a profit guarantee.",
     }
+    if history_data is not None:
+        data = manifest["data"]
+        assert isinstance(data, dict)
+        data.update(history_data)
+    if strategy.satellite_symbols:
+        stored_strategy = manifest["strategy"]
+        assert isinstance(stored_strategy, dict)
+        assert strategy.satellite_semantics is not None
+        stored_strategy.update(
+            {
+                "satellite_symbols": list(strategy.satellite_symbols),
+                "active_shared_satellites": list(strategy.active_shared_satellites),
+                "satellite_semantics": strategy.satellite_semantics.value,
+                "satellite_rules": strategy.satellite_rules_payload(),
+            }
+        )
     (run_directory / "manifest.json").write_text(
         json.dumps(manifest, ensure_ascii=False, indent=2, sort_keys=True) + "\n",
         encoding="utf-8",
@@ -283,8 +300,10 @@ def _write_html(
     run_id: str,
     metrics_payload: object,
     strategy: StrategyDefinition,
+    history_data: dict[str, object] | None = None,
 ) -> None:
     payload = html.escape(json.dumps(metrics_payload, ensure_ascii=False, indent=2))
+    history_note = html.escape(str((history_data or {}).get("note", "")))
     document = f"""<!doctype html>
 <html lang="de">
 <head>
@@ -304,6 +323,7 @@ def _write_html(
   <p class="warning">Historische Simulation der angegebenen Regeln und Einstellungen.
   VALID bedeutet ein gültiges Rechenergebnis, keine Binance-Ausführungsabnahme oder Livefreigabe.
   Historische Ergebnisse sind keine Gewinngarantie.</p>
+  <p class="warning">{history_note}</p>
   <h2>Kennzahlen</h2>
   <pre>{payload}</pre>
 </body>

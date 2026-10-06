@@ -17,11 +17,13 @@ The deterministic eleven-role swarm A01–A11 under `agent_memory/swarm/` is the
 - **V6 is the frozen ten-coin Core regression anchor.**
 - **V8 is the current 15-market product.**
 - V8 reuses the exact V6 Core profiles and adds a separate five-Satellite research layer.
-- Active shared Satellites are only NEARUSDC and BCHUSDC. SUIUSDC, UNIUSDC and AAVEUSDC are research-only and may not allocate Shared capital.
-- Core has absolute priority. Satellites may enter only while the Core is fully idle and yield required capital at the next executable open.
+- Owner-requested local trade-focus revision (2026-10-06): all five Satellites are shared-active fillers. Historical SAT2 review artifacts describe the prior strategy and cannot certify this revision.
+- V8 and V6 use the original ranked-repeat Core allocation. A lone Core candidate can use both X/2 tranches.
+- Core has absolute priority: all fillers exit for eligible Core entries at the next executable open. Fillers only enter when no Core is active. Saved gap_fillers_enabled can disable filler entries, never Core priority.
+- All five fillers retain their momentum/slope/ATR regime gates, retain their original per-coin holding horizons, and may re-enter an eligible UP trend at 00:00/12:00 UTC decision boundaries. Indicators never receive provisional/future candles.
 - Only finalized 1h bars may steer decisions. Runtime must never use future/holdout information.
 - `max_capital_usdc = X` is the single capital input. `CAPITAL-V1-2X50PCT` derives two 50-% tranches; 250/125 and 1000/500 are examples, not fixed product constants.
-- Shared/product trade count is secondary to robust net PnL, drawdown, costs, occupancy and validation.
+- The owner requested increased Shared trade frequency, rejecting a roughly 392-USDC end-value reduction; preserve original Core capital allocation and verify the 1600-USDC historical end-value target. Still report net PnL, drawdown, costs, filler contribution and temporal results, including stress costs; never disable risk/exchange gates to raise trade counts.
 - Live stays fail-closed until explicit local owner activation; code promotion alone never arms entries.
 
 ## Agent workflow

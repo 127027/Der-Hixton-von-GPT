@@ -211,7 +211,28 @@ def _run_single_scenario(
     }
 
 
+def _command_v8_backtest(args: argparse.Namespace, config: ProjectConfig, mode: str) -> int:
+    from hixton.backtest.product import run_product_backtest
+    from hixton.backtest.reporting import source_fingerprint
+
+    _, report_start, report_end = _window(args.end)
+    symbol = str(args.symbol).replace("/", "").upper() if mode == "single" else None
+    output = run_product_backtest(
+        config,
+        mode=mode,
+        symbol=symbol,
+        report_start_utc=report_start,
+        report_end_utc=report_end,
+        code_commit=_code_commit(),
+        source_sha256=source_fingerprint(),
+    )
+    print(f"V8 {mode} gespeichert: {output}")
+    return 0
+
+
 def command_backtest_single(args: argparse.Namespace, config: ProjectConfig) -> int:
+    if (args.strategy or config.strategy_key) == "v8":
+        return _command_v8_backtest(args, config, "single")
     warmup_start, report_start, report_end = _window(args.end)
     symbol = _symbols(args.symbol)[0]
     strategy = strategy_definition(args.strategy or config.strategy_key)
@@ -242,6 +263,8 @@ def command_backtest_single(args: argparse.Namespace, config: ProjectConfig) -> 
 
 
 def command_backtest_all(args: argparse.Namespace, config: ProjectConfig) -> int:
+    if (args.strategy or config.strategy_key) == "v8":
+        return _command_v8_backtest(args, config, "all")
     warmup_start, report_start, report_end = _window(args.end)
     strategy = strategy_definition(args.strategy or config.strategy_key)
     candles_by_symbol = {}
@@ -282,6 +305,8 @@ def command_backtest_all(args: argparse.Namespace, config: ProjectConfig) -> int
 
 
 def command_backtest_portfolio(args: argparse.Namespace, config: ProjectConfig) -> int:
+    if (args.strategy or config.strategy_key) == "v8":
+        return _command_v8_backtest(args, config, "portfolio")
     warmup_start, report_start, report_end = _window(args.end)
     strategy = strategy_definition(args.strategy or config.strategy_key)
     # Match the UI runner: operator-saved sizes override installation defaults.
@@ -349,7 +374,7 @@ def command_paper_activate(args: argparse.Namespace, config: ProjectConfig) -> i
     rules_by_symbol: dict[str, ExecutionRules] = {}
     with CandleStore(config.database_path) as store:
         starts_by_symbol: dict[str, datetime] = {}
-        for symbol in SYMBOLS:
+        for symbol in strategy.symbols:
             available = store.load_candles(
                 symbol,
                 start=warmup_start,
@@ -359,13 +384,12 @@ def command_paper_activate(args: argparse.Namespace, config: ProjectConfig) -> i
                 raise ValueError(f"{symbol}: no stored candles available for Paper activation")
             starts_by_symbol[symbol] = available[0].open_time_utc
             rules_by_symbol[symbol] = _execution_rules(store, symbol)
-    common_start = max(warmup_start, max(starts_by_symbol.values()))
     points, _ = rebuild_analysis(
         config.database_path,
         start=warmup_start,
         end_exclusive=report_end,
         strategy=strategy,
-        starts_by_symbol=dict.fromkeys(SYMBOLS, common_start),
+        starts_by_symbol=starts_by_symbol,
     )
     events = activate_paper_strategy(
         str(config.database_path),
@@ -416,31 +440,35 @@ def build_parser() -> argparse.ArgumentParser:
     audit.add_argument("--symbol", default="ALL", help="ALL oder ein DMS-Symbol")
     audit.add_argument("--end", type=parse_utc)
 
-    backtest = commands.add_parser("backtest", help="aktuelle V6 aus lokalen Daten testen")
+    backtest = commands.add_parser("backtest", help="aktuelle Strategie aus lokalen Daten testen")
     backtest_commands = backtest.add_subparsers(dest="backtest_command", required=True)
-    single = backtest_commands.add_parser("single", help="einen Coin mit 250 USDC testen")
+    single = backtest_commands.add_parser(
+        "single", help="einen Coin mit gespeichertem Budget testen"
+    )
     single.add_argument("--symbol", required=True)
     single.add_argument("--end", type=parse_utc)
-    single.add_argument("--strategy", choices=("v6",))
-    all_ten = backtest_commands.add_parser("all", help="10x250-USDC-Batch testen")
+    single.add_argument("--strategy", choices=("v6", "v8"))
+    all_ten = backtest_commands.add_parser(
+        "all", help="alle Profile mit dem gespeicherten Budget je Coin testen"
+    )
     all_ten.add_argument("--end", type=parse_utc)
-    all_ten.add_argument("--strategy", choices=("v6",))
+    all_ten.add_argument("--strategy", choices=("v6", "v8"))
     portfolio = backtest_commands.add_parser(
         "portfolio",
         help=(
             "gemeinsames Konto mit gespeichertem Maximalbudget und automatisch "
-            "abgeleiteten ranked-repeat-Tranchen testen"
+            "abgeleiteten 50-Prozent-Tranchen testen"
         ),
     )
     portfolio.add_argument("--end", type=parse_utc)
-    portfolio.add_argument("--strategy", choices=("v6",))
+    portfolio.add_argument("--strategy", choices=("v6", "v8"))
     paper = commands.add_parser("paper", help="24/7-Paper-Bot mit lokaler UI starten")
     paper.add_argument("--no-browser", action="store_true")
     activate = commands.add_parser(
         "paper-activate",
         help="versionierten Paper-Strategiewechsel kontrolliert ausfuehren",
     )
-    activate.add_argument("--strategy", choices=("v6",), required=True)
+    activate.add_argument("--strategy", choices=("v6", "v8"), required=True)
     activate.add_argument("--confirmation", required=True)
     fresh = commands.add_parser(
         "paper-fresh-start",

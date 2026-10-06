@@ -64,7 +64,9 @@ class RuntimeSupervisor:
         self.strategy = strategy_definition(config.strategy_key)
         if not self.strategy.paper_approved:
             raise ValueError(f"strategy {self.strategy.version} is not approved for paper")
-        self.state = RuntimeState(next_daily_audit_utc=next_daily_audit())
+        self.state = RuntimeState(
+            next_daily_audit_utc=next_daily_audit(), symbols=self.strategy.symbols
+        )
         self._stop = asyncio.Event()
         self._closed_bar_event = asyncio.Event()
         self._sync_lock = asyncio.Lock()
@@ -449,7 +451,7 @@ class RuntimeSupervisor:
             end_exclusive=report_end,
             strategy=self.strategy,
             starts_by_symbol={
-                symbol: max(warmup_start, max(self._available_starts.values()))
+                symbol: max(warmup_start, self._available_starts[symbol])
                 for symbol in self.strategy.symbols
             },
         )
@@ -478,6 +480,21 @@ class RuntimeSupervisor:
 
         if source_fingerprint() != self.execution_source_sha256:
             raise RuntimeError("Python-Code seit Botstart geändert: vor neuem Backtest neu starten")
+        if strategy.key == "v8":
+            from hixton.backtest.product import run_product_backtest
+
+            _, report_start, report_end = safe_closed_window()
+            completed = subprocess.run(
+                ["git", "rev-parse", "HEAD"], cwd=self.config.run_output_root.parents[2],
+                capture_output=True, check=False, text=True,
+            )
+            run_product_backtest(
+                self.config, mode=mode, symbol=symbol,
+                report_start_utc=report_start, report_end_utc=report_end,
+                code_commit=completed.stdout.strip() if completed.returncode == 0 else "UNKNOWN",
+                source_sha256=self.execution_source_sha256,
+            )
+            return
         points = self.state.points()
         if set(points) != set(self.strategy.symbols):
             raise RuntimeError(

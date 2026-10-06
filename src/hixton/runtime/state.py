@@ -56,6 +56,7 @@ class RuntimeState:
     last_error: str | None = None
     sync_in_progress: bool = False
     backtest_status: str = "IDLE"
+    symbols: tuple[str, ...] = SYMBOLS
     _points: dict[str, tuple[IndicatorPoint, ...]] = field(default_factory=dict)
     _quality: dict[str, DataQualityReport] = field(default_factory=dict)
     _live_candles: dict[str, tuple[Candle, datetime]] = field(default_factory=dict)
@@ -164,8 +165,9 @@ class RuntimeState:
         points: dict[str, tuple[IndicatorPoint, ...]],
         quality: dict[str, DataQualityReport],
     ) -> None:
-        if set(points) != set(SYMBOLS) or set(quality) != set(SYMBOLS):
-            raise ValueError("analysis cache requires all ten DMS symbols")
+        expected = set(self.symbols)
+        if set(points) != expected or set(quality) != expected:
+            raise ValueError("analysis cache requires all active strategy symbols")
         with self._lock:
             self._points = dict(points)
             self._quality = dict(quality)

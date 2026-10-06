@@ -49,6 +49,10 @@ class TradePolicyGate:
         highest_close: float = 0.0,
     ) -> PolicyDecision:
         """Called once per closed bar, including warm-up. Stops trigger at CLOSE only."""
+        # Local import keeps SatelliteProfile's TradePolicy dependency acyclic.
+        from hixton.domain.satellite_layer import satellite_entry_point
+
+        point = satellite_entry_point(point)
         self._vidya.append(point.vidya)
         signal = HixtonStrategy.signal_for(point, is_long=entry_price is not None)
         if signal is not None and signal.action is SignalAction.ENTER_LONG:

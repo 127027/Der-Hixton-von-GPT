@@ -8,6 +8,7 @@ from zoneinfo import ZoneInfo
 
 from hixton.backtest.models import BASELINE_COSTS
 from hixton.domain.models import Candle, IndicatorPoint, Signal, SignalAction
+from hixton.domain.satellite_layer import SatelliteProfile, shared_satellite_horizon_exit
 from hixton.domain.strategy import HixtonStrategy
 from hixton.domain.trade_policy import TradePolicy, TradePolicyGate
 from hixton.paper.models import PaperEvent
@@ -92,13 +93,16 @@ def _bars(points: Iterable[IndicatorPoint], resolution: str) -> list[dict[str, o
 
 
 def strategy_markers(
-    points: Iterable[IndicatorPoint], trade_policy: TradePolicy | None = None
+    points: Iterable[IndicatorPoint],
+    trade_policy: TradePolicy | None = None,
+    satellite_profile: SatelliteProfile | None = None,
 ) -> list[dict[str, object]]:
     markers: list[dict[str, object]] = []
     is_long = False
     gate = TradePolicyGate(trade_policy)
     pending: Signal | None = None
     entry_price: float | None = None
+    entry_time: datetime | None = None
     entry_atr, highest_close = 0.0, 0.0
     for point in points:
         reason = None
@@ -109,8 +113,10 @@ def strategy_markers(
                 if pending.action is SignalAction.ENTER_LONG:
                     entry_price = point.candle.open * (1 + float(BASELINE_COSTS.adverse_price_rate))
                     entry_atr, highest_close = pending.atr, entry_price
+                    entry_time = point.candle.open_time_utc
                 else:
                     entry_price = None
+                    entry_time = None
                 pending = None
             if entry_price is not None:
                 highest_close = max(highest_close, point.candle.close)
@@ -119,6 +125,16 @@ def strategy_markers(
             )
             signal = decision.signal if not decision.block_reason else None
             reason = decision.exit_reason
+            if satellite_profile is not None:
+                if signal is not None and signal.action is SignalAction.ENTER_LONG:
+                    if satellite_profile.entry_block_reason(point) is not None:
+                        signal = None
+                elif signal is None and entry_time is not None:
+                    signal = shared_satellite_horizon_exit(
+                        point.symbol, point, entry_time_utc=entry_time
+                    )
+                    if signal is not None:
+                        reason = "SATELLITE_MAX_HOLD"
             pending = signal
         if signal is None:
             continue
@@ -148,12 +164,13 @@ def build_chart_payload(
     paper_events: tuple[PaperEvent, ...] = (),
     live_candle: Candle | None = None,
     trade_policy: TradePolicy | None = None,
+    satellite_profile: SatelliteProfile | None = None,
 ) -> dict[str, object]:
     start = range_start(range_key, now=now, timezone_name=timezone_name)
     resolution = RESOLUTION_BY_RANGE[range_key]
     selected = tuple(point for point in points if point.candle.open_time_utc >= start)
     markers = []
-    for marker in strategy_markers(points, trade_policy):
+    for marker in strategy_markers(points, trade_policy, satellite_profile):
         if str(marker["time"]) < _iso(start):
             continue
         marker = dict(marker)

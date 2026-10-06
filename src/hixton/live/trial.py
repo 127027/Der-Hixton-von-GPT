@@ -19,6 +19,10 @@ from uuid import UUID
 from hixton.backtest.models import ExecutionRules
 from hixton.domain.markets import split_market
 from hixton.domain.models import IndicatorPoint, SignalAction
+from hixton.domain.satellite_layer import (
+    shared_satellite_entry_block_reason,
+    shared_satellite_horizon_exit,
+)
 from hixton.domain.strategy import entry_priority
 from hixton.domain.trade_policy import TradePolicyGate
 from hixton.domain.versions import StrategyDefinition
@@ -57,6 +61,7 @@ class SignalTrial:
         execution_source_sha256: str = "unknown",
         allocator_version: str = "unknown",
         source_is_current: Callable[[], bool] | None = None,
+        gap_fillers_enabled: Callable[[], bool] | None = None,
     ) -> None:
         if executor.journal.path.resolve() != journal.path.resolve():
             raise ValueError("Trial and order journal must share the same ledger")
@@ -69,6 +74,7 @@ class SignalTrial:
         self.execution_source_sha256 = execution_source_sha256
         self.allocator_version = allocator_version
         self.source_is_current = source_is_current or (lambda: True)
+        self.gap_fillers_enabled = gap_fillers_enabled or (lambda: True)
         self.lock = RLock()
         with journal._connect() as connection:
             connection.execute("""
@@ -377,8 +383,11 @@ class SignalTrial:
             return
         state = self.executor.execute(
             intent.intent_id,
-            before_submit=lambda: not entry or self._entry_submit_allowed(
-                intent.intent_id, now + timedelta(seconds=time.monotonic() - started)
+            before_submit=lambda: (
+                not entry
+                or self._entry_submit_allowed(
+                    intent.intent_id, now + timedelta(seconds=time.monotonic() - started)
+                )
             ),
         )
         if state == "BLOCKED":
@@ -539,9 +548,20 @@ class SignalTrial:
                 and point.atr
                 and point.atr > 0
             ):
+                if (
+                    symbol in self.strategy.satellite_symbols
+                    and (
+                        not self.gap_fillers_enabled()
+                        or shared_satellite_entry_block_reason(symbol, point) is not None
+                    )
+                ):
+                    continue
                 candidates.append(point)
         if len(boundaries) != 1 or not candidates:
             return
+        core_candidates = [p for p in candidates if p.symbol not in self.strategy.satellite_symbols]
+        if core_candidates:
+            candidates = core_candidates
         candidates.sort(
             key=lambda point: entry_priority(
                 point.rank_strength, point.symbol, self.strategy.symbols
@@ -582,13 +602,25 @@ class SignalTrial:
                 entry_atr=float(row["entry_atr"]),
                 highest_close=highest,
             )
-            if decision.signal and decision.signal.action is SignalAction.EXIT_LONG:
+            signal = decision.signal
+            reason = decision.exit_reason
+            if signal is None and row["symbol"] in self.strategy.active_shared_satellites:
+                entry = json.loads(row["entry_signal_json"])
+                entry_time = (
+                    datetime.fromisoformat(entry["bar_close"]) + timedelta(milliseconds=1)
+                ).replace(minute=0, second=0, microsecond=0)
+                signal = shared_satellite_horizon_exit(
+                    row["symbol"], point, entry_time_utc=entry_time
+                )
+                if signal is not None:
+                    reason = "SATELLITE_MAX_HOLD"
+            if signal and signal.action is SignalAction.EXIT_LONG:
                 # A missed exit remains a real exit obligation, not a backdated model fill.
                 self._reserve(
                     row,
                     point,
                     side="SELL",
-                    reason=decision.exit_reason or "HIXTON_EXIT_LONG",
+                    reason=reason or "HIXTON_EXIT_LONG",
                     reference=Decimal(str(latest.candle.close)),
                 )
                 return

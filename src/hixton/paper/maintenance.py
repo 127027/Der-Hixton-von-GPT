@@ -123,7 +123,9 @@ def fresh_start_paper(
                     (moment[:10], moment, moment),
                 )
                 connection.execute(
-                    "INSERT INTO paper_settings VALUES (1, ?, ?, ?, 0, ?)",
+                    "INSERT INTO paper_settings (singleton,max_capital_text,slot_count,"
+                    "target_notional_text,emergency_stop,updated_at_utc) "
+                    "VALUES (1, ?, ?, ?, 0, ?)",
                     (
                         str(plan.max_capital_usdc),
                         plan.slot_count,

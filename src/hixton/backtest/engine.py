@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import hashlib
 import json
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
 from datetime import datetime
 from decimal import ROUND_DOWN, Decimal
 
@@ -31,6 +31,8 @@ from hixton.domain.models import (
     StrategyParameters,
     StrategySemantics,
 )
+from hixton.domain.risk import PortfolioRiskState, evaluate_portfolio_risk
+from hixton.domain.satellite_layer import SatelliteProfile
 from hixton.domain.strategy import HixtonStrategy
 from hixton.domain.trade_policy import TradePolicy, TradePolicyGate
 
@@ -102,6 +104,8 @@ def run_single_backtest(
     strategy_semantics: StrategySemantics = StrategySemantics.DMS_V1,
     strategy_version: str | None = None,
     trade_policy: TradePolicy | None = None,
+    satellite_profile: SatelliteProfile | None = None,
+    apply_risk_limits: bool = False,
 ) -> BacktestResult:
     """Run an isolated no-compounding test and return immutable result records."""
 
@@ -115,7 +119,9 @@ def run_single_backtest(
     if (
         trade_policy is not None
         and trade_policy != TradePolicy()
-        and not (strategy_version or "").startswith(("HIXTON-V5-", "HIXTON-V6-", "HIXTON-V7-"))
+        and not (strategy_version or "").startswith(
+            ("HIXTON-V5-", "HIXTON-V6-", "HIXTON-V7-", "HIXTON-V8-")
+        )
     ):
         raise ValueError(
             "trade policy requires an explicit HIXTON-V5 or HIXTON-V6 strategy version"
@@ -148,6 +154,11 @@ def run_single_backtest(
     trades: list[Trade] = []
     equity_curve: list[EquityPoint] = []
     blocked: list[str] = []
+    risk_state = PortfolioRiskState(
+        high_water_equity_usdc=starting_cash,
+        day_start_equity_usdc=starting_cash,
+        day_start_date_utc=report_start_utc.date().isoformat(),
+    )
 
     for candle in selected:
         in_report = report_start_utc <= candle.open_time_utc < report_end_utc
@@ -264,10 +275,35 @@ def run_single_backtest(
             continue
 
         signal = decision.signal
+        position_value = ((open_trade.quantity if open_trade else ZERO) + dust) * _d(candle.close)
+        daily_paused = False
+        if apply_risk_limits:
+            risk = evaluate_portfolio_risk(
+                risk_state, equity=cash + position_value, at=candle.close_time_utc
+            )
+            risk_state = risk.state
+            daily_paused = risk.daily_paused
+        if signal is None and open_trade is not None and satellite_profile is not None:
+            horizon = satellite_profile.horizon_hours
+            age = (candle.close_time_utc - open_trade.fill.fill_time_utc).total_seconds() / 3600
+            if horizon and age >= horizon:
+                signal = HixtonStrategy.signal_for(
+                    replace(point, flip_up=False, flip_down=True), is_long=True
+                )
+        if (
+            signal is not None
+            and signal.action is SignalAction.ENTER_LONG
+            and satellite_profile is not None
+        ):
+            reason = satellite_profile.entry_block_reason(point)
+            if reason is not None:
+                decision = replace(decision, block_reason=reason)
         if signal is not None:
             signals.append(signal)
             if decision.block_reason:
                 blocked.append(f"{signal.signal_id}:{decision.block_reason}")
+            elif signal.action is SignalAction.ENTER_LONG and daily_paused:
+                blocked.append(f"{signal.signal_id}:DAILY_LOSS_5_PERCENT")
             else:
                 pending_signal = signal
 
@@ -336,6 +372,11 @@ def run_isolated_batch(
     strategy_semantics: StrategySemantics = StrategySemantics.DMS_V1,
     strategy_version: str | None = None,
     symbols: tuple[str, ...] = SYMBOLS,
+    strategy_semantics_by_symbol: dict[str, StrategySemantics] | None = None,
+    starting_cash_per_symbol: Decimal = Decimal("250.00"),
+    target_notional_per_symbol: Decimal = Decimal("250.00"),
+    satellite_profiles_by_symbol: dict[str, SatelliteProfile] | None = None,
+    apply_risk_limits: bool = False,
 ) -> BatchResult:
     validate_market_symbols(symbols)
     if len(candles_by_symbol) != len(symbols) or set(candles_by_symbol) != set(symbols):
@@ -347,20 +388,28 @@ def run_isolated_batch(
     if trade_policies_by_symbol is not None and set(trade_policies_by_symbol) != set(symbols):
         raise ValueError("trade policies require all ten symbols")
     rules = execution_rules or {}
+    if strategy_semantics_by_symbol is not None and set(strategy_semantics_by_symbol) != set(
+        symbols
+    ):
+        raise ValueError("per-coin semantics require the complete symbol universe")
     results = tuple(
         run_single_backtest(
             symbol=symbol,
             candles=candles_by_symbol[symbol],
             report_start_utc=report_start_utc,
             report_end_utc=report_end_utc,
+            starting_cash=starting_cash_per_symbol,
+            target_notional=target_notional_per_symbol,
             costs=costs,
             execution_rules=rules.get(symbol),
             strategy_parameters=(strategy_parameters_by_symbol or {}).get(
                 symbol, strategy_parameters
             ),
             trade_policy=(trade_policies_by_symbol or {}).get(symbol),
-            strategy_semantics=strategy_semantics,
+            strategy_semantics=(strategy_semantics_by_symbol or {}).get(symbol, strategy_semantics),
             strategy_version=strategy_version,
+            satellite_profile=(satellite_profiles_by_symbol or {}).get(symbol),
+            apply_risk_limits=apply_risk_limits,
         )
         for symbol in symbols
     )

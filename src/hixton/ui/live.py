@@ -6,6 +6,7 @@ import json
 import sqlite3
 from collections.abc import Callable
 from decimal import Decimal, InvalidOperation
+from functools import partial
 from typing import Any
 
 from fastapi import FastAPI, HTTPException, Request
@@ -15,9 +16,8 @@ from starlette.concurrency import run_in_threadpool
 from hixton.backtest.models import ExecutionRules
 from hixton.backtest.reporting import source_fingerprint
 from hixton.config import ProjectConfig
-from hixton.constants import SYMBOLS
 from hixton.data.storage import CandleStore
-from hixton.live.binance import BinanceCheckError
+from hixton.live.binance import BinanceCheckError, BinanceReadOnlyClient
 from hixton.live.credentials import BinanceCredentials, Vault, VaultError, WindowsVault
 from hixton.live.preparation import LivePreparation
 from hixton.paper.storage import PaperStore
@@ -36,6 +36,9 @@ def install_live_routes(
     service = LivePreparation(
         config.database_path.with_name("live-preparation.sqlite3"),
         vault if vault is not None else WindowsVault(config.database_path),
+        client_factory=partial(
+            BinanceReadOnlyClient, quote_asset="USDC", market_symbols=supervisor.strategy.symbols
+        ),
         execution_source_sha256=supervisor.execution_source_sha256,
         source_is_current=lambda: source_fingerprint() == supervisor.execution_source_sha256,
     )
@@ -46,10 +49,14 @@ def install_live_routes(
             settings = store.load_settings()
         return settings.max_capital_usdc, settings.emergency_stop
 
+    def gap_fillers_enabled() -> bool:
+        with PaperStore(config.database_path) as store:
+            return store.load_settings().gap_fillers_enabled
+
     def execution_rules() -> dict[str, ExecutionRules]:
         result: dict[str, ExecutionRules] = {}
         with CandleStore(config.database_path) as store:
-            for symbol in SYMBOLS:
+            for symbol in supervisor.strategy.symbols:
                 stored = store.load_symbol_rules(symbol)
                 if stored is None:
                     raise RuntimeError(f"Binance-Orderfilter fehlen für {symbol}")
@@ -64,12 +71,11 @@ def install_live_routes(
     supervisor.trial_runtime = service.connect_runtime(
         supervisor.strategy,
         settings_provider=trading_settings,
+        gap_fillers_enabled=gap_fillers_enabled,
         rules_provider=execution_rules,
     )
     supervisor.live_runtime = service.live_runtime
-    supervisor.execution_reporter = lambda: service.write_diagnostic_report(
-        config.database_path
-    )
+    supervisor.execution_reporter = lambda: service.write_diagnostic_report(config.database_path)
 
     def require_local(request: Request) -> None:
         # Unlike legacy read/Paper endpoints, private actions require an exact origin.
@@ -123,7 +129,11 @@ def install_live_routes(
                     "allocation_policy": settings.allocation_policy,
                     "allocator_version": settings.plan.version,
                 }
-                shared = {**preview, "emergency_stop": settings.emergency_stop}
+                shared = {
+                    **preview,
+                    "emergency_stop": settings.emergency_stop,
+                    "gap_fillers_enabled": settings.gap_fillers_enabled,
+                }
         except (RuntimeError, sqlite3.DatabaseError, KeyError):
             pass
         try:
@@ -131,9 +141,7 @@ def install_live_routes(
                 soak_ready = store.load_soak_progress().ready
         except (RuntimeError, sqlite3.DatabaseError, KeyError):
             pass
-        max_capital = (
-            Decimal(str(shared["max_capital_usdc"])) if shared is not None else None
-        )
+        max_capital = Decimal(str(shared["max_capital_usdc"])) if shared is not None else None
         emergency_stop = bool(shared["emergency_stop"]) if shared is not None else True
         result = service.status(
             authenticated=authenticated,

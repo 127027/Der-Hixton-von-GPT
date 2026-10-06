@@ -7,7 +7,7 @@ from decimal import Decimal, InvalidOperation
 from typing import Any
 
 from hixton.backtest.continuity import HISTORY_MODE
-from hixton.backtest.models import BASELINE_COSTS, STRESS_COSTS
+from hixton.backtest.models import BASELINE_COSTS, CURRENT_COSTS, STRESS_COSTS
 from hixton.domain.versions import StrategyDefinition
 from hixton.paper.models import PaperSettings
 
@@ -25,13 +25,23 @@ def compare_run(
     unknown: list[str] = []
     stored = manifest.get("strategy")
     stored = stored if isinstance(stored, dict) else {}
-    expected = {
+    expected: dict[str, object] = {
         "version": active.version,
         "profiles": active.profiles_payload(),
         "parameters": None if active.coin_profiles else asdict(active.parameters),
         "semantics": active.semantics.value,
         "slot_allocation": active.slot_allocation,
     }
+    if active.satellite_symbols:
+        assert active.satellite_semantics is not None
+        expected["satellite_symbols"] = list(active.satellite_symbols)
+        expected["active_shared_satellites"] = (
+            list(active.active_shared_satellites)
+            if settings is None or settings.gap_fillers_enabled
+            else []
+        )
+        expected["satellite_semantics"] = active.satellite_semantics.value
+        expected["satellite_rules"] = active.satellite_rules_payload()
     for field, value in expected.items():
         if field not in stored:
             unknown.append(f"Strategienachweis fehlt: {field}")
@@ -47,15 +57,24 @@ def compare_run(
         differences.append("Anderer Python-Code; neuen Lauf erstellen")
     expected_costs = {
         cost.name: {k: str(v) if isinstance(v, Decimal) else v for k, v in asdict(cost).items()}
-        for cost in (BASELINE_COSTS, STRESS_COSTS)
+        for cost in ((CURRENT_COSTS,) if "current" in metrics else (BASELINE_COSTS, STRESS_COSTS))
     }
     if "cost_models" not in manifest:
         unknown.append("Kostenmodell nicht im Manifest festgehalten")
     elif manifest["cost_models"] != expected_costs:
         differences.append("Andere Kostenmodelle")
-    baseline = metrics.get("baseline", {})
+    baseline = metrics.get("current", metrics.get("baseline", {}))
     portfolio = baseline.get("portfolio") if isinstance(baseline, dict) else None
     is_portfolio = isinstance(portfolio, dict)
+    if active.key == "v8" and not is_portfolio and isinstance(baseline, dict):
+        per_symbol = baseline.get("per_symbol", {})
+        if isinstance(per_symbol, dict):
+            for symbol, metric in per_symbol.items():
+                try:
+                    if Decimal(str(metric.get("starting_equity"))) != starting_cash:
+                        differences.append(f"{symbol}: anderes Einzeltest-Startkapital")
+                except (InvalidOperation, AttributeError):
+                    unknown.append(f"{symbol}: Einzeltest-Kapitalnachweis fehlt")
     if isinstance(portfolio, dict):
         if settings is None:
             unknown.append("Aktuelle Positionsgrößen nicht verfügbar")
@@ -83,7 +102,7 @@ def compare_run(
         "Gemeinsames Konto mit Slotkonkurrenz und 5-%-UTC-Tagespause; "
         "kein permanenter Portfolio-Drawdown-Halt."
         if is_portfolio
-        else "Isolierte Coin-Diagnose: je 250, keine Slotkonkurrenz und "
+        else f"Isolierte Coin-Diagnose: je {starting_cash} USDC, keine Slotkonkurrenz und "
         "kein permanenter Portfolio-Drawdown-Halt. "
         "Kein vollständiger Spiegel des gemeinsamen Portfolio-Modells."
     )

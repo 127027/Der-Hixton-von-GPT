@@ -165,6 +165,28 @@ test("shared entry pause is visible, editable and blocks live until explicitly c
   } finally {ui.restore();}
 });
 
+test("gap-filler switch saves independently and polling preserves an unsaved change",async()=>{
+  const ui=harness(()=>{}), writes=[];
+  const controller=initializeTradingSettings(async value=>{writes.push(value);return value;},()=>{});
+  const saved={max_capital_usdc:"250",slot_count:2,target_notional_usdc:"125",reserve_usdc:"0",
+    allocation_policy:"ranked_repeat",allocator_version:"CAPITAL-V1-2X50PCT",
+    emergency_stop:false,gap_fillers_enabled:true};
+  const limits={min_capital_usdc:"100",max_capital_usdc:"1000000",allocator_version:saved.allocator_version};
+  try {
+    controller.render(saved,limits);
+    assert.equal(ui.node("gap-fillers-input").checked,true);
+    ui.node("gap-fillers-input").checked=false;
+    await ui.node("gap-fillers-input").fire("change");
+    controller.render(saved,limits);
+    assert.equal(ui.node("gap-fillers-input").checked,false);
+    await ui.node("trading-form").fire("submit");
+    assert.equal(writes.at(-1).gap_fillers_enabled,false);
+    assert.equal(writes.at(-1).emergency_stop,false);
+    assert.equal(writes.at(-1).max_capital_usdc,"250");
+    assert.match(ui.node("settings-saved").textContent,/Zwischenfüller AUS/);
+  } finally {ui.restore();}
+});
+
 test("250 and 500000 USDC maximum budgets use the single field and derived allocator",async()=>{
   const ui=harness(()=>{});const writes=[];
   const settings=initializeTradingSettings(

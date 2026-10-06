@@ -29,6 +29,7 @@ from hixton.domain.capital import (
     MAX_RESEARCH_REFERENCE_USDC,
     MIN_CONFIGURABLE_CAPITAL_USDC,
 )
+from hixton.domain.satellite_layer import SATELLITE_PROFILE_BY_SYMBOL, satellite_entry_point
 from hixton.live.credentials import Vault
 from hixton.paper.engine import load_paper_portfolio
 from hixton.paper.models import PaperSettings
@@ -46,15 +47,18 @@ def _iso(value: datetime | None) -> str | None:
     return value.astimezone(UTC).isoformat() if value is not None else None
 
 
-def _settings_payload(settings: PaperSettings) -> dict[str, object]:
+def _settings_payload(
+    settings: PaperSettings, *, allocation_policy: str | None = None
+) -> dict[str, object]:
     return {
         "max_capital_usdc": str(settings.max_capital_usdc),
         "slot_count": settings.slot_count,
         "target_notional_usdc": str(settings.target_notional_usdc),
         "reserve_usdc": str(settings.reserve_usdc),
-        "allocation_policy": settings.allocation_policy,
+        "allocation_policy": allocation_policy or settings.allocation_policy,
         "allocator_version": ALLOCATOR_VERSION,
         "emergency_stop": settings.emergency_stop,
+        "gap_fillers_enabled": settings.gap_fillers_enabled,
     }
 
 
@@ -71,7 +75,9 @@ def _trading_settings_payload(
                 starting_cash_usdc=config.paper_starting_cash_usdc,
             )
             store.require_strategy(supervisor.strategy.key, supervisor.strategy.version)
-            return _settings_payload(store.load_settings())
+            return _settings_payload(
+                store.load_settings(), allocation_policy=supervisor.strategy.slot_allocation
+            )
     except (OSError, RuntimeError, sqlite3.DatabaseError):
         return None
 
@@ -143,7 +149,9 @@ def _paper_payload(
         "daily_loss_paused": portfolio.daily_loss_paused,
         "halted": portfolio.account.halted,
         "halt_reason": portfolio.account.halt_reason,
-        "settings": _settings_payload(portfolio.settings),
+        "settings": _settings_payload(
+            portfolio.settings, allocation_policy=supervisor.strategy.slot_allocation
+        ),
         "soak": {
             "started_at_utc": _iso(soak.started_at_utc),
             "calendar_days": soak.calendar_days,
@@ -185,6 +193,12 @@ def _market_payloads(
     points_by_symbol = supervisor.state.points()
     quality = supervisor.state.quality()
     paper = _paper_payload(supervisor, config)
+    saved_settings = paper.get("settings", {}) if paper else {}
+    fillers_enabled = (
+        saved_settings.get("gap_fillers_enabled", True)
+        if isinstance(saved_settings, dict)
+        else True
+    )
     raw_positions = paper.get("positions", []) if paper is not None else []
     position_items = raw_positions if isinstance(raw_positions, list) else []
     positions = {
@@ -199,6 +213,7 @@ def _market_payloads(
         last_signal = None
         if points:
             for candidate in reversed(points):
+                candidate = satellite_entry_point(candidate)
                 if candidate.flip_up or candidate.flip_down:
                     last_signal = {
                         "action": "ENTER_LONG" if candidate.flip_up else "EXIT_LONG",
@@ -210,6 +225,8 @@ def _market_payloads(
         entry_status = (
             "POSITION_OPEN"
             if symbol in positions
+            else "WAITING_FOR_FILLER_WINDOW"
+            if symbol in supervisor.strategy.active_shared_satellites
             else "WAITING_FOR_NEW_FLIP"
             if last_signal
             else "NO_SIGNAL_YET"
@@ -219,12 +236,10 @@ def _market_payloads(
                 "symbol": symbol,
                 "display_symbol": symbol.removesuffix("USDC") + "/USDC",
                 "strategy_role": (
-                    "SATELLITE"
-                    if symbol in supervisor.strategy.satellite_symbols
-                    else "CORE"
+                    "SATELLITE" if symbol in supervisor.strategy.satellite_symbols else "CORE"
                 ),
                 "shared_active": (
-                    symbol in supervisor.strategy.active_shared_satellites
+                    bool(fillers_enabled) and symbol in supervisor.strategy.active_shared_satellites
                 ),
                 "strategy_profile": {
                     "parameters": asdict(supervisor.strategy.parameters_for(symbol)),
@@ -451,6 +466,9 @@ def create_app(
                 if supervisor.strategy.coin_profiles
                 else None,
                 live_candle=live[0] if live else None,
+                satellite_profile=SATELLITE_PROFILE_BY_SYMBOL.get(normalized)
+                if normalized in supervisor.strategy.satellite_symbols
+                else None,
             )
         except (ValueError, ZoneInfoNotFoundError) as error:
             raise HTTPException(status_code=400, detail=str(error)) from error
@@ -490,6 +508,7 @@ def create_app(
             settings = PaperSettings(
                 max_capital_usdc=Decimal(str(payload["max_capital_usdc"])),
                 emergency_stop=payload.get("emergency_stop", False),
+                gap_fillers_enabled=payload.get("gap_fillers_enabled", True),
             )
         except (KeyError, TypeError, ValueError, InvalidOperation):
             raise HTTPException(
@@ -511,7 +530,12 @@ def create_app(
         # Any budget change stops new real-money entries. Re-enabling Live is an
         # explicit separate action; Paper immediately uses the same saved allocator.
         app.state.live_preparation.stop_entries()
-        return {"saved": True, "settings": _settings_payload(settings)}
+        return {
+            "saved": True,
+            "settings": _settings_payload(
+                settings, allocation_policy=supervisor.strategy.slot_allocation
+            ),
+        }
 
     @app.post("/api/data/sync")
     async def data_sync(request: Request) -> dict[str, object]:

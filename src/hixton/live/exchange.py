@@ -18,7 +18,7 @@ from urllib.error import HTTPError, URLError
 from urllib.parse import urlencode
 from urllib.request import ProxyHandler, Request, build_opener
 
-from hixton.domain.markets import symbols_for_quote
+from hixton.domain.markets import symbols_for_quote, validate_market_symbols
 from hixton.live.binance import _NoRedirect
 from hixton.live.credentials import BinanceCredentials
 from hixton.live.orders import ExchangeFill, ExchangeOrder
@@ -36,6 +36,7 @@ class SpotOrderIntent(Protocol):
 
     @property
     def client_order_id(self) -> str: ...
+
 
 _BASES = {"https://api.binance.com", "https://testnet.binance.vision"}
 _ALLOWLIST = {
@@ -150,9 +151,7 @@ class BinanceSpotTransport:
                 pass
             ambiguous_codes = {-1006, -1007}
             definitely_rejected = (
-                method == "POST"
-                and 400 <= error.code < 500
-                and code not in ambiguous_codes
+                method == "POST" and 400 <= error.code < 500 and code not in ambiguous_codes
             )
             raise ExchangeRequestError(
                 code,
@@ -192,12 +191,15 @@ class BinanceSpotExchange:
         *,
         account_fingerprint: str,
         quote_asset: str,
+        market_symbols: tuple[str, ...] | None = None,
     ) -> None:
         if not account_fingerprint:
             raise ValueError("Explicit credential identity required")
         self.transport = transport
         self.account_fingerprint = account_fingerprint
-        self.symbols = symbols_for_quote(quote_asset)
+        self.symbols = market_symbols or symbols_for_quote(quote_asset)
+        if validate_market_symbols(self.symbols) != quote_asset:
+            raise ValueError("exchange universe must use the runtime quote")
 
     def _check(self, intent: SpotOrderIntent) -> None:
         if (

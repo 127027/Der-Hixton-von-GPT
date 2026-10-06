@@ -17,6 +17,7 @@ from hixton.domain.markets import symbols_for_quote
 from hixton.domain.models import StrategyParameters, StrategySemantics
 from hixton.domain.satellite_layer import (
     ACTIVE_SHARED_SATELLITES,
+    FILLER_ROUTING_VERSION,
     SATELLITE_PROFILES,
     SATELLITE_SYMBOLS,
 )
@@ -125,7 +126,18 @@ class StrategyDefinition:
         if self.satellite_symbols:
             payload["satellite_symbols"] = list(self.satellite_symbols)
             payload["active_shared_satellites"] = list(self.active_shared_satellites)
+            payload["satellite_rules"] = self.satellite_rules_payload()
         return payload
+
+    def satellite_rules_payload(self) -> dict[str, object]:
+        return {
+            "routing": FILLER_ROUTING_VERSION,
+            "profiles": {
+                profile.symbol: asdict(profile)
+                for profile in SATELLITE_PROFILES
+                if profile.symbol in self.satellite_symbols
+            },
+        }
 
 
 V1_STRATEGY = StrategyDefinition(
@@ -312,12 +324,22 @@ _V8_PROFILES = _V6_PROFILES + tuple(
     for profile in SATELLITE_PROFILES
 )
 _V8_DIGEST = hashlib.sha256(
-    json.dumps([asdict(p) for p in _V8_PROFILES], sort_keys=True, separators=(",", ":")).encode()
+    json.dumps(
+        {
+            "coin_profiles": [asdict(p) for p in _V8_PROFILES],
+            "satellite_profiles": [asdict(p) for p in SATELLITE_PROFILES],
+            "active_satellites": ACTIVE_SHARED_SATELLITES,
+            "routing": FILLER_ROUTING_VERSION,
+            "allocation": RANKED_REPEAT,
+        },
+        sort_keys=True,
+        separators=(",", ":"),
+    ).encode()
 ).hexdigest()
 V8_SATELLITE_STRATEGY = StrategyDefinition(
     key="v8",
     backtest_version="v8",
-    version=f"HIXTON-V8-CORE10-SAT2-PAPER-1-{_V8_DIGEST[:12]}",
+    version=f"HIXTON-V8-CORE10-SAT5-PRIORITY-3-{_V8_DIGEST[:12]}",
     reference="strategy/pine/Der_Hixton_Indikator_v6.pine",
     semantics=StrategySemantics.PINE_V6,
     parameters=V2_RESEARCH_STRATEGY.parameters,

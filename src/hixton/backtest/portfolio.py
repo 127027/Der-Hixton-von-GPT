@@ -2,7 +2,8 @@
 
 from __future__ import annotations
 
-from dataclasses import dataclass
+import hashlib
+from dataclasses import dataclass, replace
 from datetime import datetime
 from decimal import ROUND_DOWN, Decimal
 
@@ -24,10 +25,23 @@ from hixton.data.quality import audit_candles
 from hixton.domain.allocation import ONE_PER_SYMBOL, RANKED_REPEAT, allocate_entry_slots
 from hixton.domain.capital import DEFAULT_MAX_CAPITAL_USDC, capital_plan
 from hixton.domain.markets import validate_market_symbols
-from hixton.domain.models import Candle, Signal, SignalAction, StrategyParameters, StrategySemantics
+from hixton.domain.models import (
+    Candle,
+    IndicatorPoint,
+    Signal,
+    SignalAction,
+    StrategyParameters,
+    StrategySemantics,
+)
 from hixton.domain.risk import PortfolioRiskState, evaluate_portfolio_risk
+from hixton.domain.satellite_layer import (
+    satellite_handoff_symbols,
+    shared_satellite_entry_block_reason,
+    shared_satellite_horizon_exit,
+)
 from hixton.domain.strategy import HixtonStrategy, entry_priority
 from hixton.domain.trade_policy import TradePolicy, TradePolicyGate
+from hixton.domain.versions import StrategyDefinition
 
 _HUNDRED = Decimal("100")
 _DEFAULT_CAPITAL_PLAN = capital_plan(DEFAULT_MAX_CAPITAL_USDC)
@@ -87,9 +101,23 @@ def run_shared_portfolio_backtest(
     slot_allocation: str = RANKED_REPEAT,
     apply_risk_limits: bool = True,
     symbols: tuple[str, ...] = SYMBOLS,
+    strategy: StrategyDefinition | None = None,
 ) -> PortfolioBacktestResult:
     """Replay ten aligned markets against one non-compounding shared ledger."""
 
+    if strategy is not None:
+        symbols = strategy.symbols
+        strategy_parameters = strategy.parameters
+        strategy_parameters_by_symbol = strategy.parameter_map()
+        trade_policies_by_symbol = strategy.policy_map()
+        strategy_semantics = strategy.semantics
+        strategy_version = strategy.version
+        slot_allocation = strategy.slot_allocation
+    satellite_symbols = frozenset(strategy.satellite_symbols if strategy else ())
+    active_satellites = frozenset(strategy.active_shared_satellites if strategy else ())
+    core_symbols = frozenset(symbols) - satellite_symbols
+    if (strategy_version or "").startswith("HIXTON-V8-") and strategy is None:
+        raise ValueError("V8 portfolio requires its complete StrategyDefinition")
     validate_market_symbols(symbols)
     if tuple(candles_by_symbol) != symbols:
         raise ValueError("portfolio input must contain all ten symbols in fixed DMS order")
@@ -103,7 +131,7 @@ def run_shared_portfolio_backtest(
         raise ValueError("trade policies require all ten symbols")
     if any(p != TradePolicy() for p in (trade_policies_by_symbol or {}).values()) and not (
         strategy_version or ""
-    ).startswith(("HIXTON-V5-", "HIXTON-V6-", "HIXTON-V7-")):
+    ).startswith(("HIXTON-V5-", "HIXTON-V6-", "HIXTON-V7-", "HIXTON-V8-")):
         raise ValueError(
             "trade policies require an explicit HIXTON-V5 or HIXTON-V6 strategy version"
         )
@@ -147,7 +175,7 @@ def run_shared_portfolio_backtest(
         symbol: HixtonStrategy(
             symbol,
             parameters=(strategy_parameters_by_symbol or {}).get(symbol, parameters),
-            semantics=strategy_semantics,
+            semantics=strategy.semantics_for(symbol) if strategy else strategy_semantics,
             strategy_version=strategy_version,
         )
         for symbol in symbols
@@ -169,6 +197,8 @@ def run_shared_portfolio_backtest(
     )
     risk_halted_at: datetime | None = None
     daily_paused_bars = 0
+    daily_paused = False
+    previous_points: dict[str, IndicatorPoint] = {}
 
     for row in rows:
         open_time = row[0].open_time_utc
@@ -178,6 +208,37 @@ def run_shared_portfolio_backtest(
         if in_report and pending:
             exits = [signal for signal in pending if signal.action is SignalAction.EXIT_LONG]
             entries = [signal for signal in pending if signal.action is SignalAction.ENTER_LONG]
+
+            core_entries = [
+                s for s in entries if s.symbol in core_symbols and s.symbol not in positions
+            ]
+            core_entries.sort(key=lambda s: entry_priority(s.breakout_strength, s.symbol, symbols))
+            if satellite_symbols and core_entries and not (apply_risk_limits and daily_paused):
+                exit_symbols = {s.symbol for s in exits}
+                core_signal = sorted(
+                    core_entries,
+                    key=lambda s: entry_priority(s.breakout_strength, s.symbol, symbols),
+                )[0]
+                for symbol in satellite_handoff_symbols(
+                    core_entry_count=len(core_entries),
+                    position_slots={s: p.slots for s, p in positions.items()},
+                    active_satellites=active_satellites,
+                    slot_count=slot_count,
+                    exiting_symbols=frozenset(exit_symbols),
+                ):
+                    forced = HixtonStrategy.signal_for(
+                        replace(previous_points[symbol], flip_down=True, flip_up=False),
+                        is_long=True,
+                    )
+                    assert forced is not None
+                    forced = replace(
+                        forced,
+                        signal_id=hashlib.sha256(
+                            f"CORE_CAPACITY_HANDOFF|{symbol}|{core_signal.signal_id}|{open_time.isoformat()}".encode()
+                        ).hexdigest(),
+                    )
+                    exits.append(forced)
+                    signals.append(forced)
 
             for signal in exits:
                 open_trade = positions.get(signal.symbol)
@@ -242,19 +303,34 @@ def run_shared_portfolio_backtest(
             entries.sort(
                 key=lambda signal: entry_priority(signal.breakout_strength, signal.symbol, symbols)
             )
+            allocation_policy = slot_allocation
+            if satellite_symbols:
+                satellites = [s for s in entries if s.symbol in active_satellites]
+                core_active = bool(set(positions) & core_symbols)
+                if core_entries or core_active:
+                    blocked.extend(
+                        f"{s.signal_id}:CORE_ACTIVE_FILLER_IDLE_ONLY" for s in satellites
+                    )
+                    entries = core_entries
+                else:
+                    entries = satellites
+                    allocation_policy = ONE_PER_SYMBOL
             used_slots = sum(position.slots for position in positions.values())
             allocations = allocate_entry_slots(
                 [signal.symbol for signal in entries if signal.symbol not in positions],
                 free_slots=max(0, slot_count - used_slots),
-                policy=slot_allocation,
+                policy=allocation_policy,
             )
             for signal in entries:
+                if satellite_symbols and apply_risk_limits and daily_paused:
+                    blocked.append(f"{signal.signal_id}:DAILY_LOSS_5_PERCENT")
+                    continue
                 if signal.symbol in positions:
                     blocked.append(f"{signal.signal_id}:POSITION_ALREADY_OPEN")
                     continue
                 allocated_slots = (
                     int(sum(position.slots for position in positions.values()) < slot_count)
-                    if slot_allocation == ONE_PER_SYMBOL
+                    if allocation_policy == ONE_PER_SYMBOL
                     else allocations.get(signal.symbol, 0)
                 )
                 if allocated_slots == 0:
@@ -312,6 +388,13 @@ def run_shared_portfolio_backtest(
                 entry_atr=position.signal.atr if position else 0.0,
                 highest_close=position.highest_close if position else 0.0,
             )
+            if position and symbol in active_satellites and decisions[symbol].signal is None:
+                horizon_signal = shared_satellite_horizon_exit(
+                    symbol, points[symbol], entry_time_utc=position.fill.fill_time_utc
+                )
+                if horizon_signal is not None:
+                    decisions[symbol] = replace(decisions[symbol], signal=horizon_signal)
+        previous_points = points
         if in_report:
             max_concurrent = max(
                 max_concurrent,
@@ -348,7 +431,16 @@ def run_shared_portfolio_backtest(
                 if decisions[symbol].block_reason:
                     blocked.append(f"{new_signal.signal_id}:{decisions[symbol].block_reason}")
                     continue
-                if new_signal.action is SignalAction.ENTER_LONG and apply_risk_limits:
+                if new_signal.action is SignalAction.ENTER_LONG and symbol in satellite_symbols:
+                    reason = shared_satellite_entry_block_reason(symbol, points[symbol])
+                    if reason is not None:
+                        blocked.append(f"{new_signal.signal_id}:{reason}")
+                        continue
+                if (
+                    new_signal.action is SignalAction.ENTER_LONG
+                    and apply_risk_limits
+                    and not satellite_symbols
+                ):
                     if risk_state.halted:
                         blocked.append(
                             f"{new_signal.signal_id}:{risk_state.halt_reason or 'HALTED'}"

@@ -28,6 +28,10 @@ def research_symbols_for_quote(quote_asset: str) -> tuple[str, ...]:
 
 def split_market(symbol: str) -> tuple[str, str]:
     """Strict asset identity, not a permissive suffix replacement."""
+    from hixton.domain.satellite_layer import ALL_15_SYMBOLS
+
+    if symbol in ALL_15_SYMBOLS:
+        return symbol.removesuffix("USDC"), "USDC"
     for quote in ("USDT", "USDC"):
         if symbol in research_symbols_for_quote(quote):
             return symbol.removesuffix(quote), quote
@@ -36,8 +40,10 @@ def split_market(symbol: str) -> tuple[str, str]:
 
 def validate_market_symbols(symbols: tuple[str, ...]) -> str:
     """Validate the active bot universe; never accepts legacy USDT."""
-    if symbols != SYMBOLS:
-        raise ValueError("Ten ordered USDC markets required")
+    from hixton.domain.satellite_layer import ALL_15_SYMBOLS
+
+    if symbols not in (SYMBOLS, ALL_15_SYMBOLS):
+        raise ValueError("Ten or fifteen ordered USDC markets required")
     return QUOTE_ASSET
 
 

@@ -5,16 +5,15 @@ Der Hixton 0.5.0 ist ein lokaler deutschsprachiger Binance-Spot-Bot für 15 USDC
 ## Produktvertrag
 
 - Core: BTC, ETH, BNB, SOL, XRP, ADA, LINK, AVAX, DOT und DOGE gegen USDC.
-- Satellite-Forschungsuniversum: SUI, NEAR, UNI, AAVE und BCH gegen USDC.
-- Im Shared-Produkt aktiv: **NEARUSDC und BCHUSDC**. SUI/UNI/AAVE bleiben research-only und dürfen kein Shared-Kapital belegen.
-- Satellites dürfen nur handeln, wenn der Core komplett idle ist. Ein ausführbares Core-Signal verdrängt benötigte Satellite-Positionen am nächsten ausführbaren Open.
+- Die fünf Zwischenfüller SUI, NEAR, UNI, AAVE und BCH gegen USDC sind gemeinsam aktiv.
+- Zwischenfüller dürfen nur einsteigen, wenn kein Core-Coin aktiv ist. Bei einem zulässigen Core-Einstieg müssen alle Zwischenfüller am nächsten ausführbaren Open aussteigen.
 - Zeitrahmen: 1h. Signal-/Filter-/Exitlogik verwendet nur vollständig geschlossene Kerzen; Fills werden am nächsten verfügbaren Open modelliert.
 - Backtestfenster: exakt drei Kalenderjahre bis zur letzten vollständig geschlossenen UTC-Stunde plus 400 Warm-up-Bars davor.
 - Kanonische Strategiequelle: `src/hixton/domain/versions.py`.
 - **V6** bleibt der eingefrorene Zehn-Coin-Regressionsanker; **V8** ist das aktuelle Produkt.
 - Kanonische Kapitalquelle: `max_capital_usdc`.
 - Allocator: `CAPITAL-V1-2X50PCT` = zwei Tranchen zu je 50 % des konfigurierten Maximalbudgets. 250 → 2×125, 1.000 → 2×500. Diese Zahlen sind Beispiele; die Produktlogik skaliert aus X.
-- Core nutzt `ranked_repeat`; aktive Satellites bekommen höchstens einen Slot pro Symbol.
+- V8 und V6 nutzen die ursprüngliche Core-Verteilung `ranked_repeat`: Ein einzelner Core-Kandidat kann beide Tranchen erhalten. Zwischenfüller erhalten höchstens eine Tranche je Coin. Kapitalgrenze, zwei Slots und Tagesverlustschutz bleiben erhalten.
 - Echtgeld ist beim Start niemals automatisch aktiv. Cloud/CI/Agenten senden weder Real- noch Testnet-Orders.
 
 ## Eingefrorener V6-Core
@@ -36,22 +35,37 @@ Alle Profile verwenden 400 Warm-up-Bars. Der V6-Core-Hash bleibt ein harter Regr
 
 ## V8-Satellite-Layer
 
-Alle fünf Profile bleiben im isolierten 15×250-Labor sichtbar. Shared-Kapital erhalten derzeit nur NEAR und BCH.
+Alle fünf Profile verwenden dieselben Regeln im Einzeltest und im Shared-/Paper-/Live-Pfad. Die ursprünglichen Haltehorizonte bleiben erhalten: NEAR 48 Stunden, AAVE 120 Stunden, sonst Trend-/Policy-Exit. Alle Zwischenfüller müssen unabhängig davon für Core aussteigen. Neben dem ursprünglichen Trendwechsel dürfen sie bei bestätigtem UP-Trend zu den geschlossenen Stundenkerzen vor 00:00/12:00 UTC erneut einsteigen. Momentum-, Slope-, Stop- und ATR-Regimefilter gelten weiterhin; ein freier Slot und gültige Exchange-/Risiko-Gates sind erforderlich.
 
 | Coin | Shared | Kerneigenschaft |
 |---|---|---|
-| SUIUSDC | Research-only | isoliert profitabel, Shared-/Preemption-Kandidat derzeit nicht freigegeben |
-| NEARUSDC | **Aktiv** | Gap-Filler, getesteter 48h Max-Hold/Value-Decay-Pfad |
-| UNIUSDC | Research-only | Shared-/Short-Gap-Kandidat derzeit nicht freigegeben |
-| AAVEUSDC | Research-only | Shared positiv in Teiltests, aber nicht robust genug für Aktivierung |
-| BCHUSDC | **Aktiv** | Gap-Filler mit point-in-time ATR-Regimefilter |
+| SUIUSDC | **Aktiv** | ATR-Regimefilter und Close-Stop |
+| NEARUSDC | **Aktiv** | 48h Max-Hold |
+| UNIUSDC | **Aktiv** | CMO- und VIDYA-Slope-Filter |
+| AAVEUSDC | **Aktiv** | ATR-/Trend-Regimefilter und Close-Stop |
+| BCHUSDC | **Aktiv** | point-in-time ATR-Regimefilter |
+
+Die korrigierte lokale Revision vom 06.10.2026 stellt den ursprünglichen Core-Allocator wieder her. Auf denselben Kerzen (06.10.2023 19:00 UTC bis 06.10.2026 19:00 UTC) ergab der Vergleich 205 statt 132 abgeschlossene Trades und 1.606,89 statt 1.613,19 USDC Endwert. Die verworfene Variante mit halbiertem Core-Einsatz hatte nur rund 1.221 USDC erreicht. Bei Stresskosten sinkt der korrigierte Endwert auf rund 1.456,64 USDC; der Füllerbeitrag ist dann negativ. Das ist keine vollständige Release-/Zukunftsvalidierung. Live bleibt gesperrt bis zur expliziten lokalen Freigabe.
+
+Der gespeicherte UI-Schalter „Zwischenfüller mit Core-Vorrang“ (`gap_fillers_enabled`) aktiviert oder deaktiviert zusätzliche Füller-Einstiege in Shared-Backtest, Paper und Live. Ausschalten lässt nur den Core neue Positionen eröffnen; bestehende Füller werden weiter betreut und müssen weiterhin für Core weichen. Der isolierte Backtest prüft stets alle 15 Profile einzeln.
 
 ## Backtests und Forschung
 
 Es gibt zwei getrennte Sichtweisen:
 
 1. **15×250 isoliert**: Laborvergleich mit einem separaten 250-USDC-Konto je Coin. Das ist kein 3.750-USDC-Hauptkonto.
-2. **Shared-Maximalbudget**: das reale Produktmodell mit einem gemeinsamen Kapital X und zwei 50-%-Slots. Core hat absolute Priorität; validierte Satellites füllen nur echte Core-Leerlücken.
+2. **Shared-Maximalbudget**: das Produktmodell mit einem gemeinsamen Kapital X und zwei 50-%-Slots. Core hat absolute Priorität; die fünf Satellites füllen freie Kapazität.
+
+UI und CLI verwenden für V8 denselben Backtest-Pfad. Beide lesen das gespeicherte
+Maximalbudget X. `all` simuliert alle 15 Profile isoliert mit je X USDC
+(standardmäßig 15×250); `portfolio` verwendet X einmal gemeinsam und wendet
+die aktuellen Core-/Zwischenfüller-Regeln mit ursprünglicher Core-Kapitalverteilung an.
+Beide Berichte umfassen exakt drei Kalenderjahre plus 400 Warm-up-Stunden.
+Vorhandene echte USDC-Kerzen haben Vorrang. Nur der fehlende ältere Anfang wird mit
+öffentlichen Kerzen des entsprechenden USDT-Basismarktes ergänzt. Der Bericht und
+sein Manifest weisen diese Näherung je Markt aus; sie belegt keine historische
+USDC-Liquidität. Der separate Cache `data/backtest-history.sqlite3` gelangt niemals
+in Paper-/Live-Marktdaten. Backtests verändern weder das Budget noch das Paper-Konto.
 
 Slotzahl und Coinprofile werden kausal getrennt erforscht. Mehr Trades allein sind kein Akzeptanzkriterium. Kandidaten müssen Baseline/Stress, Drawdown, Kosten, Occupancy, point-in-time Semantik und Out-of-Sample-/Validation-Gates bestehen. Historische Simulationen garantieren keine zukünftigen Ergebnisse.
 

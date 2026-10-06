@@ -36,11 +36,11 @@ export function initializeTradingSettings(
         emergency_stop: false,
       };
     }
-    return derivedDraft(
+    return { ...derivedDraft(
       item<HTMLInputElement>("capital-input").value,
       item<HTMLInputElement>("entry-pause-input").checked,
       limits,
-    );
+    ), gap_fillers_enabled: item<HTMLInputElement>("gap-fillers-input").checked };
   };
 
   const draw = (): void => {
@@ -48,7 +48,7 @@ export function initializeTradingSettings(
       item<HTMLInputElement>("capital-input").value =
         String(Number(saved.max_capital_usdc));
     const value = read();
-    for (const id of ["capital-input", "entry-pause-input", "settings-button"])
+    for (const id of ["capital-input", "entry-pause-input", "gap-fillers-input", "settings-button"])
       item<HTMLInputElement | HTMLButtonElement>(id).disabled =
         draft.saving || !saved || !limits;
     item("settings-button").textContent =
@@ -73,6 +73,9 @@ export function initializeTradingSettings(
     draft.edit();
     failure = "";
     draw();
+  });
+  item("gap-fillers-input").addEventListener("change", () => {
+    draft.edit(); failure = ""; draw();
   });
   item("entry-pause-input").addEventListener("change", () => {
     draft.edit();
@@ -109,6 +112,8 @@ export function initializeTradingSettings(
       limits = boundaries;
       if (saved && draft.acceptsPolling)
         item<HTMLInputElement>("entry-pause-input").checked = saved.emergency_stop;
+      if (saved && draft.acceptsPolling)
+        item<HTMLInputElement>("gap-fillers-input").checked = saved.gap_fillers_enabled !== false;
       draw();
     },
     liveBlocker(): string | null {

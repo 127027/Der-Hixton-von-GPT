@@ -14,6 +14,7 @@ from hixton.domain.allocation import ONE_PER_SYMBOL, allocate_entry_slots
 from hixton.domain.models import Candle, IndicatorPoint, Signal, SignalAction
 from hixton.domain.risk import PortfolioRiskState, evaluate_portfolio_risk
 from hixton.domain.satellite_layer import (
+    satellite_handoff_symbols,
     shared_satellite_entry_block_reason,
     shared_satellite_horizon_exit,
 )
@@ -181,9 +182,10 @@ def process_new_closed_points(
         raise ValueError("paper processing requires exchange rules for the strategy universe")
     if trade_policies_by_symbol is not None and set(trade_policies_by_symbol) != set(symbols):
         raise ValueError("paper trade policies require the complete strategy universe")
-    if any(
-        p != TradePolicy() for p in (trade_policies_by_symbol or {}).values()
-    ) and strategy_version != definition.version:
+    if (
+        any(p != TradePolicy() for p in (trade_policies_by_symbol or {}).values())
+        and strategy_version != definition.version
+    ):
         raise ValueError("paper policies require the exact active strategy version")
     if definition.coin_profiles and trade_policies_by_symbol is None:
         raise ValueError("profiled paper strategy requires its complete coin-policy map")
@@ -285,11 +287,7 @@ def process_new_closed_points(
                 position = positions.get(point.symbol)
                 signal = decision.signal
                 exit_reason = decision.exit_reason
-                if (
-                    position is not None
-                    and point.symbol in active_satellites
-                    and signal is None
-                ):
+                if position is not None and point.symbol in active_satellites and signal is None:
                     signal = shared_satellite_horizon_exit(
                         point.symbol,
                         point,
@@ -348,6 +346,9 @@ def process_new_closed_points(
                     emitted.append(_blocked_event(signal, decision.block_reason))
                     continue
                 if signal.symbol in satellite_symbols:
+                    if not settings.gap_fillers_enabled:
+                        emitted.append(_blocked_event(signal, "GAP_FILLERS_DISABLED"))
+                        continue
                     satellite_reason = shared_satellite_entry_block_reason(
                         signal.symbol,
                         point,
@@ -380,13 +381,14 @@ def process_new_closed_points(
                 )
             )
 
-            # Strict idle contract: an executable Core entry owns the next open.
-            # Any active Satellite is liquidated first at that same open, using only
-            # information known at the preceding closed bar.
-            if core_candidates:
+            # Reclaim only slots needed for executable Core entries at this open.
+            if core_candidates and not (settings.emergency_stop or account.halted or daily_paused):
                 core_signal = core_candidates[0][0]
-                for satellite_symbol in sorted(
-                    symbol for symbol in positions if symbol in active_satellites
+                for satellite_symbol in satellite_handoff_symbols(
+                    core_entry_count=len(core_candidates),
+                    position_slots={s: p.slot_count for s, p in positions.items()},
+                    active_satellites=active_satellites,
+                    slot_count=settings.slot_count,
                 ):
                     position = positions[satellite_symbol]
                     rules = rules_by_symbol[satellite_symbol]
@@ -409,7 +411,7 @@ def process_new_closed_points(
                     )
                     signal_id = hashlib.sha256(
                         (
-                            f"PAPER_STRICT_IDLE_HANDOFF|{satellite_symbol}|"
+                            f"PAPER_CORE_CAPACITY_HANDOFF|{satellite_symbol}|"
                             f"{core_signal.signal_id}|{boundary.isoformat()}"
                         ).encode()
                     ).hexdigest()
@@ -421,7 +423,7 @@ def process_new_closed_points(
                             symbol=satellite_symbol,
                             action="EXIT_LONG",
                             status=PaperEventStatus.FILLED,
-                            reason=f"STRICT_IDLE_HANDOFF::{core_signal.signal_id}",
+                            reason=f"CORE_CAPACITY_HANDOFF::{core_signal.signal_id}",
                             reference_price=reference,
                             execution_price=fill_price,
                             base_quantity=quantity,
@@ -434,13 +436,13 @@ def process_new_closed_points(
                     )
                     del positions[satellite_symbol]
 
-            core_active = any(symbol in core_symbols for symbol in positions)
-            candidates = core_candidates if core_candidates else (
-                [] if core_active else satellite_candidates
-            )
-            for signal, _point in satellite_candidates:
-                if core_candidates or core_active:
+            core_active = bool(set(positions) & core_symbols)
+            if core_candidates or core_active:
+                for signal, _point in satellite_candidates:
                     emitted.append(_blocked_event(signal, "CORE_ACTIVE_FILLER_IDLE_ONLY"))
+                candidates = core_candidates
+            else:
+                candidates = satellite_candidates
 
             used_slots = sum(position.slot_count for position in positions.values())
             free_slots = max(0, settings.slot_count - used_slots)
@@ -448,9 +450,9 @@ def process_new_closed_points(
                 [signal.symbol for signal, _point in candidates],
                 free_slots=free_slots,
                 policy=(
-                    effective_allocation
-                    if candidates is core_candidates
-                    else ONE_PER_SYMBOL
+                    ONE_PER_SYMBOL
+                    if satellite_symbols and not core_candidates
+                    else effective_allocation
                 ),
             )
             for signal, point in candidates:

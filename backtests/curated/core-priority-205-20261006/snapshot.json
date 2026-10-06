@@ -1,0 +1,9 @@
+{
+  "strategy": "HIXTON-V8-CORE10-SAT5-PRIORITY-3-0d2f3c01ccef",
+  "source_sha256": "6e6044ef1ece300c1833a7397f92283905920ee137c797b48f26cd9646c2f210",
+  "completed_trades": 205,
+  "ending_equity_usdc": "1606.89201302117070000000",
+  "github_base_sha": "1400995d495463c4f44941b4356e6b17d9680f91",
+  "note": "Snapshot of measured local Paper strategy; no Live activation or release approval.",
+  "saved_budget_usdc": "250.00"
+}

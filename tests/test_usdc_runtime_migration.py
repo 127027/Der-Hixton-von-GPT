@@ -8,7 +8,7 @@ import pytest
 
 from hixton.constants import SYMBOLS
 from hixton.data.binance import SymbolRules
-from hixton.domain.versions import V6_COIN_STRATEGY
+from hixton.domain.versions import strategy_definition
 from hixton.live.credentials import WindowsVault
 from hixton.runtime.analysis import available_report_start
 from hixton.runtime.supervisor import RuntimeSupervisor
@@ -28,13 +28,16 @@ def test_available_window_keeps_gaps_and_missing_tail_blocked():
             available_report_start({SYMBOLS[0]: broken}, start, end)
 
 
-def test_usdc_startup_uses_common_real_history_and_matching_backtest_window(tmp_path, monkeypatch):
+@pytest.mark.parametrize("strategy_key", ["v6", "v8"])
+def test_usdc_startup_preserves_each_market_history(tmp_path, monkeypatch, strategy_key):
+    strategy = strategy_definition(strategy_key)
+    symbols = strategy.symbols
     all_data = {
-        symbol: deterministic_candles(symbol, 1000, index) for index, symbol in enumerate(SYMBOLS)
+        symbol: deterministic_candles(symbol, 1000, index) for index, symbol in enumerate(symbols)
     }
-    first = all_data[SYMBOLS[0]][0].open_time_utc
-    end = all_data[SYMBOLS[0]][-1].open_time_utc + timedelta(hours=1)
-    starts = {symbol: first + timedelta(hours=index * 10) for index, symbol in enumerate(SYMBOLS)}
+    first = all_data[symbols[0]][0].open_time_utc
+    end = all_data[symbols[0]][-1].open_time_utc + timedelta(hours=1)
+    starts = {symbol: first + timedelta(hours=index * 10) for index, symbol in enumerate(symbols)}
 
     class Public:
         def __init__(self, **kwargs):
@@ -84,13 +87,22 @@ def test_usdc_startup_uses_common_real_history_and_matching_backtest_window(tmp_
         "hixton.runtime.supervisor.safe_closed_window",
         lambda: (first, first + timedelta(hours=400), end),
     )
-    supervisor = RuntimeSupervisor(config_for(tmp_path))
+    supervisor = RuntimeSupervisor(replace(config_for(tmp_path), strategy_key=strategy_key))
     points, quality, _ = supervisor._synchronous_sync()
-    common = max(starts.values())
-    assert all(p[0].candle.open_time_utc == common for p in points.values())
+    assert all(p[0].candle.open_time_utc == starts[s] for s, p in points.items())
     assert all(q.valid for q in quality.values())
     assert all(p[-1].tradable for p in points.values())
-    assert all(p[-1].strategy_version == V6_COIN_STRATEGY.version for p in points.values())
+    assert all(p[-1].strategy_version == strategy.version for p in points.values())
+    supervisor.state.replace_analysis(points, quality)
+    assert set(supervisor.state.points()) == set(symbols)
+    before = supervisor.state.points()
+    for incomplete_points, incomplete_quality in (
+        ({s: p for s, p in points.items() if s != symbols[-1]}, quality),
+        (points, {s: q for s, q in quality.items() if s != symbols[-1]}),
+    ):
+        with pytest.raises(ValueError, match="all active strategy symbols"):
+            supervisor.state.replace_analysis(incomplete_points, incomplete_quality)
+        assert supervisor.state.points() == before
     snapshot = {s: [p.candle for p in series] for s, series in points.items()}
     with pytest.raises(ValueError, match="exact three-year history"):
         available_report_start(snapshot, first + timedelta(hours=400), end)

@@ -81,6 +81,7 @@ class LivePreparation:
             transport,
             account_fingerprint=credentials.fingerprint,
             quote_asset="USDC",
+            market_symbols=self.trial.strategy.symbols if self.trial is not None else None,
         )
 
     def _account_snapshot(self) -> AccountSnapshot:
@@ -185,6 +186,7 @@ class LivePreparation:
         strategy: StrategyDefinition,
         *,
         settings_provider: Callable[[], tuple[Decimal, bool]],
+        gap_fillers_enabled: Callable[[], bool] | None = None,
         rules_provider: Callable[[], Mapping[str, ExecutionRules]],
     ) -> TrialRuntime:
         """Wire both durable execution runtimes without enabling either one."""
@@ -211,6 +213,7 @@ class LivePreparation:
             execution_source_sha256=self.execution_source_sha256,
             allocator_version=self.allocator_version,
             source_is_current=self.source_is_current,
+            gap_fillers_enabled=gap_fillers_enabled,
         )
         self.runtime = TrialRuntime(self.trial, self.trial_reconciler, self._account_snapshot)
         self._trial_authorized = bool(self.trial.report().get("has_unsettled"))
@@ -236,6 +239,7 @@ class LivePreparation:
             application_version=self.application_version,
             execution_source_sha256=self.execution_source_sha256,
             source_is_current=self.source_is_current,
+            gap_fillers_enabled=gap_fillers_enabled,
         )
         holder["controller"] = self.live
         self.live_runtime = LivePortfolioRuntime(self.live)

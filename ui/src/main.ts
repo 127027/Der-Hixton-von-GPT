@@ -459,7 +459,7 @@ async function refreshBacktests(): Promise<void> {
     const response = await api<{ runs: BacktestRun[]; status: string }>(`/api/backtests?${query}`);
     if (generation !== backtestLoadGeneration || required<HTMLSelectElement>("#backtest-strategy").value !== strategy || required<HTMLSelectElement>("#backtest-symbol").value !== selection) return;
     text("#backtest-eyebrow", `BACKTEST ${strategy.toUpperCase()}`);
-    text("#backtest-title", "Aktuelle V8 · Core + Gap-Satellites, 15×250 isoliert oder Einzelcoin");
+    text("#backtest-title", "Aktuelle V8 · Gemeinsames Portfolio oder alle 15 einzeln mit dem gespeicherten Budget");
     const button = required<HTMLButtonElement>("#backtest-button");
     button.disabled = response.status === "RUNNING";
     button.textContent = response.status === "RUNNING" ? "Backtest läuft …" : "Backtest starten";
@@ -473,7 +473,9 @@ async function refreshBacktests(): Promise<void> {
         ? `${formatNumber(summary.ending_equity as string)} ${quote} · ${formatNumber(summary.return_pct as string)} %`
         : "Kennzahlen nicht verfügbar";
       const version = (manifest.strategy as Record<string, unknown> | undefined)?.version ?? strategy.toUpperCase();
-      const runMode = current?.portfolio ? "Portfolio" : current?.batch ? "15×250 isoliert" : `Einzeltest ${Object.keys(current?.per_symbol ?? {}).join(", ")}`;
+      const isolatedCount = Object.keys(current?.per_symbol ?? {}).length;
+      const isolatedCapital = firstMetric?.starting_equity;
+      const runMode = current?.portfolio ? "Portfolio" : current?.batch ? `${isolatedCount}×${formatNumber(isolatedCapital as string)} USDC einzeln` : `Einzeltest ${Object.keys(current?.per_symbol ?? {}).join(", ")}`;
       const riskHalt = current?.portfolio?.risk_halted_at_utc;
       const riskLabel = riskHalt ? `<strong class="negative">RISIKOHALT im Test · ${formatDate(String(riskHalt), true)}</strong>` : "";
       const window = manifest.data as Record<string, unknown> | undefined;

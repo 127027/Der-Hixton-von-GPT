@@ -13,7 +13,7 @@ from urllib.error import HTTPError, URLError
 from urllib.parse import urlencode
 from urllib.request import HTTPRedirectHandler, ProxyHandler, Request, build_opener
 
-from hixton.domain.markets import symbols_for_quote
+from hixton.domain.markets import symbols_for_quote, validate_market_symbols
 from hixton.live.credentials import BinanceCredentials
 
 _BASE = "https://api.binance.com"
@@ -52,10 +52,18 @@ class _NoRedirect(HTTPRedirectHandler):
 
 
 class BinanceReadOnlyClient:
-    def __init__(self, credentials: BinanceCredentials, *, quote_asset: str = "USDC") -> None:
+    def __init__(
+        self,
+        credentials: BinanceCredentials,
+        *,
+        quote_asset: str = "USDC",
+        market_symbols: tuple[str, ...] | None = None,
+    ) -> None:
         self._credentials = credentials
         self.quote_asset = quote_asset
-        self.symbols = symbols_for_quote(quote_asset)
+        self.symbols = market_symbols or symbols_for_quote(quote_asset)
+        if validate_market_symbols(self.symbols) != quote_asset:
+            raise ValueError("preflight universe must use the runtime quote")
         self._offset_ms = 0
         # Ignore environment proxy overrides; TLS certificate verification stays enabled.
         self._opener = build_opener(ProxyHandler({}), _NoRedirect())
@@ -134,6 +142,7 @@ class BinanceReadOnlyClient:
             notional,
             quote_asset=self.quote_asset,
             minimum_free_quote=minimum_free_quote,
+            market_symbols=self.symbols,
         )
 
 
@@ -156,9 +165,12 @@ def assess_account(
     *,
     quote_asset: str = "USDC",
     minimum_free_quote: Decimal | None = None,
+    market_symbols: tuple[str, ...] | None = None,
 ) -> dict[str, object]:
     """Strict data assessment; metadata only, never import account holdings into paper."""
-    symbols = symbols_for_quote(quote_asset)
+    symbols = market_symbols or symbols_for_quote(quote_asset)
+    if validate_market_symbols(symbols) != quote_asset:
+        raise ValueError("preflight universe must use the runtime quote")
     if not notional.is_finite() or notional <= 0:
         raise BinanceCheckError("Binance-Vorprüfung benötigt ein positives Quote-Budget.")
     minimum_free = notional if minimum_free_quote is None else minimum_free_quote

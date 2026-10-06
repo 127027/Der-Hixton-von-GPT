@@ -26,6 +26,7 @@ from hixton.domain.allocation import allocate_entry_slots
 from hixton.domain.capital import capital_plan
 from hixton.domain.models import IndicatorPoint, SignalAction
 from hixton.domain.satellite_layer import (
+    satellite_handoff_symbols,
     shared_satellite_entry_block_reason,
     shared_satellite_horizon_exit,
 )
@@ -427,9 +428,7 @@ class LiveOrderExecutor:
         self.exchange = exchange
         self.pre_submit = pre_submit
 
-    def execute(
-        self, intent_id: str, *, before_submit: Callable[[], bool] | None = None
-    ) -> str:
+    def execute(self, intent_id: str, *, before_submit: Callable[[], bool] | None = None) -> str:
         intent, state = self.journal.load(intent_id)
         if state != "CREATED":
             return self.reconcile(intent_id)
@@ -493,9 +492,12 @@ class LiveBalanceReconciler:
 
     def has_baseline(self) -> bool:
         with self.journal._connect() as connection:
-            return connection.execute(
-                "SELECT 1 FROM live_account_baseline WHERE singleton=1"
-            ).fetchone() is not None
+            return (
+                connection.execute(
+                    "SELECT 1 FROM live_account_baseline WHERE singleton=1"
+                ).fetchone()
+                is not None
+            )
 
     def capture(
         self,
@@ -600,8 +602,10 @@ class LivePortfolioController:
         application_version: str = "unknown",
         execution_source_sha256: str = "unknown",
         source_is_current: Callable[[], bool] | None = None,
+        gap_fillers_enabled: Callable[[], bool] | None = None,
     ) -> None:
         self.database = database
+        self.gap_fillers_enabled = gap_fillers_enabled or (lambda: True)
         self.journal = journal
         self.executor = executor
         self.reconciler = reconciler
@@ -1020,9 +1024,7 @@ class LivePortfolioController:
         quote_budget: Decimal = ZERO,
         reason: str | None = None,
     ) -> None:
-        identity = "live-" + hashlib.sha256(
-            f"{signal.signal_id}|{action}".encode()
-        ).hexdigest()
+        identity = "live-" + hashlib.sha256(f"{signal.signal_id}|{action}".encode()).hexdigest()
         payload = {
             "reference_price": str(point.candle.close),
             "atr": str(signal.atr),
@@ -1060,13 +1062,11 @@ class LivePortfolioController:
     ) -> None:
         signal_id = hashlib.sha256(
             (
-                f"LIVE_STRICT_IDLE_HANDOFF|{symbol}|{core_signal_id}|"
+                f"LIVE_CORE_CAPACITY_HANDOFF|{symbol}|{core_signal_id}|"
                 f"{point.candle.close_time_utc.isoformat()}"
             ).encode()
         ).hexdigest()
-        identity = "live-" + hashlib.sha256(
-            f"{signal_id}|EXIT_LONG".encode()
-        ).hexdigest()
+        identity = "live-" + hashlib.sha256(f"{signal_id}|EXIT_LONG".encode()).hexdigest()
         payload = {
             "reference_price": str(point.candle.close),
             "atr": str(point.atr or 0.0),
@@ -1087,7 +1087,7 @@ class LivePortfolioController:
                     symbol,
                     "EXIT_LONG",
                     "ORDER_PENDING",
-                    f"STRICT_IDLE_HANDOFF::{core_signal_id}",
+                    f"CORE_CAPACITY_HANDOFF::{core_signal_id}",
                     identity,
                     json.dumps(payload, sort_keys=True),
                 ),
@@ -1132,6 +1132,7 @@ class LivePortfolioController:
         )
         self.journal.create(intent)
         _loaded, state = self.journal.load(intent.intent_id)
+
         def before_submit() -> bool:
             if not buy:
                 return True
@@ -1157,6 +1158,10 @@ class LivePortfolioController:
                 and fresh["capital_json"] == self._capital_json(plan)
                 and self.source_is_current()
                 and not emergency
+                and (
+                    intent.symbol not in self.strategy.satellite_symbols
+                    or self.gap_fillers_enabled()
+                )
                 and self.release_check()
             )
 
@@ -1238,9 +1243,7 @@ class LivePortfolioController:
             self.fail_closed("EXIT_FEES_INVALID")
             return
         base = str(pending["symbol"]).removesuffix("USDC")
-        consumed = Decimal(str(summary["gross_quantity"])) + Decimal(
-            str(fees.get(base, "0"))
-        )
+        consumed = Decimal(str(summary["gross_quantity"])) + Decimal(str(fees.get(base, "0")))
         owned = Decimal(position["quantity"])
         remaining = owned - consumed
         rules = self.rules()[str(pending["symbol"])]
@@ -1249,9 +1252,7 @@ class LivePortfolioController:
             return
         with self.journal._connect() as connection:
             connection.execute("BEGIN IMMEDIATE")
-            connection.execute(
-                "DELETE FROM live_positions WHERE symbol=?", (pending["symbol"],)
-            )
+            connection.execute("DELETE FROM live_positions WHERE symbol=?", (pending["symbol"],))
             if remaining > ZERO:
                 connection.execute(
                     "INSERT INTO live_dust(symbol,quantity) VALUES(?,?) "
@@ -1369,9 +1370,8 @@ class LivePortfolioController:
             except ValueError:
                 self.disable_entries()
                 return self.report()
-            if (
-                control["state"] == "LIVE_ENABLED"
-                and control["capital_json"] != self._capital_json(plan)
+            if control["state"] == "LIVE_ENABLED" and control["capital_json"] != self._capital_json(
+                plan
             ):
                 self.disable_entries()
                 return self.report()
@@ -1394,11 +1394,7 @@ class LivePortfolioController:
                 decision = decisions[symbol]
                 signal = decision.signal
                 exit_reason = decision.exit_reason
-                if (
-                    position is not None
-                    and symbol in active_satellites
-                    and signal is None
-                ):
+                if position is not None and symbol in active_satellites and signal is None:
                     signal = shared_satellite_horizon_exit(
                         symbol,
                         group[symbol],
@@ -1443,6 +1439,9 @@ class LivePortfolioController:
                         self._blocked(signal, decision.block_reason)
                         continue
                     if symbol in satellite_symbols:
+                        if not self.gap_fillers_enabled():
+                            self._blocked(signal, "GAP_FILLERS_DISABLED")
+                            continue
                         satellite_reason = shared_satellite_entry_block_reason(
                             symbol,
                             group[symbol],
@@ -1461,9 +1460,7 @@ class LivePortfolioController:
                     symbol for symbol in self.strategy.symbols if symbol in core_symbols
                 )
                 satellite_order = tuple(
-                    symbol
-                    for symbol in self.strategy.symbols
-                    if symbol in active_satellites
+                    symbol for symbol in self.strategy.symbols if symbol in active_satellites
                 )
                 core_candidates.sort(
                     key=lambda item: entry_priority(
@@ -1476,12 +1473,23 @@ class LivePortfolioController:
                     )
                 )
 
+                snapshot = self.snapshot()
+                proof = self.reconciler.check(snapshot, now=datetime.now(UTC))
+                if proof["passed"] is not True:
+                    self.fail_closed("ACCOUNT_RECONCILIATION_MISMATCH")
+                    return self.report()
+                equity = self._equity(snapshot, positions, group)
+                paused = self._risk_paused(equity, boundary)
+
                 # Process one persistent forced exit at a time. The boundary is not
                 # finalized until every required Satellite handoff has reconciled.
-                if core_candidates:
+                if core_candidates and not (emergency or paused):
                     core_signal = core_candidates[0][0]
-                    for satellite_symbol in sorted(
-                        symbol for symbol in positions if symbol in active_satellites
+                    for satellite_symbol in satellite_handoff_symbols(
+                        core_entry_count=len(core_candidates),
+                        position_slots={s: int(p["slot_count"]) for s, p in positions.items()},
+                        active_satellites=active_satellites,
+                        slot_count=plan.slot_count,
                     ):
                         row = positions[satellite_symbol]
                         rules = self.rules()[satellite_symbol]
@@ -1501,30 +1509,23 @@ class LivePortfolioController:
                         )
                         return self.report()
 
-                core_active = any(symbol in core_symbols for symbol in positions)
-                candidates = core_candidates if core_candidates else (
-                    [] if core_active else satellite_candidates
-                )
-                for signal, _point in satellite_candidates:
-                    if core_candidates or core_active:
+                core_active = bool(set(positions) & core_symbols)
+                if core_candidates or core_active:
+                    for signal, _point in satellite_candidates:
                         self._blocked(signal, "CORE_ACTIVE_FILLER_IDLE_ONLY")
+                    candidates = core_candidates
+                else:
+                    candidates = satellite_candidates
 
-                snapshot = self.snapshot()
-                proof = self.reconciler.check(snapshot, now=datetime.now(UTC))
-                if proof["passed"] is not True:
-                    self.fail_closed("ACCOUNT_RECONCILIATION_MISMATCH")
-                    return self.report()
-                equity = self._equity(snapshot, positions, group)
-                paused = self._risk_paused(equity, boundary)
                 used = sum(int(row["slot_count"]) for row in positions.values())
                 free_slots = max(0, plan.slot_count - used)
                 allocations = allocate_entry_slots(
                     [signal.symbol for signal, _ in candidates],
                     free_slots=free_slots,
                     policy=(
-                        self.strategy.slot_allocation
-                        if candidates is core_candidates
-                        else "one_per_symbol"
+                        "one_per_symbol"
+                        if satellite_symbols and not core_candidates
+                        else self.strategy.slot_allocation
                     ),
                 )
                 for signal, point in candidates:

@@ -7,6 +7,7 @@ export interface TradingSettings {
   allocation_policy: string;
   allocator_version: string;
   emergency_stop: boolean;
+  gap_fillers_enabled?: boolean;
 }
 
 export interface TradingLimits {
@@ -68,6 +69,7 @@ export function describeSettings(value: TradingSettings): string {
   return "Max. " + formatBudget(value.max_capital_usdc) + " USDC → automatisch "
     + value.slot_count + " × " + formatBudget(value.target_notional_usdc)
     + " USDC · " + value.allocation_policy + reserveText
+    + (value.gap_fillers_enabled === false ? " · Zwischenfüller AUS" : " · Zwischenfüller mit Core-Vorrang")
     + (value.emergency_stop ? " · Einstiegssperre aktiv" : "");
 }
 

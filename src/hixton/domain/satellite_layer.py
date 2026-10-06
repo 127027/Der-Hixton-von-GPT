@@ -1,13 +1,9 @@
-"""Validated five-Satellite layer for the 15-market Hixton candidate.
-
-These profiles are copied from the accepted isolated 5x250 research references.
-They are intentionally separate from the ten protected Core profiles.
-"""
+"""Five bounded gap fillers sharing the unchanged ten-Core strategy."""
 
 from __future__ import annotations
 
 import hashlib
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
 from datetime import datetime
 
 from hixton.domain.models import (
@@ -16,23 +12,34 @@ from hixton.domain.models import (
     SignalAction,
     StrategyParameters,
     StrategySemantics,
+    TrendState,
 )
 from hixton.domain.trade_policy import TradePolicy
 
 CORE_SYMBOLS: tuple[str, ...] = (
-    "BTCUSDC","ETHUSDC","BNBUSDC","SOLUSDC","XRPUSDC",
-    "ADAUSDC","LINKUSDC","AVAXUSDC","DOTUSDC","DOGEUSDC",
+    "BTCUSDC",
+    "ETHUSDC",
+    "BNBUSDC",
+    "SOLUSDC",
+    "XRPUSDC",
+    "ADAUSDC",
+    "LINKUSDC",
+    "AVAXUSDC",
+    "DOTUSDC",
+    "DOGEUSDC",
 )
 SATELLITE_SYMBOLS: tuple[str, ...] = (
-    "SUIUSDC","NEARUSDC","UNIUSDC","AAVEUSDC","BCHUSDC",
+    "SUIUSDC",
+    "NEARUSDC",
+    "UNIUSDC",
+    "AAVEUSDC",
+    "BCHUSDC",
 )
 ALL_15_SYMBOLS: tuple[str, ...] = CORE_SYMBOLS + SATELLITE_SYMBOLS
-# Shared-portfolio activation is deliberately narrower than the research
-# universe. All five remain available for isolated 15x250 evidence; only
-# Satellites that add stressed shared-PnL without harming the Core are active
-# gap fillers. Current validated shared winner: NEAR + BCH. Capital sizing is
-# derived from the shared capital plan.
-ACTIVE_SHARED_SATELLITES: tuple[str, ...] = ("NEARUSDC", "BCHUSDC")
+# Core keeps its original ranked-repeat allocation. All five fillers only
+# enter fully idle periods and yield completely to eligible Core entries.
+ACTIVE_SHARED_SATELLITES: tuple[str, ...] = SATELLITE_SYMBOLS
+FILLER_ROUTING_VERSION = "FILLER-V3-STRICT-CORE-PRIORITY"
 
 
 @dataclass(frozen=True, slots=True)
@@ -51,6 +58,17 @@ class SatelliteProfile:
     max_breakout_atr: float = 999.0
     min_abs_cmo: float = 0.0
     reentry_atr_level: float | None = None
+    entry_interval_hours: int = 0
+
+    def __post_init__(self) -> None:
+        if (
+            type(self.entry_interval_hours) is not int
+            or self.entry_interval_hours < 0
+            or (self.entry_interval_hours and 24 % self.entry_interval_hours)
+            or type(self.horizon_hours) is not int
+            or self.horizon_hours < 0
+        ):
+            raise ValueError("invalid Satellite entry interval or holding horizon")
 
     def entry_block_reason(self, point: IndicatorPoint) -> str | None:
         if point.atr is None or point.vidya is None or point.candle.close <= 0 or point.atr <= 0:
@@ -78,7 +96,8 @@ class SatelliteProfile:
 
 SATELLITE_PROFILES: tuple[SatelliteProfile, ...] = (
     SatelliteProfile(
-        "SUIUSDC", "SUIUSDT",
+        "SUIUSDC",
+        "SUIUSDT",
         StrategyParameters(
             vidya_length=15,
             momentum_length=20,
@@ -87,11 +106,14 @@ SATELLITE_PROFILES: tuple[SatelliteProfile, ...] = (
             band_multiplier=2.3,
             warmup_bars=400,
         ),
-        TradePolicy(cmo_floor=0.4,slope_bars=0,stop_atr=2.5,trail_atr=0),
+        TradePolicy(cmo_floor=0.4, slope_bars=0, stop_atr=2.5, trail_atr=0),
+        horizon_hours=0,
+        entry_interval_hours=12,
         max_atr_pct=0.0175,
     ),
     SatelliteProfile(
-        "NEARUSDC", "NEARUSDT",
+        "NEARUSDC",
+        "NEARUSDT",
         StrategyParameters(
             vidya_length=10,
             momentum_length=20,
@@ -100,11 +122,13 @@ SATELLITE_PROFILES: tuple[SatelliteProfile, ...] = (
             band_multiplier=2.8,
             warmup_bars=400,
         ),
-        TradePolicy(cmo_floor=0,slope_bars=0,stop_atr=0,trail_atr=0),
+        TradePolicy(cmo_floor=0, slope_bars=0, stop_atr=0, trail_atr=0),
         horizon_hours=48,
+        entry_interval_hours=12,
     ),
     SatelliteProfile(
-        "UNIUSDC", "UNIUSDT",
+        "UNIUSDC",
+        "UNIUSDT",
         StrategyParameters(
             vidya_length=12,
             momentum_length=20,
@@ -113,12 +137,15 @@ SATELLITE_PROFILES: tuple[SatelliteProfile, ...] = (
             band_multiplier=2.0,
             warmup_bars=400,
         ),
-        TradePolicy(cmo_floor=0.3,slope_bars=72,stop_atr=0,trail_atr=0),
+        TradePolicy(cmo_floor=0.3, slope_bars=72, stop_atr=0, trail_atr=0),
+        horizon_hours=0,
+        entry_interval_hours=12,
         min_abs_cmo=0.15,
         reentry_atr_level=0.50,
     ),
     SatelliteProfile(
-        "AAVEUSDC", "AAVEUSDT",
+        "AAVEUSDC",
+        "AAVEUSDT",
         StrategyParameters(
             vidya_length=10,
             momentum_length=12,
@@ -127,15 +154,17 @@ SATELLITE_PROFILES: tuple[SatelliteProfile, ...] = (
             band_multiplier=2.0,
             warmup_bars=400,
         ),
-        TradePolicy(cmo_floor=0.3,slope_bars=0,stop_atr=2.0,trail_atr=0),
+        TradePolicy(cmo_floor=0.3, slope_bars=0, stop_atr=2.0, trail_atr=0),
         horizon_hours=120,
+        entry_interval_hours=12,
         min_atr_pct=0.005,
         max_atr_pct=0.025,
         min_trend_atr=0.5,
         max_trend_atr=2.5,
     ),
     SatelliteProfile(
-        "BCHUSDC", "BCHUSDT",
+        "BCHUSDC",
+        "BCHUSDT",
         StrategyParameters(
             vidya_length=13,
             momentum_length=16,
@@ -144,23 +173,66 @@ SATELLITE_PROFILES: tuple[SatelliteProfile, ...] = (
             band_multiplier=3.2,
             warmup_bars=400,
         ),
-        TradePolicy(cmo_floor=0,slope_bars=0,stop_atr=0,trail_atr=0),
+        TradePolicy(cmo_floor=0, slope_bars=0, stop_atr=0, trail_atr=0),
+        horizon_hours=0,
+        entry_interval_hours=12,
         max_atr_pct=0.020,
     ),
 )
 
 SATELLITE_PROFILE_BY_SYMBOL = {profile.symbol: profile for profile in SATELLITE_PROFILES}
 
+
+def satellite_entry_point(point: IndicatorPoint) -> IndicatorPoint:
+    """Allow bounded continuation entries using only this finalized hourly bar.
+
+    This changes the policy input, never the indicator state. Exchange, risk,
+    momentum, slope and regime gates still apply. Core points are untouched.
+    """
+    profile = SATELLITE_PROFILE_BY_SYMBOL.get(point.symbol)
+    if (
+        profile is None
+        or not point.strategy_version.startswith("HIXTON-V8-")
+        or not point.candle.closed
+        or not point.tradable
+        or point.trend is not TrendState.UP
+        or point.flip_down
+        or not profile.entry_interval_hours
+        or (point.candle.open_time_utc.hour + 1) % profile.entry_interval_hours
+    ):
+        return point
+    return replace(point, flip_up=True, flip_down=False)
+
+
 def shared_satellite_entry_block_reason(
     symbol: str,
     point: IndicatorPoint,
 ) -> str | None:
-    """Return the frozen shared-gap entry gate for one active Satellite."""
+    """Return the point-in-time entry regime gate for an active filler."""
 
     profile = SATELLITE_PROFILE_BY_SYMBOL.get(symbol.replace("/", "").upper())
     if profile is None or profile.symbol not in ACTIVE_SHARED_SATELLITES:
         return "SATELLITE_RESEARCH_ONLY"
     return profile.entry_block_reason(point)
+
+
+def satellite_handoff_symbols(
+    *,
+    core_entry_count: int,
+    position_slots: dict[str, int],
+    active_satellites: frozenset[str],
+    slot_count: int,
+    exiting_symbols: frozenset[str] = frozenset(),
+) -> tuple[str, ...]:
+    """All fillers yield at an eligible Core entry, including its second tranche.
+
+    Planned exits are already handled by the caller. No Core opportunity means
+    no forced sale. The same routing is used by Backtest, Paper and Live.
+    """
+    if core_entry_count <= 0:
+        return ()
+    return tuple(sorted(set(position_slots) & active_satellites - exiting_symbols))
+
 
 
 def shared_satellite_horizon_exit(
@@ -169,18 +241,13 @@ def shared_satellite_horizon_exit(
     *,
     entry_time_utc: datetime,
 ) -> Signal | None:
-    """Create the tested next-open max-hold exit for an active filler.
-
-    The accepted NEAR profile uses a 48-hour filler horizon. In the research
-    router the remaining-value score is guaranteed <= 0.50 once age reaches
-    that horizon, so the product-equivalent rule is a deterministic 48-hour
-    max hold evaluated only on a fully closed bar.
-    """
+    """Evaluate the per-profile holding bound using only a finalized closed bar."""
 
     normalized = symbol.replace("/", "").upper()
     profile = SATELLITE_PROFILE_BY_SYMBOL.get(normalized)
     if (
         profile is None
+        or not point.candle.closed
         or normalized not in ACTIVE_SHARED_SATELLITES
         or profile.horizon_hours <= 0
     ):
@@ -210,5 +277,6 @@ def shared_satellite_horizon_exit(
         atr=float(atr),
         breakout_strength=point.breakout_strength,
     )
+
 
 # Release audit trigger v8: exact-head integration and swarm verification share this source.
