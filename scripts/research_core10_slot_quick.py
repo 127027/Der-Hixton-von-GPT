@@ -118,9 +118,15 @@ def main():
                     "completed_slot_trades":m.completed_slot_trades,
                     "winning_trades":m.winning_trades,
                     "losing_trades":m.losing_trades,
-                    "average_holding_hours":None if m.average_holding_hours is None else str(m.average_holding_hours),
-                    "fees":str(m.total_fees),
-                    "no_free_slot_blocks":sum(":NO_FREE_SLOT" in x for x in result.blocked_signals),
+                    "average_holding_hours": (
+                        None
+                        if m.average_holding_hours is None
+                        else str(m.average_holding_hours)
+                    ),
+                    "fees": str(m.total_fees),
+                    "no_free_slot_blocks": sum(
+                        ":NO_FREE_SLOT" in item for item in result.blocked_signals
+                    ),
                     **occupancy(result),
                 }
             cap[cost_name]=rows
