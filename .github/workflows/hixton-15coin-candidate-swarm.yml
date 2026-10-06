@@ -6,9 +6,6 @@ on:
       - gpt/15coin-satellite-integration
     paths:
       - agent_memory/swarm/coordination.json
-      - agent_memory/swarm/taskboard.json
-      - .github/workflows/hixton-15coin-candidate-swarm.yml
-      - .github/workflows/hixton-cloud-swarm-reusable.yml
   workflow_dispatch:
     inputs:
       mission:
