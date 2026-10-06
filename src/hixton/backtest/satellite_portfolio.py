@@ -184,6 +184,8 @@ def run_filler_router_portfolio(
     satellite_max_portfolio_drawdown_pct: Decimal | None = None,
     core_imminence_guard_atr: Decimal | None = None,
     core_allocation_policy: str = RANKED_REPEAT,
+    satellite_position_limit: int | None = None,
+    satellite_target_notional: Decimal | None = None,
 ) -> tuple[PortfolioBacktestResult, list[dict[str, object]]]:
     if tuple(candles_by_symbol) != symbols:
         raise ValueError("router input universe/order mismatch")
@@ -200,6 +202,17 @@ def run_filler_router_portfolio(
         raise ValueError("invalid capital plan")
     if core_allocation_policy not in SUPPORTED_SLOT_ALLOCATIONS:
         raise ValueError("unsupported Core allocation policy")
+    satellite_capacity = satellite_position_limit or slot_count
+    satellite_budget = (
+        satellite_target_notional
+        if satellite_target_notional is not None
+        else starting_cash * router_config.satellite_budget_fraction_of_c
+    )
+    if satellite_symbols:
+        if satellite_capacity <= 0 or satellite_budget <= 0:
+            raise ValueError("invalid Satellite capital plan")
+        if satellite_budget * D(satellite_capacity) > starting_cash:
+            raise ValueError("Satellite capital plan exceeds starting cash")
 
     parameters = V6_COIN_STRATEGY.parameters
     warmup_start = report_start_utc - parameters.warmup_bars * TIMEFRAME_DELTA
@@ -647,8 +660,10 @@ def run_filler_router_portfolio(
                 if core_imminent:
                     blocked.append(f"{signal.signal_id}:CORE_IMMINENT_FILLER_GUARD")
                     continue
-                used_slots = sum(p.slots for p in positions.values())
-                if used_slots >= slot_count:
+                satellite_positions = sum(
+                    trade.is_satellite for trade in positions.values()
+                )
+                if satellite_positions >= satellite_capacity:
                     blocked.append(f"{signal.signal_id}:NO_FREE_SLOT")
                     continue
                 open_position(
@@ -656,9 +671,7 @@ def run_filler_router_portfolio(
                     slots=1,
                     at=open_time,
                     candle=candles[signal.symbol],
-                    budget_override=(
-                        starting_cash * router_config.satellite_budget_fraction_of_c
-                    ),
+                    budget_override=satellite_budget,
                 )
             pending = []
 
@@ -973,8 +986,12 @@ def run_filler_router_portfolio(
         cost_model=costs,
         starting_cash=starting_cash,
         target_notional=target_notional,
-        slot_count=slot_count,
-        slot_allocation="core_ranked_repeat_satellite_one_slot_filler",
+        slot_count=max(slot_count, satellite_capacity if satellite_symbols else slot_count),
+        slot_allocation=(
+            "core_"
+            + core_allocation_policy
+            + "_satellite_one_position_gap_filler"
+        ),
         signals=tuple(signals),
         fills=tuple(fills),
         trades=tuple(trades),
