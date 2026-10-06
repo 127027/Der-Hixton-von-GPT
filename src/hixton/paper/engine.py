@@ -53,11 +53,7 @@ def initialize_paper_at_latest(
 ) -> bool:
     """Arm a new account at latest; preserve checkpoints on every later restart."""
 
-    definition = strategy_definition(strategy_key)
-    symbols = definition.symbols
-    satellite_symbols = frozenset(definition.satellite_symbols)
-    active_satellites = frozenset(definition.active_shared_satellites)
-    core_symbols = frozenset(symbols) - satellite_symbols
+    symbols = strategy_definition(strategy_key).symbols
     if set(points_by_symbol) != set(symbols):
         raise ValueError("paper initialization requires the complete strategy universe")
     checkpoints: dict[str, datetime] = {}
@@ -170,7 +166,11 @@ def process_new_closed_points(
 ) -> tuple[PaperEvent, ...]:
     """Process every not-yet-checkpointed bar atomically and exactly once."""
 
-    symbols = strategy_definition(strategy_key).symbols
+    definition = strategy_definition(strategy_key)
+    symbols = definition.symbols
+    satellite_symbols = frozenset(definition.satellite_symbols)
+    active_satellites = frozenset(definition.active_shared_satellites)
+    core_symbols = frozenset(symbols) - satellite_symbols
     if set(points_by_symbol) != set(symbols):
         raise ValueError("paper processing requires the complete strategy universe")
     if set(rules_by_symbol) != set(symbols):
