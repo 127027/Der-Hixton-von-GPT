@@ -53,7 +53,11 @@ def initialize_paper_at_latest(
 ) -> bool:
     """Arm a new account at latest; preserve checkpoints on every later restart."""
 
-    symbols = strategy_definition(strategy_key).symbols
+    definition = strategy_definition(strategy_key)
+    symbols = definition.symbols
+    satellite_symbols = frozenset(definition.satellite_symbols)
+    active_satellites = frozenset(definition.active_shared_satellites)
+    core_symbols = frozenset(symbols) - satellite_symbols
     if set(points_by_symbol) != set(symbols):
         raise ValueError("paper initialization requires the complete strategy universe")
     checkpoints: dict[str, datetime] = {}
@@ -241,7 +245,7 @@ def process_new_closed_points(
         for boundary, group in sorted(pending.items()):
             group_by_symbol = {point.symbol: point for point in group}
             if set(group_by_symbol) != set(symbols):
-                raise RuntimeError("paper replay requires aligned bars for all ten symbols")
+                raise RuntimeError("paper replay requires aligned bars for the full strategy universe")
             # Keep the last bar pending until the true next-bar OPEN is available.
             if any(boundary not in execution.get(symbol, {}) for symbol in symbols):
                 break
@@ -316,28 +320,111 @@ def process_new_closed_points(
                 )
                 del positions[point.symbol]
 
-            candidates: list[tuple[Signal, IndicatorPoint]] = []
+            core_candidates: list[tuple[Signal, IndicatorPoint]] = []
+            satellite_candidates: list[tuple[Signal, IndicatorPoint]] = []
             for point in group:
                 decision = decisions[point.symbol]
                 signal = decision.signal
-                if signal is not None and signal.action is SignalAction.ENTER_LONG:
-                    if decision.block_reason:
-                        emitted.append(_blocked_event(signal, decision.block_reason))
-                        continue
-                    if signal.symbol in positions:
-                        emitted.append(_blocked_event(signal, "POSITION_ALREADY_OPEN"))
-                        continue
-                    candidates.append((signal, point))
-            candidates.sort(
-                key=lambda item: entry_priority(item[1].rank_strength, item[0].symbol, symbols)
+                if signal is None or signal.action is not SignalAction.ENTER_LONG:
+                    continue
+                if decision.block_reason:
+                    emitted.append(_blocked_event(signal, decision.block_reason))
+                    continue
+                if signal.symbol in positions:
+                    emitted.append(_blocked_event(signal, "POSITION_ALREADY_OPEN"))
+                    continue
+                if signal.symbol in core_symbols:
+                    core_candidates.append((signal, point))
+                elif signal.symbol in active_satellites:
+                    satellite_candidates.append((signal, point))
+                else:
+                    emitted.append(_blocked_event(signal, "SATELLITE_RESEARCH_ONLY"))
+
+            core_candidates.sort(
+                key=lambda item: entry_priority(
+                    item[1].rank_strength,
+                    item[0].symbol,
+                    tuple(symbol for symbol in symbols if symbol in core_symbols),
+                )
             )
+            satellite_candidates.sort(
+                key=lambda item: entry_priority(
+                    item[1].rank_strength,
+                    item[0].symbol,
+                    tuple(symbol for symbol in symbols if symbol in active_satellites),
+                )
+            )
+
+            # Strict idle contract: an executable Core entry owns the next open.
+            # Any active Satellite is liquidated first at that same open, using only
+            # information known at the preceding closed bar.
+            if core_candidates:
+                core_signal = core_candidates[0][0]
+                for satellite_symbol in sorted(
+                    symbol for symbol in positions if symbol in active_satellites
+                ):
+                    position = positions[satellite_symbol]
+                    rules = rules_by_symbol[satellite_symbol]
+                    reference = _d(fill_candles[satellite_symbol].open)
+                    fill_price = reference * (ONE - BASELINE_COSTS.adverse_price_rate)
+                    quantity = _round_down(position.quantity, rules.step_size)
+                    gross_quote = quantity * fill_price
+                    if quantity < rules.min_qty or gross_quote < rules.min_notional:
+                        dust[satellite_symbol] = dust.get(satellite_symbol, ZERO) + position.quantity
+                        del positions[satellite_symbol]
+                        continue
+                    fee = gross_quote * BASELINE_COSTS.fee_rate
+                    net_quote = gross_quote - fee
+                    account = replace(account, cash_usdc=account.cash_usdc + net_quote)
+                    realized = net_quote - position.cost_basis_usdc * quantity / position.quantity
+                    dust[satellite_symbol] = (
+                        dust.get(satellite_symbol, ZERO) + position.quantity - quantity
+                    )
+                    signal_id = hashlib.sha256(
+                        (
+                            f"PAPER_STRICT_IDLE_HANDOFF|{satellite_symbol}|"
+                            f"{core_signal.signal_id}|{boundary.isoformat()}"
+                        ).encode()
+                    ).hexdigest()
+                    emitted.append(
+                        PaperEvent(
+                            event_id=hashlib.sha256(f"PAPER|{signal_id}".encode()).hexdigest(),
+                            signal_id=signal_id,
+                            occurred_at_utc=boundary,
+                            symbol=satellite_symbol,
+                            action="EXIT_LONG",
+                            status=PaperEventStatus.FILLED,
+                            reason=f"STRICT_IDLE_HANDOFF::{core_signal.signal_id}",
+                            reference_price=reference,
+                            execution_price=fill_price,
+                            base_quantity=quantity,
+                            quote_amount_usdc=net_quote,
+                            fee_usdc=fee,
+                            realized_pnl_usdc=realized,
+                            breakout_strength=None,
+                            strategy_version=position.strategy_version,
+                        )
+                    )
+                    del positions[satellite_symbol]
+
+            core_active = any(symbol in core_symbols for symbol in positions)
+            candidates = core_candidates if core_candidates else (
+                [] if core_active else satellite_candidates
+            )
+            for signal, _point in satellite_candidates:
+                if core_candidates or core_active:
+                    emitted.append(_blocked_event(signal, "CORE_ACTIVE_FILLER_IDLE_ONLY"))
 
             used_slots = sum(position.slot_count for position in positions.values())
             free_slots = max(0, settings.slot_count - used_slots)
             allocations = allocate_entry_slots(
                 [signal.symbol for signal, _point in candidates],
                 free_slots=free_slots,
-                policy=effective_allocation,
+                policy=(
+                    effective_allocation
+                    if candidates is core_candidates
+                    else ONE_PER_SYMBOL
+                ),
             )
             for signal, point in candidates:
                 if settings.emergency_stop:
@@ -350,6 +437,8 @@ def process_new_closed_points(
                     emitted.append(_blocked_event(signal, "DAILY_LOSS_5_PERCENT"))
                     continue
                 allocated_slots = allocations.get(signal.symbol, 0)
+                if signal.symbol in active_satellites:
+                    allocated_slots = min(allocated_slots, 1)
                 if allocated_slots <= 0:
                     emitted.append(_blocked_event(signal, "NO_FREE_SLOT"))
                     continue
