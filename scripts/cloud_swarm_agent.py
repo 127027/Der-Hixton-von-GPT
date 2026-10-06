@@ -2243,6 +2243,10 @@ def role_a04() -> list[dict[str, Any]]:
     source_html = (ROOT / "ui" / "index.html").read_text(encoding="utf-8")
     source_ts = (ROOT / "ui" / "src" / "main.ts").read_text(encoding="utf-8")
     visible_source = source_html + "\n" + source_ts
+    if "Alle 15 Kryptowährungen" not in source_html:
+        raise CheckFailure("V8 UI does not label the full 15-market universe")
+    if "Alle zehn Kryptowährungen" in source_html:
+        raise CheckFailure("stale ten-market V6 label remains in the current V8 UI")
     ambiguous_labels = {
         "Buy & Hold Ende": (
             "Buy & Hold is research-only and must not appear as a parallel product result."
