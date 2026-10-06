@@ -1,0 +1,29 @@
+name: Hixton 15-Coin Candidate Swarm
+
+on:
+  push:
+    branches:
+      - gpt/15coin-satellite-integration
+    paths:
+      - agent_memory/swarm/coordination.json
+      - agent_memory/swarm/taskboard.json
+      - .github/workflows/hixton-15coin-candidate-swarm.yml
+      - .github/workflows/hixton-cloud-swarm-reusable.yml
+  workflow_dispatch:
+    inputs:
+      mission:
+        description: Optional coordination note
+        required: false
+        type: string
+        default: ""
+
+permissions:
+  contents: write
+  actions: read
+
+jobs:
+  run-swarm:
+    uses: ./.github/workflows/hixton-cloud-swarm-reusable.yml
+    with:
+      mission: ${{ inputs.mission || '15coin-slot-allocation-audit' }}
+      base_branch: gpt/15coin-satellite-integration
