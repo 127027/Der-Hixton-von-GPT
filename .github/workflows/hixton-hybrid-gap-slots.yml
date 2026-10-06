@@ -1,0 +1,54 @@
+name: Hixton Hybrid Gap Slot Research
+
+on:
+  push:
+    branches:
+      - gpt/15coin-satellite-integration
+    paths:
+      - .github/workflows/hixton-hybrid-gap-slots.yml
+      - scripts/research_hybrid_gap_slots.py
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: hixton-hybrid-gap-slot-research
+  cancel-in-progress: true
+
+jobs:
+  research:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 120
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: gpt/15coin-satellite-integration
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install
+        shell: bash
+        run: |
+          set -euo pipefail
+          python -m venv .venv
+          .venv/bin/python -m pip install --upgrade pip
+          .venv/bin/pip install -e '.[dev]'
+      - name: Static
+        shell: bash
+        run: |
+          set -euo pipefail
+          .venv/bin/python -m py_compile scripts/research_hybrid_gap_slots.py
+          .venv/bin/ruff check scripts/research_hybrid_gap_slots.py
+      - name: Run hybrid slot matrix
+        shell: bash
+        run: |
+          set -euo pipefail
+          .venv/bin/python scripts/research_hybrid_gap_slots.py
+      - uses: actions/upload-artifact@v4
+        with:
+          name: hixton-hybrid-gap-slots-${{ github.run_id }}
+          path: evidence/hybrid-gap-slot-matrix.json
+          retention-days: 30
+          if-no-files-found: error
