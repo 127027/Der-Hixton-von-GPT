@@ -341,8 +341,6 @@ V7_USDC_STRATEGY = StrategyDefinition(
         for p in _V6_PROFILES
     ),
     quote_asset="USDC",
-    satellite_symbols=SATELLITE_SYMBOLS,
-    satellite_semantics=StrategySemantics.DMS_V1,
 )
 
 
