@@ -13,6 +13,10 @@ from hixton.constants import HIXTON_SPEC_VERSION
 from hixton.domain.allocation import ONE_PER_SYMBOL, RANKED_REPEAT, allocate_entry_slots
 from hixton.domain.models import Candle, IndicatorPoint, Signal, SignalAction
 from hixton.domain.risk import PortfolioRiskState, evaluate_portfolio_risk
+from hixton.domain.satellite_layer import (
+    shared_satellite_entry_block_reason,
+    shared_satellite_horizon_exit,
+)
 from hixton.domain.strategy import entry_priority
 from hixton.domain.trade_policy import TradePolicy, TradePolicyGate
 from hixton.domain.versions import StrategyDefinition, strategy_definition
@@ -280,10 +284,25 @@ def process_new_closed_points(
 
             for point in group:
                 decision = decisions[point.symbol]
+                position = positions.get(point.symbol)
                 signal = decision.signal
+                exit_reason = decision.exit_reason
+                if (
+                    position is not None
+                    and point.symbol in active_satellites
+                    and signal is None
+                ):
+                    signal = shared_satellite_horizon_exit(
+                        point.symbol,
+                        point,
+                        entry_time_utc=position.entry_time_utc,
+                    )
+                    if signal is not None:
+                        exit_reason = "SATELLITE_MAX_HOLD"
                 if signal is None or signal.action is not SignalAction.EXIT_LONG:
                     continue
-                position = positions[point.symbol]
+                if position is None:
+                    continue
                 rules = rules_by_symbol[point.symbol]
                 reference = _d(fill_candles[point.symbol].open)
                 fill_price = reference * (ONE - BASELINE_COSTS.adverse_price_rate)
@@ -307,7 +326,7 @@ def process_new_closed_points(
                         symbol=signal.symbol,
                         action=signal.action.value,
                         status=PaperEventStatus.FILLED,
-                        reason=decision.exit_reason,
+                        reason=exit_reason,
                         reference_price=reference,
                         execution_price=fill_price,
                         base_quantity=quantity,
@@ -330,6 +349,14 @@ def process_new_closed_points(
                 if decision.block_reason:
                     emitted.append(_blocked_event(signal, decision.block_reason))
                     continue
+                if signal.symbol in satellite_symbols:
+                    satellite_reason = shared_satellite_entry_block_reason(
+                        signal.symbol,
+                        point,
+                    )
+                    if satellite_reason is not None:
+                        emitted.append(_blocked_event(signal, satellite_reason))
+                        continue
                 if signal.symbol in positions:
                     emitted.append(_blocked_event(signal, "POSITION_ALREADY_OPEN"))
                     continue
