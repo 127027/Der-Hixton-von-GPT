@@ -62,8 +62,8 @@ def load_project_config(path: Path, *, project_root: Path) -> ProjectConfig:
     strategy = _required_mapping(root.get("strategy"), "strategy")
     _reject_unknown(strategy, {"key"}, "strategy")
     strategy_key = str(strategy.get("key", "")).lower()
-    if strategy_key != "v6":
-        raise ValueError("only the current V6 strategy is supported by the product configuration")
+    if strategy_key not in {"v6", "v8"}:
+        raise ValueError("product configuration supports the frozen V6 Core and current V8 strategy")
     definition = strategy_definition(strategy_key)
     if not definition.paper_approved:
         raise ValueError(f"strategy {definition.version} is not approved for paper")
