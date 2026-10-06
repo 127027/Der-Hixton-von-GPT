@@ -388,7 +388,7 @@ class RuntimeSupervisor:
                     "health": "HEALTHY",
                     "message": (
                         f"Paper-Betrieb {self.strategy.version} aktiv; "
-                        "alle zehn Maerkte sind geprueft"
+                        f"alle {len(self.strategy.symbols)} Maerkte sind geprueft"
                     ),
                     "last_sync_utc": now,
                     "last_error": None,
@@ -480,7 +480,9 @@ class RuntimeSupervisor:
             raise RuntimeError("Python-Code seit Botstart geändert: vor neuem Backtest neu starten")
         points = self.state.points()
         if set(points) != set(self.strategy.symbols):
-            raise RuntimeError("backtest requires synchronized data for all ten symbols")
+            raise RuntimeError(
+                "backtest requires synchronized data for the full strategy universe"
+            )
         report_end = (
             min(values[-1].candle.open_time_utc for values in points.values()) + TIMEFRAME_DELTA
         )
