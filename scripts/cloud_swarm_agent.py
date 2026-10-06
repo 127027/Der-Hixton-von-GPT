@@ -2248,7 +2248,7 @@ def role_a04() -> list[dict[str, Any]]:
             "Buy & Hold is research-only and must not appear as a parallel product result."
         ),
         "backtest-comparison": (
-            "The current V6 product must not render a separate historical comparison banner."
+            "The current V8 product must not render a separate historical comparison banner."
         ),
         "Historischer Vergleich:": (
             "Historical comparison prose belongs in research evidence, not the current result."
@@ -2283,11 +2283,15 @@ def role_a05() -> list[dict[str, Any]]:
         raise CheckFailure("state manifest allows real orders")
     saved_at = datetime.fromisoformat(str(manifest["saved_at_utc"])).astimezone(UTC)
     age = datetime.now(UTC) - saved_at
-    if age > timedelta(hours=2):
-        raise CheckFailure(f"Paper state is stale by {age}")
     freshness = {
         "saved_at_utc": saved_at.isoformat(),
         "age_seconds": age.total_seconds(),
+        "state": (
+            "FRESH"
+            if age <= timedelta(hours=2)
+            else "CATCHUP_REQUIRED_BEFORE_PAPER_RESUME"
+        ),
+        "paper_resume_requires_catchup": age > timedelta(hours=2),
     }
     return [
         {"paper_state": state},
@@ -2326,7 +2330,13 @@ def role_a07() -> list[dict[str, Any]]:
     paper_runtime_contract()
     exchange = _json_url("/api/v3/exchangeInfo")
     symbols = {str(item.get("symbol")): item for item in exchange.get("symbols", [])}
-    active_symbols = V6_COIN_STRATEGY.symbols
+    config_payload = json.loads(
+        (ROOT / "config" / "examples" / "config.example.json").read_text(
+            encoding="utf-8"
+        )
+    )
+    active_key = str(config_payload["strategy"]["key"])
+    active_symbols = strategy_definition(active_key).symbols
 
     missing = [symbol for symbol in active_symbols if symbol not in symbols]
     nontrading = [
