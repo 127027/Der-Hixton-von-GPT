@@ -9,7 +9,6 @@ from pathlib import Path
 from fastapi.testclient import TestClient
 
 from hixton.config import ProjectConfig
-from hixton.constants import SYMBOLS
 from hixton.domain.versions import V6_COIN_STRATEGY
 from hixton.paper.storage import PaperStore
 from hixton.runtime.supervisor import RuntimeSupervisor
@@ -38,7 +37,7 @@ def _config(tmp_path: Path) -> ProjectConfig:
     )
 
 
-def test_local_ui_status_and_ten_market_placeholders(tmp_path: Path) -> None:
+def test_local_ui_status_and_full_strategy_market_placeholders(tmp_path: Path) -> None:
     config = _config(tmp_path)
     client = TestClient(
         create_app(config, RuntimeSupervisor(config)),
@@ -51,7 +50,13 @@ def test_local_ui_status_and_ten_market_placeholders(tmp_path: Path) -> None:
     assert status.headers["x-frame-options"] == "DENY"
     markets = client.get("/api/markets")
     assert markets.status_code == 200
-    assert [item["symbol"] for item in markets.json()["markets"]] == list(SYMBOLS)
+    market_rows = markets.json()["markets"]
+    assert [item["symbol"] for item in market_rows] == list(V6_COIN_STRATEGY.symbols)
+    assert [item["strategy_role"] for item in market_rows[:10]] == ["CORE"] * 10
+    assert [item["strategy_role"] for item in market_rows[10:]] == ["SATELLITE"] * 5
+    assert {
+        item["symbol"] for item in market_rows if item["shared_active"]
+    } == set(V6_COIN_STRATEGY.active_shared_satellites)
     logs = client.get("/api/logs")
     assert logs.status_code == 200
     assert logs.json()["logs"][0]["event_code"] == "PROCESS_START"
@@ -113,7 +118,7 @@ def test_setting_write_requires_local_action_header_and_confirmation(tmp_path: P
 def test_status_exposes_restart_persistent_paper_soak_gate(tmp_path: Path) -> None:
     config = _config(tmp_path)
     started = datetime.now(UTC)
-    checkpoints = dict.fromkeys(SYMBOLS, started)
+    checkpoints = dict.fromkeys(V6_COIN_STRATEGY.symbols, started)
     with PaperStore(config.database_path) as store:
         store.initialize(
             at=started,
@@ -182,7 +187,7 @@ def test_backtest_filters_mode_coin_and_sorts_creation_before_display_cap(tmp_pa
     write_run("single-btc", "single", 3, ("BTCUSDC",))
     # >25 other runs must not make the selected old portfolio disappear.
     for index in range(30):
-        write_run(f"batch-{index}", "batch", 5, SYMBOLS)
+        write_run(f"batch-{index}", "batch", 5, V6_COIN_STRATEGY.symbols)
     broken = config.run_output_root / "incomplete"
     broken.mkdir()
     (broken / "manifest.json").write_text("[invalid", encoding="utf-8")
