@@ -900,28 +900,30 @@ def run_filler_router_portfolio(
 
             new_pending: list[Signal] = []
             for symbol in symbols:
-                signal = decisions[symbol].signal
-                if signal is None:
+                pending_signal = decisions[symbol].signal
+                if pending_signal is None:
                     continue
-                signals.append(signal)
+                signals.append(pending_signal)
                 if decisions[symbol].block_reason:
-                    blocked.append(f"{signal.signal_id}:{decisions[symbol].block_reason}")
+                    blocked.append(
+                        f"{pending_signal.signal_id}:{decisions[symbol].block_reason}"
+                    )
                     continue
-                if signal.action is SignalAction.ENTER_LONG:
+                if pending_signal.action is SignalAction.ENTER_LONG:
                     if (
                         symbol in satellite_set
                         and satellite_max_portfolio_drawdown_pct is not None
                         and current_drawdown_pct > satellite_max_portfolio_drawdown_pct
                     ):
                         blocked.append(
-                            f"{signal.signal_id}:SATELLITE_PORTFOLIO_DRAWDOWN_GATE"
+                            f"{pending_signal.signal_id}:SATELLITE_PORTFOLIO_DRAWDOWN_GATE"
                         )
                         continue
                     entry_filter = entry_filters.get(symbol)
                     if entry_filter is not None:
                         filter_reason = entry_filter(points[symbol])
                         if filter_reason:
-                            blocked.append(f"{signal.signal_id}:{filter_reason}")
+                            blocked.append(f"{pending_signal.signal_id}:{filter_reason}")
                             continue
                     atr_direction = atr_directions.get(symbol)
                     if atr_direction is not None:
@@ -932,26 +934,26 @@ def run_filler_router_portfolio(
                             or previous_point.atr is None
                             or current_point.atr is None
                         ):
-                            blocked.append(f"{signal.signal_id}:ATR_DIRECTION_UNAVAILABLE")
+                            blocked.append(f"{pending_signal.signal_id}:ATR_DIRECTION_UNAVAILABLE")
                             continue
                         if atr_direction == "EXPANDING" and current_point.atr <= previous_point.atr:
-                            blocked.append(f"{signal.signal_id}:ATR_NOT_EXPANDING")
+                            blocked.append(f"{pending_signal.signal_id}:ATR_NOT_EXPANDING")
                             continue
                         if (
                             atr_direction == "CONTRACTING"
                             and current_point.atr >= previous_point.atr
                         ):
-                            blocked.append(f"{signal.signal_id}:ATR_NOT_CONTRACTING")
+                            blocked.append(f"{pending_signal.signal_id}:ATR_NOT_CONTRACTING")
                             continue
                     if risk_state.halted:
                         blocked.append(
-                            f"{signal.signal_id}:{risk_state.halt_reason or 'HALTED'}"
+                            f"{pending_signal.signal_id}:{risk_state.halt_reason or 'HALTED'}"
                         )
                         continue
                     if daily_paused:
-                        blocked.append(f"{signal.signal_id}:DAILY_LOSS_5_PERCENT")
+                        blocked.append(f"{pending_signal.signal_id}:DAILY_LOSS_5_PERCENT")
                         continue
-                new_pending.append(signal)
+                new_pending.append(pending_signal)
             pending = new_pending
             curve.append(
                 EquityPoint(
