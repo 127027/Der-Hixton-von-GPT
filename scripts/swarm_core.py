@@ -97,6 +97,16 @@ KNOWN_REGRESSION_CASES: dict[str, tuple[str, ...]] = {
         "verify_research_only_no_live_or_ui_mutation",
         "collect_budget_allocation_assessment_from_all_eleven_agents",
     ),
+    "SATELLITE_15_INTEGRATION": (
+        "verify_ten_core_plus_five_satellite_universe_is_explicit",
+        "verify_core_priority_and_satellite_idle_only_contract",
+        "verify_satellite_preemption_and_shared_capital_non_overlap",
+        "verify_15_market_backtest_paper_runtime_identity",
+        "verify_slot_layout_research_keeps_total_capital_fixed",
+        "verify_inactive_satellites_remain_research_only",
+        "verify_no_live_or_paper_activation_from_research",
+        "collect_15_market_integration_assessment_from_all_eleven_agents",
+    ),
 }
 
 REGRESSION_EVIDENCE_CONTRACTS: dict[str, dict[str, tuple[str, ...]]] = {
@@ -177,6 +187,19 @@ REGRESSION_EVIDENCE_CONTRACTS: dict[str, dict[str, tuple[str, ...]]] = {
         "A09": ("capital_budget_qa",),
         "A10": ("capital_budget_synthesis",),
         "A11": ("capital_budget_governance",),
+    },
+    "SATELLITE_15_INTEGRATION": {
+        "A01": ("requirements_contract", "optimization_scope"),
+        "A02": ("current_v6_backtest", "capital_budget_fresh_search"),
+        "A03": ("paper_shared_parity", "capital_budget_profile_consistency"),
+        "A04": ("current_v6_ui", "optimization_product_semantics"),
+        "A05": ("runtime_freshness", "capital_budget_trade_utilization"),
+        "A06": ("integration_compile", "capital_budget_stress_robustness"),
+        "A07": ("binance_usdc_universe", "capital_budget_binance_rules"),
+        "A08": ("strategy_risk_invariants", "capital_budget_scaling_and_layout"),
+        "A09": ("independent_full_qa", "capital_budget_qa"),
+        "A10": ("evidence_contract_audit", "capital_budget_synthesis"),
+        "A11": ("governance_audit", "capital_budget_governance"),
     },
 }
 
