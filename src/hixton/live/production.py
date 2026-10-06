@@ -25,6 +25,10 @@ from hixton.backtest.models import ExecutionRules
 from hixton.domain.allocation import allocate_entry_slots
 from hixton.domain.capital import capital_plan
 from hixton.domain.models import IndicatorPoint, SignalAction
+from hixton.domain.satellite_layer import (
+    shared_satellite_entry_block_reason,
+    shared_satellite_horizon_exit,
+)
 from hixton.domain.strategy import entry_priority
 from hixton.domain.trade_policy import TradePolicyGate
 from hixton.domain.versions import StrategyDefinition
