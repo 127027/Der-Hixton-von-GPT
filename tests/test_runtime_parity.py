@@ -257,13 +257,20 @@ def test_supervisors_reuse_closed_history_and_fill_only_at_real_next_open(tmp_pa
         supervisor = supervisor_type(config)
         strategy = supervisor.strategy
         active_symbols = strategy.symbols
+        history_bars = max(
+            25,
+            max(strategy.policy_for(symbol).slope_bars for symbol in active_symbols) + 1,
+        )
         initial = {
             symbol: tuple(
                 replace(
-                    _point(symbol, start - timedelta(hours=24 - offset)),
+                    _point(
+                        symbol,
+                        start - timedelta(hours=history_bars - 1 - offset),
+                    ),
                     strategy_version=strategy.version,
                 )
-                for offset in range(25)
+                for offset in range(history_bars)
             )
             for symbol in active_symbols
         }
