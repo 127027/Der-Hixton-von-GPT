@@ -54,6 +54,8 @@ class StrategyDefinition:
 
     def __post_init__(self) -> None:
         profile_symbols = tuple(profile.symbol for profile in self.coin_profiles)
+        if self.key == "v6" and profile_symbols != symbols_for_quote(self.quote_asset):
+            raise ValueError("coin profiles require all ten symbols in DMS order")
         if len(set(profile_symbols)) != len(profile_symbols):
             raise ValueError("coin profiles must use unique symbols")
         if any(not symbol.endswith(self.quote_asset) for symbol in profile_symbols):
