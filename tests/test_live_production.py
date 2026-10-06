@@ -8,8 +8,9 @@ from decimal import Decimal as D
 from pathlib import Path
 
 from hixton.backtest.models import ExecutionRules
-from hixton.constants import SYMBOLS
 from hixton.domain.versions import V6_COIN_STRATEGY as V6
+
+SYMBOLS = V6.symbols
 from hixton.live.exchange import ExchangeRequestError
 from hixton.live.orders import ExchangeFill, ExchangeOrder
 from hixton.live.production import (
@@ -254,7 +255,7 @@ def test_ranked_repeat_two_slots_is_one_bounded_market_order(tmp_path: Path) -> 
     assert account.balances["USDC"][0] == D("0")
 
 
-def test_ten_simultaneous_signals_never_exceed_two_slots(tmp_path: Path) -> None:
+def test_all_simultaneous_signals_never_exceed_two_slots(tmp_path: Path) -> None:
     c, exchange, account, _settings = controller(tmp_path)
     enable_now(c, account, universe(NOW - timedelta(hours=1)))
     points = universe(NOW, enter=SYMBOLS)
