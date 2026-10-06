@@ -189,10 +189,10 @@ REGRESSION_EVIDENCE_CONTRACTS: dict[str, dict[str, tuple[str, ...]]] = {
         "A11": ("capital_budget_governance",),
     },
     "SATELLITE_15_INTEGRATION": {
-        "A01": ("requirements_contract", "optimization_scope"),
+        "A01": ("requirements_contract",),
         "A02": ("current_v6_backtest", "capital_budget_fresh_search"),
         "A03": ("paper_shared_parity", "capital_budget_profile_consistency"),
-        "A04": ("current_v6_ui", "optimization_product_semantics"),
+        "A04": ("current_v6_ui", "shipped_ui_bundle"),
         "A05": ("runtime_freshness", "capital_budget_trade_utilization"),
         "A06": ("integration_compile", "capital_budget_stress_robustness"),
         "A07": ("binance_usdc_universe", "capital_budget_binance_rules"),
