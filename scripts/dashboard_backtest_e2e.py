@@ -27,7 +27,6 @@ from hixton.data.storage import CandleStore, StoredSymbolRules
 from hixton.domain.allocation import RANKED_REPEAT
 from hixton.domain.capital import DEFAULT_MAX_CAPITAL_USDC, capital_plan
 from hixton.domain.versions import strategy_definition
-from hixton.paper.storage import PaperStore
 from hixton.runtime.continuity_supervisor import RuntimeSupervisor
 from hixton.ui.api import create_app
 
