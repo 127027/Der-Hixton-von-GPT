@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import json
 import os
+from dataclasses import replace
 from datetime import UTC, datetime
 from decimal import Decimal
 from pathlib import Path
@@ -9,7 +10,7 @@ from pathlib import Path
 from fastapi.testclient import TestClient
 
 from hixton.config import ProjectConfig
-from hixton.domain.versions import V6_COIN_STRATEGY
+from hixton.domain.versions import V6_COIN_STRATEGY, V8_SATELLITE_STRATEGY
 from hixton.paper.storage import PaperStore
 from hixton.runtime.supervisor import RuntimeSupervisor
 from hixton.ui.api import create_app
@@ -38,7 +39,13 @@ def _config(tmp_path: Path) -> ProjectConfig:
 
 
 def test_local_ui_status_and_full_strategy_market_placeholders(tmp_path: Path) -> None:
-    config = _config(tmp_path)
+    config = replace(
+        _config(tmp_path),
+        strategy_key="v8",
+        run_output_root=tmp_path / "backtests" / "v8" / "runs",
+        paper_slot_count=2,
+        paper_target_notional_usdc=Decimal("125.00"),
+    )
     client = TestClient(
         create_app(config, RuntimeSupervisor(config)),
         base_url="http://127.0.0.1:8765",
@@ -51,12 +58,12 @@ def test_local_ui_status_and_full_strategy_market_placeholders(tmp_path: Path) -
     markets = client.get("/api/markets")
     assert markets.status_code == 200
     market_rows = markets.json()["markets"]
-    assert [item["symbol"] for item in market_rows] == list(V6_COIN_STRATEGY.symbols)
+    assert [item["symbol"] for item in market_rows] == list(V8_SATELLITE_STRATEGY.symbols)
     assert [item["strategy_role"] for item in market_rows[:10]] == ["CORE"] * 10
     assert [item["strategy_role"] for item in market_rows[10:]] == ["SATELLITE"] * 5
     assert {
         item["symbol"] for item in market_rows if item["shared_active"]
-    } == set(V6_COIN_STRATEGY.active_shared_satellites)
+    } == set(V8_SATELLITE_STRATEGY.active_shared_satellites)
     logs = client.get("/api/logs")
     assert logs.status_code == 200
     assert logs.json()["logs"][0]["event_code"] == "PROCESS_START"
