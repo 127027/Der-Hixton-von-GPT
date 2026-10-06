@@ -22,7 +22,6 @@ import httpx
 
 from hixton.backtest.continuity import HISTORY_MODE
 from hixton.config import load_project_config
-from hixton.constants import SYMBOLS
 from hixton.data.binance import BinancePublicClient
 from hixton.data.storage import CandleStore, StoredSymbolRules
 from hixton.domain.allocation import RANKED_REPEAT
@@ -40,14 +39,14 @@ ACTION_HEADERS = {
 }
 
 
-def _seed_current_usdc_rules(database_path: Path) -> None:
+def _seed_current_usdc_rules(database_path: Path, symbols: tuple[str, ...]) -> None:
     # GitHub-hosted runners can be geoblocked on api.binance.com. Binance's
     # public data endpoint exposes the same read-only exchange metadata needed
     # by this CI proof and is already the continuity-history source.
     public = BinancePublicClient(base_url="https://data-api.binance.vision")
     checked_at = datetime.now(UTC)
     with CandleStore(database_path) as store:
-        for symbol in SYMBOLS:
+        for symbol in symbols:
             rules = public.symbol_rules(symbol)
             if not rules.tradable_for_quote("USDC"):
                 raise RuntimeError(f"{symbol}: current Binance USDC rules are not tradable")
@@ -67,8 +66,8 @@ def _seed_current_usdc_rules(database_path: Path) -> None:
             )
 
 
-def _initialize_paper(database_path: Path) -> None:
-    strategy = strategy_definition("v6")
+def _initialize_paper(database_path: Path, strategy_key: str) -> None:
+    strategy = strategy_definition(strategy_key)
     with PaperStore(database_path) as store:
         store.initialize(
             strategy_key=strategy.key,
@@ -129,7 +128,7 @@ async def _run_mode(
     response = await client.post(
         "/api/backtests/run",
         headers=ACTION_HEADERS,
-        json={"mode": mode, "strategy": "v6"},
+        json={"mode": mode, "strategy": supervisor.strategy.key},
     )
     response.raise_for_status()
     if response.json().get("started") is not True:
@@ -147,7 +146,7 @@ async def _run_mode(
 
     listing = await client.get(
         "/api/backtests",
-        params={"strategy": "v6", "mode": mode},
+        params={"strategy": supervisor.strategy.key, "mode": mode},
     )
     listing.raise_for_status()
     runs = listing.json().get("runs", [])
@@ -302,17 +301,18 @@ def _portfolio_trade_breakdown(
 
 async def main() -> None:
     base_config = load_project_config(CONFIG_PATH, project_root=PROJECT_ROOT)
+    active_strategy = strategy_definition(base_config.strategy_key)
     with tempfile.TemporaryDirectory(prefix="hixton-dashboard-e2e-") as temporary:
         root = Path(temporary)
         database_path = root / "data" / "hixton.sqlite3"
-        run_output_root = root / "backtests" / "v6" / "runs"
+        run_output_root = root / "backtests" / active_strategy.backtest_version / "runs"
         config = replace(
             base_config,
             database_path=database_path,
             run_output_root=run_output_root,
         )
-        _seed_current_usdc_rules(database_path)
-        _initialize_paper(database_path)
+        _seed_current_usdc_rules(database_path, active_strategy.symbols)
+        _initialize_paper(database_path, active_strategy.key)
         supervisor = RuntimeSupervisor(config)
         app = create_app(config, supervisor)
         transport = httpx.ASGITransport(app=app)
@@ -340,7 +340,7 @@ async def main() -> None:
             "credentials_used": False,
             "orders_sent": False,
             "portfolio_max_budget": portfolio,
-            "isolated_10x250": isolated,
+            "isolated_active_universe_x250": isolated,
         }
         output = PROJECT_ROOT / "evidence" / "dashboard-backtest-e2e.json"
         output.parent.mkdir(parents=True, exist_ok=True)
