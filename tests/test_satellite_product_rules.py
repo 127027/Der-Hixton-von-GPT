@@ -3,7 +3,7 @@ from __future__ import annotations
 from dataclasses import replace
 from datetime import UTC, datetime, timedelta
 
-from hixton.domain.models import Candle, IndicatorPoint, StrategySemantics, TrendState
+from hixton.domain.models import Candle, IndicatorPoint, TrendState
 from hixton.domain.satellite_layer import (
     ACTIVE_SHARED_SATELLITES,
     shared_satellite_entry_block_reason,
