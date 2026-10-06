@@ -18,6 +18,13 @@ on:
       - src/hixton/paper/storage.py
       - src/hixton/live/production.py
       - src/hixton/ui/api.py
+      - src/hixton/ui/static/**
+      - ui/**
+      - scripts/cloud_swarm_agent.py
+      - scripts/swarm_core.py
+      - agent_memory/swarm/coordination.json
+      - agent_memory/swarm/taskboard.json
+      - tests/test_swarm_core.py
       - tests/test_config.py
       - tests/test_ui_api.py
       - tests/test_paper_slot_parity.py
