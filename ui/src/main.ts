@@ -459,7 +459,7 @@ async function refreshBacktests(): Promise<void> {
     const response = await api<{ runs: BacktestRun[]; status: string }>(`/api/backtests?${query}`);
     if (generation !== backtestLoadGeneration || required<HTMLSelectElement>("#backtest-strategy").value !== strategy || required<HTMLSelectElement>("#backtest-symbol").value !== selection) return;
     text("#backtest-eyebrow", `BACKTEST ${strategy.toUpperCase()}`);
-    text("#backtest-title", "Aktuelle V6 · Budget-Portfolio, 15×250 isoliert oder Einzelcoin");
+    text("#backtest-title", "Aktuelle V8 · Core + Gap-Satellites, 15×250 isoliert oder Einzelcoin");
     const button = required<HTMLButtonElement>("#backtest-button");
     button.disabled = response.status === "RUNNING";
     button.textContent = response.status === "RUNNING" ? "Backtest läuft …" : "Backtest starten";
@@ -490,7 +490,7 @@ async function refreshBacktests(): Promise<void> {
     text("#backtest-blocks", portfolioBlocksText(latestScenario?.portfolio));
     const perSymbol = latestScenario?.per_symbol ?? {};
     const portfolioMetric = latestScenario?.portfolio?.metrics;
-    text("#backtest-detail-title", portfolioMetric ? "Aktueller V6-Lauf · Portfolio" : "Aktueller V6-Lauf · isolierte Coin-Diagnose");
+    text("#backtest-detail-title", portfolioMetric ? "Aktueller V8-Lauf · Portfolio" : "Aktueller V8-Lauf · isolierte Coin-Diagnose");
     const metricRow = (label: string, metric: Record<string, unknown>, halted = false) =>
       `<tr><td class="mono">${label}${halted ? " · HALTED" : ""}</td><td>${formatNumber(metric.starting_equity as string)}</td><td>${formatNumber(metric.ending_equity as string)}</td><td class="${Number(metric.return_pct) >= 0 ? "good" : "negative"}">${formatNumber(metric.return_pct as string)} %</td><td>${String(metric.completed_trades ?? "—")}</td><td>${formatNumber(metric.max_drawdown_pct as string)} %</td></tr>`;
     required("#backtest-detail-body").innerHTML = portfolioMetric
@@ -546,7 +546,7 @@ function initializeControls(): void {
     const symbol = required<HTMLSelectElement>("#backtest-symbol").value;
     const strategy = required<HTMLSelectElement>("#backtest-strategy").value;
     const mode = symbol === "PORTFOLIO" ? "portfolio" : symbol === "ALL" ? "all" : "single";
-    try { await api("/api/backtests/run", { method: "POST", body: JSON.stringify({ mode, symbol, strategy }) }); showToast("V6-Backtest wurde gestartet."); await refreshBacktests(); }
+    try { await api("/api/backtests/run", { method: "POST", body: JSON.stringify({ mode, symbol, strategy }) }); showToast("V8-Backtest wurde gestartet."); await refreshBacktests(); }
     catch (error) { showToast(error instanceof Error ? error.message : String(error), true); }
   });
 }
