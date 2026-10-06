@@ -8,6 +8,7 @@ Aktuelle Modelle:
 - **V6 Core:** eingefrorener Zehn-Coin-Regressionsanker;
 - **V8 15×250 isoliert:** Forschungs-/Diagnoselabor, je Coin ein separates 250-USDC-Konto;
 - **V8 Shared-Maximalbudget:** Produktmodell, ein gemeinsames Kapital X über `CAPITAL-V1-2X50PCT` = zwei Slots zu X/2;
+  Beispiel: Bei 250 USDC sind das 2 × 125 USDC; bei 1.000 USDC entsprechend 2 × 500 USDC.
 - Shared Satellites: nur NEAR/BCH aktiv, ausschließlich in komplettem Core-Idle; SUI/UNI/AAVE research-only.
 
 Jeder Produktlauf dokumentiert mindestens: Strategie-/Profilhash, Quellcommit, Datenfenster und Warmup, Datenprovenienz, Kostenmodell, Maximalbudget, abgeleitete Slotgröße, Endkapital/PnL, Positionszyklen, Slot-Trades, Drawdown, Idle-/Occupancy-Metriken und Core/Satellite-Beiträge.
