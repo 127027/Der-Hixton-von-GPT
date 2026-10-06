@@ -66,17 +66,6 @@ def _seed_current_usdc_rules(database_path: Path, symbols: tuple[str, ...]) -> N
             )
 
 
-def _initialize_paper(database_path: Path, strategy_key: str) -> None:
-    strategy = strategy_definition(strategy_key)
-    with PaperStore(database_path) as store:
-        store.initialize(
-            strategy_key=strategy.key,
-            strategy_version=strategy.version,
-            starting_cash_usdc=None,
-        )
-        store.require_strategy(strategy.key, strategy.version)
-
-
 def _current_summary(run: dict[str, Any], mode: str) -> dict[str, Any]:
     current = run["metrics"]["current"]
     if mode == "portfolio":
@@ -310,26 +299,46 @@ async def main() -> None:
             base_config,
             database_path=database_path,
             run_output_root=run_output_root,
+            binance_base_url="https://data-api.binance.vision",
         )
         _seed_current_usdc_rules(database_path, active_strategy.symbols)
-        _initialize_paper(database_path, active_strategy.key)
         supervisor = RuntimeSupervisor(config)
-        app = create_app(config, supervisor)
-        transport = httpx.ASGITransport(app=app)
-        async with httpx.AsyncClient(
-            transport=transport,
-            base_url="http://127.0.0.1:8765",
-            timeout=30.0,
-        ) as client:
-            portfolio = await _run_mode(client, supervisor, "portfolio")
-            breakdown, timing = _portfolio_trade_breakdown(
-                run_output_root,
-                str(portfolio["report_start_utc"]),
-                str(portfolio["report_end_utc"]),
-            )
-            portfolio["per_symbol_trades"] = breakdown
-            portfolio["trade_timing"] = timing
-            isolated = await _run_mode(client, supervisor, "all")
+        supervisor.start()
+        try:
+            for _ in range(4_800):
+                snapshot = supervisor.state.snapshot()
+                if (
+                    snapshot.health == "HEALTHY"
+                    and not snapshot.sync_in_progress
+                    and set(supervisor.state.points()) == set(active_strategy.symbols)
+                ):
+                    break
+                await asyncio.sleep(0.25)
+            else:
+                snapshot = supervisor.state.snapshot()
+                raise TimeoutError(
+                    "dashboard startup sync did not become healthy: "
+                    f"{snapshot.last_error or snapshot.message}"
+                )
+
+            app = create_app(config, supervisor)
+            transport = httpx.ASGITransport(app=app)
+            async with httpx.AsyncClient(
+                transport=transport,
+                base_url="http://127.0.0.1:8765",
+                timeout=30.0,
+            ) as client:
+                portfolio = await _run_mode(client, supervisor, "portfolio")
+                breakdown, timing = _portfolio_trade_breakdown(
+                    run_output_root,
+                    str(portfolio["report_start_utc"]),
+                    str(portfolio["report_end_utc"]),
+                )
+                portfolio["per_symbol_trades"] = breakdown
+                portfolio["trade_timing"] = timing
+                isolated = await _run_mode(client, supervisor, "all")
+        finally:
+            await supervisor.stop()
 
         evidence = {
             "schema_version": 2,
