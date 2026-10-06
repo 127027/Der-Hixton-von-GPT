@@ -1,13 +1,13 @@
 {
   "schema_version": 1,
-  "round_id": "COORD-2026-10-06-RELEASE15-009",
+  "round_id": "COORD-2026-10-06-RELEASE15-010",
   "status": "DISPATCHED",
-  "owner_objective": "Final release audit of the 15-market Hixton candidate. Preserve the proven ten-coin Core behavior and modular 2x50-percent capital plan, activate only the validated NEAR/BCH idle-gap Satellite layer, keep SUI/UNI/AAVE research-only, prove point-in-time/no-lookahead behavior over the rolling three-year backtest model, verify Backtest/Paper/Live/UI parity, and promote to gpt/usdc-audit only if all A01-A11 gates pass on one exact commit. Do not enable Live entries or send orders.",
+  "owner_objective": "Final exact-head release audit of the completed 15-market Hixton candidate. Preserve the proven ten-coin Core, modular two-slot 50/50 sizing, and active NEAR/BCH idle-gap layer; keep SUI/UNI/AAVE research-only. Prove point-in-time/no-lookahead behavior, three-year backtest integrity, Backtest/Paper/Live/UI parity and fail-closed safety. Promotion to gpt/usdc-audit is allowed only after same-head A09 QA_PASS and A11 GOVERNANCE_PASS. Live entries remain disabled and no orders are sent.",
   "target_branch": "gpt/15coin-satellite-integration",
   "commit_policy": "PIN_EXACT_COMMIT_AT_RUN_START",
   "repair_policy": "ANY_PATCH_INVALIDATES_AFFECTED_EVIDENCE_AND_REQUIRES_A_NEW_PINNED_RUN",
   "acceptance": {
-    "exact_head": "All A01-A11 evidence must come from one exact gpt/15coin-satellite-integration commit.",
+    "exact_head": "Every A01-A11 report, integration artifact and UI/product parity result used for release must reference the same exact candidate commit.",
     "protected_core": "The ten Core coin profiles and their priority semantics remain frozen during slot-layout comparison.",
     "slot_matrix": "Compare 2x125, 3x~83.33, 4x62.50 and 5x50 at exactly 250 USDC total capital; include true 5x50 one_per_symbol and ranked_repeat variants.",
     "capital_scaling": "Repeat candidate layouts at 1000 USDC using derived tranche sizes; fixed 125/50 product assumptions are a blocker.",
@@ -22,12 +22,12 @@
     "exchange_minimums": "A07 verifies 50-USDC and scaled tranches satisfy current Binance USDC filters for all 15 targets.",
     "qa": "A09 requires fresh exact-head static/tests/backtest evidence and rejects stale/mixed runs.",
     "governance": "A11 requires fresh QA_PASS and complete A01-A10 evidence; no promotion or live activation in this round.",
-    "release_candidate": "The exact candidate commit must have a fresh green 15-coin integration workflow, reproducible UI build, full Python/UI regression coverage, and no stale/mixed evidence.",
-    "future_safety": "A01/A02/A08 must confirm all signals/filters/exits are point-in-time and use only information available at each closed bar; no future/validation leakage may steer live decisions.",
-    "product_shape": "Ten Core profiles remain the primary engine; NEAR/BCH are idle-only Satellites; SUI/UNI/AAVE remain visible research-only and cannot allocate capital.",
-    "capital_modularity": "Configured max capital X must derive two equal 50-percent slots; 250/125 are reference examples only, not product constants.",
-    "live_safety": "Promotion may make the code runnable but must not arm Live entries, alter exchange credentials, or send real/testnet orders.",
-    "promotion": "After fresh A09 QA_PASS and A11 GOVERNANCE_PASS on the same exact commit, the candidate may be promoted to gpt/usdc-audit. Any patch invalidates the round."
+    "release_candidate": "Fresh integration, full regression, UI/browser bundle and agent evidence must all pass on the exact pinned release head.",
+    "future_safety": "Runtime decisions use closed-bar information only and execute at the next available open; holdout/future results cannot steer live decisions.",
+    "product_shape": "Ten Core coins remain primary; only NEAR/BCH may allocate Satellite capital and only while the Core is completely idle; SUI/UNI/AAVE are research-only.",
+    "capital_modularity": "Configured max capital X always derives two equal 50-percent slots; no fixed 125/50 sizing is permitted in product logic.",
+    "live_safety": "No API credential change, no testnet order, no real-money order and no automatic Live arming.",
+    "promotion": "Same-head A09 QA_PASS plus A11 GOVERNANCE_PASS authorizes code promotion to gpt/usdc-audit only. Live activation remains prohibited."
   },
   "communication_rules": {
     "all_reports_must_include": [
@@ -254,6 +254,6 @@
   },
   "research_brief_file": "agent_memory/swarm/research_brief_2026-10-01.md",
   "promotion_brief_file": "agent_memory/swarm/promotion_brief_2026-10-01.md",
-  "dispatch_generation": 2,
-  "dispatch_note": "Final release audit after integration #43 and UI build passed; pin exact current candidate head. Promotion allowed only after same-head A09/A11; Live remains disabled."
+  "dispatch_generation": 3,
+  "dispatch_note": "Final release round after taskboard alignment. Pin exact current HEAD; discard all earlier candidate-swarm rounds. Promote code only after same-head A09/A11; do not arm Live."
 }
