@@ -26,16 +26,20 @@ def test_registry_contains_exactly_all_eleven_cloud_agents() -> None:
     assert registry["completion_contract"]["real_money_orders_allowed"] is False
 
 
-def test_active_cloud_mission_requires_all_agents_and_current_v6_regression() -> None:
+def test_active_cloud_mission_requires_all_agents_and_15coin_regression() -> None:
     mission = load_mission(ROOT)
-    assert mission["id"] == "SWARM-003"
+    assert mission["id"] == "SWARM-004"
     assert mission["state"] == "IN_PROGRESS"
-    assert mission["completion_mode"] == "continuous"
+    assert mission["completion_mode"] == "one_shot_research_candidate"
     assert set(required_agents(mission)) == set(AGENT_IDS)
     cases = known_regression_requirements(mission)
     assert "CURRENT_V6_PRODUCT" in cases
-    assert "verify_current_v6_is_the_only_product_strategy" in cases["CURRENT_V6_PRODUCT"]
-    assert "verify_assembled_10x250_and_max_budget_non_regression" in cases["CURRENT_V6_PRODUCT"]
+    assert "CAPITAL_BUDGET_AUDIT" in cases
+    assert "SATELLITE_15_INTEGRATION" in cases
+    assert (
+        "verify_ten_core_plus_five_satellite_universe_is_explicit"
+        in cases["SATELLITE_15_INTEGRATION"]
+    )
     evidence = required_evidence_by_agent(mission)
     assert "topk_validation" in evidence["A02"]
     assert "portfolio_gate" in evidence["A02"]
@@ -47,7 +51,7 @@ def test_active_cloud_mission_requires_all_agents_and_current_v6_regression() ->
 def test_cloud_ready_summary_is_safe() -> None:
     summary = validate_cloud_ready(ROOT)
     assert summary["agent_count"] == 11
-    assert summary["mission_id"] == "SWARM-003"
+    assert summary["mission_id"] == "SWARM-004"
     assert summary["mission_state"] == "IN_PROGRESS"
     assert summary["execution"] == "github_actions_cloud"
     assert summary["real_money_orders_allowed"] is False
