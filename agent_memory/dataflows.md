@@ -1,34 +1,45 @@
-# Hixton data flows — current V6 product
+# Hixton data flows — current V8 product
 
-Status: CURRENT · 2026-09-26
+Status: CURRENT · 2026-10-06
 
 ## Market data
-Public Binance USDC candles and exchange filters -> data quality -> SQLite candle store -> indicator analysis. Only finalized 1h candles enter signal logic; the next bar open may be used as the execution model reference.
 
-Where a three-year research window predates a USDC listing, a same-base Binance USDT price path may be used only as an explicitly labelled research proxy. It is never stored or described as historical USDC liquidity/fills.
+Public Binance USDC candles/exchange filters → quality audit → SQLite candle store → per-market indicator state. Only finalized 1h candles enter strategy logic. The next candle open is the execution reference; its future high/low/close are not available to the decision.
+
+For old history that predates a USDC listing, same-base Binance USDT candles may be used only as an explicitly labeled price-history proxy in research/backtest evidence.
+
+## Strategy
+
+Frozen V6 Core profiles + V8 Satellite profiles → indicator/policy decisions.
+
+Core symbols: BTC, ETH, BNB, SOL, XRP, ADA, LINK, AVAX, DOT, DOGE.  
+Satellite research symbols: SUI, NEAR, UNI, AAVE, BCH.  
+Shared-active Satellites: NEAR, BCH only.
+
+Inactive Satellites may be calculated/displayed for research but are blocked before capital allocation.
+
+## Shared portfolio
+
+Closed-bar decisions → natural exits → Core-entry check → strict Core handoff of Satellite positions at next open → two-slot Core allocation. If no Core position/signal owns capacity, valid NEAR/BCH entries may use free slots one per symbol.
+
+`max_capital_usdc = X` → `CAPITAL-V1-2X50PCT` → two slots of X/2. The same derived plan is used by Shared backtest, Paper and guarded Live.
 
 ## Paper
-Canonical V6 profile map -> indicators/signals -> risk/slot gate -> simulated fill -> position -> strategy exit -> realized PnL -> atomic SQLite persistence of account, positions, events and checkpoints.
 
-Restart restores the same account and replays missed finalized bars exactly once. A canonical V6 digest change is fail-closed until explicit audited `paper-activate`; no silent reset is permitted.
+V8 market analysis → point-in-time routing/risk/slot gates → next-open simulated fill → persistent position/event/account/checkpoint transaction. Restart restores the ledger and replays only missing finalized bars. A V6→V8 change requires explicit audited strategy activation; no reset is allowed.
 
 ## Backtest
-The same canonical V6 map and execution semantics feed:
-1. single 250-USDC coin tests;
-2. isolated 10×250 diagnostics;
-3. shared max-budget `CAPITAL-V1-2X50PCT` / `ranked_repeat` portfolio tests.
 
-Baseline and stress cost models are separate. Position-cycle count and slot-trade count are separate metrics.
+Two evidence views remain distinct:
+1. isolated 15×250 diagnostics/research;
+2. one Shared-X product portfolio.
 
-## Optimization
-Per coin: bounded candidate catalog -> training A/B ranking -> frozen Top-K -> validation baseline/stress -> full-three-year baseline/stress -> robust finalists.
-
-Each robust finalist then changes only one coin in the canonical max-budget portfolio map. Only non-regressive baseline+stress candidates may enter combination assembly. Every addition is re-tested against the already assembled portfolio. Final promotion additionally requires isolated 10×250 baseline/stress non-regression.
-
-The optimizer emits research evidence only; it does not automatically activate a strategy.
+Baseline and stress cost models are separate. Position-cycle count and slot-trade count are separate. Historical outcome is evidence, not future knowledge available to runtime.
 
 ## UI/API
-Runtime state, market profiles, Paper portfolio/events, data quality and current V6 backtests -> local API -> TypeScript UI. Normal product UI/API/CLI expose only current V6; historical/research strategies are not selectable.
+
+Runtime state + all 15 market profiles + explicit CORE/SATELLITE role + `shared_active` flag + Paper portfolio/events + data quality + current V8 backtest evidence → local API → TypeScript UI. The normal product selector exposes current V8 only; V6 remains a code/test regression anchor, not a selectable current product.
 
 ## Agent flow
-GitHub Actions -> lifecycle/preflight -> A01–A08 specialist evidence -> A10 evidence/repair audit -> A09 independent QA -> A11 governance. Current role execution is deterministic and requires no OpenAI key or Binance private credential.
+
+GitHub Actions → exact-head lifecycle/preflight → A01–A08 specialist evidence → A10 synthesis/repair routing → A09 independent QA → A11 governance. Any code patch invalidates affected downstream evidence.
