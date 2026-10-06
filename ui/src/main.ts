@@ -21,7 +21,23 @@ import { marketSignalText } from "./market-signal";
 import { initializeSessionLifetime } from "./session-lifetime";
 import { portfolioBlocksText } from "./backtest-context";
 
-const symbols = ["BTCUSDC", "ETHUSDC", "BNBUSDC", "SOLUSDC", "XRPUSDC", "ADAUSDC", "LINKUSDC", "AVAXUSDC", "DOTUSDC", "DOGEUSDC"] as const;
+const symbols = [
+  "BTCUSDC",
+  "ETHUSDC",
+  "BNBUSDC",
+  "SOLUSDC",
+  "XRPUSDC",
+  "ADAUSDC",
+  "LINKUSDC",
+  "AVAXUSDC",
+  "DOTUSDC",
+  "DOGEUSDC",
+  "SUIUSDC",
+  "NEARUSDC",
+  "UNIUSDC",
+  "AAVEUSDC",
+  "BCHUSDC",
+] as const;
 type SymbolName = (typeof symbols)[number];
 type RangeKey = "today" | "1w" | "1m" | "1y" | "3y";
 
@@ -93,6 +109,8 @@ interface StatusResponse {
 interface Market {
   symbol: SymbolName;
   display_symbol: string;
+  strategy_role: "CORE" | "SATELLITE";
+  shared_active: boolean;
   available: boolean;
   price: number | null;
   price_time_utc: string | null;
@@ -257,8 +275,13 @@ function marketCard(market: Market): string {
   const p = market.strategy_profile.parameters;
   const rule = market.strategy_profile.trade_policy;
   const extras = [rule.cmo_floor ? `CMO ≥ ${rule.cmo_floor}` : "", rule.slope_bars ? `VIDYA-Steigung ${rule.slope_bars}h` : "", rule.stop_atr ? `Stop ${rule.stop_atr} ATR am Schlusskurs` : "", rule.trail_atr ? `Trail ${rule.trail_atr} ATR` : ""].filter(Boolean).join(" · ");
+  const role = market.strategy_role === "CORE"
+    ? "CORE"
+    : market.shared_active
+      ? "SATELLITE · GAP AKTIV"
+      : "SATELLITE · RESEARCH";
   return `<article class="market-card" data-symbol="${market.symbol}" tabindex="0">
-    <div class="market-top"><strong>${market.display_symbol}</strong><span class="trend-tag ${trendClass}">${market.trend}</span></div>
+    <div class="market-top"><strong>${market.display_symbol}<small> · ${role}</small></strong><span class="trend-tag ${trendClass}">${market.trend}</span></div>
     <div class="market-price">${formatPrice(market.price)} <small>USDC</small></div>
     <div class="market-meta"><span>${formatDate(market.price_time_utc)}</span><span class="${market.data.valid ? "good" : "warning"}">${market.data.valid ? "DATEN OK" : "PRÜFUNG"}</span></div>
     <div class="market-meta"><span>VIDYA ${p.vidya_length} · MOM ${p.momentum_length} · SMA ${p.smoothing_length} · ATR ${p.atr_length} · Band ${p.band_multiplier}${extras ? `<br>${extras}` : ""}</span></div>
@@ -436,7 +459,7 @@ async function refreshBacktests(): Promise<void> {
     const response = await api<{ runs: BacktestRun[]; status: string }>(`/api/backtests?${query}`);
     if (generation !== backtestLoadGeneration || required<HTMLSelectElement>("#backtest-strategy").value !== strategy || required<HTMLSelectElement>("#backtest-symbol").value !== selection) return;
     text("#backtest-eyebrow", `BACKTEST ${strategy.toUpperCase()}`);
-    text("#backtest-title", "Aktuelle V6 · Budget-Portfolio, 10×250 Forschung oder Einzelcoin");
+    text("#backtest-title", "Aktuelle V6 · Budget-Portfolio, 15×250 isoliert oder Einzelcoin");
     const button = required<HTMLButtonElement>("#backtest-button");
     button.disabled = response.status === "RUNNING";
     button.textContent = response.status === "RUNNING" ? "Backtest läuft …" : "Backtest starten";
@@ -450,7 +473,7 @@ async function refreshBacktests(): Promise<void> {
         ? `${formatNumber(summary.ending_equity as string)} ${quote} · ${formatNumber(summary.return_pct as string)} %`
         : "Kennzahlen nicht verfügbar";
       const version = (manifest.strategy as Record<string, unknown> | undefined)?.version ?? strategy.toUpperCase();
-      const runMode = current?.portfolio ? "Portfolio" : current?.batch ? "10×250 isoliert" : `Einzeltest ${Object.keys(current?.per_symbol ?? {}).join(", ")}`;
+      const runMode = current?.portfolio ? "Portfolio" : current?.batch ? "15×250 isoliert" : `Einzeltest ${Object.keys(current?.per_symbol ?? {}).join(", ")}`;
       const riskHalt = current?.portfolio?.risk_halted_at_utc;
       const riskLabel = riskHalt ? `<strong class="negative">RISIKOHALT im Test · ${formatDate(String(riskHalt), true)}</strong>` : "";
       const window = manifest.data as Record<string, unknown> | undefined;
