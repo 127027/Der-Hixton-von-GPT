@@ -62,8 +62,8 @@ def test_taskboard_declares_key_free_paper_only_runtime_and_active_guard() -> No
     assert runtime["testnet_orders_allowed"] is False
     assert runtime["binance_private_credentials_allowed"] is False
     assert board["active_mission"]["state"] == "IN_PROGRESS"
-    assert board["active_mission"]["completion_mode"] == "continuous"
-    assert board["active_mission"]["id"] == "SWARM-003"
+    assert board["active_mission"]["completion_mode"] == "one_shot_research_candidate"
+    assert board["active_mission"]["id"] == "SWARM-004"
 
 
 def test_a10_accepts_complete_specialist_evidence(tmp_path: Path) -> None:
@@ -100,7 +100,7 @@ def test_a11_requires_qa_pass_all_prior_roles_and_evidence(
     monkeypatch.setattr(
         cloud_swarm_agent,
         "validate_cloud_ready",
-        lambda root: {"mission_id": "SWARM-003", "mission_state": "IN_PROGRESS"},
+        lambda root: {"mission_id": "SWARM-004", "mission_state": "IN_PROGRESS"},
     )
     evidence = cloud_swarm_agent.role_a11(tmp_path)
     assert evidence[0]["governance"] == "GOVERNANCE_PASS"
