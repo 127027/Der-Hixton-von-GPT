@@ -26,7 +26,11 @@ from hixton.backtest.models import (
 )
 from hixton.constants import TIMEFRAME_DELTA
 from hixton.data.quality import audit_candles
-from hixton.domain.allocation import RANKED_REPEAT, allocate_entry_slots
+from hixton.domain.allocation import (
+    RANKED_REPEAT,
+    SUPPORTED_SLOT_ALLOCATIONS,
+    allocate_entry_slots,
+)
 from hixton.domain.models import (
     Candle,
     IndicatorPoint,
@@ -179,6 +183,7 @@ def run_filler_router_portfolio(
     filler_horizon_hours_by_symbol: dict[str, int] | None = None,
     satellite_max_portfolio_drawdown_pct: Decimal | None = None,
     core_imminence_guard_atr: Decimal | None = None,
+    core_allocation_policy: str = RANKED_REPEAT,
 ) -> tuple[PortfolioBacktestResult, list[dict[str, object]]]:
     if tuple(candles_by_symbol) != symbols:
         raise ValueError("router input universe/order mismatch")
@@ -193,6 +198,8 @@ def run_filler_router_portfolio(
         raise ValueError("router semantics must cover the full research universe")
     if slot_count <= 0 or starting_cash <= 0 or target_notional <= 0:
         raise ValueError("invalid capital plan")
+    if core_allocation_policy not in SUPPORTED_SLOT_ALLOCATIONS:
+        raise ValueError("unsupported Core allocation policy")
 
     parameters = V6_COIN_STRATEGY.parameters
     warmup_start = report_start_utc - parameters.warmup_bars * TIMEFRAME_DELTA
@@ -468,7 +475,7 @@ def run_filler_router_portfolio(
             ideal_core_alloc = allocate_entry_slots(
                 [s.symbol for s in core_entries if s.symbol not in positions],
                 free_slots=max(0, slot_count - core_used_slots),
-                policy=RANKED_REPEAT,
+                policy=core_allocation_policy,
             )
 
             for core_signal in core_entries:
