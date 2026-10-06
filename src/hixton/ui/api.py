@@ -23,7 +23,6 @@ from hixton import __version__
 from hixton.backtest.comparison import compare_run
 from hixton.backtest.reporting import source_fingerprint
 from hixton.config import ProjectConfig
-from hixton.constants import SYMBOLS
 from hixton.domain.capital import (
     ALLOCATOR_VERSION,
     MAX_CONFIGURABLE_CAPITAL_USDC,
@@ -194,7 +193,7 @@ def _market_payloads(
         if isinstance(position, dict) and "symbol" in position
     }
     payloads: list[dict[str, object]] = []
-    for symbol in SYMBOLS:
+    for symbol in supervisor.strategy.symbols:
         points = points_by_symbol.get(symbol, ())
         point = points[-1] if points else None
         last_signal = None
@@ -219,6 +218,14 @@ def _market_payloads(
             {
                 "symbol": symbol,
                 "display_symbol": symbol.removesuffix("USDC") + "/USDC",
+                "strategy_role": (
+                    "SATELLITE"
+                    if symbol in supervisor.strategy.satellite_symbols
+                    else "CORE"
+                ),
+                "shared_active": (
+                    symbol in supervisor.strategy.active_shared_satellites
+                ),
                 "strategy_profile": {
                     "parameters": asdict(supervisor.strategy.parameters_for(symbol)),
                     "trade_policy": asdict(supervisor.strategy.policy_for(symbol)),
@@ -421,7 +428,7 @@ def create_app(
         timezone: str = Query("Europe/Berlin"),
     ) -> dict[str, object]:
         normalized = symbol.replace("/", "").upper()
-        if normalized not in SYMBOLS:
+        if normalized not in supervisor.strategy.symbols:
             raise HTTPException(status_code=400, detail="Unbekanntes DMS-Symbol")
         if range_key not in RANGE_LABELS:
             raise HTTPException(status_code=400, detail="Unbekannter Chartzeitraum")
@@ -541,7 +548,7 @@ def create_app(
         if mode not in {None, "portfolio", "all", "single"}:
             raise HTTPException(status_code=400, detail="Unbekannte Backtestart")
         normalized = symbol.replace("/", "").upper() if symbol else None
-        if mode == "single" and normalized not in SYMBOLS:
+        if mode == "single" and normalized not in supervisor.strategy.symbols:
             raise HTTPException(status_code=400, detail="Einzeltest benoetigt ein DMS-Symbol")
         if normalized is not None and mode != "single":
             raise HTTPException(status_code=400, detail="Coinfilter gilt nur fuer Einzeltests")
