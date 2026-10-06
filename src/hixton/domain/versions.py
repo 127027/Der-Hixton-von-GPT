@@ -287,9 +287,6 @@ _V6_PROFILES = (
         ),
         TradePolicy(cmo_floor=0.2, slope_bars=0, stop_atr=0, trail_atr=0),
     ),
-) + tuple(
-    CoinProfile(profile.symbol, profile.parameters, profile.trade_policy)
-    for profile in SATELLITE_PROFILES
 )
 _V6_DIGEST = hashlib.sha256(
     json.dumps([asdict(p) for p in _V6_PROFILES], sort_keys=True, separators=(",", ":")).encode()
@@ -301,11 +298,30 @@ V6_COIN_STRATEGY = StrategyDefinition(
     reference="strategy/pine/Der_Hixton_Indikator_v6.pine",
     semantics=StrategySemantics.PINE_V6,
     parameters=V2_RESEARCH_STRATEGY.parameters,
-    # Owner instruction 2026-09-17: all free 80-USDC slots are usable. Ranked
-    # candidates get one slot each first; leftovers repeat on the strongest signal.
+    # Frozen ten-coin Core incumbent. Keep this definition byte-for-byte
+    # equivalent in behavior so V6 remains the regression anchor.
     paper_approved=True,
     slot_allocation=RANKED_REPEAT,
     coin_profiles=_V6_PROFILES,
+)
+
+_V8_PROFILES = _V6_PROFILES + tuple(
+    CoinProfile(profile.symbol, profile.parameters, profile.trade_policy)
+    for profile in SATELLITE_PROFILES
+)
+_V8_DIGEST = hashlib.sha256(
+    json.dumps([asdict(p) for p in _V8_PROFILES], sort_keys=True, separators=(",", ":")).encode()
+).hexdigest()
+V8_SATELLITE_STRATEGY = StrategyDefinition(
+    key="v8",
+    backtest_version="v8",
+    version=f"HIXTON-V8-CORE10-SAT2-PAPER-1-{_V8_DIGEST[:12]}",
+    reference="strategy/pine/Der_Hixton_Indikator_v6.pine",
+    semantics=StrategySemantics.PINE_V6,
+    parameters=V2_RESEARCH_STRATEGY.parameters,
+    paper_approved=True,
+    slot_allocation=RANKED_REPEAT,
+    coin_profiles=_V8_PROFILES,
     satellite_symbols=SATELLITE_SYMBOLS,
     active_shared_satellites=ACTIVE_SHARED_SATELLITES,
     satellite_semantics=StrategySemantics.DMS_V1,
@@ -336,6 +352,7 @@ STRATEGY_DEFINITIONS = {
     V3_SLOT_STRATEGY.key: V3_SLOT_STRATEGY,
     V6_COIN_STRATEGY.key: V6_COIN_STRATEGY,
     V7_USDC_STRATEGY.key: V7_USDC_STRATEGY,
+    V8_SATELLITE_STRATEGY.key: V8_SATELLITE_STRATEGY,
 }
 
 
