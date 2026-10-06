@@ -4,7 +4,7 @@ name: Hixton UI Build
 on:
   push:
     branches:
-      - gpt/usdc-audit
+      - gpt/15coin-satellite-integration
     paths:
       - .github/workflows/hixton-ui-build.yml
       - ui/**
@@ -24,7 +24,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
-          ref: gpt/usdc-audit
+          ref: gpt/15coin-satellite-integration
       - uses: actions/setup-node@v4
         with:
           node-version: "22"
@@ -57,4 +57,4 @@ jobs:
           git config user.email "hixton-ui@users.noreply.github.com"
           git add -A src/hixton/ui/static
           git commit -m "build(ui): sync shipped static bundle"
-          git push origin HEAD:gpt/usdc-audit
+          git push origin HEAD:gpt/15coin-satellite-integration
