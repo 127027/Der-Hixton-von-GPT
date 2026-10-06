@@ -8,6 +8,7 @@ on:
   push:
     branches:
       - gpt/usdc-audit
+      - gpt/15coin-satellite-integration
     paths:
       - .github/workflows/hixton-dashboard-backtest-e2e.yml
       - config/examples/config.example.json
@@ -41,7 +42,7 @@ jobs:
       - name: Checkout engineering branch
         uses: actions/checkout@v4
         with:
-          ref: gpt/usdc-audit
+          ref: ${{ github.ref_name }}
           persist-credentials: false
 
       - name: Set up Python
