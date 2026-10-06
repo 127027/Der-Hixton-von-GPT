@@ -249,7 +249,9 @@ def process_new_closed_points(
         for boundary, group in sorted(pending.items()):
             group_by_symbol = {point.symbol: point for point in group}
             if set(group_by_symbol) != set(symbols):
-                raise RuntimeError("paper replay requires aligned bars for the full strategy universe")
+                raise RuntimeError(
+                    "paper replay requires aligned bars for the full strategy universe"
+                )
             # Keep the last bar pending until the true next-bar OPEN is available.
             if any(boundary not in execution.get(symbol, {}) for symbol in symbols):
                 break
@@ -397,7 +399,9 @@ def process_new_closed_points(
                     quantity = _round_down(position.quantity, rules.step_size)
                     gross_quote = quantity * fill_price
                     if quantity < rules.min_qty or gross_quote < rules.min_notional:
-                        dust[satellite_symbol] = dust.get(satellite_symbol, ZERO) + position.quantity
+                        dust[satellite_symbol] = (
+                            dust.get(satellite_symbol, ZERO) + position.quantity
+                        )
                         del positions[satellite_symbol]
                         continue
                     fee = gross_quote * BASELINE_COSTS.fee_rate
