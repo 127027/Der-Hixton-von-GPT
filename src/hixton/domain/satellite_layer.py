@@ -36,9 +36,11 @@ SATELLITE_SYMBOLS: tuple[str, ...] = (
     "BCHUSDC",
 )
 ALL_15_SYMBOLS: tuple[str, ...] = CORE_SYMBOLS + SATELLITE_SYMBOLS
-# Core keeps its original ranked-repeat allocation. All five fillers only
+# Core keeps its original ranked-repeat allocation. The three shared fillers
 # enter fully idle periods and yield completely to eligible Core entries.
-ACTIVE_SHARED_SATELLITES: tuple[str, ...] = SATELLITE_SYMBOLS
+# SUI and UNI remain available to the isolated research path; their negative
+# shared contribution does not justify additional turnover in the main bot.
+ACTIVE_SHARED_SATELLITES: tuple[str, ...] = ("NEARUSDC", "AAVEUSDC", "BCHUSDC")
 FILLER_ROUTING_VERSION = "FILLER-V3-STRICT-CORE-PRIORITY"
 
 

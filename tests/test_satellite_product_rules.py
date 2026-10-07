@@ -54,7 +54,8 @@ def _point(
 
 
 def test_all_five_fillers_share_bounded_entry_and_exit_rules() -> None:
-    assert ACTIVE_SHARED_SATELLITES == SATELLITE_SYMBOLS
+    assert ACTIVE_SHARED_SATELLITES == ("NEARUSDC", "AAVEUSDC", "BCHUSDC")
+    assert set(ACTIVE_SHARED_SATELLITES) < set(SATELLITE_SYMBOLS)
     assert all(p.entry_interval_hours == 12 for p in SATELLITE_PROFILES)
     assert {p.symbol: p.horizon_hours for p in SATELLITE_PROFILES} == {
         "SUIUSDC": 0, "NEARUSDC": 48, "UNIUSDC": 0, "AAVEUSDC": 120, "BCHUSDC": 0,
@@ -78,6 +79,15 @@ def test_unregistered_market_cannot_allocate_filler_capital() -> None:
         )
         == "SATELLITE_RESEARCH_ONLY"
     )
+
+
+def test_negative_shared_fillers_remain_research_only() -> None:
+    now = datetime(2026, 1, 1, 12, tzinfo=UTC)
+    for symbol in ("SUIUSDC", "UNIUSDC"):
+        assert (
+            shared_satellite_entry_block_reason(symbol, _point(symbol, close_time=now))
+            == "SATELLITE_RESEARCH_ONLY"
+        )
 
 
 def test_near_horizon_exit_uses_only_closed_bar_age() -> None:

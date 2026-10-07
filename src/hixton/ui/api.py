@@ -115,6 +115,77 @@ def _latest_prices(supervisor: RuntimeSupervisor) -> dict[str, Decimal]:
     }
 
 
+def _activity_payload(
+    supervisor: RuntimeSupervisor,
+    config: ProjectConfig,
+    paper: dict[str, object] | None,
+) -> dict[str, object]:
+    """Report observed processing and freshness; never invent a trading signal."""
+    snapshot = supervisor.state.snapshot()
+    now = datetime.now(UTC)
+    points = supervisor.state.points()
+    available = {
+        symbol: series[-1].candle.close_time_utc
+        for symbol, series in points.items()
+        if series and series[-1].candle.closed
+    }
+    checkpoints: dict[str, datetime] = {}
+    last_event: dict[str, object] | None = None
+    if paper is not None:
+        try:
+            with PaperStore(config.database_path) as store:
+                checkpoints = store.all_checkpoints()
+                events = store.load_events(limit=1)
+            if events:
+                event = events[0]
+                last_event = {
+                    "time_utc": _iso(event.occurred_at_utc),
+                    "symbol": event.symbol,
+                    "status": event.status.value,
+                    "reason": event.reason,
+                }
+        except (OSError, RuntimeError, sqlite3.DatabaseError):
+            checkpoints = {}
+    complete = set(supervisor.strategy.symbols).issubset(checkpoints)
+    checked = min(checkpoints[s] for s in supervisor.strategy.symbols) if complete else None
+    caught_up = complete and all(
+        s in available and checkpoints[s] >= available[s] for s in supervisor.strategy.symbols
+    )
+    fresh_feed = any(
+        stamp is not None and 0 <= (now - stamp).total_seconds() <= 120
+        for stamp in (snapshot.last_stream_update_utc, snapshot.last_sync_utc)
+    )
+    fresh_bar = checked is not None and 0 <= (now - checked).total_seconds() <= 3900
+    alive = snapshot.health == "HEALTHY" and fresh_feed and fresh_bar and caught_up
+    settings = paper.get("settings") if paper else None
+    if snapshot.health != "HEALTHY":
+        message = "Marktdaten werden geprüft; Betriebsbereitschaft noch nicht bestätigt."
+    elif not alive:
+        message = "Vollständige Kerzenverarbeitung noch nicht bestätigt; Zeitstempel prüfen."
+    elif paper is None:
+        message = "Paper-Konto nicht verfügbar."
+    elif paper.get("halted"):
+        message = "Paper-Konto angehalten: " + str(paper.get("halt_reason") or "Risikolimit")
+    elif isinstance(settings, dict) and settings.get("emergency_stop"):
+        message = "Einstiegspause aktiv; bestehende Positionen werden weiter überwacht."
+    elif paper.get("daily_loss_paused"):
+        message = "Tagesverlustpause aktiv; heute keine neuen Paper-Einstiege."
+    elif paper.get("positions"):
+        message = "Paper-Positionen werden überwacht; nächste Entscheidung nach Kerzenschluss."
+    else:
+        message = "Paper wartet auf ein gültiges Einstiegssignal nach Kerzenschluss."
+    return {
+        "alive": alive,
+        "message": message,
+        "checked_markets": sum(s in checkpoints for s in supervisor.strategy.symbols),
+        "expected_markets": len(supervisor.strategy.symbols),
+        "last_checked_closed_bar_utc": _iso(checked),
+        "feed_fresh": fresh_feed,
+        "processing_caught_up": caught_up,
+        "last_paper_event": last_event,
+    }
+
+
 def _paper_payload(
     supervisor: RuntimeSupervisor,
     config: ProjectConfig,
@@ -413,6 +484,7 @@ def create_app(
     def status() -> dict[str, object]:
         runtime = _runtime_payload(supervisor.state.snapshot())
         runtime["live_state"] = app.state.live_preparation.execution_state()
+        paper = _paper_payload(supervisor, config)
         return {
             "application": "Der Hixton Trading Bot",
             "application_version": __version__,
@@ -420,7 +492,8 @@ def create_app(
             "strategy_key": supervisor.strategy.key,
             "strategy_profiles": supervisor.strategy.profiles_payload(),
             "runtime": runtime,
-            "paper": _paper_payload(supervisor, config),
+            "paper": paper,
+            "activity": _activity_payload(supervisor, config, paper),
             "trading_settings": _trading_settings_payload(config, supervisor),
             "trading_limits": {
                 "min_capital_usdc": str(MIN_CONFIGURABLE_CAPITAL_USDC),

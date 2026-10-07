@@ -20,6 +20,7 @@ import { initializeLivePreparation } from "./live-preparation";
 import { marketSignalText } from "./market-signal";
 import { initializeSessionLifetime } from "./session-lifetime";
 import { portfolioBlocksText } from "./backtest-context";
+import { activityText, type Activity } from "./activity";
 
 const symbols = [
   "BTCUSDC",
@@ -96,6 +97,7 @@ interface RuntimePayload {
   backtest_status: string;
 }
 interface StatusResponse {
+  activity?: Activity;
   application_version: string;
   strategy_version: string;
   strategy_key: string;
@@ -242,6 +244,7 @@ function renderStatus(status: StatusResponse): void {
   healthPill.className = `health-pill ${health}`;
   text("#runtime-message", status.runtime.message);
   text("#runtime-detail", status.runtime.last_error ?? `Letzte Synchronisation: ${formatDate(status.runtime.last_sync_utc, true)}`);
+  text("#activity-detail", activityText(status.activity, value => formatDate(value, true)));
   const banner = required("#runtime-banner");
   banner.className = `runtime-banner ${status.runtime.health === "HEALTHY" ? "healthy" : status.runtime.health === "HALTED" ? "error" : "loading"}`;
   const dot = required("#connection-dot");

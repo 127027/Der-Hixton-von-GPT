@@ -1,0 +1,15 @@
+{
+  "source_sha256": "9735a3d7b659ff03d66b484c61faa2faea092d3158f7ff9a707be37fb785b943",
+  "strategy": "HIXTON-V8-CORE10-SAT3-SUPPORT-4-29acf5e1ee6f",
+  "completed_trades": 186,
+  "ending_equity_usdc": "1637.35670933188570000000",
+  "identical_core_trades": 84,
+  "python_tests": {
+    "passed": 475,
+    "failed_git_required": 5,
+    "skipped": 2,
+    "git_governance_module_in_real_clone": "8 passed; includes all 5 desktop failures"
+  },
+  "ui_tests_passed": 28,
+  "github_base_sha": "e40258260d3a77ab88d3216a6c029adbdb5bacf0"
+}

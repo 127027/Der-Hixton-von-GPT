@@ -72,7 +72,7 @@ def test_v8_trial_obeys_shared_activation_priority_and_near_horizon(tmp_path, co
         point = _point(
             symbol,
             NOW,
-            flip_up=symbol in {"NEARUSDC", "AAVEUSDC"}
+            flip_up=symbol in {"SUIUSDC", "NEARUSDC", "AAVEUSDC"}
             or (core_signal and symbol == "BTCUSDC"),
             strength=20.0 if symbol == "SUIUSDC" else 1.0,
         )
