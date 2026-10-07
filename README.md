@@ -114,3 +114,13 @@ mit -30,73 USDC negativ. Der separate 1.000-USDC-Modelltest endet bei 6.561,61
 USDC; er verändert das gespeicherte Budget nicht. Maximaler Rückgang rund 40 %.
 Die auf diesem Zeitraum gewählte Konfiguration ist keine unabhängige
 Out-of-Sample-Validierung und garantiert keine künftigen Jahresgewinne.
+
+## Laptop-Paket und DOT-Feinjustierung vom 7. Oktober 2026
+
+Der aktuelle V8-Stand ergänzt bei DOT die steigende 24-Stunden-VIDYA als
+Einstiegsfilter. Alle anderen Profile und die Kapitalverteilung bleiben gleich;
+V6 bleibt der unveränderte Regressionstest. Gemeinsamer Dreijahrestest bei
+250 USDC: 185 Trades, 1.654,36 USDC Endwert; Stresskosten: 188 Trades,
+1.539,92 USDC. Das ist eine historische Verbesserung, keine Gewinnwahrscheinlichkeit
+oder Zukunftsgarantie. Die vorherigen 186er/205er-Snapshots bleiben erhalten.
+Start auf einem weiteren Rechner: LAPTOP_START_HIER.md.

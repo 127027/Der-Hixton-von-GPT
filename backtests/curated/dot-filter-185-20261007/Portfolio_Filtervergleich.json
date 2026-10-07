@@ -1,0 +1,98 @@
+[
+  {
+    "window": "training",
+    "role": "original",
+    "costs": "current",
+    "end": "1612.84501468798260000000",
+    "trades": 114,
+    "drawdown_pct": "39.83175257600550300089756331"
+  },
+  {
+    "window": "training",
+    "role": "original",
+    "costs": "stress",
+    "end": "1553.7363911656869000000",
+    "trades": 117,
+    "drawdown_pct": "40.09129832016057894054298011"
+  },
+  {
+    "window": "training",
+    "role": "candidate",
+    "costs": "current",
+    "end": "1626.74330428487260000000",
+    "trades": 113,
+    "drawdown_pct": "39.83175257600550300089756331"
+  },
+  {
+    "window": "training",
+    "role": "candidate",
+    "costs": "stress",
+    "end": "1567.5630809915069000000",
+    "trades": 116,
+    "drawdown_pct": "40.09129832016057894054298011"
+  },
+  {
+    "window": "validation",
+    "role": "original",
+    "costs": "current",
+    "end": "266.12634493155405000000",
+    "trades": 70,
+    "drawdown_pct": "42.81916868224204292144321162"
+  },
+  {
+    "window": "validation",
+    "role": "original",
+    "costs": "stress",
+    "end": "193.7887956085025000000",
+    "trades": 64,
+    "drawdown_pct": "58.18913219285280701045232504"
+  },
+  {
+    "window": "validation",
+    "role": "candidate",
+    "costs": "current",
+    "end": "271.73439798471535000000",
+    "trades": 70,
+    "drawdown_pct": "42.08237140445042911679309593"
+  },
+  {
+    "window": "validation",
+    "role": "candidate",
+    "costs": "stress",
+    "end": "200.6252200483133000000",
+    "trades": 65,
+    "drawdown_pct": "56.72797673589710949479734857"
+  },
+  {
+    "window": "full",
+    "role": "original",
+    "costs": "current",
+    "end": "1637.35670933188570000000",
+    "trades": 186,
+    "drawdown_pct": "39.83175257600550300089756331"
+  },
+  {
+    "window": "full",
+    "role": "original",
+    "costs": "stress",
+    "end": "1523.0019109895480000000",
+    "trades": 189,
+    "drawdown_pct": "40.09129832016057894054298011"
+  },
+  {
+    "window": "full",
+    "role": "candidate",
+    "costs": "current",
+    "end": "1654.36197650986570000000",
+    "trades": 185,
+    "drawdown_pct": "39.83175257600550300089756331"
+  },
+  {
+    "window": "full",
+    "role": "candidate",
+    "costs": "stress",
+    "end": "1539.9230543854680000000",
+    "trades": 188,
+    "drawdown_pct": "40.09129832016057894054298011"
+  }
+]

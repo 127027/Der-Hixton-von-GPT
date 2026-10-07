@@ -1,0 +1,9 @@
+Finale Python-Quelle: b8819435a7f9f7fc8b080ed708442bccb14a5107b16335def66df5f6066d6b56
+Ruff PASS; mypy PASS (63 Quelldateien).
+Desktop-Regression: 475 PASS, 2 Opt-in-Skips, 5 Git-dependent failures (.git missing).
+Actual Git checkout: test_key_free_swarm + test_current_v6_product_contract, 14 PASS.
+UI unverändert; letzter erfolgreicher Nachweis: 28 UI-Tests, TypeScript und Vite-Build.
+ZIP-Integrität PASS, keine Schlüssel, keine Kontodaten, keine .venv.
+Frisch entpacktes Paket: src/main.py status PASS, eigene Konfiguration geladen.
+Gemeinsamer Produktbacktest und alle 15 Einzeltests mit identischer finaler Quelle neu ausgeführt.
+Keine Echtgeldorders ausgelöst; Live bleibt deaktiviert.

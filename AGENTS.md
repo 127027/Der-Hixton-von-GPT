@@ -16,7 +16,7 @@ The deterministic eleven-role swarm A01–A11 under `agent_memory/swarm/` is the
 
 - **V6 is the frozen ten-coin Core regression anchor.**
 - **V8 is the current 15-market product.**
-- V8 reuses the exact V6 Core profiles and adds a separate five-Satellite research layer.
+- V8 reuses V6 Core indicator parameters and adds a separate five-Satellite research layer. Owner-authorized refinement on 2026-10-07: DOT adds slope_bars=24 to its original CMO threshold; other Core policies stay identical. V6 remains frozen.
 - Owner-requested local trade-focus revision (2026-10-06): NEAR, AAVE and BCH are shared-active fillers; SUI and UNI remain research-only after negative shared contributions. The prior 205-trade snapshot is preserved at e40258260d3a77ab88d3216a6c029adbdb5bacf0. Historical SAT2 review artifacts describe the prior strategy and cannot certify this revision.
 - V8 and V6 use the original ranked-repeat Core allocation. A lone Core candidate can use both X/2 tranches.
 - Core has absolute priority: all fillers exit for eligible Core entries at the next executable open. Fillers only enter when no Core is active. Saved gap_fillers_enabled can disable filler entries, never Core priority.

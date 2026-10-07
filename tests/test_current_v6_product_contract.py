@@ -31,12 +31,19 @@ def test_product_config_selects_v8_without_mutating_v6() -> None:
     assert tuple(V8_SATELLITE_STRATEGY.symbols[10:]) == tuple(SATELLITE_SYMBOLS)
 
 
-def test_v8_preserves_core_profiles_and_restricts_shared_fillers() -> None:
+def test_v8_preserves_core_indicators_and_applies_only_verified_dot_overlay() -> None:
     for symbol in SYMBOLS:
         assert V8_SATELLITE_STRATEGY.parameters_for(symbol) == V6_COIN_STRATEGY.parameters_for(
             symbol
         )
-        assert V8_SATELLITE_STRATEGY.policy_for(symbol) == V6_COIN_STRATEGY.policy_for(symbol)
+        if symbol == "DOTUSDC":
+            policy = V8_SATELLITE_STRATEGY.policy_for(symbol)
+            assert policy.cmo_floor == 0.35
+            assert policy.slope_bars == 24
+            assert policy.stop_atr == policy.trail_atr == 0
+            assert V6_COIN_STRATEGY.policy_for(symbol).slope_bars == 0
+        else:
+            assert V8_SATELLITE_STRATEGY.policy_for(symbol) == V6_COIN_STRATEGY.policy_for(symbol)
     assert V8_SATELLITE_STRATEGY.satellite_symbols == SATELLITE_SYMBOLS
     assert V8_SATELLITE_STRATEGY.active_shared_satellites == ACTIVE_SHARED_SATELLITES
     assert ACTIVE_SHARED_SATELLITES == ("NEARUSDC", "AAVEUSDC", "BCHUSDC")

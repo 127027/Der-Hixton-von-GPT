@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import hashlib
 import json
-from dataclasses import asdict, dataclass
+from dataclasses import asdict, dataclass, replace
 
 from hixton.constants import (
     HIXTON_SPEC_VERSION,
@@ -319,7 +319,15 @@ V6_COIN_STRATEGY = StrategyDefinition(
     coin_profiles=_V6_PROFILES,
 )
 
-_V8_PROFILES = _V6_PROFILES + tuple(
+# The frozen V6 anchor stays intact. Current V8 adds a measured DOT entry
+# overlay: rising 24-hour VIDYA, in addition to its original CMO threshold.
+# All execution paths obtain this policy from the same StrategyDefinition.
+_V8_PROFILES = tuple(
+    replace(profile, trade_policy=replace(profile.trade_policy, slope_bars=24))
+    if profile.symbol == "DOTUSDC"
+    else profile
+    for profile in _V6_PROFILES
+) + tuple(
     CoinProfile(profile.symbol, profile.parameters, profile.trade_policy)
     for profile in SATELLITE_PROFILES
 )
@@ -339,7 +347,7 @@ _V8_DIGEST = hashlib.sha256(
 V8_SATELLITE_STRATEGY = StrategyDefinition(
     key="v8",
     backtest_version="v8",
-    version=f"HIXTON-V8-CORE10-SAT3-SUPPORT-4-{_V8_DIGEST[:12]}",
+    version=f"HIXTON-V8-CORE10-SAT3-DOTFILTER-5-{_V8_DIGEST[:12]}",
     reference="strategy/pine/Der_Hixton_Indikator_v6.pine",
     semantics=StrategySemantics.PINE_V6,
     parameters=V2_RESEARCH_STRATEGY.parameters,

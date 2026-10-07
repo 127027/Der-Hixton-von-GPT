@@ -1,0 +1,317 @@
+[
+  {
+    "symbol": "BNBUSDC",
+    "selected": "original",
+    "policy": {
+      "cmo_floor": 0,
+      "slope_bars": 0,
+      "stop_atr": 0,
+      "trail_atr": 0
+    },
+    "training": [
+      {
+        "label": "original",
+        "end": "655.1373378668000000",
+        "trades": 16,
+        "drawdown_pct": "15.00859431673407878646864908"
+      },
+      {
+        "label": "cmo_plus_010",
+        "end": "655.1373378668000000",
+        "trades": 16,
+        "drawdown_pct": "15.00859431673407878646864908"
+      },
+      {
+        "label": "cmo_plus_020",
+        "end": "570.7747887643000000",
+        "trades": 15,
+        "drawdown_pct": "15.55395052828676698075107236"
+      },
+      {
+        "label": "slope24",
+        "end": "508.9509949566900000",
+        "trades": 12,
+        "drawdown_pct": "20.62825550341712872276632468"
+      },
+      {
+        "label": "slope72",
+        "end": "480.5682638491700000",
+        "trades": 12,
+        "drawdown_pct": "17.15507034978236127193391533"
+      },
+      {
+        "label": "cmo_plus_010_slope24",
+        "end": "508.9509949566900000",
+        "trades": 12,
+        "drawdown_pct": "20.62825550341712872276632468"
+      }
+    ],
+    "validation": [
+      {
+        "label": "original",
+        "end": "291.3839516665300000",
+        "trades": 7,
+        "drawdown_pct": "25.61778919415726292810974558"
+      },
+      {
+        "label": "selected",
+        "end": "291.3839516665300000",
+        "trades": 7,
+        "drawdown_pct": "25.61778919415726292810974558"
+      }
+    ],
+    "accepted_for_shared_check": false
+  },
+  {
+    "symbol": "ADAUSDC",
+    "selected": "original",
+    "policy": {
+      "cmo_floor": 0,
+      "slope_bars": 0,
+      "stop_atr": 0,
+      "trail_atr": 0
+    },
+    "training": [
+      {
+        "label": "original",
+        "end": "606.207430021030000000",
+        "trades": 20,
+        "drawdown_pct": "49.37882061108046879056472525"
+      },
+      {
+        "label": "cmo_plus_010",
+        "end": "606.207430021030000000",
+        "trades": 20,
+        "drawdown_pct": "49.37882061108046879056472525"
+      },
+      {
+        "label": "cmo_plus_020",
+        "end": "606.207430021030000000",
+        "trades": 20,
+        "drawdown_pct": "49.37882061108046879056472525"
+      },
+      {
+        "label": "slope24",
+        "end": "183.768103389110000000",
+        "trades": 11,
+        "drawdown_pct": "54.77072304755807272549448933"
+      },
+      {
+        "label": "slope72",
+        "end": "580.173150171690000000",
+        "trades": 7,
+        "drawdown_pct": "32.63115204843474652987538974"
+      },
+      {
+        "label": "cmo_plus_010_slope24",
+        "end": "183.768103389110000000",
+        "trades": 11,
+        "drawdown_pct": "54.77072304755807272549448933"
+      }
+    ],
+    "validation": [
+      {
+        "label": "original",
+        "end": "209.326895198150000000",
+        "trades": 10,
+        "drawdown_pct": "52.22363920999197370129085599"
+      },
+      {
+        "label": "selected",
+        "end": "209.326895198150000000",
+        "trades": 10,
+        "drawdown_pct": "52.22363920999197370129085599"
+      }
+    ],
+    "accepted_for_shared_check": false
+  },
+  {
+    "symbol": "LINKUSDC",
+    "selected": "original",
+    "policy": {
+      "cmo_floor": 0,
+      "slope_bars": 24,
+      "stop_atr": 0,
+      "trail_atr": 0
+    },
+    "training": [
+      {
+        "label": "original",
+        "end": "716.40642131197000000",
+        "trades": 18,
+        "drawdown_pct": "33.15734600792928282126559328"
+      },
+      {
+        "label": "cmo_plus_010",
+        "end": "716.40642131197000000",
+        "trades": 18,
+        "drawdown_pct": "33.15734600792928282126559328"
+      },
+      {
+        "label": "cmo_plus_020",
+        "end": "716.40642131197000000",
+        "trades": 18,
+        "drawdown_pct": "33.15734600792928282126559328"
+      },
+      {
+        "label": "slope24",
+        "end": "716.40642131197000000",
+        "trades": 18,
+        "drawdown_pct": "33.15734600792928282126559328"
+      },
+      {
+        "label": "slope72",
+        "end": "473.85188526590000000",
+        "trades": 15,
+        "drawdown_pct": "30.97214437008039473688440458"
+      },
+      {
+        "label": "cmo_plus_010_slope24",
+        "end": "716.40642131197000000",
+        "trades": 18,
+        "drawdown_pct": "33.15734600792928282126559328"
+      }
+    ],
+    "validation": [
+      {
+        "label": "original",
+        "end": "233.13819246868000000",
+        "trades": 6,
+        "drawdown_pct": "16.07114320287629422492662294"
+      },
+      {
+        "label": "selected",
+        "end": "233.13819246868000000",
+        "trades": 6,
+        "drawdown_pct": "16.07114320287629422492662294"
+      }
+    ],
+    "accepted_for_shared_check": false
+  },
+  {
+    "symbol": "DOTUSDC",
+    "selected": "slope24",
+    "policy": {
+      "cmo_floor": 0.35,
+      "slope_bars": 24,
+      "stop_atr": 0,
+      "trail_atr": 0
+    },
+    "training": [
+      {
+        "label": "original",
+        "end": "478.60045300627000000",
+        "trades": 22,
+        "drawdown_pct": "32.97588254595035485396887222"
+      },
+      {
+        "label": "cmo_plus_010",
+        "end": "443.66343589200000000",
+        "trades": 13,
+        "drawdown_pct": "30.41835931987099156316288853"
+      },
+      {
+        "label": "cmo_plus_020",
+        "end": "384.31917821163000000",
+        "trades": 5,
+        "drawdown_pct": "17.63547479692764830255761828"
+      },
+      {
+        "label": "slope24",
+        "end": "502.21937110912000000",
+        "trades": 12,
+        "drawdown_pct": "23.64108619642566915561254661"
+      },
+      {
+        "label": "slope72",
+        "end": "297.49255489522000000",
+        "trades": 11,
+        "drawdown_pct": "34.93032677059301972566676557"
+      },
+      {
+        "label": "cmo_plus_010_slope24",
+        "end": "455.13288803080000000",
+        "trades": 7,
+        "drawdown_pct": "25.54704133270791224580575883"
+      }
+    ],
+    "validation": [
+      {
+        "label": "original",
+        "end": "179.59124065298000000",
+        "trades": 12,
+        "drawdown_pct": "46.88416305074879414594474448"
+      },
+      {
+        "label": "selected",
+        "end": "251.16380490931000000",
+        "trades": 6,
+        "drawdown_pct": "30.13205683318733739559676752"
+      }
+    ],
+    "accepted_for_shared_check": true
+  },
+  {
+    "symbol": "DOGEUSDC",
+    "selected": "original",
+    "policy": {
+      "cmo_floor": 0.2,
+      "slope_bars": 0,
+      "stop_atr": 0,
+      "trail_atr": 0
+    },
+    "training": [
+      {
+        "label": "original",
+        "end": "866.4383946051200000000",
+        "trades": 31,
+        "drawdown_pct": "32.80752562898809734890170079"
+      },
+      {
+        "label": "cmo_plus_010",
+        "end": "866.4383946051200000000",
+        "trades": 31,
+        "drawdown_pct": "32.80752562898809734890170079"
+      },
+      {
+        "label": "cmo_plus_020",
+        "end": "562.7167422691000000000",
+        "trades": 27,
+        "drawdown_pct": "31.85031594920392249053159200"
+      },
+      {
+        "label": "slope24",
+        "end": "825.6051972616100000000",
+        "trades": 18,
+        "drawdown_pct": "28.22621726614784048996852098"
+      },
+      {
+        "label": "slope72",
+        "end": "582.9551212211700000000",
+        "trades": 10,
+        "drawdown_pct": "25.58484148200760267147414822"
+      },
+      {
+        "label": "cmo_plus_010_slope24",
+        "end": "825.6051972616100000000",
+        "trades": 18,
+        "drawdown_pct": "28.22621726614784048996852098"
+      }
+    ],
+    "validation": [
+      {
+        "label": "original",
+        "end": "219.5786489168100000000",
+        "trades": 14,
+        "drawdown_pct": "34.60288119893518218647928932"
+      },
+      {
+        "label": "selected",
+        "end": "219.5786489168100000000",
+        "trades": 14,
+        "drawdown_pct": "34.60288119893518218647928932"
+      }
+    ],
+    "accepted_for_shared_check": false
+  }
+]
