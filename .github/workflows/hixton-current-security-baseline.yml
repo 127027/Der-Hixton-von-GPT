@@ -79,21 +79,33 @@ jobs:
           set -o pipefail
           .venv/bin/python src/main.py status | tee evidence/preflight-20261010/status.json
           .venv/bin/python -m pytest -q tests/test_v8_product_backtest.py tests/test_backtest_exact_three_year.py | tee evidence/preflight-20261010/tests.log
+      - name: Configure official Binance Vision public endpoint (backtests only)
+        shell: bash
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          config = json.loads(Path("config/examples/config.example.json").read_text())
+          config["runtime"]["binance_base_url"] = "https://data-api.binance.vision"
+          target = Path("config/examples/config.public-research-only.json")
+          target.write_text(json.dumps(config,indent=2))
+          print("Public read-only market data endpoint configured for sandbox test.")
+          PY
       - name: Synchronize public historical market data (read-only)
         shell: bash
         run: |
           set -o pipefail
-          .venv/bin/python src/main.py data sync --symbol ALL --end 2026-10-10T19:00:00Z | tee evidence/preflight-20261010/data-sync.log
+          .venv/bin/python src/main.py --config config/examples/config.public-research-only.json data sync --symbol ALL --end 2026-10-10T19:00:00Z | tee evidence/preflight-20261010/data-sync.log
       - name: Run 15 isolated coin backtests x 250 USDC (V8)
         shell: bash
         run: |
           set -o pipefail
-          .venv/bin/python src/main.py backtest all --strategy v8 --end 2026-10-10T19:00:00Z | tee evidence/preflight-20261010/all-15.log
+          .venv/bin/python src/main.py --config config/examples/config.public-research-only.json backtest all --strategy v8 --end 2026-10-10T19:00:00Z | tee evidence/preflight-20261010/all-15.log
       - name: Run shared 15-market portfolio x 250 USDC (V8)
         shell: bash
         run: |
           set -o pipefail
-          .venv/bin/python src/main.py backtest portfolio --strategy v8 --end 2026-10-10T19:00:00Z | tee evidence/preflight-20261010/shared-250.log
+          .venv/bin/python src/main.py --config config/examples/config.public-research-only.json backtest portfolio --strategy v8 --end 2026-10-10T19:00:00Z | tee evidence/preflight-20261010/shared-250.log
       - name: Upload evidence even if the baseline is blocked
         if: always()
         uses: actions/upload-artifact@v4
