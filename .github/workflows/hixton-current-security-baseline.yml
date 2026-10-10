@@ -96,6 +96,26 @@ jobs:
         run: |
           set -o pipefail
           .venv/bin/python src/main.py --config config/examples/config.public-research-only.json data sync --symbol ALL --end 2026-10-10T19:00:00Z | tee evidence/preflight-20261010/data-sync.log
+      - name: Synchronize missing five V8 satellite markets (read-only)
+        shell: bash
+        run: |
+          set -o pipefail
+          .venv/bin/python - <<'PY' | tee evidence/preflight-20261010/satellite-sync.log
+          from datetime import UTC, datetime, timedelta
+          from pathlib import Path
+          from hixton.data.binance import BinancePublicClient
+          from hixton.data.storage import CandleStore
+          from hixton.data.sync import synchronize_symbol
+          from hixton.domain.satellite_layer import SATELLITE_SYMBOLS
+          end = datetime(2026, 10, 10, 19, tzinfo=UTC)
+          start = end.replace(year=end.year-3) - timedelta(hours=400)
+          client = BinancePublicClient(base_url="https://data-api.binance.vision")
+          with CandleStore(Path("data/hixton-usdc.sqlite3")) as store:
+              for symbol in SATELLITE_SYMBOLS:
+                  actual_start = client.first_available_open(symbol,start=start,end_exclusive=end)
+                  result = synchronize_symbol(client=client,store=store,symbol=symbol,start=actual_start,end_exclusive=end)
+                  print(symbol, "candles", result.quality.candle_count, "start", actual_start.isoformat(), flush=True)
+          PY
       - name: Run 15 isolated coin backtests x 250 USDC (V8)
         shell: bash
         run: |
