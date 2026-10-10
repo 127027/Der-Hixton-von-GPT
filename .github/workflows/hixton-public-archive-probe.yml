@@ -1,0 +1,33 @@
+name: Hixton Public Archive Reachability
+on:
+  push:
+    branches:
+      - codex/hixton-preflight-20261010
+    paths:
+      - .github/workflows/hixton-public-archive-probe.yml
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  probe:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - name: Probe official read-only Binance Vision archives
+        shell: bash
+        run: |
+          python - <<'PY'
+          from urllib.request import urlopen, Request
+          from urllib.error import HTTPError, URLError
+          urls=[
+            "https://data.binance.vision/data/spot/monthly/klines/BTCUSDT/1h/BTCUSDT-1h-2026-09.zip",
+            "https://data.binance.vision/data/spot/daily/klines/BTCUSDT/1h/BTCUSDT-1h-2026-10-09.zip",
+            "https://data-api.binance.vision/api/v3/time",
+          ]
+          for url in urls:
+            try:
+              with urlopen(Request(url,headers={"User-Agent":"Hixton-read-only-archive-probe"}),timeout=12) as r:
+                print("OK",r.status,url,"first_bytes",repr(r.read(24)))
+            except (HTTPError,URLError,TimeoutError) as e:
+              print("FAIL",type(e).__name__,str(e)[:250],url)
+          PY
