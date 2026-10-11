@@ -1,0 +1,107 @@
+name: Hixton Spot Paper Quick Preview Build
+
+on:
+  push:
+    branches: [codex/hixton-autonomous-spot-paper-20261011]
+    paths:
+      - .github/workflows/hixton-spot-paper-quick-preview.yml
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  preview:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install and verify Paper/Spot source
+        run: |
+          set -euo pipefail
+          python -m venv .venv
+          .venv/bin/pip install -e '.[dev]'
+          .venv/bin/python -m pytest -q \
+            tests/test_spot_autonomy_core.py \
+            tests/test_auto_budget_preference.py \
+            tests/test_autonomous_performance_preference.py \
+            tests/test_current_v6_product_contract.py \
+            tests/test_paper_engine.py \
+            tests/test_live_submission_gates.py
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Test and build frontend
+        working-directory: ui
+        run: |
+          set -euo pipefail
+          npm ci
+          npm run check
+          npm test
+          npm run build
+      - name: Generate fail-closed Paper Windows ZIP
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          import hashlib,json,subprocess,zipfile
+          from pathlib import Path
+          from datetime import UTC,datetime
+          sha=subprocess.check_output(['git','rev-parse','HEAD'],text=True).strip()
+          allowed=('src','scripts','config','ui','DMS','strategy','docs')
+          excluded={'.git','.venv','node_modules','__pycache__','.pytest_cache','data','runtime_state','downloads'}
+          files={}
+          for d in allowed:
+            for p in Path(d).rglob('*'):
+              if p.is_file() and not excluded.intersection(p.parts) and p.suffix not in ('.pyc','.sqlite3','.db','.zip','.log','.env'):
+                files[p.as_posix()]=p.read_bytes()
+          for f in ('Startbot.bat','README.md','LAPTOP_START_HIER.md','pyproject.toml','AGENTS.md'):
+            files[f]=Path(f).read_bytes()
+          config='config/examples/config.example.json'
+          sample=json.loads(files[config])
+          sample['paper']['starting_cash_usdc']='1100.00'
+          sample['paper']['max_capital_usdc']='1100.00'
+          files[config]=(json.dumps(sample,ensure_ascii=False,indent=2)+'\n').encode()
+          manifest={
+            'kind':'UNVALIDATED_PREVIEW_FOR_PAPER_TEST_ONLY',
+            'source_sha':sha,
+            'built_at':datetime.now(UTC).isoformat(),
+            'simulated_wallet_usdc':'1100.00',
+            'live_spot_autonomy_approved':False,
+            'live_balance_refresh_before_each_order_approved':False,
+            'leverage':False,
+            'out_of_sample_strategy_gate_passed':False,
+            'note':'The complete A01-A11 research and historical simulation may still be pending.'
+          }
+          files['PAPER_PREVIEW_MANIFEST.json']=(json.dumps(manifest,indent=2)+'\n').encode()
+          files['PAPER_START_HIER.txt']=(
+            'HIXTON PAPER VORSCHAU. KEIN ECHTGELD-RELEASE.\n'
+            'ZIP ganz entpacken in NEUEN LEEREN ORDNER, dann Startbot.bat.\n'
+            'Python 3.12 und Internet erforderlich. Neue virtuelle Paper-Wallet 1100 USDC.\n'
+            'In Einstellungen Budgetautomatik und Spot-Performance-Modus aktivieren.\n'
+            'Mit Uebernehmen speichern; der Paper-Bot berechnet naechste Tranchen nach Equity.\n'
+            'Live-Einstiege sind mit diesen Haken bewusst gesperrt.\n'
+            '15 Coins werden beobachtet, keine Margin-/Hebel-Orders.\n'
+            'Dies ist eine technische Vorschau; der 3-Jahres-Test am echten Engine-Code\n'
+            'und der A01-A11-Abnahme ist getrennt zu Ende zu fuehren.\n'
+            'API-Keys niemals in Chat oder GitHub senden.\n'
+          ).encode()
+          zpath=Path('Hixton_V8_Spot_Paper_VORSCHAU_1100_USDC.zip')
+          with zipfile.ZipFile(zpath,'w',compression=zipfile.ZIP_DEFLATED,compresslevel=6) as z:
+            for name,data in sorted(files.items()):z.writestr(name,data)
+          with zipfile.ZipFile(zpath) as z:
+            assert z.testzip() is None
+            assert 'src/hixton/ui/static/index.html' in z.namelist()
+            assert 'src/hixton/domain/spot_autonomy.py' in z.namelist()
+          print(zpath,zpath.stat().st_size,len(files),hashlib.sha256(zpath.read_bytes()).hexdigest())
+          PY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: hixton-paper-preview-${{ github.run_id }}
+          path: Hixton_V8_Spot_Paper_VORSCHAU_1100_USDC.zip
+          retention-days: 30
+          if-no-files-found: error
