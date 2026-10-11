@@ -244,6 +244,7 @@ class PaperStore:
             max_capital_usdc=Decimal(str(row["max_capital_text"])),
             emergency_stop=bool(row["emergency_stop"]),
             gap_fillers_enabled=bool(row["gap_fillers_enabled"]),
+            auto_budget_enabled=bool(row["auto_budget_enabled"]),
         )
 
     def save_settings(self, settings: PaperSettings, *, at: datetime | None = None) -> None:
@@ -254,7 +255,7 @@ class PaperStore:
                 """
                 UPDATE paper_settings SET max_capital_text=?, slot_count=?,
                     target_notional_text=?, emergency_stop=?, gap_fillers_enabled=?,
-                    updated_at_utc=?
+                    auto_budget_enabled=?, updated_at_utc=?
                 WHERE singleton=1
                 """,
                 (
@@ -263,6 +264,7 @@ class PaperStore:
                     str(settings.target_notional_usdc),
                     int(settings.emergency_stop),
                     int(settings.gap_fillers_enabled),
+                    int(settings.auto_budget_enabled),
                     _time(moment),
                 ),
             )
@@ -283,6 +285,7 @@ class PaperStore:
                                 "target_notional_usdc": str(previous.target_notional_usdc),
                                 "emergency_stop": previous.emergency_stop,
                                 "gap_fillers_enabled": previous.gap_fillers_enabled,
+                                "auto_budget_enabled": previous.auto_budget_enabled,
                             },
                             "after": {
                                 "max_capital_usdc": str(settings.max_capital_usdc),
@@ -290,6 +293,7 @@ class PaperStore:
                                 "target_notional_usdc": str(settings.target_notional_usdc),
                                 "emergency_stop": settings.emergency_stop,
                                 "gap_fillers_enabled": settings.gap_fillers_enabled,
+                                "auto_budget_enabled": settings.auto_budget_enabled,
                             },
                             "scope": "future_entries_only",
                         },
@@ -977,6 +981,11 @@ class PaperStore:
                 self._connection.execute(
                     "ALTER TABLE paper_settings ADD COLUMN gap_fillers_enabled "
                     "INTEGER NOT NULL DEFAULT 1 CHECK(gap_fillers_enabled IN (0,1))"
+                )
+            if "auto_budget_enabled" not in settings_columns:
+                self._connection.execute(
+                    "ALTER TABLE paper_settings ADD COLUMN auto_budget_enabled "
+                    "INTEGER NOT NULL DEFAULT 0 CHECK(auto_budget_enabled IN (0,1))"
                 )
             if "max_capital_text" not in settings_columns:
                 self._connection.execute(
