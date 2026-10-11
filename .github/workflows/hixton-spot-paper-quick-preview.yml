@@ -86,7 +86,7 @@ jobs:
             'Mit Uebernehmen speichern; der Paper-Bot berechnet naechste Tranchen nach Equity.\n'
             'Live-Einstiege sind mit diesen Haken bewusst gesperrt.\n'
             '15 Coins werden beobachtet, keine Margin-/Hebel-Orders.\n'
-            'Dies ist eine technische Vorschau; der 3-Jahres-Test am echten Engine-Code\n'
+            'Im Paperbetrieb bleiben 2 Kapital-Slots; 3/4 werden noch erforscht.\\n'\n            'Dies ist eine technische Vorschau; der 3-Jahres-Test am echten Engine-Code\n'
             'und der A01-A11-Abnahme ist getrennt zu Ende zu fuehren.\n'
             'API-Keys niemals in Chat oder GitHub senden.\n'
           ).encode()
