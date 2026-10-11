@@ -1,0 +1,95 @@
+name: Hixton 1100 USDC Compounding Portfolio Research
+
+on:
+  push:
+    branches: [codex/hixton-capital1100-paper-20261011]
+    paths:
+      - .github/workflows/hixton-capital1100-compound.yml
+      - scripts/research_capital1100_compound_20261011.py
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  isolated-research:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 100
+    env:
+      PYTHONUNBUFFERED: "1"
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Isolated research dependencies
+        shell: bash
+        run: |
+          set -euo pipefail
+          python -m venv .venv
+          .venv/bin/pip install -e '.[dev]'
+          .venv/bin/python -m py_compile scripts/research_capital1100_compound_20261011.py
+          .venv/bin/python -m pytest -q tests/test_current_v6_product_contract.py tests/test_v8_product_backtest.py
+      - name: Restore key-free public candle cache
+        id: candles
+        uses: actions/cache@v4
+        with:
+          path: data/
+          key: hixton-keyfree-public-15-20261010-19-v1
+      - name: Public-only historical market sync if needed
+        if: steps.candles.outputs.cache-hit != 'true'
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p evidence
+          .venv/bin/python - <<'PY' | tee evidence/market-sync.log
+          from datetime import UTC,datetime,timedelta
+          from pathlib import Path
+          from hixton.domain.versions import strategy_definition
+          from hixton.data.binance import BinancePublicClient
+          from hixton.data.storage import CandleStore
+          from hixton.data.sync import synchronize_symbol
+          end=datetime(2026,10,10,19,tzinfo=UTC)
+          start=end.replace(year=end.year-3)-timedelta(hours=400)
+          client=BinancePublicClient(base_url="https://data-api.binance.vision")
+          with CandleStore(Path("data/hixton-usdc.sqlite3")) as store:
+            for symbol in strategy_definition("v8").symbols:
+              first=client.first_available_open(symbol,start=start,end_exclusive=end)
+              report=synchronize_symbol(client=client,store=store,symbol=symbol,start=first,end_exclusive=end)
+              print(symbol,report.quality.candle_count,flush=True)
+          PY
+      - name: Run dynamically compounded 1100 portfolio configurations
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p evidence
+          .venv/bin/python scripts/research_capital1100_compound_20261011.py \
+            --end 2026-10-10T19:00:00Z \
+            --output evidence/hixton-capital1100-compounding.json \
+            | tee evidence/compound-simulation.log
+      - name: Independently check capital research boundary
+        shell: bash
+        run: |
+          .venv/bin/python - <<'PY'
+          import json
+          p=json.load(open("evidence/hixton-capital1100-compounding.json"))
+          assert p["starting_balance_usdc"]=="1100"
+          assert p["baseline_unchanged"] and p["order_execution"]=="NONE"
+          assert p["auth_binance_account_read"] is False
+          assert len(p["compound_scenarios"])==8
+          assert p["externally_added_or_withdrawn_funds_simulated"] is False
+          assert p["canonical_source_sha256"]!=p["isolated_research_variant_sha256"]
+          for name,r in p["compound_scenarios"].items():
+            assert r["costs"]["current"]["start_usdc"]=="1100"
+            print(name,r["costs"]["current"]["end_usdc"],r["costs"]["current"]["trades"])
+          PY
+      - name: Archive no-secret simulation outputs
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: hixton-1100-compound-${{ github.run_id }}
+          path: evidence/
+          retention-days: 30
+          if-no-files-found: warn
