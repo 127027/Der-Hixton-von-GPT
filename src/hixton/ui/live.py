@@ -56,6 +56,11 @@ def install_live_routes(
             or settings.autonomous_performance_enabled,
         )
 
+    def autonomous_spot_enabled() -> bool:
+        with PaperStore(config.database_path) as store:
+            settings = store.load_settings()
+        return settings.auto_budget_enabled and settings.autonomous_performance_enabled
+
     def gap_fillers_enabled() -> bool:
         with PaperStore(config.database_path) as store:
             return store.load_settings().gap_fillers_enabled
@@ -79,6 +84,8 @@ def install_live_routes(
         supervisor.strategy,
         settings_provider=trading_settings,
         gap_fillers_enabled=gap_fillers_enabled,
+        autonomous_spot_enabled=autonomous_spot_enabled,
+        market_points=supervisor.state.points,
         rules_provider=execution_rules,
     )
     supervisor.live_runtime = service.live_runtime
