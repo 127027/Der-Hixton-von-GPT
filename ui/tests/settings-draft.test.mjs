@@ -25,6 +25,8 @@ test("simple form has one max-capital field and no editable slot/notional contro
   assert.match(html,/id="settings-button"[^>]+>Übernehmen</);
   assert.match(html,/Maximaler USDC-Einsatz/);
   assert.match(html,/id="auto-budget-input" type="checkbox"/);
+  assert.match(html,/id="performance-mode-input" type="checkbox"/);
+  assert.match(html,/Performance-Modus/);
   assert.match(html,/Bot entscheidet selbst über das Budget/);
   assert.match(html,/1 × 50 USDC · Test freigeben/);
 });
@@ -64,5 +66,14 @@ test("successful save permits polling again",()=>{
 test("automatic budget choice is default OFF and marked research-only",()=>{
   assert.equal(derivedDraft("1100",false,{...limits,max_capital_usdc:"1000000"}).auto_budget_enabled,false);
   const html=readFileSync(new URL("../index.html",import.meta.url),"utf8");
-  assert.match(html,/noch nicht im Live-Handel freigegeben/);
+  assert.match(html,/Beide autonomen Haken sind für Live vorerst gesperrt/);
+});
+
+test("performance control is separate from account-budget control",()=>{
+ const html=readFileSync(new URL("../index.html",import.meta.url),"utf8");
+ assert.match(html,/id="auto-budget-input"/);
+ assert.match(html,/id="performance-mode-input"/);
+ const state=derivedDraft("1100",false,{...limits,max_capital_usdc:"1000000"});
+ assert.equal(state.auto_budget_enabled,false);
+ assert.equal(state.autonomous_performance_enabled,false);
 });

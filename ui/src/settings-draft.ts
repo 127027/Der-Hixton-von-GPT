@@ -10,6 +10,8 @@ export interface TradingSettings {
   gap_fillers_enabled?: boolean;
   auto_budget_enabled?: boolean;
   auto_budget_live_available?: boolean;
+  autonomous_performance_enabled?: boolean;
+  autonomous_performance_live_available?: boolean;
 }
 
 export interface TradingLimits {
@@ -61,6 +63,7 @@ export function derivedDraft(
     allocator_version: limits.allocator_version,
     emergency_stop: emergencyStop,
     auto_budget_enabled: false,
+    autonomous_performance_enabled: false,
   };
 }
 
@@ -73,6 +76,7 @@ export function describeSettings(value: TradingSettings): string {
     + value.slot_count + " × " + formatBudget(value.target_notional_usdc)
     + " USDC · " + value.allocation_policy + reserveText
     + (value.auto_budget_enabled ? " · Automatikbudget vorgemerkt (Live gesperrt)" : " · festes Budget")
+    + (value.autonomous_performance_enabled ? " · Performance-Modus vorgemerkt" : " · konservativer Modus")
     + (value.gap_fillers_enabled === false ? " · Zwischenfüller AUS" : " · Zwischenfüller mit Core-Vorrang")
     + (value.emergency_stop ? " · Einstiegssperre aktiv" : "");
 }
@@ -92,7 +96,8 @@ export function describeLivePlan(
       + ": " + describeSettings(draft) + ". "
       + (settingsProblem(draft, limits)
         ?? "Erst Übernehmen klicken, bevor Live angefordert wird.");
-  if (saved.auto_budget_enabled && saved.auto_budget_live_available !== true)
+  if ((saved.auto_budget_enabled && saved.auto_budget_live_available !== true)
+    || (saved.autonomous_performance_enabled && saved.autonomous_performance_live_available !== true))
     return active + " Die dynamische Kapitalverwaltung ist vorgemerkt. "
       + "Live-Aktivierung ist für diesen Modus noch gesperrt; es werden keine automatischen Budget-Orders ausgelöst.";
   const reference = Number(limits.research_reference_max_usdc ?? "NaN");

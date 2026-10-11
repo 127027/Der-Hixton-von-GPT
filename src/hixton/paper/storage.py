@@ -245,6 +245,7 @@ class PaperStore:
             emergency_stop=bool(row["emergency_stop"]),
             gap_fillers_enabled=bool(row["gap_fillers_enabled"]),
             auto_budget_enabled=bool(row["auto_budget_enabled"]),
+            autonomous_performance_enabled=bool(row["autonomous_performance_enabled"]),
         )
 
     def save_settings(self, settings: PaperSettings, *, at: datetime | None = None) -> None:
@@ -255,7 +256,7 @@ class PaperStore:
                 """
                 UPDATE paper_settings SET max_capital_text=?, slot_count=?,
                     target_notional_text=?, emergency_stop=?, gap_fillers_enabled=?,
-                    auto_budget_enabled=?, updated_at_utc=?
+                    auto_budget_enabled=?, autonomous_performance_enabled=?, updated_at_utc=?
                 WHERE singleton=1
                 """,
                 (
@@ -265,6 +266,7 @@ class PaperStore:
                     int(settings.emergency_stop),
                     int(settings.gap_fillers_enabled),
                     int(settings.auto_budget_enabled),
+                    int(settings.autonomous_performance_enabled),
                     _time(moment),
                 ),
             )
@@ -286,6 +288,7 @@ class PaperStore:
                                 "emergency_stop": previous.emergency_stop,
                                 "gap_fillers_enabled": previous.gap_fillers_enabled,
                                 "auto_budget_enabled": previous.auto_budget_enabled,
+                                "autonomous_performance_enabled": previous.autonomous_performance_enabled,
                             },
                             "after": {
                                 "max_capital_usdc": str(settings.max_capital_usdc),
@@ -294,6 +297,7 @@ class PaperStore:
                                 "emergency_stop": settings.emergency_stop,
                                 "gap_fillers_enabled": settings.gap_fillers_enabled,
                                 "auto_budget_enabled": settings.auto_budget_enabled,
+                                "autonomous_performance_enabled": settings.autonomous_performance_enabled,
                             },
                             "scope": "future_entries_only",
                         },
@@ -986,6 +990,11 @@ class PaperStore:
                 self._connection.execute(
                     "ALTER TABLE paper_settings ADD COLUMN auto_budget_enabled "
                     "INTEGER NOT NULL DEFAULT 0 CHECK(auto_budget_enabled IN (0,1))"
+                )
+            if "autonomous_performance_enabled" not in settings_columns:
+                self._connection.execute(
+                    "ALTER TABLE paper_settings ADD COLUMN autonomous_performance_enabled "
+                    "INTEGER NOT NULL DEFAULT 0 CHECK(autonomous_performance_enabled IN (0,1))"
                 )
             if "max_capital_text" not in settings_columns:
                 self._connection.execute(

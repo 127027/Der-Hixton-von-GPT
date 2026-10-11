@@ -1,0 +1,80 @@
+name: Hixton dual-mode autonomous settings research CI
+on:
+  push:
+    branches: [codex/hixton-performance-dualmode-20261011]
+    paths:
+      - .github/workflows/hixton-dualmode-research-ci.yml
+      - src/hixton/paper/**
+      - src/hixton/ui/**
+      - ui/**
+      - tests/test_autonomous_performance_preference.py
+      - tests/test_auto_budget_preference.py
+      - docs/autonomous-performance/**
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  independent-ui-and-backend-safety:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install isolated Python environment
+        run: |
+          set -euo pipefail
+          python -m venv .venv
+          .venv/bin/python -m pip install -e '.[dev]'
+      - name: Test both preferences and conservative V6/V8 product invariants
+        run: |
+          set -euo pipefail
+          .venv/bin/python -m pytest -q \
+            tests/test_auto_budget_preference.py \
+            tests/test_autonomous_performance_preference.py \
+            tests/test_ui_api.py \
+            tests/test_v8_live_wiring.py \
+            tests/test_current_v6_product_contract.py \
+            tests/test_v8_product_backtest.py
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: UI build, full tests, typecheck
+        working-directory: ui
+        run: |
+          set -euo pipefail
+          npm ci
+          npm run check
+          npm test
+          npm run build
+      - name: Verify research mode is not Live-enabled and no strategy engine has changed
+        run: |
+          set -euo pipefail
+          .venv/bin/python - <<'PY'
+          from hixton.paper.models import PaperSettings
+          from hixton.domain.capital import capital_plan
+          from decimal import Decimal
+          from pathlib import Path
+          assert not PaperSettings().auto_budget_enabled
+          assert not PaperSettings().autonomous_performance_enabled
+          assert capital_plan(Decimal('1100')).slot_count == 2
+          c=Path('src/hixton/ui/live.py').read_text()
+          assert 'settings.autonomous_performance_enabled' in c
+          assert 'settings.auto_budget_enabled' in c
+          assert 'service.enable_live' in c
+          from hixton.domain.versions import V6_COIN_STRATEGY, V8_SATELLITE_STRATEGY
+          assert len(V6_COIN_STRATEGY.symbols)==10
+          assert len(V8_SATELLITE_STRATEGY.symbols)==15
+          print('Mode flags persisted; both Live-disabled; V6/V8 frozen; no broker calls')
+          PY
+      - name: Upload built UI for independent review only
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: hixton-performance-dualmode-ui-${{ github.run_id }}
+          path: src/hixton/ui/static/
+          retention-days: 14
+          if-no-files-found: warn

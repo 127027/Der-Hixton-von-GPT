@@ -1,0 +1,100 @@
+{
+  "schema_version": 1,
+  "mission_id": "HIXTON-AUTONOMOUS-PERFORMANCE-2026-10-11",
+  "status": "PREPARED_NOT_DISPATCHED",
+  "reason": "Research branch only; existing A01-A11 orchestration on main is failing and cannot claim specialist execution.",
+  "owner_goal": "Conservative unchanged V8 plus autonomous performance mode with dynamic reinvested 1100 USDC example, self-selected trades/position sizes and (where permitted) appropriate leverage, 24x7 after explicit 50-USDC trial + separately confirmed Live activation.",
+  "exact_source_baseline": "c004eaf244e1638e6cbb4da8a4a9b5a9e8f71776",
+  "mission_branch": "codex/hixton-performance-dualmode-20261011",
+  "references": {
+    "spec": "docs/autonomous-performance/VISION_AND_ACCEPTANCE_20261011.md",
+    "issue": 10,
+    "first_ui_draft_pr": 8,
+    "swarm_checkout_fix_pr": 7
+  },
+  "invariants": [
+    "Unchanged frozen V6 conservative Core profiles and existing conservative V8 trading path",
+    "Independent opt-in toggles, both false by default and server-side blocked for Live before QA",
+    "No secrets or private Binance account data in cloud jobs",
+    "No Live or testnet orders and no automatic strategy promotion",
+    "Valid product licensing and account permissions required before any leverage trading",
+    "Leverage scenarios without mark price and funding data are not realistic backtests",
+    "Historical full-window performance is not a never-before-seen holdout",
+    "Owner explicitly confirms live activation separately after trial"
+  ],
+  "prerequisites": [
+    "A01-A11 lifecycle checkout/agent-run repair and exact-head verification",
+    "Current 15-market V8 active/research role map reconciliation",
+    "Margin/derivatives product legal and account availability verified",
+    "Full separate paper derivatives margin/mark/funding/liquidation simulator"
+  ],
+  "agent_assignments": {
+    "A01": {
+      "task": "V8/V6 truth audit + Owner contract",
+      "status": "PENDING",
+      "evidence": "Requirements diff / exact source hashes"
+    },
+    "A02": {
+      "task": "3y 1100-USDC rolling-walk-forward optimization + costs/liquidation path",
+      "status": "PENDING",
+      "evidence": "Immutable dataset hashes, train-only, OOS results, full equity curve"
+    },
+    "A03": {
+      "task": "Unified capital and derivatives paper ledger incl compounding and restart",
+      "status": "PENDING",
+      "evidence": "Ledger invariant and replay tests"
+    },
+    "A04": {
+      "task": "Two toggles + decision explanation + explicit trial/live independent enable",
+      "status": "IN_RESEARCH_UI_PROTOTYPE",
+      "evidence": "Backend and UI tests from dedicated CI"
+    },
+    "A05": {
+      "task": "24x7 watchdog + stale account/mark/funding and fail-closed",
+      "status": "PENDING",
+      "evidence": "Outage simulations and alerts"
+    },
+    "A06": {
+      "task": "V6/V8/one-portfolio parity regression and reproducibility",
+      "status": "PENDING",
+      "evidence": "Pinned V6/V8 tests, deterministic replay and artifact hashes"
+    },
+    "A07": {
+      "task": "Spot vs margin/futures metadata, regulation, Mark/Funding archive and actual account permissions",
+      "status": "PENDING",
+      "evidence": "Official exchange contract specs/permissions and 3y data-quality reports"
+    },
+    "A08": {
+      "task": "Adaptive strategy/risk regime, correlations, leverage and number of positions",
+      "status": "PENDING",
+      "evidence": "Risk-of-ruin/calibrated causal decision policy and falsification"
+    },
+    "A09": {
+      "task": "Independent QA on final candidate SHA",
+      "status": "BLOCKED_DEPENDENCIES",
+      "evidence": "QA_PASS or QA_FAIL after all tests"
+    },
+    "A10": {
+      "task": "Repair routing, orchestrate actual A01-A11 jobs, never self-approve",
+      "status": "BLOCKED_SWARM_STARTUP",
+      "evidence": "All roles actual execution logs and blockers"
+    },
+    "A11": {
+      "task": "Independent source-head governance audit",
+      "status": "BLOCKED_DEPENDENCIES",
+      "evidence": "GOVERNANCE_PASS only after QA_PASS"
+    }
+  },
+  "dot_research_assignments": {
+    "D12": "managed equity / external funds / deployable cash",
+    "D13": "dynamic position counts and capital allocator",
+    "D14": "market regime identification with no lookahead",
+    "D15": "instrument/leverage candidate policy with separate eligibility gate",
+    "D16": "funding/maintenance margin/liquidation simulator",
+    "D17": "portfolio correlation/risk-of-ruin",
+    "D18": "training data/walk-forward holdout contamination detection",
+    "D19": "restart/partial-fill/24x7 outage failures",
+    "D20": "strategy comparisons after costs and falsification"
+  },
+  "next_gate": "Complete two-switch CI and separate source/agent workflow repair; no real leveraged execution until distinct derivative validation."
+}

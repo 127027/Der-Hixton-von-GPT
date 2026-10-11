@@ -35,6 +35,7 @@ export function initializeTradingSettings(
         allocator_version: "",
         emergency_stop: false,
         auto_budget_enabled: item<HTMLInputElement>("auto-budget-input").checked,
+        autonomous_performance_enabled: item<HTMLInputElement>("performance-mode-input").checked,
       };
     }
     return { ...derivedDraft(
@@ -42,7 +43,8 @@ export function initializeTradingSettings(
       item<HTMLInputElement>("entry-pause-input").checked,
       limits,
     ), gap_fillers_enabled: item<HTMLInputElement>("gap-fillers-input").checked,
-       auto_budget_enabled: item<HTMLInputElement>("auto-budget-input").checked };
+       auto_budget_enabled: item<HTMLInputElement>("auto-budget-input").checked,
+       autonomous_performance_enabled: item<HTMLInputElement>("performance-mode-input").checked };
   };
 
   const draw = (): void => {
@@ -50,7 +52,7 @@ export function initializeTradingSettings(
       item<HTMLInputElement>("capital-input").value =
         String(Number(saved.max_capital_usdc));
     const value = read();
-    for (const id of ["capital-input", "entry-pause-input", "gap-fillers-input", "auto-budget-input", "settings-button"])
+    for (const id of ["capital-input", "entry-pause-input", "gap-fillers-input", "auto-budget-input", "performance-mode-input", "settings-button"])
       item<HTMLInputElement | HTMLButtonElement>(id).disabled =
         draft.saving || !saved || !limits;
     item("settings-button").textContent =
@@ -77,6 +79,9 @@ export function initializeTradingSettings(
     draw();
   });
   item("auto-budget-input").addEventListener("change", () => {
+    draft.edit(); failure = ""; draw();
+  });
+  item("performance-mode-input").addEventListener("change", () => {
     draft.edit(); failure = ""; draw();
   });
   item("gap-fillers-input").addEventListener("change", () => {
@@ -121,6 +126,8 @@ export function initializeTradingSettings(
         item<HTMLInputElement>("gap-fillers-input").checked = saved.gap_fillers_enabled !== false;
       if (saved && draft.acceptsPolling)
         item<HTMLInputElement>("auto-budget-input").checked = saved.auto_budget_enabled === true;
+      if (saved && draft.acceptsPolling)
+        item<HTMLInputElement>("performance-mode-input").checked = saved.autonomous_performance_enabled === true;
       draw();
     },
     liveBlocker(): string | null {
@@ -130,7 +137,8 @@ export function initializeTradingSettings(
           ? "Zuerst das Maximalbudget mit Übernehmen speichern."
           : saved.emergency_stop
             ? "Bestehende technische Einstiegssperre aktiv. Nicht automatisch aufgehoben."
-            : saved.auto_budget_enabled && saved.auto_budget_live_available !== true
+            : (saved.auto_budget_enabled && saved.auto_budget_live_available !== true)
+              || (saved.autonomous_performance_enabled && saved.autonomous_performance_live_available !== true)
               ? "Dynamisches Budget ist nur vorgemerkt. Live bleibt bis zur Sicherheitsfreigabe gesperrt."
               : null;
     },
