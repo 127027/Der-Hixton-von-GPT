@@ -54,7 +54,7 @@ jobs:
           npm run check
           npm test
           npm run build
-      - name: A09 release check: never auto enable live
+      - name: 'A09 release check - never auto enable live'
         run: |
           set -euo pipefail
           .venv/bin/python - <<'PY'
