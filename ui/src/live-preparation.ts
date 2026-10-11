@@ -31,7 +31,7 @@ function element<T extends HTMLElement>(id: string): T {
   return item as T;
 }
 
-export function initializeLivePreparation(sharedSettingsBlocker: () => string | null): {refresh: () => Promise<boolean>; dispose: () => void} {
+export function initializeLivePreparation(sharedSettingsBlocker: (mode?: "live" | "trial") => string | null): {refresh: () => Promise<boolean>; dispose: () => void} {
   let last: LiveStatus | null = null;
   let generation = 0;
   let busy = false;
@@ -109,7 +109,7 @@ export function initializeLivePreparation(sharedSettingsBlocker: () => string | 
           ? `Vor einer Binance-Order beendet (${status.trial.state}) · sicher erneut startbar.`
           : `Test: ${status.trial.state}${status.trial.symbol ? " · " + status.trial.symbol : ""}.${healthWait}`
         : status.trial_dispatch_available
-          ? `Bereit: wartet nach Freigabe auf ein neues gültiges Signal.${healthWait}`
+          ? `Noch nicht gestartet: Test freigeben, um auf das nächste gültige Signal zu warten.${healthWait}`
           : trialReason
             ? `Noch gesperrt: ${trialReason}`
             : "Nicht gestartet. Voraussetzungen siehe technische Freigabe.",
@@ -318,7 +318,7 @@ export function initializeLivePreparation(sharedSettingsBlocker: () => string | 
     if (!last?.trial_dispatch_available) {
       throw new Error("Der 50-USDC-Testtrade ist serverseitig noch nicht freigegeben.");
     }
-    const blocker = sharedSettingsBlocker(); if (blocker) throw new Error(blocker);
+    const blocker = sharedSettingsBlocker("trial"); if (blocker) throw new Error(blocker);
     if (!last.credentials.configured) {
       throw new Error("Zuerst API-Key und Secret lokal speichern.");
     }

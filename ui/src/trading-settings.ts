@@ -134,15 +134,15 @@ export function initializeTradingSettings(
         item<HTMLInputElement>("performance-mode-input").checked = saved.autonomous_performance_enabled === true;
       draw();
     },
-    liveBlocker(): string | null {
+    liveBlocker(mode: "live" | "trial" = "live"): string | null {
       return !saved || !limits
         ? "Maximalbudget nicht geladen."
         : draft.dirty || draft.saving
           ? "Zuerst das Maximalbudget mit Übernehmen speichern."
           : saved.emergency_stop
             ? "Bestehende technische Einstiegssperre aktiv. Nicht automatisch aufgehoben."
-            : (saved.auto_budget_enabled && saved.auto_budget_live_available !== true)
-              || (saved.autonomous_performance_enabled && saved.autonomous_performance_live_available !== true)
+            : mode === "live" && ((saved.auto_budget_enabled && saved.auto_budget_live_available !== true)
+              || (saved.autonomous_performance_enabled && saved.autonomous_performance_live_available !== true))
               ? "Dynamisches Budget ist nur vorgemerkt. Live bleibt bis zur Sicherheitsfreigabe gesperrt."
               : null;
     },

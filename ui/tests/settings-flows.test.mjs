@@ -339,3 +339,28 @@ test("Binance credential and live readiness cards are visible in settings source
   assert.match(binanceCard, /Windows-Anmeldedatenspeicher/);
   assert.match(binanceCard, /Auszahlungen, Transfers, Margin, Futures und Optionen: AUS/);
 });
+
+
+test("automatic-budget gate blocks continuous live but permits exactly one explicit 50 trial",async()=>{
+  const mock=mockLive();mock.state.credentials.configured=true;mock.state.trial_dispatch_available=true;
+  const ui=harness(mock.fetcher);
+  const settings=initializeTradingSettings(async value=>value,()=>{});
+  const limits={min_capital_usdc:"100.00",max_capital_usdc:"1000000.00",research_reference_max_usdc:"1000.00",allocator_version:"CAPITAL-V1-2X50PCT"};
+  const saved={max_capital_usdc:"1100.00",slot_count:2,target_notional_usdc:"550.00",reserve_usdc:"0.00",allocation_policy:"ranked_repeat",allocator_version:"CAPITAL-V1-2X50PCT",emergency_stop:false,auto_budget_enabled:true,auto_budget_live_available:false,autonomous_performance_enabled:true,autonomous_performance_live_available:false,gap_fillers_enabled:true};
+  settings.render(saved,limits);
+  const live=initializeLivePreparation(mode=>settings.liveBlocker(mode));
+  try {
+    await live.refresh(); await unlockUI(ui);
+    assert.match(settings.liveBlocker(),/Live bleibt/);
+    assert.equal(settings.liveBlocker("trial"),null);
+    await ui.node("live-trial-start").fire("click");
+    assert.equal(mock.calls.filter(c=>c.url.endsWith("/trial/start")).length,1);
+    assert.equal(mock.state.trial.state,"WAITING_SIGNAL");
+    assert.equal(mock.calls.filter(c=>c.url.endsWith("/enable")).length,0);
+    settings.render({...saved,emergency_stop:true},limits);
+    assert.match(settings.liveBlocker("trial"),/Einstiegssperre/);
+    settings.render(saved,limits);
+    await ui.node("capital-input").fire("input");
+    assert.match(settings.liveBlocker("trial"),/Übernehmen/);
+  } finally {live.dispose();ui.restore();}
+});

@@ -262,6 +262,8 @@ function renderStatus(status: StatusResponse): void {
   tradingSettings.render(status.trading_settings, status.trading_limits);
   const balance = status.binance_balance;
   const validBalance = balance?.state === "CURRENT" && balance.free_usdc !== null && balance.total_usdc !== null;
+  text("#paper-equity", status.paper ? formatNumber(status.paper.equity_usdc) : "—");
+  text("#paper-cash", status.paper ? formatNumber(status.paper.cash_usdc) : "—");
   text("#metric-equity", validBalance ? formatNumber(balance!.total_usdc!) : "—");
   text("#metric-cash", validBalance ? formatNumber(balance!.free_usdc!) : "—");
   text("#binance-balance-detail", validBalance
@@ -582,7 +584,7 @@ const tradingSettings = initializeTradingSettings(async (settings) => {
 });
 initializeControls();
 initializeSessionLifetime();
-initializeLivePreparation(() => tradingSettings.liveBlocker());
+initializeLivePreparation(mode => tradingSettings.liveBlocker(mode));
 ensureChart();
 void Promise.all([refreshCore(), refreshEvents(), refreshBacktests(), refreshRuntimeLogs()]).then(() => loadChart());
 window.setInterval(() => void refreshCore(), 5_000);
