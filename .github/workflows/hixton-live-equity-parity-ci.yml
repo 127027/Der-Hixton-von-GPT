@@ -1,0 +1,81 @@
+name: Hixton Autonomous Spot Live/Paper Parity Research CI
+on:
+  push:
+    branches: [codex/hixton-live-equity-parity-20261011]
+    paths:
+      - .github/workflows/hixton-live-equity-parity-ci.yml
+      - src/**
+      - tests/**
+      - ui/**
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  no-real-order-fake-exchange-tests:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: |
+          set -euo pipefail
+          python -m venv .venv
+          .venv/bin/pip install -e '.[dev]'
+      - name: A03 A06 A07 A08 real Live-order path with FAKE Binance only
+        run: |
+          set -euo pipefail
+          .venv/bin/python -m pytest -q \
+            tests/test_autonomous_spot_live_fake.py \
+            tests/test_spot_autonomy_core.py \
+            tests/test_live_production.py \
+            tests/test_live_preparation.py \
+            tests/test_live_submission_gates.py \
+            tests/test_live_reconciliation_runtime.py \
+            tests/test_live_orders.py \
+            tests/test_auto_budget_preference.py \
+            tests/test_autonomous_performance_preference.py \
+            tests/test_paper_engine.py \
+            tests/test_paper_slot_parity.py \
+            tests/test_current_v6_product_contract.py \
+            tests/test_v8_product_backtest.py \
+            tests/test_ui_api.py
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: A04 UI one checkbox, typecheck and assets
+        working-directory: ui
+        run: |
+          set -euo pipefail
+          npm ci
+          npm run check
+          npm test
+          npm run build
+      - name: 'A09 release check - never auto enable live'
+        run: |
+          set -euo pipefail
+          .venv/bin/python - <<'PY'
+          from hixton.paper.models import PaperSettings
+          from pathlib import Path
+          assert PaperSettings().auto_budget_enabled is False
+          assert PaperSettings().autonomous_performance_enabled is False
+          text=Path('src/hixton/ui/live.py').read_text()
+          assert 'settings.auto_budget_enabled or settings.autonomous_performance_enabled' in text
+          assert 'Forschungsvormerkung' in text
+          assert 'market_points=supervisor.state.points' in text
+          assert 'autonomous_spot_enabled=autonomous_spot_enabled' in text
+          source=Path('src/hixton/live/production.py').read_text()
+          assert 'self.reconciler.check(' in source
+          assert 'size_spot_entry(' in source
+          assert 'snapshot = self.snapshot()' in source
+          print('Default OFF; server denies autonomous Live activation until separate acceptance')
+          PY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: hixton-autonomous-live-research-ui-${{ github.run_id }}
+          path: src/hixton/ui/static/
+          if-no-files-found: warn
+          retention-days: 14

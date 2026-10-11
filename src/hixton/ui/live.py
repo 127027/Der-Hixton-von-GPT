@@ -47,14 +47,15 @@ def install_live_routes(
     def trading_settings() -> tuple[Decimal, bool]:
         with PaperStore(config.database_path) as store:
             settings = store.load_settings()
-        # Fail-closed until dynamic live accounting, margin safety and parity
-        # are independently verified. The toggle is a saved preference only.
-        return (
-            settings.max_capital_usdc,
-            settings.emergency_stop
-            or settings.auto_budget_enabled
-            or settings.autonomous_performance_enabled,
-        )
+        # Trial is still allowed with the automatic option saved: it is an
+        # explicitly authorized *single 50-USDC order*. Persistent autonomous
+        # Live remains separately blocked by the authenticated /enable route.
+        return settings.max_capital_usdc, settings.emergency_stop
+
+    def autonomous_spot_enabled() -> bool:
+        with PaperStore(config.database_path) as store:
+            settings = store.load_settings()
+        return settings.auto_budget_enabled and settings.autonomous_performance_enabled
 
     def gap_fillers_enabled() -> bool:
         with PaperStore(config.database_path) as store:
@@ -79,6 +80,8 @@ def install_live_routes(
         supervisor.strategy,
         settings_provider=trading_settings,
         gap_fillers_enabled=gap_fillers_enabled,
+        autonomous_spot_enabled=autonomous_spot_enabled,
+        market_points=supervisor.state.points,
         rules_provider=execution_rules,
     )
     supervisor.live_runtime = service.live_runtime
@@ -140,6 +143,10 @@ def install_live_routes(
                     **preview,
                     "emergency_stop": settings.emergency_stop,
                     "gap_fillers_enabled": settings.gap_fillers_enabled,
+                    "auto_budget_enabled": settings.auto_budget_enabled,
+                    "auto_budget_live_available": False,
+                    "autonomous_performance_enabled": settings.autonomous_performance_enabled,
+                    "autonomous_performance_live_available": False,
                 }
         except (RuntimeError, sqlite3.DatabaseError, KeyError):
             pass

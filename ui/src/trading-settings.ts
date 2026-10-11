@@ -79,6 +79,9 @@ export function initializeTradingSettings(
     draw();
   });
   item("auto-budget-input").addEventListener("change", () => {
+    // One owner-facing checkbox controls both internal research policies.
+    item<HTMLInputElement>("performance-mode-input").checked =
+      item<HTMLInputElement>("auto-budget-input").checked;
     draft.edit(); failure = ""; draw();
   });
   item("performance-mode-input").addEventListener("change", () => {
@@ -125,7 +128,8 @@ export function initializeTradingSettings(
       if (saved && draft.acceptsPolling)
         item<HTMLInputElement>("gap-fillers-input").checked = saved.gap_fillers_enabled !== false;
       if (saved && draft.acceptsPolling)
-        item<HTMLInputElement>("auto-budget-input").checked = saved.auto_budget_enabled === true;
+        item<HTMLInputElement>("auto-budget-input").checked =
+          saved.auto_budget_enabled === true && saved.autonomous_performance_enabled === true;
       if (saved && draft.acceptsPolling)
         item<HTMLInputElement>("performance-mode-input").checked = saved.autonomous_performance_enabled === true;
       draw();
