@@ -34,6 +34,10 @@ from hixton.domain.models import (
     StrategySemantics,
 )
 from hixton.domain.risk import PortfolioRiskState, evaluate_portfolio_risk
+from hixton.domain.spot_autonomy import (
+    marked_portfolio_equity, quality_filler_block_reason,
+    research_slot_allocations, size_spot_entry,
+)
 from hixton.domain.satellite_layer import (
     satellite_handoff_symbols,
     shared_satellite_entry_block_reason,
@@ -102,6 +106,8 @@ def run_shared_portfolio_backtest(
     apply_risk_limits: bool = True,
     symbols: tuple[str, ...] = SYMBOLS,
     strategy: StrategyDefinition | None = None,
+    reinvest_profits: bool = False,
+    autonomous_spot: bool = False,
 ) -> PortfolioBacktestResult:
     """Replay ten aligned markets against one non-compounding shared ledger."""
 
@@ -121,6 +127,8 @@ def run_shared_portfolio_backtest(
     validate_market_symbols(symbols)
     if tuple(candles_by_symbol) != symbols:
         raise ValueError("portfolio input must contain all ten symbols in fixed DMS order")
+    if autonomous_spot and (strategy is None or strategy.key != 'v8' or slot_count != 4):
+        raise ValueError('autonomous spot research requires V8 with four capacity slots')
     if starting_cash <= ZERO or target_notional <= ZERO or slot_count <= 0:
         raise ValueError("portfolio capital and slot_count must be positive")
     if report_start_utc >= report_end_utc:
@@ -316,11 +324,19 @@ def run_shared_portfolio_backtest(
                     entries = satellites
                     allocation_policy = ONE_PER_SYMBOL
             used_slots = sum(position.slots for position in positions.values())
-            allocations = allocate_entry_slots(
-                [signal.symbol for signal in entries if signal.symbol not in positions],
-                free_slots=max(0, slot_count - used_slots),
-                policy=allocation_policy,
-            )
+            if autonomous_spot:
+                allocations = research_slot_allocations(
+                    [(signal.symbol, signal.breakout_strength) for signal in entries
+                     if signal.symbol not in positions],
+                    free_slots=max(0, slot_count - used_slots),
+                    satellite_symbols=satellite_symbols,
+                )
+            else:
+                allocations = allocate_entry_slots(
+                    [signal.symbol for signal in entries if signal.symbol not in positions],
+                    free_slots=max(0, slot_count - used_slots),
+                    policy=allocation_policy,
+                )
             for signal in entries:
                 if satellite_symbols and apply_risk_limits and daily_paused:
                     blocked.append(f"{signal.signal_id}:DAILY_LOSS_5_PERCENT")
@@ -329,15 +345,38 @@ def run_shared_portfolio_backtest(
                     blocked.append(f"{signal.signal_id}:POSITION_ALREADY_OPEN")
                     continue
                 allocated_slots = (
-                    int(sum(position.slots for position in positions.values()) < slot_count)
-                    if allocation_policy == ONE_PER_SYMBOL
-                    else allocations.get(signal.symbol, 0)
+                    allocations.get(signal.symbol, 0)
+                    if autonomous_spot
+                    else (
+                        int(sum(position.slots for position in positions.values()) < slot_count)
+                        if allocation_policy == ONE_PER_SYMBOL
+                        else allocations.get(signal.symbol, 0)
+                    )
                 )
                 if allocated_slots == 0:
                     blocked.append(f"{signal.signal_id}:NO_FREE_SLOT")
                     continue
                 rule = rules.get(signal.symbol, ExecutionRules())
-                budget = min(target_notional * Decimal(allocated_slots), cash)
+                if reinvest_profits:
+                    price_marks = {
+                        symbol: _d(candles[symbol].open) for symbol in symbols
+                    }
+                    equity_at_open = marked_portfolio_equity(
+                        free_quote=cash,
+                        base_quantities={
+                            symbol: p.quantity for symbol, p in positions.items()
+                        },
+                        dust_quantities=dust,
+                        open_prices=price_marks,
+                    )
+                    budget = size_spot_entry(
+                        equity=equity_at_open,
+                        free_quote=cash,
+                        slots=slot_count,
+                        allocated_slots=allocated_slots,
+                    )
+                else:
+                    budget = min(target_notional * Decimal(allocated_slots), cash)
                 reference = _d(candles[signal.symbol].open)
                 fill_price = reference * (ONE + costs.adverse_price_rate)
                 gross_quantity = _round_down(budget / fill_price, rule.step_size)
@@ -433,6 +472,10 @@ def run_shared_portfolio_backtest(
                     continue
                 if new_signal.action is SignalAction.ENTER_LONG and symbol in satellite_symbols:
                     reason = shared_satellite_entry_block_reason(symbol, points[symbol])
+                    if reason is None and autonomous_spot:
+                        reason = quality_filler_block_reason(
+                            symbol, points[symbol].abs_cmo
+                        )
                     if reason is not None:
                         blocked.append(f"{new_signal.signal_id}:{reason}")
                         continue
