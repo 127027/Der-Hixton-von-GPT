@@ -98,6 +98,8 @@ export function initializeLivePreparation(sharedSettingsBlocker: (mode?: "live" 
         ? "Binance-Zugangsschlüssel lokal gespeichert."
         : "Noch kein Binance-Zugangsschlüssel gespeichert.",
     );
+    element("binance-key-missing").classList.toggle("hidden", status.credentials.configured);
+    element("binance-account-content").classList.toggle("hidden", !status.credentials.configured);
     const trialState = status.trial?.state ?? "NOT_STARTED";
     const trialLabels: Record<string, string> = {
       NOT_STARTED: "Nicht freigegeben; noch kein Test-Kauf.",

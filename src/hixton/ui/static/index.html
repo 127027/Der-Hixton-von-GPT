@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="color-scheme" content="dark" />
     <title>Der Hixton</title>
-    <script type="module" crossorigin src="/assets/index-CXB7zIGr.js"></script>
+    <script type="module" crossorigin src="/assets/index-D9mt0IsK.js"></script>
     <link rel="stylesheet" crossorigin href="/assets/index-v1hER6E4.css">
   </head>
   <body>
@@ -51,6 +51,8 @@
             <details class="compact-details"><summary>Betriebsdetails</summary><small id="runtime-detail">Marktdaten werden geprüft.</small><p id="activity-detail" role="status">Kerzenverarbeitung noch nicht bestätigt.</p></details>
           </div>
           <h2 class="account-heading">Binance · Echtgeld</h2>
+          <p id="binance-key-missing" class="quiet-note hidden" role="status">API-Key nicht vorhanden.</p>
+          <div id="binance-account-content">
           <div class="metric-grid account-metrics">
             <article class="metric-card"><span>Binance-USDC-Guthaben</span><strong id="metric-equity">—</strong><small>USDC</small></article>
             <article class="metric-card"><span>Davon frei verfügbar</span><strong id="metric-cash">—</strong><small>USDC</small></article>
@@ -60,6 +62,7 @@
           <p id="bank-display-status" class="quiet-note" role="status">Binance-Guthaben wird abgefragt …</p>
           <details class="compact-details"><summary>Kontodetails</summary><p id="binance-balance-detail">Binance-Guthaben wird abgefragt …</p><p>Echter Bot-Drawdown noch nicht erfasst. USDC-Cash allein ist kein Portfolio-Drawdown.</p></details>
           <p id="real-trial-status" role="status">Echtgeldtest: Status wird geladen …</p>
+          </div>
           <details class="paper-summary compact-details"><summary>Paper · simuliertes Konto</summary>
           <div class="metric-grid">
             <article class="metric-card"><span>Simulierte Equity</span><strong id="paper-equity">—</strong><small>USDC</small></article>
@@ -274,6 +277,5 @@
       </main>
     </div>
     <div id="toast" class="toast hidden" role="status"></div>
-
   </body>
 </html>
