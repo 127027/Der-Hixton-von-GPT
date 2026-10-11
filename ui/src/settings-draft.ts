@@ -72,6 +72,12 @@ export function describeSettings(value: TradingSettings): string {
   const reserveText = Number.isFinite(reserve) && reserve > 0
     ? " · Reserve " + formatBudget(reserve) + " USDC"
     : "";
+  if (value.auto_budget_enabled) {
+    return "Automatik · alle verfügbaren Binance-USDC · " + value.slot_count + " Slots · dynamische Wiederanlage"
+      + " · Dauer-Live weiterhin separat gesperrt"
+      + (value.gap_fillers_enabled === false ? " · Zwischenfüller AUS" : " · Zwischenfüller mit Core-Vorrang")
+      + (value.emergency_stop ? " · Einstiegssperre aktiv" : "");
+  }
   return (value.auto_budget_enabled ? "Start-/Referenzbudget " : "Max. ") + formatBudget(value.max_capital_usdc) + " USDC → automatisch "
     + value.slot_count + " × " + formatBudget(value.target_notional_usdc)
     + " USDC · " + value.allocation_policy + reserveText

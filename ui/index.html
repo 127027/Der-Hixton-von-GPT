@@ -160,7 +160,8 @@
               <h2>1 · Handel</h2>
               <form id="trading-form" class="settings-form">
                 <div class="settings-fields">
-                  <label>Maximaler USDC-Einsatz<input id="capital-input" type="number" min="100" max="1000000" step="1" value="250" required /></label>
+                  <label>Maximaler USDC-Einsatz · vorgemerkt<input id="capital-input" type="number" min="100" max="1000000" step="1" value="250" aria-describedby="budget-mode-help" required /></label>
+                  <p id="budget-mode-help" role="status">Budgetmodus wird geladen …</p>
                   <label class="settings-toggle"><input id="auto-budget-input" type="checkbox" /> Bot alleine alles entscheiden lassen (verfügbare USDC, Positionsgröße und Spot-Trades)</label>
                   <p>Automatischer Kapitalmodus: Der gemeinsame Portfolio-Backtest liest beim Start die aktuell frei verfügbaren Binance-USDC und simuliert deren Wiederanlage einschließlich Gewinnen und Verlusten. Bestehende Coins und gebundene Guthaben werden nicht übernommen. Schlägt die Kontoabfrage fehl, startet kein Ersatztest mit einem festen Budget. Das Paper-Konto verwendet weiterhin sein simuliertes Guthaben.</p>
                   <label hidden class="settings-toggle"><input id="performance-mode-input" type="checkbox" aria-hidden="true" tabindex="-1" /> Interner Spot-Performance-Modus (synchron mit Automatikbudget)</label>

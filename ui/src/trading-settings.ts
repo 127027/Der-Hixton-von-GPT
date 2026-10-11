@@ -39,7 +39,8 @@ export function initializeTradingSettings(
       };
     }
     return { ...derivedDraft(
-      item<HTMLInputElement>("capital-input").value,
+      item<HTMLInputElement>("auto-budget-input").checked && saved
+        ? saved.max_capital_usdc : item<HTMLInputElement>("capital-input").value,
       item<HTMLInputElement>("entry-pause-input").checked,
       limits,
     ), gap_fillers_enabled: item<HTMLInputElement>("gap-fillers-input").checked,
@@ -55,6 +56,14 @@ export function initializeTradingSettings(
     for (const id of ["capital-input", "entry-pause-input", "gap-fillers-input", "auto-budget-input", "performance-mode-input", "settings-button"])
       item<HTMLInputElement | HTMLButtonElement>(id).disabled =
         draft.saving || !saved || !limits;
+    const automatic = item<HTMLInputElement>("auto-budget-input").checked;
+    const capital = item<HTMLInputElement>("capital-input");
+    capital.disabled = capital.disabled || automatic;
+    if (automatic && saved) capital.value = String(Number(saved.max_capital_usdc));
+    capital.title = automatic ? "Im Automatikmodus inaktiv; kein zusätzliches Kapital-Limit." : "Aktives maximales Budget im manuellen Modus.";
+    item("budget-mode-help").textContent = automatic
+      ? "Automatik: verfügbare Binance-USDC sind maßgeblich. Der Betrag links ist inaktiv und nur für einen Wechsel zurück gespeichert. Der Portfolio-Backtest liest Binance frisch; Paper bleibt eine Simulation. Dauer-Live benötigt weiterhin seine separate Freigabe."
+      : "Manuell: Der Betrag links ist dein maximales Budget. Änderungen mit Übernehmen speichern.";
     item("settings-button").textContent =
       draft.saving ? "Wird übernommen …" : "Übernehmen";
     item("settings-saved").textContent = saved

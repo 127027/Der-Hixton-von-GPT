@@ -206,3 +206,5 @@ td.mono { font-family: var(--mono); }
 .settings-fields .settings-toggle { display: flex; align-items: flex-start; gap: 10px; }
 .settings-card .settings-toggle input[type="checkbox"] { flex: 0 0 20px; width: 20px; height: 20px; margin: 0; accent-color: var(--green); }
 .settings-fields > p { grid-column: 1 / -1; }
+
+#capital-input:disabled { opacity: .45; background: var(--panel); color: var(--muted); cursor: not-allowed; }

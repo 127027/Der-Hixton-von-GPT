@@ -381,3 +381,30 @@ test("overview distinguishes an armed real trial from an actual buy and disabled
     assert.match(ui.node("real-trial-status").textContent,/Abschluss noch nicht bestätigt/);
   } finally {live.dispose();ui.restore();}
 });
+
+
+test("automatic mode disables and ignores manual capital; switching back restores remembered maximum",async()=>{
+  const ui=harness(()=>{});const writes=[];
+  const settings=initializeTradingSettings(async value=>{writes.push(value);return value;},()=>{});
+  const limits={min_capital_usdc:"100.00",max_capital_usdc:"1000000.00",research_reference_max_usdc:"1000.00",allocator_version:"CAPITAL-V1-2X50PCT"};
+  const saved={max_capital_usdc:"1100.00",slot_count:2,target_notional_usdc:"550.00",reserve_usdc:"0.00",allocation_policy:"ranked_repeat",allocator_version:"CAPITAL-V1-2X50PCT",emergency_stop:false,auto_budget_enabled:true,autonomous_performance_enabled:true};
+  try {
+    settings.render(saved,limits);
+    assert.equal(ui.node("capital-input").disabled,true);
+    assert.match(ui.node("budget-mode-help").textContent,/Betrag links ist inaktiv/);
+    assert.match(ui.node("settings-saved").textContent,/alle verfügbaren Binance-USDC/);
+    assert.doesNotMatch(ui.node("settings-saved").textContent,/1.100|550/);
+    ui.node("capital-input").value="999999";
+    await ui.node("trading-form").fire("submit");
+    assert.equal(writes.at(-1).max_capital_usdc,"1100.00");
+    ui.node("auto-budget-input").checked=false;
+    await ui.node("auto-budget-input").fire("change");
+    assert.equal(ui.node("capital-input").disabled,false);
+    assert.equal(ui.node("capital-input").value,"1100");
+    ui.node("capital-input").value="1000";
+    await ui.node("capital-input").fire("input");
+    await ui.node("trading-form").fire("submit");
+    assert.equal(writes.at(-1).max_capital_usdc,"1000");
+    assert.equal(writes.at(-1).auto_budget_enabled,false);
+  } finally {ui.restore();}
+});
