@@ -150,7 +150,9 @@
                 <div class="settings-fields">
                   <label>Maximaler USDC-Einsatz<input id="capital-input" type="number" min="100" max="1000000" step="1" value="250" required /></label>
                   <label><input id="auto-budget-input" type="checkbox" /> Bot entscheidet selbst über das Budget (dynamisch nach Kontowert)</label>
-                  <p>Forschungsvormerkung: Diese Option ist speicherbar, aber <strong>noch nicht im Live-Handel freigegeben</strong>. Bis zur unabhängigen Sicherheitsprüfung sperrt Hixton damit neue Live-Einstiege. Später berücksichtigt der Modus nur das von Hixton verwaltete und tatsächlich verfügbare Kapital; Gewinne und Verluste ändern das Budget automatisch.</p>
+                  <p>Automatischer Kapitalmodus: Gewinne und Verluste verändern später die Grundlage neuer Ordergrößen; nur eigenes verwaltetes Vermögen, kein fremder Bestand. Bis zur Abnahme als Forschungsvormerkung gespeichert.</p>
+                  <label><input id="performance-mode-input" type="checkbox" /> Bot entscheidet selbst: Performance-Modus (Trades, Positionsgrößen, Strategie und Hebel)</label>
+                  <p>Performance-Modus: 1× Spot als Standard; variable Hebel werden zunächst nur realistisch im Paper-Modus erforscht. <strong>Beide autonomen Haken sind für Live vorerst gesperrt</strong> und umgehen weder den 50-USDC-Test noch die ausdrückliche Live-Freigabe. 100× ist kein nachgewiesener sicherer Hebel.</p>
                   <label><input id="gap-fillers-input" type="checkbox" checked /> Zwischenfüller mit Core-Vorrang (nur wenn alle zehn Core-Coins inaktiv sind)</label>
                   <label><input id="entry-pause-input" type="checkbox" /> Einstiegspause für neue Trades</label>
                 </div>
@@ -159,7 +161,7 @@
               </form>
               <p id="settings-saved">Einstellungen werden geladen …</p>
               <p id="settings-edit-state" role="status"></p>
-              <p>Bei ausgeschaltetem Automatik-Haken gilt das fest gespeicherte Maximalbudget. Der automatische Modus ist derzeit eine sichere Forschungsvormerkung und aktiviert keine Live-Orders. Die spätere Freigabe der dynamischen Verwaltung erfordert getrennte Tests von Kontosaldo, offenen Bot-Positionen und Risikolimits.</p>
+              <p>Die beiden optionalen Haken steuern unterschiedliche Entscheidungen: (1) verfügbares Bot-Kapital dynamisch verwalten und (2) Positionsauswahl, Anzahl und Risikoprofil autonom bewerten. Bis zur vollständigen Paper-/Live-Abnahme werden dadurch keine Live-Orders freigegeben. Der konservative Hixton bleibt unverändert.</p>
             </article>
 
             <article class="settings-card">
