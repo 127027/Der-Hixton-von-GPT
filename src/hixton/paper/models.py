@@ -57,11 +57,16 @@ class PaperSettings:
 
     @property
     def slot_count(self) -> int:
-        return self.plan.slot_count
+        # Research Paper capacity; conservative mode remains exactly two slots.
+        return 4 if self.autonomous_performance_enabled else self.plan.slot_count
 
     @property
     def target_notional_usdc(self) -> Decimal:
-        return self.plan.target_notional_usdc
+        return (
+            (self.max_capital_usdc / Decimal(4)).quantize(Decimal('0.01'))
+            if self.autonomous_performance_enabled
+            else self.plan.target_notional_usdc
+        )
 
     @property
     def reserve_usdc(self) -> Decimal:
