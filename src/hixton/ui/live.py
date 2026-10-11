@@ -49,7 +49,12 @@ def install_live_routes(
             settings = store.load_settings()
         # Fail-closed until dynamic live accounting, margin safety and parity
         # are independently verified. The toggle is a saved preference only.
-        return settings.max_capital_usdc, settings.emergency_stop or settings.auto_budget_enabled
+        return (
+            settings.max_capital_usdc,
+            settings.emergency_stop
+            or settings.auto_budget_enabled
+            or settings.autonomous_performance_enabled,
+        )
 
     def gap_fillers_enabled() -> bool:
         with PaperStore(config.database_path) as store:
@@ -279,12 +284,12 @@ def install_live_routes(
         try:
             with PaperStore(config.database_path) as store:
                 settings = store.load_settings()
-            if settings.auto_budget_enabled:
+            if settings.auto_budget_enabled or settings.autonomous_performance_enabled:
                 raise HTTPException(
                     409,
-                    "Automatische Budgetverwaltung ist nur als Forschungsvormerkung "
-                    "gespeichert. Live-Aktivierung damit bleibt bis zur "
-                    "separaten Sicherheitsfreigabe gesperrt.",
+                    "Autonome Budget- oder Performance-Verwaltung ist als "
+                    "Forschungsvormerkung gespeichert. Live-Aktivierung dieser "
+                    "Modi bleibt bis zur separaten Sicherheitsfreigabe gesperrt.",
                 )
             await run_in_threadpool(
                 service.enable_live,
