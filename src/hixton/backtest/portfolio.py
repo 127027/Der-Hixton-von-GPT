@@ -324,7 +324,7 @@ def run_shared_portfolio_backtest(
                     entries = satellites
                     allocation_policy = ONE_PER_SYMBOL
             used_slots = sum(position.slots for position in positions.values())
-            if autonomous_spot:
+            if autonomous_spot and slot_count > 2:
                 allocations = research_slot_allocations(
                     [(signal.symbol, signal.breakout_strength) for signal in entries
                      if signal.symbol not in positions],
@@ -346,7 +346,7 @@ def run_shared_portfolio_backtest(
                     continue
                 allocated_slots = (
                     allocations.get(signal.symbol, 0)
-                    if autonomous_spot
+                    if autonomous_spot and slot_count > 2
                     else (
                         int(sum(position.slots for position in positions.values()) < slot_count)
                         if allocation_policy == ONE_PER_SYMBOL
