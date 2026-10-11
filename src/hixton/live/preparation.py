@@ -187,6 +187,8 @@ class LivePreparation:
         *,
         settings_provider: Callable[[], tuple[Decimal, bool]],
         gap_fillers_enabled: Callable[[], bool] | None = None,
+        autonomous_spot_enabled: Callable[[], bool] | None = None,
+        market_points: Callable[[], Mapping[str, Sequence[IndicatorPoint]]] | None = None,
         rules_provider: Callable[[], Mapping[str, ExecutionRules]],
     ) -> TrialRuntime:
         """Wire both durable execution runtimes without enabling either one."""
@@ -240,6 +242,8 @@ class LivePreparation:
             execution_source_sha256=self.execution_source_sha256,
             source_is_current=self.source_is_current,
             gap_fillers_enabled=gap_fillers_enabled,
+            autonomous_spot=autonomous_spot_enabled,
+            market_points=market_points,
         )
         holder["controller"] = self.live
         self.live_runtime = LivePortfolioRuntime(self.live)
@@ -454,6 +458,7 @@ class LivePreparation:
         healthy: bool,
         max_capital: Decimal,
         emergency_stop: bool,
+        autonomous_spot: bool = False,
     ) -> dict[str, object]:
         with self.lock:
             if self.live is None:
@@ -472,11 +477,24 @@ class LivePreparation:
                 )
             # Live performs its own fresh/sufficient preflight. A separate manual
             # connection-check click is diagnostic only, never a required ritual.
-            self._action_check(
-                trade_notional=plan.max_capital_usdc,
-                minimum_free_quote=plan.max_capital_usdc,
-                audit_prefix="PRODUCTION_LIVE",
-            )
+            if autonomous_spot:
+                # Always use a signed account snapshot to find *actual* free USDC.
+                initial = self._live_snapshot()
+                initial.validate(datetime.now(UTC))
+                live_free = initial.balances.get("USDC", (Decimal(0), Decimal(0)))[0]
+                if live_free < Decimal("100"):
+                    raise BinanceCheckError("Automatik benötigt mindestens 100 freie USDC")
+                self._action_check(
+                    trade_notional=live_free,
+                    minimum_free_quote=live_free,
+                    audit_prefix="PRODUCTION_LIVE",
+                )
+            else:
+                self._action_check(
+                    trade_notional=plan.max_capital_usdc,
+                    minimum_free_quote=plan.max_capital_usdc,
+                    audit_prefix="PRODUCTION_LIVE",
+                )
             credentials = self.credentials.load()
             if credentials is None:
                 raise BinanceCheckError("Binance-Schlüssel fehlt")
