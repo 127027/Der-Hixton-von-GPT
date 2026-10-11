@@ -47,14 +47,10 @@ def install_live_routes(
     def trading_settings() -> tuple[Decimal, bool]:
         with PaperStore(config.database_path) as store:
             settings = store.load_settings()
-        # Fail-closed until dynamic live accounting, margin safety and parity
-        # are independently verified. The toggle is a saved preference only.
-        return (
-            settings.max_capital_usdc,
-            settings.emergency_stop
-            or settings.auto_budget_enabled
-            or settings.autonomous_performance_enabled,
-        )
+        # Trial is still allowed with the automatic option saved: it is an
+        # explicitly authorized *single 50-USDC order*. Persistent autonomous
+        # Live remains separately blocked by the authenticated /enable route.
+        return settings.max_capital_usdc, settings.emergency_stop
 
     def autonomous_spot_enabled() -> bool:
         with PaperStore(config.database_path) as store:
