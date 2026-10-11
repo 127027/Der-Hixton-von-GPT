@@ -25,18 +25,23 @@ class PaperSettings:
     max_capital_usdc: Decimal
     emergency_stop: bool
     gap_fillers_enabled: bool
+    auto_budget_enabled: bool
 
     def __init__(
         self,
         max_capital_usdc: Decimal = DEFAULT_MAX_CAPITAL_USDC,
         emergency_stop: bool = False,
         gap_fillers_enabled: bool = True,
+        auto_budget_enabled: bool = False,
     ) -> None:
         plan = capital_plan(Decimal(str(max_capital_usdc)))
         if type(emergency_stop) is not bool:
             raise ValueError("paper emergency_stop must be boolean")
         if type(gap_fillers_enabled) is not bool:
             raise ValueError("gap_fillers_enabled must be boolean")
+        if type(auto_budget_enabled) is not bool:
+            raise ValueError("auto_budget_enabled must be boolean")
+        object.__setattr__(self, "auto_budget_enabled", auto_budget_enabled)
         object.__setattr__(self, "gap_fillers_enabled", gap_fillers_enabled)
         object.__setattr__(self, "max_capital_usdc", plan.max_capital_usdc)
         object.__setattr__(self, "emergency_stop", emergency_stop)
