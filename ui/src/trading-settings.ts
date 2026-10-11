@@ -62,7 +62,7 @@ export function initializeTradingSettings(
     if (automatic && saved) capital.value = String(Number(saved.max_capital_usdc));
     capital.title = automatic ? "Im Automatikmodus inaktiv; kein zusätzliches Kapital-Limit." : "Aktives maximales Budget im manuellen Modus.";
     item("budget-mode-help").textContent = automatic
-      ? "Automatik: verfügbare Binance-USDC sind maßgeblich. Der Betrag links ist inaktiv und nur für einen Wechsel zurück gespeichert. Der Portfolio-Backtest liest Binance frisch; Paper bleibt eine Simulation. Dauer-Live benötigt weiterhin seine separate Freigabe."
+      ? "Automatik: verfügbare Binance-USDC sind maßgeblich. Der Betrag links ist inaktiv und nur für den manuellen Modus gespeichert."
       : "Manuell: Der Betrag links ist dein maximales Budget. Änderungen mit Übernehmen speichern.";
     item("settings-button").textContent =
       draft.saving ? "Wird übernommen …" : "Übernehmen";

@@ -33,7 +33,7 @@ export function initializeSessionLifetime(): void {
       }
       instance = message.instance;
       notice.classList.remove("disconnected");
-      label.textContent = "Bot verbunden · Terminal oder letzten Bot-Tab schließen = AUS (5 s Schonfrist). Offene Binance-Positionen bleiben dann unbetreut.";
+      label.textContent = "Bot verbunden · Konsole und Bot-Seite offen lassen. Schließen beendet den Bot; offene Binance-Positionen bleiben unbetreut.";
     });
     socket.addEventListener("close", () => {
       notice.classList.add("disconnected");

@@ -5,8 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="color-scheme" content="dark" />
     <title>Der Hixton</title>
-    <script type="module" crossorigin src="/assets/index-pZAgd7gu.js"></script>
-    <link rel="stylesheet" crossorigin href="/assets/index-Cu3YFwvX.css">
+    <script type="module" crossorigin src="/assets/index-BSQQvoWQ.js"></script>
+    <link rel="stylesheet" crossorigin href="/assets/index-v1hER6E4.css">
   </head>
   <body>
     <div id="app-shell">
@@ -40,7 +40,7 @@
           <div class="status-cluster">
             <span id="app-version-badge" class="version-pill" title="Installierte Hixton-Version">HIXTON v—</span>
             <span class="mode-pill paper">PAPER</span>
-            <span class="mode-pill disabled">LIVE_DISABLED</span>
+            <span id="execution-state-pill" class="mode-pill disabled">Live aus</span>
             <span id="health-pill" class="health-pill starting">STARTING</span>
           </div>
         </header>
@@ -48,19 +48,19 @@
         <section id="overview" class="page active">
           <div id="runtime-banner" class="runtime-banner loading">
             <div><span class="pulse"></span><strong id="runtime-message">Startup-Prüfungen laufen</strong></div>
-            <small id="runtime-detail">Die UI bleibt sichtbar, während die Märkte geprüft werden.</small>
-            <p id="activity-detail" role="status">Kerzenverarbeitung noch nicht bestätigt.</p>
+            <details class="compact-details"><summary>Betriebsdetails</summary><small id="runtime-detail">Marktdaten werden geprüft.</small><p id="activity-detail" role="status">Kerzenverarbeitung noch nicht bestätigt.</p></details>
           </div>
-          <h2>Binance-Konto · echtes USDC-Guthaben</h2>
-          <div class="metric-grid">
+          <h2 class="account-heading">Binance · Echtgeld</h2>
+          <div class="metric-grid account-metrics">
             <article class="metric-card"><span>Binance-USDC-Guthaben</span><strong id="metric-equity">—</strong><small>USDC</small></article>
             <article class="metric-card"><span>Davon frei verfügbar</span><strong id="metric-cash">—</strong><small>USDC</small></article>
             <article class="metric-card"><span>Slots für Dauer-Live</span><strong id="real-live-slots">—</strong><small id="real-live-slots-detail">Status wird geladen …</small></article>
-            <article class="metric-card"><span>Echter Bot-Drawdown</span><strong>—</strong><small>Noch nicht erfasst; Cash allein ist kein Portfolio-Drawdown.</small></article>
+
           </div>
-          <p id="binance-balance-detail" role="status">Binance-Guthaben wird abgefragt …</p>
+          <p id="bank-display-status" class="quiet-note" role="status">Binance-Guthaben wird abgefragt …</p>
+          <details class="compact-details"><summary>Kontodetails</summary><p id="binance-balance-detail">Binance-Guthaben wird abgefragt …</p><p>Echter Bot-Drawdown noch nicht erfasst. USDC-Cash allein ist kein Portfolio-Drawdown.</p></details>
           <p id="real-trial-status" role="status">Echtgeldtest: Status wird geladen …</p>
-          <h2>Paper-Simulation · kein Echtgeld</h2>
+          <details class="paper-summary compact-details"><summary>Paper · simuliertes Konto</summary>
           <div class="metric-grid">
             <article class="metric-card"><span>Simulierte Equity</span><strong id="paper-equity">—</strong><small>USDC</small></article>
             <article class="metric-card"><span>Simulierter freier Cash</span><strong id="paper-cash">—</strong><small>USDC</small></article>
@@ -69,8 +69,9 @@
           </div>
 
           <p id="paper-balance-detail"></p>
+          </details>
           <div class="section-heading">
-            <div><p class="eyebrow">MARKTUNIVERSUM</p><h2>Alle 15 Kryptowährungen</h2></div>
+            <div><h2>15 Märkte</h2></div>
             <button id="sync-button" class="button secondary">Jetzt prüfen</button>
           </div>
           <div id="market-grid" class="market-grid" aria-live="polite"></div>
@@ -107,15 +108,16 @@
             <span><i class="legend-marker fill"></i>Paper-Fill</span>
           </div>
           <article class="table-card chart-signal-table">
-            <h3>Letzte Signale im gewählten Zeitraum <small id="chart-signal-count">0 Signale</small></h3>
-            <div class="table-scroll"><table><thead><tr><th>Signalkerze</th><th>Aktion</th><th>Preis</th><th>Ausbruch</th><th>Signal-ID</th></tr></thead><tbody id="chart-signals-body"></tbody></table></div>
+            <h3>Signale im Zeitraum <small id="chart-signal-count">0 Signale</small></h3>
+            <div class="table-scroll"><table><thead><tr><th>Signalkerze</th><th>Aktion</th><th>Preis</th><th>Ausbruch</th><th class="technical-column">Signal-ID</th></tr></thead><tbody id="chart-signals-body"></tbody></table></div>
           </article>
         </section>
 
         <section id="positions" class="page">
-          <div class="section-heading"><div><p class="eyebrow">PAPER-LEDGER</p><h2>Positionen & Ereignisse</h2></div></div>
+          <article class="position-card"><strong>Echtgeld</strong><p id="position-real-status" role="status">Teststatus wird geladen …</p><small class="quiet-note">Binance-Fills und Kontenabgleich: Ausführungsbericht unter Einstellungen.</small></article>
+          <div class="section-heading"><div><p class="eyebrow">PAPER-LEDGER</p><h2>Paper-Positionen</h2></div></div>
           <div id="position-cards" class="position-grid"></div>
-          <article class="table-card"><h3>Letzte Signale, Fills und Blockaden</h3><div class="table-scroll">
+          <article class="table-card"><h3>Paper-Ereignisse</h3><div class="table-scroll">
             <table><thead><tr><th>Zeit (Europe/Berlin)</th><th>Coin</th><th>Aktion</th><th>Status</th><th>Preis</th><th>Grund / PnL</th></tr></thead><tbody id="events-body"></tbody></table>
           </div></article>
         </section>
@@ -123,12 +125,12 @@
         <section id="backtests" class="page">
           <div class="section-heading"><div><p id="backtest-eyebrow" class="eyebrow">BACKTEST</p><h2 id="backtest-title">Aktive Strategie wird geladen</h2></div></div>
           <article class="action-card">
-            <div><strong>Historischer Test</strong><p>Gewählte Handelsregeln rückwirkend simulieren: bis zu drei Jahre verfügbare Daten, 400 Warm-up-Bars, aktuelle Kosten und Next-Bar-Open. Das tatsächliche Fenster steht beim Ergebnis. VALID bestätigt die Berechnung, nicht die Binance-Ausführung oder künftigen Gewinn.</p></div>
+            <div><strong>Historischer Test</strong><p>Aktuelle Einstellungen rückwirkend simulieren. Zeitraum und Kosten stehen im Ergebnis.</p></div>
             <select id="backtest-strategy" aria-label="Backteststrategie"><option value="v8">Aktuelle V8 · Core + Gap-Satellites</option></select>
             <select id="backtest-symbol" aria-label="Backtestart"><option value="PORTFOLIO">Gemeinsames Portfolio</option><option value="ALL">Alle 15 einzeln · Budget je Coin</option></select>
             <button id="backtest-button" class="button primary">Backtest starten</button>
           </article>
-          <p class="backtest-note">Historische Simulation der aktuell aktiven V8 mit den aktuellen Bot-, Kosten- und Ausführungsregeln. Es gibt genau ein Ergebnis; die Ausführung ändert den laufenden Paperbot nicht.</p>
+          <details class="compact-details"><summary>Testmethode & Grenzen</summary><p>Bis zu drei Jahre Preishistorie, 400 Warm-up-Bars und modellierte Kosten. Fehlende ältere USDC-Historie wird durch USDT-Preise ergänzt. VALID bestätigt die Berechnung, keinen künftigen Gewinn und keine echte Binance-Ausführung. Paper und Echtgeld werden durch den Backtest nicht verändert.</p></details>
           <div id="backtest-runs" class="run-list"></div>
           <details id="backtest-history" class="backtest-history hidden">
             <summary id="backtest-history-label">Frühere Läufe dieser Auswahl</summary>
@@ -136,19 +138,19 @@
           </details>
           <article class="table-card backtest-detail">
 
-            <p id="backtest-blocks" class="backtest-note"></p>
+            <details class="compact-details backtest-block-details"><summary>Belegung & Blockaden im Test</summary><p id="backtest-blocks" class="backtest-note"></p></details>
             <h3><span id="backtest-detail-title">Letzter Run · Ergebnis</span> <small>Netto nach Kosten</small></h3>
             <div class="table-scroll"><table><thead><tr><th>Coin</th><th>Start</th><th>Ende</th><th>Rendite</th><th>Trades</th><th>Max. Drawdown</th></tr></thead><tbody id="backtest-detail-body"></tbody></table></div>
           </article>
         </section>
 
         <section id="quality" class="page">
-          <div class="section-heading"><div><p class="eyebrow">DATENQUALITÄT</p><h2>Verfügbare Historie einschließlich Warm-up</h2></div></div>
+          <div class="section-heading"><div><p class="eyebrow">DATENQUALITÄT</p><h2>Marktdaten</h2></div></div>
           <article class="table-card"><div class="table-scroll"><table><thead><tr><th>Coin</th><th>Status</th><th>Bars</th><th>Von</th><th>Bis</th><th>Lücken</th></tr></thead><tbody id="quality-body"></tbody></table></div></article>
         </section>
 
         <section id="system" class="page">
-          <div class="section-heading"><div><p class="eyebrow">24/7-BETRIEB</p><h2>System & Scheduler</h2></div></div>
+          <div class="section-heading"><div><p class="eyebrow">24/7-BETRIEB</p><h2>Betrieb & Protokoll</h2></div></div>
           <div id="system-grid" class="details-grid"></div>
           <article class="table-card system-log-table">
             <h3>Strukturierte Laufzeitereignisse <small>maximal 250 sichtbar</small></h3>
@@ -164,11 +166,11 @@
                 <div class="settings-fields">
                   <label>Maximaler USDC-Einsatz · vorgemerkt<input id="capital-input" type="number" min="100" max="1000000" step="1" value="250" aria-describedby="budget-mode-help" required /></label>
                   <p id="budget-mode-help" role="status">Budgetmodus wird geladen …</p>
-                  <label class="settings-toggle"><input id="auto-budget-input" type="checkbox" /> Bot alleine alles entscheiden lassen (verfügbare USDC, Positionsgröße und Spot-Trades)</label>
-                  <p>Automatischer Kapitalmodus: Der gemeinsame Portfolio-Backtest liest beim Start die aktuell frei verfügbaren Binance-USDC und simuliert deren Wiederanlage einschließlich Gewinnen und Verlusten. Bestehende Coins und gebundene Guthaben werden nicht übernommen. Schlägt die Kontoabfrage fehl, startet kein Ersatztest mit einem festen Budget. Das Paper-Konto verwendet weiterhin sein simuliertes Guthaben.</p>
+                  <label class="settings-toggle"><input id="auto-budget-input" type="checkbox" /> Bot alleine alles entscheiden lassen</label>
+
                   <label hidden class="settings-toggle"><input id="performance-mode-input" type="checkbox" aria-hidden="true" tabindex="-1" /> Interner Spot-Performance-Modus (synchron mit Automatikbudget)</label>
-                  <p>Automatikmodus: ausschließlich 1× Spot ohne Margin, Futures oder Hebel. Ein Haken aktiviert im Paper-Konto Budget-Wiederanlage, selbstständige Trade-Auswahl und den zusätzlichen NEAR/BCH-Platzfüllerfilter. <strong>Für echtes Live bleibt diese Funktion bis zur separaten Qualitäts- und Kontoprüfung gesperrt.</strong> Der 50-USDC-Test und die ausdrückliche Live-Freigabe dürfen niemals automatisch erfolgen.</p>
-                  <label class="settings-toggle"><input id="gap-fillers-input" type="checkbox" checked /> Zwischenfüller mit Core-Vorrang (nur wenn alle zehn Core-Coins inaktiv sind)</label>
+
+                  <label class="settings-toggle"><input id="gap-fillers-input" type="checkbox" checked /> Zwischenfüller mit Core-Vorrang</label>
                   <label class="settings-toggle"><input id="entry-pause-input" type="checkbox" /> Einstiegspause für neue Trades</label>
                 </div>
                 <p id="settings-validation" class="negative" role="alert"></p>
@@ -176,12 +178,12 @@
               </form>
               <p id="settings-saved">Einstellungen werden geladen …</p>
               <p id="settings-edit-state" role="status"></p>
-              <p>Der Automatik-Haken verbindet Kapital-Wiederanlage und zusätzliche Positionsfilter. Der Zwischenfüller-Haken schaltet die bedingten NEAR/BCH-Einstiege separat ein oder aus. Die Aufteilung verwendet weiterhin zwei Slots; sie erzeugt bei höherem Kapital nicht automatisch mehr Positionen. Eine Live-Freigabe ist damit nicht verbunden.</p>
+              <details class="compact-details"><summary>Budget & Handelsregeln</summary>                  <p>Automatischer Kapitalmodus: Der gemeinsame Portfolio-Backtest liest beim Start die aktuell frei verfügbaren Binance-USDC und simuliert deren Wiederanlage einschließlich Gewinnen und Verlusten. Bestehende Coins und gebundene Guthaben werden nicht übernommen. Schlägt die Kontoabfrage fehl, startet kein Ersatztest mit einem festen Budget. Das Paper-Konto verwendet weiterhin sein simuliertes Guthaben.</p>                  <p>Automatikmodus: ausschließlich 1× Spot ohne Margin, Futures oder Hebel. Ein Haken aktiviert im Paper-Konto Budget-Wiederanlage, selbstständige Trade-Auswahl und den zusätzlichen NEAR/BCH-Platzfüllerfilter. <strong>Für echtes Live bleibt diese Funktion bis zur separaten Qualitäts- und Kontoprüfung gesperrt.</strong> Der 50-USDC-Test und die ausdrückliche Live-Freigabe dürfen niemals automatisch erfolgen.</p>              <p>Der Automatik-Haken verbindet Kapital-Wiederanlage und zusätzliche Positionsfilter. Der Zwischenfüller-Haken schaltet die bedingten NEAR/BCH-Einstiege separat ein oder aus. Die Aufteilung verwendet weiterhin zwei Slots; sie erzeugt bei höherem Kapital nicht automatisch mehr Positionen. Eine Live-Freigabe ist damit nicht verbunden.</p></details>
             </article>
 
             <article class="settings-card">
               <h2>2 · Binance-Zugang & Sicherheit</h2>
-              <p>Hier hinterlegst du ausschließlich die Zugangsschlüssel für dein Binance-Spot-Konto. Die Daten bleiben lokal auf diesem Windows-PC und werden weder in Projektdateien noch zu GitHub geschrieben.</p>
+              <p>Schlüssel bleiben lokal im Windows-Schlüsselspeicher.</p>
               <form id="live-auth-panel" class="settings-form">
                 <label>Lokales Hixton-Passwort<input id="live-password" type="password" minlength="12" maxlength="256" autocomplete="current-password" required /></label>
                 <label id="live-password-repeat-label">Passwort wiederholen<input id="live-password-repeat" type="password" maxlength="256" autocomplete="new-password" /></label>
@@ -191,16 +193,18 @@
               <p id="live-auth-result" role="alert"></p>
               <fieldset id="live-protected" class="live-controls" disabled>
                 <legend>Binance API-Zugang</legend>
+                <details id="key-editor" class="compact-details"><summary>API-Schlüssel hinterlegen oder ersetzen</summary>
                 <form id="live-key-form" class="settings-form">
                   <label>Binance API-Key<input id="live-api-key" type="password" autocomplete="off" minlength="32" maxlength="256" spellcheck="false" required /></label>
                   <label>Binance Secret Key<input id="live-api-secret" type="password" autocomplete="off" minlength="32" maxlength="256" spellcheck="false" required /></label>
                   <button id="live-save-key" type="submit" class="button secondary">Zugangsschlüssel lokal speichern</button>
                 </form>
                 <p id="live-key-result" role="alert"></p>
+                </details>
                 <p id="live-credentials-status">Schlüsselstatus wird geladen …</p>
                 <button id="live-check" type="button" class="button primary">Binance-Verbindung prüfen</button>
                 <p id="live-check-result" role="status"></p>
-                <div class="live-security-box">
+                <details class="live-security-box"><summary>Binance-Rechte</summary>
                   <strong>Empfohlene Binance-Rechte</strong>
                   <ul>
                     <li>Lesen: EIN</li>
@@ -208,7 +212,7 @@
                     <li>IP-Beschränkung: EIN (für die Freigabe erforderlich)</li>
                     <li>Auszahlungen, Transfers, Margin, Futures und Optionen: AUS</li>
                   </ul>
-                </div>
+                </details>
                 <details>
                   <summary>Sicherheit & Schlüsselverwaltung</summary>
                   <p>Der Schlüssel wird im Windows-Anmeldedatenspeicher abgelegt. Die UI speichert API-Key oder Secret nicht im Browser. Ein gespeicherter Key allein aktiviert keine echten Orders.</p>
@@ -231,20 +235,20 @@
                 <button id="live-request" type="button" class="button secondary" aria-pressed="false" disabled>Live an</button>
                 <button id="live-off" type="button" class="button secondary" aria-pressed="false" disabled>Live aus</button>
               </div>
-              <p id="live-result" role="alert">Dauer-Live wird erst nach erfolgreichem 1×50-Roundtrip freigegeben. Beim Klick auf Live an prüft Hixton Konto, API-Rechte, Marktdaten und das gespeicherte Maximalbudget automatisch erneut.</p>
-              <p>Live aus stoppt neue Echtgeld-Einstiege. Bereits gesendete oder unklare Orders werden nur abgeglichen; offene Positionen dürfen regulär aussteigen. Paper läuft unabhängig weiter.</p>
+              <p id="live-result" role="alert"></p>
+              <details class="compact-details"><summary>Was bedeutet Live aus?</summary><p>Neue Echtgeld-Einstiege stoppen. Offene Positionen dürfen regulär aussteigen; unklare Orders werden abgeglichen. Paper läuft unabhängig weiter.</p></details>
               <details open>
                 <summary>Kontrollierter erster Echtgeldtest · 1 × 50 USDC</summary>
-                <p>Nach deiner ausdrücklichen Freigabe prüft Hixton das Binance-Konto automatisch neu. Danach wird nicht sofort gekauft: Der Bot wartet auf ein neues gültiges Signal aus den zehn USDC-Märkten, sendet dann höchstens einen echten 50-USDC-Market-Kauf, verwaltet den regulären Ausstieg und gleicht anschließend Konto und Orders ab. Der separate Button „Binance-Verbindung prüfen“ ist nur Diagnose und keine Pflicht vor dem Test.</p>
-                <p>Der gespeicherte Maximalbetrag bleibt dabei unverändert, standardmäßig 250 USDC. Der 1×50-Test ist ein separater einmaliger Sicherheitsmodus. Erst nach einem vollständig abgeglichenen Kauf-und-Verkauf-Roundtrip kann der normale budgetgesteuerte Livebetrieb aktiviert werden.</p>
+                <p>Einmal 50 USDC: auf ein neues Core-Signal warten, kaufen, regulär aussteigen und Binance abgleichen.</p>
+                <details class="compact-details"><summary>Ablauf des Einmaltests</summary><p>Die Freigabe prüft Konto und Rechte neu. Kein Sofortkauf, höchstens ein echter 50-USDC-Kauf. Das manuelle Budget bleibt unverändert. Dauer-Live benötigt einen vollständig abgeglichenen Roundtrip sowie seine übrigen Freigaben.</p></details>
                 <button id="live-trial-start" type="button" class="button primary" disabled>1 × 50 USDC · Test freigeben</button>
                 <p id="live-trial-status" role="status">Nicht gestartet.</p>
                 <p id="live-trial-result" role="alert"></p>
               </details>
               <details><summary>Technische Freigabe prüfen</summary><ul id="live-blockers"></ul></details>
-              <details open>
-                <summary>Live-Abnahme- & 24/7-Bericht</summary>
-                <p>Der Bericht enthält Trial-/Live-Zustand, Binance-Fills, offene oder ungeklärte Orders, Entry-/Exit-Verzögerungen, Paper-vs-Live-Signalabgleich und die tatsächlich gebundene Strategie-/Patch-/Allocator-Version. API-Key und Secret werden nie aufgenommen.</p>
+              <details>
+                <summary>Ausführungsbericht · Test & Live</summary>
+                <p>Fills, Signalzeiten, Kontenabgleich und gebundene Version. Ohne API-Schlüssel.</p>
                 <div class="settings-fields">
                   <button id="live-report-refresh" type="button" class="button secondary">Bericht aktualisieren</button>
                   <button id="live-report-download" class="button secondary" type="button" disabled>JSON-Bericht herunterladen</button>
@@ -258,14 +262,14 @@
         </section>
 
         <section id="documentation" class="page">
-          <div class="section-heading"><div><p class="eyebrow">VERSIONEN & WAHRHEIT</p><h2>Dokumentation</h2></div></div>
+          <div class="section-heading"><div><p class="eyebrow">HILFE & VERSION</p><h2>Dokumentation</h2></div></div>
           <div class="doc-grid">
-            <a href="https://github.com/127027/Der-Hixton-von-GPT/blob/gpt/usdc-audit/DMS/00_DOKUMENTENLENKUNG_UND_START.md" target="_blank" rel="noopener"><strong>DMS Einstieg</strong><span>Aktueller Projektbranch · Dokumentenlenkung</span></a>
-            <a href="https://github.com/127027/Der-Hixton-von-GPT/blob/gpt/usdc-audit/DMS/03_STRATEGIE_HIXTON.md" target="_blank" rel="noopener"><strong>Hixton-Strategie & Coin-Profile</strong><span>Aktueller Stand und versionierte Historie</span></a>
-            <a href="https://github.com/127027/Der-Hixton-von-GPT/blob/gpt/usdc-audit/DMS/08_UI_UX_SPEZIFIKATION.md" target="_blank" rel="noopener"><strong>UI-Spezifikation</strong><span>Ansichten und Akzeptanz</span></a>
-            <a href="https://github.com/127027/Der-Hixton-von-GPT/blob/gpt/usdc-audit/DMS/20_BETRIEBSRUNBOOK.md" target="_blank" rel="noopener"><strong>Betriebsrunbook</strong><span>Start, Recovery und Not-Aus</span></a>
+            <a href="https://github.com/127027/Der-Hixton-von-GPT/blob/codex/hixton-local-fixes-20261011/DMS/00_DOKUMENTENLENKUNG_UND_START.md" target="_blank" rel="noopener"><strong>DMS Einstieg</strong><span>Aktueller Projektbranch · Dokumentenlenkung</span></a>
+            <a href="https://github.com/127027/Der-Hixton-von-GPT/blob/codex/hixton-local-fixes-20261011/DMS/03_STRATEGIE_HIXTON.md" target="_blank" rel="noopener"><strong>Hixton-Strategie & Coin-Profile</strong><span>Aktueller Stand und versionierte Historie</span></a>
+            <a href="https://github.com/127027/Der-Hixton-von-GPT/blob/codex/hixton-local-fixes-20261011/DMS/08_UI_UX_SPEZIFIKATION.md" target="_blank" rel="noopener"><strong>UI-Spezifikation</strong><span>Ansichten und Akzeptanz</span></a>
+            <a href="https://github.com/127027/Der-Hixton-von-GPT/blob/codex/hixton-local-fixes-20261011/DMS/20_BETRIEBSRUNBOOK.md" target="_blank" rel="noopener"><strong>Betriebsrunbook</strong><span>Start, Recovery und Not-Aus</span></a>
           </div>
-          <article class="version-card"><span>Bot</span><strong id="doc-app-version">—</strong><span>Aktive Paperstrategie</span><strong id="doc-strategy-version">—</strong><span>Betrieb</span><strong>GESTUFTER LIVE-PFAD</strong></article>
+          <article class="version-card"><span>Bot</span><strong id="doc-app-version">—</strong><span>Aktive Paperstrategie</span><strong id="doc-strategy-version">—</strong><span>Betrieb</span><strong>Paper · Einmaltest · Dauer-Live</strong></article>
         </section>
       </main>
     </div>

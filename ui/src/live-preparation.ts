@@ -110,11 +110,13 @@ export function initializeLivePreparation(sharedSettingsBlocker: (mode?: "live" 
       NEEDS_REVIEW: "Ungeklärt · Bericht prüfen; keine weiteren Einstiege freigeben.",
     };
     message("real-trial-status", `50-USDC-Einmaltest: ${trialLabels[trialState] ?? trialState}${status.trial?.symbol ? " · " + status.trial.symbol : ""}`);
+    message("position-real-status", `50-USDC-Einmaltest: ${trialLabels[trialState] ?? trialState}${status.trial?.symbol ? " · " + status.trial.symbol : ""}`);
     const live = status.live;
     message("real-live-slots", live ? String(live.free_slots) : "—");
     message("real-live-slots-detail", live
       ? `von ${live.slot_count ?? live.used_slots + live.free_slots} · ${live.state === "LIVE_DISABLED" ? "Dauer-Live aus" : live.state}. Einmaltest separat.`
       : "Dauer-Live-Slots noch nicht bestätigt.");
+    if (!status.credentials.configured) element<HTMLDetailsElement>("key-editor").open = true;
     const trialReason = (status.trial_blockers ?? []).join(" · ");
     const healthWait = status.trial_order_execution_blocked_by_health
       ? " Order-Ausführung derzeit blockiert: Warmup/Marktdaten sind noch nicht HEALTHY. "
@@ -176,6 +178,7 @@ export function initializeLivePreparation(sharedSettingsBlocker: (mode?: "live" 
         message("live-state", "Status unbekannt · keine Echtgeldfreigabe");
         message("real-trial-status", "Echtgeldtest: Verbindung unterbrochen; Zustand nicht bestätigt.");
         message("real-live-slots", "—");
+        message("position-real-status", "Verbindung unterbrochen; Echtgeld-Teststatus nicht bestätigt.");
         message("real-live-slots-detail", "Live-Zustand nicht bestätigt.");
       }
       return false;

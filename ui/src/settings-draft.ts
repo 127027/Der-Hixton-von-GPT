@@ -104,8 +104,7 @@ export function describeLivePlan(
         ?? "Erst Übernehmen klicken, bevor Live angefordert wird.");
   if ((saved.auto_budget_enabled && saved.auto_budget_live_available !== true)
     || (saved.autonomous_performance_enabled && saved.autonomous_performance_live_available !== true))
-    return active + " Die dynamische Kapitalverwaltung ist vorgemerkt. "
-      + "Live-Aktivierung ist für diesen Modus noch gesperrt; es werden keine automatischen Budget-Orders ausgelöst.";
+    return "Automatikbudget vorgemerkt · Dauer-Live für diesen Modus noch gesperrt. Der einmalige 50-USDC-Test hat ein eigenes Budget.";
   const reference = Number(limits.research_reference_max_usdc ?? "NaN");
   const selected = Number(saved.max_capital_usdc);
   const scaleNote = Number.isFinite(reference) && Number.isFinite(selected) && selected > reference

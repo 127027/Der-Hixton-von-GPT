@@ -247,7 +247,8 @@ function renderStatus(status: StatusResponse): void {
   const healthPill = required("#health-pill");
   healthPill.textContent = status.runtime.health;
   healthPill.className = `health-pill ${health}`;
-  text("#runtime-message", status.runtime.message);
+  text("#runtime-message", status.runtime.health === "HEALTHY" ? (status.runtime.sync_in_progress ? "Marktdaten werden aktualisiert" : "Bot läuft · Marktdaten verbunden") : status.runtime.message);
+  required("#runtime-message").title = status.runtime.message;
   text("#runtime-detail", status.runtime.last_error ?? `Letzte Synchronisation: ${formatDate(status.runtime.last_sync_utc, true)}`);
   text("#activity-detail", activityText(status.activity, value => formatDate(value, true)));
   const banner = required("#runtime-banner");
@@ -255,7 +256,10 @@ function renderStatus(status: StatusResponse): void {
   const dot = required("#connection-dot");
   dot.className = `status-dot ${status.runtime.health === "HEALTHY" ? "online" : status.runtime.health === "HALTED" ? "error" : ""}`;
   text("#connection-label", status.runtime.stream_connected ? "Binance Stream" : status.runtime.feed_mode);
-  text("#active-strategy-label", `BINANCE SPOT · 1H · ${status.strategy_version}`);
+  text("#active-strategy-label", "BINANCE SPOT · 1H");
+  required("#active-strategy-label").title = status.strategy_version;
+  const stateLabels: Record<string, string> = {LIVE_DISABLED:"Live aus",LIVE_ENABLED:"Live an",EXIT_ONLY:"Nur Ausstieg",TRIAL_WAITING_SIGNAL:"Test wartet",TRIAL_OPEN:"Test offen"};
+  text("#execution-state-pill", stateLabels[status.runtime.live_state] ?? status.runtime.live_state);
   text("#app-version-badge", `HIXTON v${status.application_version}`);
   text("#doc-app-version", status.application_version);
   text("#doc-strategy-version", status.strategy_version);
@@ -266,6 +270,7 @@ function renderStatus(status: StatusResponse): void {
   text("#paper-cash", status.paper ? formatNumber(status.paper.cash_usdc) : "—");
   text("#metric-equity", validBalance ? formatNumber(balance!.total_usdc!) : "—");
   text("#metric-cash", validBalance ? formatNumber(balance!.free_usdc!) : "—");
+  text("#bank-display-status", validBalance ? `Stand ${formatDate(balance!.observed_at_utc, true)} · Aktualisierung alle ${balance!.refresh_seconds} s` : balance?.message ?? "Binance-Guthaben nicht bestätigt.");
   text("#binance-balance-detail", validBalance
     ? `Binance Spot · frei: ${balance!.free_usdc} USDC · gebunden: ${balance!.locked_usdc} USDC · Stand: ${formatDate(balance!.observed_at_utc, true)} · automatische Abfrage alle ${balance!.refresh_seconds} s. Bestehende Coins sind nicht enthalten.`
     : balance?.message ?? "Binance-Guthaben noch nicht verfügbar. Nach Installation der Aktualisierung den Bot neu starten; kein simuliertes Ersatzguthaben.");
@@ -287,7 +292,7 @@ function renderStatus(status: StatusResponse): void {
 
 function marketCard(market: Market): string {
   const trendClass = market.trend.toLowerCase();
-  const signal = market.position_state === "LONG" ? "Position läuft" : "Wartet auf neuen Kauf";
+  const signal = market.position_state === "LONG" ? "Paper offen" : "Kein Paper-Einstieg";
   const p = market.strategy_profile.parameters;
   const rule = market.strategy_profile.trade_policy;
   const extras = [rule.cmo_floor ? `CMO ≥ ${rule.cmo_floor}` : "", rule.slope_bars ? `VIDYA-Steigung ${rule.slope_bars}h` : "", rule.stop_atr ? `Stop ${rule.stop_atr} ATR am Schlusskurs` : "", rule.trail_atr ? `Trail ${rule.trail_atr} ATR` : ""].filter(Boolean).join(" · ");
@@ -300,15 +305,17 @@ function marketCard(market: Market): string {
     <div class="market-top"><strong>${market.display_symbol}<small> · ${role}</small></strong><span class="trend-tag ${trendClass}">${market.trend}</span></div>
     <div class="market-price">${formatPrice(market.price)} <small>USDC</small></div>
     <div class="market-meta"><span>${formatDate(market.price_time_utc)}</span><span class="${market.data.valid ? "good" : "warning"}">${market.data.valid ? "DATEN OK" : "PRÜFUNG"}</span></div>
-    <div class="market-meta"><span>VIDYA ${p.vidya_length} · MOM ${p.momentum_length} · SMA ${p.smoothing_length} · ATR ${p.atr_length} · Band ${p.band_multiplier}${extras ? `<br>${extras}` : ""}</span></div>
-    <div class="market-meta"><span>${escapeHtml(marketSignalText(market.last_signal, formatDate))}${market.trend === "UP" && market.position_state !== "LONG" ? "<br>Grüner Trend ≠ neuer Kauf. Alte Signale werden nicht nachgehandelt." : ""}</span></div>
+    <details class="market-details"><summary>Signal & Parameter</summary><div class="market-meta"><span>VIDYA ${p.vidya_length} · MOM ${p.momentum_length} · SMA ${p.smoothing_length} · ATR ${p.atr_length} · Band ${p.band_multiplier}${extras ? `<br>${extras}` : ""}</span></div>
+    <div class="market-meta"><span>${escapeHtml(marketSignalText(market.last_signal, formatDate))}${market.trend === "UP" && market.position_state !== "LONG" ? "<br>Grüner Trend ≠ neuer Kauf. Alte Signale werden nicht nachgehandelt." : ""}</span></div></details>
     <div class="market-foot"><span>${signal}</span><span class="${market.position_state === "LONG" ? "good" : ""}">${market.position_state}</span></div>
   </article>`;
 }
 
 function renderMarkets(markets: Market[]): void {
   const grid = required("#market-grid");
+  const expanded = new Set([...grid.querySelectorAll<HTMLElement>(".market-card")].filter(card => card.querySelector<HTMLDetailsElement>("details")?.open).map(card => card.dataset.symbol));
   grid.innerHTML = markets.map(marketCard).join("");
+  grid.querySelectorAll<HTMLElement>(".market-card").forEach(card => { const detail = card.querySelector<HTMLDetailsElement>("details"); if (detail) detail.open = expanded.has(card.dataset.symbol); });
   grid.querySelectorAll<HTMLElement>(".market-card").forEach((card) => {
     const open = (): void => {
       selectedSymbol = card.dataset.symbol as SymbolName;
@@ -316,8 +323,8 @@ function renderMarkets(markets: Market[]): void {
       setPage("chart-panel", "Chart & Signale");
       void loadChart();
     };
-    card.addEventListener("click", open);
-    card.addEventListener("keydown", (event) => { if (event.key === "Enter") open(); });
+    card.addEventListener("click", (event) => { if (!(event.target as HTMLElement).closest("details")) open(); });
+    card.addEventListener("keydown", (event) => { if (event.key === "Enter" && event.target === card) open(); });
   });
   renderQuality(markets);
 }
@@ -343,10 +350,7 @@ function renderSystem(status: StatusResponse): void {
     ["Letzte Synchronisation", formatDate(status.runtime.last_sync_utc, true)],
     ["Nächster 00:05-UTC-Audit", `${formatUtc(status.runtime.next_daily_audit_utc)} / ${formatDate(status.runtime.next_daily_audit_utc, true)} Europe/Berlin`],
     ["Letzter Tagesaudit", status.runtime.last_daily_audit_utc ? `${formatUtc(status.runtime.last_daily_audit_utc)} / ${formatDate(status.runtime.last_daily_audit_utc, true)} Europe/Berlin` : "—"],
-    ["Datenbank", status.runtime.sync_in_progress ? "Synchronisierung läuft" : "WAL · bereit"],
     ["Live-Ausführung", status.runtime.live_state],
-    ["Betriebsüberwachung", "UI & strukturierte Logs · manuell bestätigt"],
-    ["Backup-/Restore-Gate", "Nicht konfiguriert · blockiert Live"],
     ["Paper-Soak", soakLabel],
   ];
   required("#system-grid").innerHTML = items.map(([label, value]) => `<article class="details-card"><strong>${label}</strong><span>${value}</span></article>`).join("");
@@ -443,6 +447,7 @@ async function refreshCore(): Promise<void> {
     text("#connection-label", "UI-API getrennt");
     text("#metric-equity", "—");
     text("#metric-cash", "—");
+    text("#bank-display-status", "Keine Verbindung zum Bot · Guthaben nicht bestätigt.");
     text("#binance-balance-detail", "Keine aktuelle Verbindung zum Bot; Binance-Guthaben nicht bestätigt.");
     showToast(error instanceof Error ? error.message : String(error), true);
   }
@@ -478,7 +483,7 @@ async function refreshBacktests(): Promise<void> {
     const response = await api<{ runs: BacktestRun[]; status: string }>(`/api/backtests?${query}`);
     if (generation !== backtestLoadGeneration || required<HTMLSelectElement>("#backtest-strategy").value !== strategy || required<HTMLSelectElement>("#backtest-symbol").value !== selection) return;
     text("#backtest-eyebrow", `BACKTEST ${strategy.toUpperCase()}`);
-    text("#backtest-title", "Aktuelle V8 · Gemeinsames Portfolio oder alle 15 einzeln mit dem gespeicherten Budget");
+    text("#backtest-title", "Historische Simulation");
     const button = required<HTMLButtonElement>("#backtest-button");
     button.disabled = response.status === "RUNNING";
     button.textContent = response.status === "RUNNING" ? "Backtest läuft …" : "Backtest starten";
