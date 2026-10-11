@@ -127,8 +127,8 @@ def run_shared_portfolio_backtest(
     validate_market_symbols(symbols)
     if tuple(candles_by_symbol) != symbols:
         raise ValueError("portfolio input must contain all ten symbols in fixed DMS order")
-    if autonomous_spot and (strategy is None or strategy.key != 'v8' or slot_count != 4):
-        raise ValueError('autonomous spot research requires V8 with four capacity slots')
+    if autonomous_spot and (strategy is None or strategy.key != 'v8' or slot_count not in (2, 3, 4)):
+        raise ValueError('autonomous spot research requires V8 with 2, 3 or 4 capacity slots')
     if starting_cash <= ZERO or target_notional <= ZERO or slot_count <= 0:
         raise ValueError("portfolio capital and slot_count must be positive")
     if report_start_utc >= report_end_utc:
