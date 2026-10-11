@@ -25,6 +25,9 @@ from hixton.backtest.models import ExecutionRules
 from hixton.domain.allocation import allocate_entry_slots
 from hixton.domain.capital import capital_plan
 from hixton.domain.models import IndicatorPoint, SignalAction
+from hixton.domain.spot_autonomy import (
+    marked_portfolio_equity, quality_filler_block_reason, size_spot_entry,
+)
 from hixton.domain.satellite_layer import (
     satellite_handoff_symbols,
     shared_satellite_entry_block_reason,
@@ -603,7 +606,11 @@ class LivePortfolioController:
         execution_source_sha256: str = "unknown",
         source_is_current: Callable[[], bool] | None = None,
         gap_fillers_enabled: Callable[[], bool] | None = None,
+        autonomous_spot: Callable[[], bool] | None = None,
+        market_points: Callable[[], Mapping[str, Sequence[IndicatorPoint]]] | None = None,
     ) -> None:
+        self.autonomous_spot = autonomous_spot or (lambda: False)
+        self.market_points = market_points or (lambda: {})
         self.database = database
         self.gap_fillers_enabled = gap_fillers_enabled or (lambda: True)
         self.journal = journal
@@ -773,7 +780,10 @@ class LivePortfolioController:
         if emergency:
             raise RuntimeError("Live enable refused while entry pause is active")
         free_usdc = snapshot.balances.get("USDC", (ZERO, ZERO))[0]
-        if free_usdc < plan.max_capital_usdc:
+        if self.autonomous_spot():
+            if free_usdc < Decimal("100"):
+                raise RuntimeError("Autonomous Spot needs at least 100 free USDC on enable")
+        elif free_usdc < plan.max_capital_usdc:
             raise RuntimeError("Live account has less free USDC than configured max capital")
         capital_json = self._capital_json(plan)
         existing_control = self._control()
@@ -933,7 +943,10 @@ class LivePortfolioController:
                     or control["execution_source_sha256"] != self.execution_source_sha256
                     or not self.source_is_current()
                     or emergency
-                    or intent.quote_budget != plan.target_notional_usdc * intent.slot_count
+                    or (
+                        not self.autonomous_spot()
+                        and intent.quote_budget != plan.target_notional_usdc * intent.slot_count
+                    )
                 ):
                     return False
             elif control["state"] not in {"LIVE_ENABLED", "EXIT_ONLY"}:
@@ -948,11 +961,33 @@ class LivePortfolioController:
             if intent.side == "BUY":
                 used = sum(int(row["slot_count"]) for row in positions.values())
                 free_usdc = snapshot.balances.get("USDC", (ZERO, ZERO))[0]
-                return (
-                    intent.symbol not in positions
-                    and used + intent.slot_count <= plan.slot_count
-                    and free_usdc >= intent.quote_budget
-                )
+                if (
+                    intent.symbol in positions
+                    or used + intent.slot_count > plan.slot_count
+                    or free_usdc < intent.quote_budget
+                ):
+                    return False
+                if self.autonomous_spot():
+                    # Fresh signed Binance snapshot + fresh local closed-bar market marks
+                    # on EVERY attempt, including after a pending-intent restart.
+                    try:
+                        marks = self._live_marks(now=datetime.now(UTC))
+                        equity = marked_portfolio_equity(
+                            free_quote=free_usdc,
+                            base_quantities={
+                                s: Decimal(p["quantity"]) for s, p in positions.items()
+                            },
+                            open_prices=marks,
+                        )
+                        maximum = size_spot_entry(
+                            equity=equity, free_quote=free_usdc,
+                            slots=plan.slot_count, allocated_slots=intent.slot_count,
+                        )
+                        if intent.quote_budget > maximum:
+                            return False
+                    except (ValueError, KeyError, ArithmeticError):
+                        return False
+                return True
             position = positions.get(intent.symbol)
             if position is None or intent.base_quantity > Decimal(position["quantity"]):
                 return False
@@ -1264,6 +1299,28 @@ class LivePortfolioController:
                 (pending["signal_id"],),
             )
 
+    def _live_marks(self, *, now: datetime) -> dict[str, Decimal]:
+        """Closed 1h candle marks, fresh within two hours; never a balance API guess."""
+        points = self.market_points()
+        if set(points) != set(self.strategy.symbols):
+            raise ValueError("incomplete live market prices")
+        stamps: set[datetime] = set()
+        marks: dict[str, Decimal] = {}
+        for symbol in self.strategy.symbols:
+            series = points[symbol]
+            if not series or not series[-1].candle.closed:
+                raise ValueError("missing finalized market candle")
+            point = series[-1]
+            at = _utc(point.candle.close_time_utc)
+            age = (now - at).total_seconds()
+            if not 0 <= age <= 7200:
+                raise ValueError("stale or future market candle")
+            stamps.add(at)
+            marks[symbol] = Decimal(str(point.candle.close))
+        if len(stamps) != 1:
+            raise ValueError("unaligned live candle marks")
+        return marks
+
     def _equity(
         self,
         snapshot: LiveAccountSnapshot,
@@ -1446,6 +1503,10 @@ class LivePortfolioController:
                             symbol,
                             group[symbol],
                         )
+                        if satellite_reason is None and self.autonomous_spot():
+                            satellite_reason = quality_filler_block_reason(
+                                symbol, group[symbol].abs_cmo
+                            )
                         if satellite_reason is not None:
                             self._blocked(signal, satellite_reason)
                             continue
@@ -1543,12 +1604,36 @@ class LivePortfolioController:
                     if allocated <= 0:
                         self._blocked(signal, "NO_FREE_SLOT")
                         continue
+                    if self.autonomous_spot():
+                        try:
+                            marks = self._live_marks(now=datetime.now(UTC))
+                            portfolio_equity = marked_portfolio_equity(
+                                free_quote=snapshot.balances.get("USDC", (ZERO, ZERO))[0],
+                                base_quantities={
+                                    s: Decimal(pos["quantity"]) for s, pos in positions.items()
+                                },
+                                open_prices=marks,
+                            )
+                            trade_budget = size_spot_entry(
+                                equity=portfolio_equity,
+                                free_quote=snapshot.balances.get("USDC", (ZERO, ZERO))[0],
+                                slots=plan.slot_count,
+                                allocated_slots=allocated,
+                            )
+                        except (ValueError, ArithmeticError, KeyError):
+                            self.fail_closed("AUTONOMOUS_MARKS_OR_EQUITY_NOT_VERIFIED")
+                            return self.report()
+                    else:
+                        trade_budget = plan.target_notional_usdc * allocated
+                    if trade_budget <= ZERO:
+                        self._blocked(signal, "INSUFFICIENT_FREE_USDC")
+                        continue
                     self._reserve(
                         signal,
                         point,
                         action="ENTER_LONG",
                         slot_count=allocated,
-                        quote_budget=plan.target_notional_usdc * allocated,
+                        quote_budget=trade_budget,
                     )
                     return self.report()
 
