@@ -216,6 +216,7 @@ class LivePreparation:
             allocator_version=self.allocator_version,
             source_is_current=self.source_is_current,
             gap_fillers_enabled=gap_fillers_enabled,
+            autonomous_spot=autonomous_spot_enabled,
         )
         self.runtime = TrialRuntime(self.trial, self.trial_reconciler, self._account_snapshot)
         self._trial_authorized = bool(self.trial.report().get("has_unsettled"))

@@ -423,7 +423,9 @@ class RuntimeSupervisor:
         def synchronize_market(symbol: str) -> None:
             # Independent public reads can overlap; each worker owns its SQLite
             # connection. Publish analysis only after the complete universe passes.
-            market_client = BinancePublicClient(base_url=self.config.binance_base_url)
+            market_client = BinancePublicClient(
+                base_url=self.config.binance_base_url, timeout_seconds=5.0, max_attempts=2
+            )
             with CandleStore(self.config.database_path) as store:
                 if symbol not in self._available_starts:
                     self._available_starts[symbol] = market_client.first_available_open(
@@ -435,14 +437,9 @@ class RuntimeSupervisor:
                     symbol=symbol,
                     start=max(warmup_start, self._available_starts[symbol]),
                     end_exclusive=report_end,
+                    include_next_open=True,
                 )
-                current_candles = market_client.fetch_klines(
-                    symbol, start=report_end, end_exclusive=report_end + TIMEFRAME_DELTA
-                )
-                if not any(candle.open_time_utc == report_end for candle in current_candles):
-                    raise RuntimeError(f"{symbol}: next opening candle not yet available; retry")
-                store.put_candles(current_candles)
-        with ThreadPoolExecutor(max_workers=4, thread_name_prefix="hixton-public-sync") as pool:
+        with ThreadPoolExecutor(max_workers=8, thread_name_prefix="hixton-public-sync") as pool:
             # Exhaust map so every failure is propagated before state can be published.
             list(pool.map(synchronize_market, self.strategy.symbols))
         points, quality = rebuild_analysis(

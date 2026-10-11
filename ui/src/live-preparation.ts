@@ -22,7 +22,7 @@ interface LiveStatus {
     free_bnb?: string;
     open_order_count?: number;
   } | null;
-  trial?: {state: string; symbol?: string};
+  trial?: {state: string; symbol?: string; reason?: string | null};
   live?: {state: string; used_slots: number; free_slots: number; slot_count?: number};
 }
 
@@ -118,6 +118,9 @@ export function initializeLivePreparation(sharedSettingsBlocker: (mode?: "live" 
       : "Dauer-Live-Slots noch nicht bestätigt.");
     if (!status.credentials.configured) element<HTMLDetailsElement>("key-editor").open = true;
     const trialReason = (status.trial_blockers ?? []).join(" · ");
+    const signalWait = status.trial?.reason === "ENTRY_WINDOW_EXPIRED"
+      ? " Letztes Einstiegssignal verpasst: Marktdaten kamen nach dem 90-Sekunden-Fenster. Keine Order nachgeholt; wartet auf ein neues Signal."
+      : "";
     const healthWait = status.trial_order_execution_blocked_by_health
       ? " Order-Ausführung derzeit blockiert: Warmup/Marktdaten sind noch nicht HEALTHY. "
         + "Es wird keine Binance-Order gesendet, bis der Bot HEALTHY meldet."
@@ -127,9 +130,9 @@ export function initializeLivePreparation(sharedSettingsBlocker: (mode?: "live" 
       status.trial?.state && status.trial.state !== "NOT_STARTED"
         ? status.trial_retryable_before_submit
           ? `Vor einer Binance-Order beendet (${status.trial.state}) · sicher erneut startbar.`
-          : `Test: ${status.trial.state}${status.trial.symbol ? " · " + status.trial.symbol : ""}.${healthWait}`
+          : `Test: ${status.trial.state}${status.trial.symbol ? " · " + status.trial.symbol : ""}.${healthWait}${signalWait}`
         : status.trial_dispatch_available
-          ? `Noch nicht gestartet: Test freigeben, um auf das nächste gültige Signal zu warten.${healthWait}`
+          ? `Noch nicht gestartet: Test freigeben, um auf das nächste gültige Signal zu warten.${healthWait}${signalWait}`
           : trialReason
             ? `Noch gesperrt: ${trialReason}`
             : "Nicht gestartet. Voraussetzungen siehe technische Freigabe.",

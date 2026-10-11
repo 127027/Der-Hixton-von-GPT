@@ -9,7 +9,7 @@ from __future__ import annotations
 import json
 import time
 from collections.abc import Callable, Mapping, Sequence
-from dataclasses import asdict
+from dataclasses import asdict, replace
 from datetime import UTC, datetime, timedelta
 from decimal import ROUND_DOWN, Decimal
 from threading import RLock
@@ -20,9 +20,11 @@ from hixton.backtest.models import ExecutionRules
 from hixton.domain.markets import split_market
 from hixton.domain.models import IndicatorPoint, SignalAction
 from hixton.domain.satellite_layer import (
+    satellite_handoff_symbols,
     shared_satellite_entry_block_reason,
     shared_satellite_horizon_exit,
 )
+from hixton.domain.spot_autonomy import quality_filler_block_reason
 from hixton.domain.strategy import entry_priority
 from hixton.domain.trade_policy import TradePolicyGate
 from hixton.domain.versions import StrategyDefinition
@@ -62,6 +64,7 @@ class SignalTrial:
         allocator_version: str = "unknown",
         source_is_current: Callable[[], bool] | None = None,
         gap_fillers_enabled: Callable[[], bool] | None = None,
+        autonomous_spot: Callable[[], bool] | None = None,
     ) -> None:
         if executor.journal.path.resolve() != journal.path.resolve():
             raise ValueError("Trial and order journal must share the same ledger")
@@ -75,6 +78,7 @@ class SignalTrial:
         self.allocator_version = allocator_version
         self.source_is_current = source_is_current or (lambda: True)
         self.gap_fillers_enabled = gap_fillers_enabled or (lambda: True)
+        self.autonomous_spot = autonomous_spot or (lambda: False)
         self.lock = RLock()
         with journal._connect() as connection:
             connection.execute("""
@@ -533,8 +537,6 @@ class SignalTrial:
                 return
             if not point.candle.closed or not point.tradable or not point.candle.ohlc_is_valid:
                 return
-            if not 0 <= (now - boundary).total_seconds() <= 90:
-                return
             gate = TradePolicyGate(self.strategy.policy_for(symbol))
             decision = None
             for prior in series[-74:]:
@@ -551,13 +553,21 @@ class SignalTrial:
                 if (
                     symbol in self.strategy.satellite_symbols
                     and (
-                        not self.gap_fillers_enabled()
+                        symbol not in self.strategy.active_shared_satellites
+                        or not self.gap_fillers_enabled()
                         or shared_satellite_entry_block_reason(symbol, point) is not None
+                        or (self.autonomous_spot()
+                            and quality_filler_block_reason(symbol, point.abs_cmo) is not None)
                     )
                 ):
                     continue
                 candidates.append(point)
         if len(boundaries) != 1 or not candidates:
+            return
+        age = (now - next(iter(boundaries))).total_seconds()
+        if not 0 <= age <= 90:
+            if age > 90 and row["reason"] != "ENTRY_WINDOW_EXPIRED":
+                self._set(reason="ENTRY_WINDOW_EXPIRED")
             return
         core_candidates = [p for p in candidates if p.symbol not in self.strategy.satellite_symbols]
         if core_candidates:
@@ -625,6 +635,40 @@ class SignalTrial:
                 )
                 return
             highest = max(highest, point.candle.close)
+        # The one-shot position follows the same Core-capacity handoff as Paper
+        # and the normal portfolio; it never opens a second real position.
+        if row["symbol"] in self.strategy.active_shared_satellites:
+            core_signals = []
+            for symbol in self.strategy.symbols:
+                if symbol in self.strategy.satellite_symbols:
+                    continue
+                core_series = points.get(symbol, ())
+                if (not core_series
+                    or core_series[-1].strategy_version != self.strategy.version
+                    or core_series[-1].candle.close_time_utc != latest.candle.close_time_utc):
+                    core_signals = []
+                    break  # Own regular exits remain obligations with missing Core data.
+                gate_core = TradePolicyGate(self.strategy.policy_for(symbol))
+                core_decision = None
+                for prior in core_series[-74:]:
+                    if not prior.candle.closed or not prior.candle.ohlc_is_valid:
+                        core_decision = None
+                        break
+                    core_decision = gate_core.decide(prior)
+                if (core_decision and core_decision.signal
+                    and core_decision.signal.action is SignalAction.ENTER_LONG
+                    and not core_decision.block_reason):
+                    core_signals.append(core_decision.signal)
+            if core_signals and row["symbol"] in satellite_handoff_symbols(
+                core_entry_count=len(core_signals), position_slots={row["symbol"]: 1},
+                active_satellites=frozenset(self.strategy.active_shared_satellites), slot_count=2,
+            ):
+                core_signals.sort(key=lambda signal: entry_priority(
+                    signal.breakout_strength, signal.symbol, self.strategy.symbols))
+                self._reserve(row, replace(latest, flip_down=True, flip_up=False),
+                    side="SELL", reason=f"CORE_CAPACITY_HANDOFF::{core_signals[0].signal_id}",
+                    reference=Decimal(str(latest.candle.close)))
+                return
         self._set(
             highest_close=str(highest), last_exit_bar=_utc(latest.candle.close_time_utc).isoformat()
         )

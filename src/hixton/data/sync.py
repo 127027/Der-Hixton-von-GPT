@@ -62,6 +62,7 @@ def synchronize_symbol(
     start: datetime,
     end_exclusive: datetime,
     full_refresh: bool = False,
+    include_next_open: bool = False,
     refresh_tail: timedelta = timedelta(hours=48),
 ) -> DataSyncResult:
     """Fill all gaps and refresh the recent tail before a strict final audit."""
@@ -107,17 +108,26 @@ def synchronize_symbol(
     inserted = 0
     unchanged = 0
     revised = 0
+    next_open_seen = False
+    if include_next_open:
+        ranges.append((end_exclusive, end_exclusive + TIMEFRAME_DELTA))
     for range_start, range_end in _merge_ranges(ranges):
         candles = client.fetch_klines(
             normalized,
             start=range_start,
             end_exclusive=range_end,
         )
+        next_open_seen = next_open_seen or any(
+            candle.open_time_utc == end_exclusive for candle in candles
+        )
         fetched += len(candles)
         result: StoreResult = store.put_candles(candles)
         inserted += result.inserted
         unchanged += result.unchanged
         revised += result.revised
+
+    if include_next_open and not next_open_seen:
+        raise RuntimeError(f"{normalized}: next opening candle not yet available; retry")
 
     final = store.load_candles(
         normalized,

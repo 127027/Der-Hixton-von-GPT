@@ -408,3 +408,11 @@ test("automatic mode disables and ignores manual capital; switching back restore
     assert.equal(writes.at(-1).auto_budget_enabled,false);
   } finally {ui.restore();}
 });
+
+
+test("expired test signal is explained without dispatching any order",async()=>{
+  const mock=mockLive();mock.state.trial={state:"WAITING_SIGNAL",reason:"ENTRY_WINDOW_EXPIRED"};
+  const ui=harness(mock.fetcher),live=initializeLivePreparation(()=>null);
+  try {await live.refresh();assert.match(ui.node("live-trial-status").textContent,/90-Sekunden-Fenster/);assert.equal(mock.calls.filter(c=>c.url.endsWith("trial/start")).length,0);}
+  finally {live.dispose();ui.restore();}
+});

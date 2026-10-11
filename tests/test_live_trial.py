@@ -514,3 +514,38 @@ def test_each_usdc_coin_uses_own_profile_once_without_relabeling_usdt(tmp_path, 
     assert fake.submits[0].quote_budget == D("50")
     assert [order.side for order in fake.submits] == ["BUY", "SELL"]
     assert not V7.paper_approved
+
+
+def test_late_entry_is_visible_and_never_backfills(tmp_path):
+    controller, exchange = trial(tmp_path)
+    arm(controller)
+    report = controller.advance(universe(), now=NOW + timedelta(seconds=110), healthy=True)
+    assert report["state"] == "WAITING_SIGNAL"
+    assert report["reason"] == "ENTRY_WINDOW_EXPIRED"
+    assert report["buy"] is None
+    assert not exchange.submits
+    # The next fresh eligible bar can still use the single entitlement.
+    at = NOW + timedelta(hours=1)
+    assert controller.advance(universe(at), now=at, healthy=True)["state"] == "ENTRY_PENDING"
+    assert controller.advance(universe(at), now=at, healthy=True)["state"] == "OPEN"
+    assert len(exchange.submits) == 1
+
+
+def test_v8_trial_satellite_yields_to_core_without_a_second_buy(tmp_path):
+    from hixton.domain.versions import strategy_definition
+    controller, exchange = trial(tmp_path)
+    controller.strategy = strategy_definition("v8")
+    at = NOW.replace(hour=12)
+    controller.arm(str(uuid4()), "fake-account", now=at-timedelta(seconds=5), notional=D("50"))
+    def mapping(moment, buy):
+        return {symbol: (replace(_point(symbol, moment, flip_up=symbol==buy, strength=1.0), strategy_version=controller.strategy.version),) for symbol in controller.strategy.symbols}
+    entry = mapping(at, "NEARUSDC")
+    assert controller.advance(entry, now=at, healthy=True)["state"] == "ENTRY_PENDING"
+    assert controller.advance(entry, now=at, healthy=True)["state"] == "OPEN"
+    later = at + timedelta(hours=1)
+    report = controller.advance(mapping(later, "SOLUSDC"), now=later, healthy=True)
+    assert report["state"] == "EXIT_PENDING"
+    assert report["exit_signal"]["reason"].startswith("CORE_CAPACITY_HANDOFF::")
+    report = controller.advance(mapping(later, "SOLUSDC"), now=later, healthy=True)
+    assert report["state"] == "AWAITING_RECONCILIATION"
+    assert [intent.side for intent in exchange.submits] == ["BUY", "SELL"]
