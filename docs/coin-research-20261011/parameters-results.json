@@ -1,0 +1,5363 @@
+{
+  "status": "RESEARCH_ONLY",
+  "installed": false,
+  "orders_sent": false,
+  "kind": "TEMPORAL_REJECTION_ON_PREVIOUSLY_EXAMINED_HISTORY",
+  "source_sha256": "7956f1b7c2ea1041c787313a14644da060ee3437eead077c49b163dfc42fe326",
+  "base_strategy": "HIXTON-V8-CORE10-SAT3-DOTFILTER-5-eeb47b53b080",
+  "period": [
+    "2023-10-11T19:00:00+00:00",
+    "2026-10-11T19:00:00+00:00"
+  ],
+  "selection_rule": "Two fresh-account training years, stress costs. Each year retains at least min(0, baseline return), has >=3 completed trades and no worse DD. Retain >=70% of summed positive baseline profit; worst training DD <=85% baseline. Select lowest worst DD, then highest summed return. Freeze selection before final year. Reject selected coin on either cost case if final-year DD increases or return retains <80% of positive baseline / worsens negative baseline.",
+  "catalogue": [
+    "baseline",
+    "band80",
+    "band120",
+    "vidya75",
+    "vidya125",
+    "atr75",
+    "atr125"
+  ],
+  "family": "parameters",
+  "research_script_sha256": "739025756a4589aa94d78aa902a3b2f4be3d1d395f8f6b85621104013a1594d2",
+  "data": {
+    "history_mode": "THREE_YEAR_SCHEMA_F_CONTINUITY",
+    "purpose": "THREE_YEAR_STRATEGY_CONTINUITY",
+    "runtime_quote": "USDC",
+    "market_proxy_quote": "USDT",
+    "proxy_scope": "HISTORICAL_MARKET_CANDLES_ONLY",
+    "paper_state_modified": false,
+    "orders_sent": false,
+    "historical_usdc_liquidity_claimed": false,
+    "provenance_by_symbol": {
+      "BTCUSDC": {
+        "target_market": "BTCUSDC",
+        "market_proxy": "BTCUSDT",
+        "proxy_quote": "USDT",
+        "target_quote": "USDC",
+        "first_open_utc": "2023-09-25T03:00:00+00:00",
+        "last_open_utc": "2026-10-11T18:00:00+00:00",
+        "candle_count": 26704,
+        "execution_rules_from": "BTCUSDC",
+        "native_usdc_candle_count": 26704,
+        "proxy_candle_count": 0,
+        "native_usdc_first_open_utc": "2023-09-25T03:00:00+00:00",
+        "proxy_end_exclusive_utc": null
+      },
+      "ETHUSDC": {
+        "target_market": "ETHUSDC",
+        "market_proxy": "ETHUSDT",
+        "proxy_quote": "USDT",
+        "target_quote": "USDC",
+        "first_open_utc": "2023-09-25T03:00:00+00:00",
+        "last_open_utc": "2026-10-11T18:00:00+00:00",
+        "candle_count": 26704,
+        "execution_rules_from": "ETHUSDC",
+        "native_usdc_candle_count": 26704,
+        "proxy_candle_count": 0,
+        "native_usdc_first_open_utc": "2023-09-25T03:00:00+00:00",
+        "proxy_end_exclusive_utc": null
+      },
+      "BNBUSDC": {
+        "target_market": "BNBUSDC",
+        "market_proxy": "BNBUSDT",
+        "proxy_quote": "USDT",
+        "target_quote": "USDC",
+        "first_open_utc": "2023-09-25T03:00:00+00:00",
+        "last_open_utc": "2026-10-11T18:00:00+00:00",
+        "candle_count": 26704,
+        "execution_rules_from": "BNBUSDC",
+        "native_usdc_candle_count": 26704,
+        "proxy_candle_count": 0,
+        "native_usdc_first_open_utc": "2023-09-25T03:00:00+00:00",
+        "proxy_end_exclusive_utc": null
+      },
+      "SOLUSDC": {
+        "target_market": "SOLUSDC",
+        "market_proxy": "SOLUSDT",
+        "proxy_quote": "USDT",
+        "target_quote": "USDC",
+        "first_open_utc": "2023-09-25T03:00:00+00:00",
+        "last_open_utc": "2026-10-11T18:00:00+00:00",
+        "candle_count": 26704,
+        "execution_rules_from": "SOLUSDC",
+        "native_usdc_candle_count": 24443,
+        "proxy_candle_count": 2261,
+        "native_usdc_first_open_utc": "2023-12-28T08:00:00+00:00",
+        "proxy_end_exclusive_utc": "2023-12-28T08:00:00+00:00"
+      },
+      "XRPUSDC": {
+        "target_market": "XRPUSDC",
+        "market_proxy": "XRPUSDT",
+        "proxy_quote": "USDT",
+        "target_quote": "USDC",
+        "first_open_utc": "2023-09-25T03:00:00+00:00",
+        "last_open_utc": "2026-10-11T18:00:00+00:00",
+        "candle_count": 26704,
+        "execution_rules_from": "XRPUSDC",
+        "native_usdc_candle_count": 24443,
+        "proxy_candle_count": 2261,
+        "native_usdc_first_open_utc": "2023-12-28T08:00:00+00:00",
+        "proxy_end_exclusive_utc": "2023-12-28T08:00:00+00:00"
+      },
+      "ADAUSDC": {
+        "target_market": "ADAUSDC",
+        "market_proxy": "ADAUSDT",
+        "proxy_quote": "USDT",
+        "target_quote": "USDC",
+        "first_open_utc": "2023-09-25T03:00:00+00:00",
+        "last_open_utc": "2026-10-11T18:00:00+00:00",
+        "candle_count": 26704,
+        "execution_rules_from": "ADAUSDC",
+        "native_usdc_candle_count": 24443,
+        "proxy_candle_count": 2261,
+        "native_usdc_first_open_utc": "2023-12-28T08:00:00+00:00",
+        "proxy_end_exclusive_utc": "2023-12-28T08:00:00+00:00"
+      },
+      "LINKUSDC": {
+        "target_market": "LINKUSDC",
+        "market_proxy": "LINKUSDT",
+        "proxy_quote": "USDT",
+        "target_quote": "USDC",
+        "first_open_utc": "2023-09-25T03:00:00+00:00",
+        "last_open_utc": "2026-10-11T18:00:00+00:00",
+        "candle_count": 26704,
+        "execution_rules_from": "LINKUSDC",
+        "native_usdc_candle_count": 23795,
+        "proxy_candle_count": 2909,
+        "native_usdc_first_open_utc": "2024-01-24T08:00:00+00:00",
+        "proxy_end_exclusive_utc": "2024-01-24T08:00:00+00:00"
+      },
+      "AVAXUSDC": {
+        "target_market": "AVAXUSDC",
+        "market_proxy": "AVAXUSDT",
+        "proxy_quote": "USDT",
+        "target_quote": "USDC",
+        "first_open_utc": "2023-09-25T03:00:00+00:00",
+        "last_open_utc": "2026-10-11T18:00:00+00:00",
+        "candle_count": 26704,
+        "execution_rules_from": "AVAXUSDC",
+        "native_usdc_candle_count": 24443,
+        "proxy_candle_count": 2261,
+        "native_usdc_first_open_utc": "2023-12-28T08:00:00+00:00",
+        "proxy_end_exclusive_utc": "2023-12-28T08:00:00+00:00"
+      },
+      "DOTUSDC": {
+        "target_market": "DOTUSDC",
+        "market_proxy": "DOTUSDT",
+        "proxy_quote": "USDT",
+        "target_quote": "USDC",
+        "first_open_utc": "2023-09-25T03:00:00+00:00",
+        "last_open_utc": "2026-10-11T18:00:00+00:00",
+        "candle_count": 26704,
+        "execution_rules_from": "DOTUSDC",
+        "native_usdc_candle_count": 24443,
+        "proxy_candle_count": 2261,
+        "native_usdc_first_open_utc": "2023-12-28T08:00:00+00:00",
+        "proxy_end_exclusive_utc": "2023-12-28T08:00:00+00:00"
+      },
+      "DOGEUSDC": {
+        "target_market": "DOGEUSDC",
+        "market_proxy": "DOGEUSDT",
+        "proxy_quote": "USDT",
+        "target_quote": "USDC",
+        "first_open_utc": "2023-09-25T03:00:00+00:00",
+        "last_open_utc": "2026-10-11T18:00:00+00:00",
+        "candle_count": 26704,
+        "execution_rules_from": "DOGEUSDC",
+        "native_usdc_candle_count": 22763,
+        "proxy_candle_count": 3941,
+        "native_usdc_first_open_utc": "2024-03-07T08:00:00+00:00",
+        "proxy_end_exclusive_utc": "2024-03-07T08:00:00+00:00"
+      },
+      "SUIUSDC": {
+        "target_market": "SUIUSDC",
+        "market_proxy": "SUIUSDT",
+        "proxy_quote": "USDT",
+        "target_quote": "USDC",
+        "first_open_utc": "2023-09-25T03:00:00+00:00",
+        "last_open_utc": "2026-10-11T18:00:00+00:00",
+        "candle_count": 26704,
+        "execution_rules_from": "SUIUSDC",
+        "native_usdc_candle_count": 23915,
+        "proxy_candle_count": 2789,
+        "native_usdc_first_open_utc": "2024-01-19T08:00:00+00:00",
+        "proxy_end_exclusive_utc": "2024-01-19T08:00:00+00:00"
+      },
+      "NEARUSDC": {
+        "target_market": "NEARUSDC",
+        "market_proxy": "NEARUSDT",
+        "proxy_quote": "USDT",
+        "target_quote": "USDC",
+        "first_open_utc": "2023-09-25T03:00:00+00:00",
+        "last_open_utc": "2026-10-11T18:00:00+00:00",
+        "candle_count": 26704,
+        "execution_rules_from": "NEARUSDC",
+        "native_usdc_candle_count": 22619,
+        "proxy_candle_count": 4085,
+        "native_usdc_first_open_utc": "2024-03-13T08:00:00+00:00",
+        "proxy_end_exclusive_utc": "2024-03-13T08:00:00+00:00"
+      },
+      "UNIUSDC": {
+        "target_market": "UNIUSDC",
+        "market_proxy": "UNIUSDT",
+        "proxy_quote": "USDT",
+        "target_quote": "USDC",
+        "first_open_utc": "2023-09-25T03:00:00+00:00",
+        "last_open_utc": "2026-10-11T18:00:00+00:00",
+        "candle_count": 26704,
+        "execution_rules_from": "UNIUSDC",
+        "native_usdc_candle_count": 22955,
+        "proxy_candle_count": 3749,
+        "native_usdc_first_open_utc": "2024-02-28T08:00:00+00:00",
+        "proxy_end_exclusive_utc": "2024-02-28T08:00:00+00:00"
+      },
+      "AAVEUSDC": {
+        "target_market": "AAVEUSDC",
+        "market_proxy": "AAVEUSDT",
+        "proxy_quote": "USDT",
+        "target_quote": "USDC",
+        "first_open_utc": "2023-09-25T03:00:00+00:00",
+        "last_open_utc": "2026-10-11T18:00:00+00:00",
+        "candle_count": 26704,
+        "execution_rules_from": "AAVEUSDC",
+        "native_usdc_candle_count": 18419,
+        "proxy_candle_count": 8285,
+        "native_usdc_first_open_utc": "2024-09-04T08:00:00+00:00",
+        "proxy_end_exclusive_utc": "2024-09-04T08:00:00+00:00"
+      },
+      "BCHUSDC": {
+        "target_market": "BCHUSDC",
+        "market_proxy": "BCHUSDT",
+        "proxy_quote": "USDT",
+        "target_quote": "USDC",
+        "first_open_utc": "2023-09-25T03:00:00+00:00",
+        "last_open_utc": "2026-10-11T18:00:00+00:00",
+        "candle_count": 26704,
+        "execution_rules_from": "BCHUSDC",
+        "native_usdc_candle_count": 22115,
+        "proxy_candle_count": 4589,
+        "native_usdc_first_open_utc": "2024-04-03T08:00:00+00:00",
+        "proxy_end_exclusive_utc": "2024-04-03T08:00:00+00:00"
+      }
+    },
+    "note": "Ein durchgehender Backtest der aktiven USDC-Strategie. Vorhandene USDC-Kerzen werden verwendet; historische USDT-Kerzen erg\u00e4nzen ausschlie\u00dflich fehlende \u00e4ltere Historie, sofern native_usdc_candle_count dokumentiert ist. Strategie, Konto, Risiko, Kosten und aktuelle USDC-Ausfuehrungsregeln bleiben unveraendert."
+  },
+  "coins": {
+    "BTCUSDC": {
+      "base_profile": {
+        "symbol": "BTCUSDC",
+        "parameters": {
+          "vidya_length": 5,
+          "momentum_length": 20,
+          "smoothing_length": 8,
+          "atr_length": 120,
+          "band_multiplier": 4.4,
+          "warmup_bars": 400
+        },
+        "trade_policy": {
+          "cmo_floor": 0.2,
+          "slope_bars": 0,
+          "stop_atr": 0,
+          "trail_atr": 0
+        }
+      },
+      "train": {
+        "baseline": [
+          {
+            "ending_usdc": "1946.7325006755116000",
+            "return_pct": "76.97568187959196363636363636",
+            "dd_pct": "14.65929065269560770491546783",
+            "trades": 14,
+            "fees_usdc": "32.7575948304414000",
+            "profit_factor": "3.213686345645223901939983589",
+            "open_at_end": true
+          },
+          {
+            "ending_usdc": "1165.8599364209070000",
+            "return_pct": "5.987266947355181818181818182",
+            "dd_pct": "20.97987328661449119567118634",
+            "trades": 11,
+            "fees_usdc": "23.2124461131970000",
+            "profit_factor": "1.162827635135887253671013053",
+            "open_at_end": false
+          }
+        ],
+        "band80": [
+          {
+            "ending_usdc": "1316.5475237266345000",
+            "return_pct": "19.68613852060313636363636364",
+            "dd_pct": "18.82057351321542664428429142",
+            "trades": 23,
+            "fees_usdc": "51.9157703846435000",
+            "profit_factor": "1.371900884980655607496322047",
+            "open_at_end": true
+          },
+          {
+            "ending_usdc": "1096.7037101058898000",
+            "return_pct": "-0.2996627176463818181818181818",
+            "dd_pct": "19.26889551341440090215237126",
+            "trades": 16,
+            "fees_usdc": "33.2952065566084000",
+            "profit_factor": "0.9859711064887562351396883214",
+            "open_at_end": false
+          }
+        ],
+        "band120": [
+          {
+            "ending_usdc": "1463.4819911475381000",
+            "return_pct": "33.04381737704891818181818182",
+            "dd_pct": "24.09872602410393110123274201",
+            "trades": 9,
+            "fees_usdc": "20.1664703662166000",
+            "profit_factor": "2.033732502546023265843220272",
+            "open_at_end": false
+          },
+          {
+            "ending_usdc": "1632.4459660927873000",
+            "return_pct": "48.40417873570793636363636364",
+            "dd_pct": "21.14694660834113343603311161",
+            "trades": 11,
+            "fees_usdc": "24.7245686513124000",
+            "profit_factor": "2.483130461991951758919647934",
+            "open_at_end": false
+          }
+        ],
+        "vidya75": [
+          {
+            "ending_usdc": "1807.4231325182423000",
+            "return_pct": "64.31119386529475454545454545",
+            "dd_pct": "15.68811368585276755083165296",
+            "trades": 14,
+            "fees_usdc": "32.6179722450851000",
+            "profit_factor": "2.757276910397237523924190121",
+            "open_at_end": true
+          },
+          {
+            "ending_usdc": "1305.2510076474616000",
+            "return_pct": "18.6591825134056000",
+            "dd_pct": "17.74133626419867647788977879",
+            "trades": 9,
+            "fees_usdc": "19.8163877536418000",
+            "profit_factor": "1.681430346411067166995733712",
+            "open_at_end": false
+          }
+        ],
+        "vidya125": [
+          {
+            "ending_usdc": "1933.8924208160713000",
+            "return_pct": "75.80840189237011818181818182",
+            "dd_pct": "16.39164875393762131833436298",
+            "trades": 15,
+            "fees_usdc": "34.9442670805325000",
+            "profit_factor": "3.076351576168765446177433449",
+            "open_at_end": true
+          },
+          {
+            "ending_usdc": "1427.5243854600582000",
+            "return_pct": "29.77494413273256363636363636",
+            "dd_pct": "19.63284512912293310075086161",
+            "trades": 13,
+            "fees_usdc": "28.9214103076622000",
+            "profit_factor": "1.707489364577947042118500659",
+            "open_at_end": false
+          }
+        ],
+        "atr75": [
+          {
+            "ending_usdc": "1970.2220556636861000",
+            "return_pct": "79.11109596942600909090909091",
+            "dd_pct": "14.30058306610426303113456433",
+            "trades": 14,
+            "fees_usdc": "32.7811248375309000",
+            "profit_factor": "3.373167784797651568646857297",
+            "open_at_end": true
+          },
+          {
+            "ending_usdc": "1157.2517711108897000",
+            "return_pct": "5.204706464626336363636363636",
+            "dd_pct": "18.69366596990118200237136108",
+            "trades": 11,
+            "fees_usdc": "23.1511049453101000",
+            "profit_factor": "1.149536142795288175248143319",
+            "open_at_end": false
+          }
+        ],
+        "atr125": [
+          {
+            "ending_usdc": "1929.0559942611982000",
+            "return_pct": "75.36872675101801818181818182",
+            "dd_pct": "14.94722842818769670195922388",
+            "trades": 14,
+            "fees_usdc": "32.7396955880944000",
+            "profit_factor": "3.139679932130691289581932644",
+            "open_at_end": true
+          },
+          {
+            "ending_usdc": "1546.7958932313211000",
+            "return_pct": "40.61780847557464545454545455",
+            "dd_pct": "18.46113154962398574114812343",
+            "trades": 11,
+            "fees_usdc": "24.6427437827922000",
+            "profit_factor": "2.244778512666713171093645212",
+            "open_at_end": false
+          }
+        ]
+      },
+      "profiles": {
+        "baseline": {
+          "symbol": "BTCUSDC",
+          "parameters": {
+            "vidya_length": 5,
+            "momentum_length": 20,
+            "smoothing_length": 8,
+            "atr_length": 120,
+            "band_multiplier": 4.4,
+            "warmup_bars": 400
+          },
+          "trade_policy": {
+            "cmo_floor": 0.2,
+            "slope_bars": 0,
+            "stop_atr": 0,
+            "trail_atr": 0
+          }
+        },
+        "band80": {
+          "symbol": "BTCUSDC",
+          "parameters": {
+            "vidya_length": 5,
+            "momentum_length": 20,
+            "smoothing_length": 8,
+            "atr_length": 120,
+            "band_multiplier": 3.52,
+            "warmup_bars": 400
+          },
+          "trade_policy": {
+            "cmo_floor": 0.2,
+            "slope_bars": 0,
+            "stop_atr": 0,
+            "trail_atr": 0
+          }
+        },
+        "band120": {
+          "symbol": "BTCUSDC",
+          "parameters": {
+            "vidya_length": 5,
+            "momentum_length": 20,
+            "smoothing_length": 8,
+            "atr_length": 120,
+            "band_multiplier": 5.28,
+            "warmup_bars": 400
+          },
+          "trade_policy": {
+            "cmo_floor": 0.2,
+            "slope_bars": 0,
+            "stop_atr": 0,
+            "trail_atr": 0
+          }
+        },
+        "vidya75": {
+          "symbol": "BTCUSDC",
+          "parameters": {
+            "vidya_length": 4,
+            "momentum_length": 20,
+            "smoothing_length": 8,
+            "atr_length": 120,
+            "band_multiplier": 4.4,
+            "warmup_bars": 400
+          },
+          "trade_policy": {
+            "cmo_floor": 0.2,
+            "slope_bars": 0,
+            "stop_atr": 0,
+            "trail_atr": 0
+          }
+        },
+        "vidya125": {
+          "symbol": "BTCUSDC",
+          "parameters": {
+            "vidya_length": 6,
+            "momentum_length": 20,
+            "smoothing_length": 8,
+            "atr_length": 120,
+            "band_multiplier": 4.4,
+            "warmup_bars": 400
+          },
+          "trade_policy": {
+            "cmo_floor": 0.2,
+            "slope_bars": 0,
+            "stop_atr": 0,
+            "trail_atr": 0
+          }
+        },
+        "atr75": {
+          "symbol": "BTCUSDC",
+          "parameters": {
+            "vidya_length": 5,
+            "momentum_length": 20,
+            "smoothing_length": 8,
+            "atr_length": 90,
+            "band_multiplier": 4.4,
+            "warmup_bars": 400
+          },
+          "trade_policy": {
+            "cmo_floor": 0.2,
+            "slope_bars": 0,
+            "stop_atr": 0,
+            "trail_atr": 0
+          }
+        },
+        "atr125": {
+          "symbol": "BTCUSDC",
+          "parameters": {
+            "vidya_length": 5,
+            "momentum_length": 20,
+            "smoothing_length": 8,
+            "atr_length": 150,
+            "band_multiplier": 4.4,
+            "warmup_bars": 400
+          },
+          "trade_policy": {
+            "cmo_floor": 0.2,
+            "slope_bars": 0,
+            "stop_atr": 0,
+            "trail_atr": 0
+          }
+        }
+      },
+      "training_eligible": [],
+      "selected": "baseline",
+      "validation": {
+        "baseline": {
+          "current": {
+            "ending_usdc": "966.89249430143965000",
+            "return_pct": "-12.10068233623275909090909091",
+            "dd_pct": "32.86973113144595497960878389",
+            "trades": 15,
+            "fees_usdc": "26.76366127004120000",
+            "profit_factor": "0.6647481212866050302224450829",
+            "open_at_end": false
+          },
+          "stress": {
+            "ending_usdc": "897.3257606201372000",
+            "return_pct": "-18.4249308527148000",
+            "dd_pct": "35.49560579487612527469549283",
+            "trades": 15,
+            "fees_usdc": "25.8141612109100000",
+            "profit_factor": "0.5344933129475400319256970958",
+            "open_at_end": false
+          }
+        }
+      },
+      "accepted": false,
+      "effective_profile": {
+        "symbol": "BTCUSDC",
+        "parameters": {
+          "vidya_length": 5,
+          "momentum_length": 20,
+          "smoothing_length": 8,
+          "atr_length": 120,
+          "band_multiplier": 4.4,
+          "warmup_bars": 400
+        },
+        "trade_policy": {
+          "cmo_floor": 0.2,
+          "slope_bars": 0,
+          "stop_atr": 0,
+          "trail_atr": 0
+        }
+      }
+    },
+    "ETHUSDC": {
+      "base_profile": {
+        "symbol": "ETHUSDC",
+        "parameters": {
+          "vidya_length": 6,
+          "momentum_length": 20,
+          "smoothing_length": 8,
+          "atr_length": 60,
+          "band_multiplier": 3.8,
+          "warmup_bars": 400
+        },
+        "trade_policy": {
+          "cmo_floor": 0,
+          "slope_bars": 24,
+          "stop_atr": 0,
+          "trail_atr": 0
+        }
+      },
+      "train": {
+        "baseline": [
+          {
+            "ending_usdc": "1698.8716192753580000",
+            "return_pct": "54.4428744795780000",
+            "dd_pct": "17.32351035469477917017910510",
+            "trades": 11,
+            "fees_usdc": "24.8071081474050000",
+            "profit_factor": "2.690680761185748743923273911",
+            "open_at_end": false
+          },
+          {
+            "ending_usdc": "2345.8043506128030000",
+            "return_pct": "113.2549409648002727272727273",
+            "dd_pct": "33.90207816903818891120252577",
+            "trades": 13,
+            "fees_usdc": "29.8130206920700000",
+            "profit_factor": "3.214029252611069599102938118",
+            "open_at_end": false
+          }
+        ],
+        "band80": [
+          {
+            "ending_usdc": "925.0613723821930000",
+            "return_pct": "-15.90351160161881818181818182",
+            "dd_pct": "31.34753703475327806091122583",
+            "trades": 15,
+            "fees_usdc": "30.3856504238290000",
+            "profit_factor": "0.6672563502550455681026800191",
+            "open_at_end": false
+          },
+          {
+            "ending_usdc": "1580.0193215813960000",
+            "return_pct": "43.63812014376327272727272727",
+            "dd_pct": "40.57131971336117269115566990",
+            "trades": 17,
+            "fees_usdc": "35.2210928191140000",
+            "profit_factor": "1.953120447186159424660575394",
+            "open_at_end": false
+          }
+        ],
+        "band120": [
+          {
+            "ending_usdc": "1851.1048078221370000",
+            "return_pct": "68.28225525655790909090909091",
+            "dd_pct": "13.46244697165280295962452133",
+            "trades": 7,
+            "fees_usdc": "16.1559119781300000",
+            "profit_factor": "5.405861963885570677519616282",
+            "open_at_end": false
+          },
+          {
+            "ending_usdc": "1715.2783031689290000",
+            "return_pct": "55.93439119717536363636363636",
+            "dd_pct": "44.17677369060185959735582867",
+            "trades": 9,
+            "fees_usdc": "19.6848286960480000",
+            "profit_factor": "2.062605592771395970640566122",
+            "open_at_end": false
+          }
+        ],
+        "vidya75": [
+          {
+            "ending_usdc": "1843.3559429347530000",
+            "return_pct": "67.57781299406845454545454545",
+            "dd_pct": "14.00797550140823582577839415",
+            "trades": 9,
+            "fees_usdc": "20.4906812458630000",
+            "profit_factor": "4.000632389217394707594844279",
+            "open_at_end": false
+          },
+          {
+            "ending_usdc": "1708.4370977165740000",
+            "return_pct": "55.31246342877945454545454545",
+            "dd_pct": "43.93569598437250652892483826",
+            "trades": 12,
+            "fees_usdc": "26.2983654757660000",
+            "profit_factor": "1.886202588912035038259806738",
+            "open_at_end": false
+          }
+        ],
+        "vidya125": [
+          {
+            "ending_usdc": "1303.2249955314830000",
+            "return_pct": "18.47499959377118181818181818",
+            "dd_pct": "31.47639213332590357091361996",
+            "trades": 13,
+            "fees_usdc": "28.8115562899190000",
+            "profit_factor": "1.399850335618730359534833284",
+            "open_at_end": false
+          },
+          {
+            "ending_usdc": "1462.7277892794680000",
+            "return_pct": "32.97525357086072727272727273",
+            "dd_pct": "41.37293793967604272233081897",
+            "trades": 14,
+            "fees_usdc": "26.2665435282860000",
+            "profit_factor": "1.689083385306188731011339277",
+            "open_at_end": false
+          }
+        ],
+        "atr75": [
+          {
+            "ending_usdc": "1605.6589252901200000",
+            "return_pct": "45.96899320819272727272727273",
+            "dd_pct": "21.86021172261421426822623117",
+            "trades": 12,
+            "fees_usdc": "26.9141007933330000",
+            "profit_factor": "2.130653032748332543639481582",
+            "open_at_end": false
+          },
+          {
+            "ending_usdc": "2345.3638179433510000",
+            "return_pct": "113.2148925403046363636363636",
+            "dd_pct": "34.89852649847434037086685049",
+            "trades": 13,
+            "fees_usdc": "29.8127969772650000",
+            "profit_factor": "3.155904118852723661648385880",
+            "open_at_end": false
+          }
+        ],
+        "atr125": [
+          {
+            "ending_usdc": "1682.2896692947560000",
+            "return_pct": "52.93542448134145454545454545",
+            "dd_pct": "17.27705120065812913356636568",
+            "trades": 11,
+            "fees_usdc": "24.7908261971720000",
+            "profit_factor": "2.570104743863824935867416908",
+            "open_at_end": false
+          },
+          {
+            "ending_usdc": "2025.3068453795960000",
+            "return_pct": "84.11880412541781818181818182",
+            "dd_pct": "39.42386991921563193767619782",
+            "trades": 15,
+            "fees_usdc": "33.7749896681420000",
+            "profit_factor": "2.377675882872246784693260198",
+            "open_at_end": false
+          }
+        ]
+      },
+      "profiles": {
+        "baseline": {
+          "symbol": "ETHUSDC",
+          "parameters": {
+            "vidya_length": 6,
+            "momentum_length": 20,
+            "smoothing_length": 8,
+            "atr_length": 60,
+            "band_multiplier": 3.8,
+            "warmup_bars": 400
+          },
+          "trade_policy": {
+            "cmo_floor": 0,
+            "slope_bars": 24,
+            "stop_atr": 0,
+            "trail_atr": 0
+          }
+        },
+        "band80": {
+          "symbol": "ETHUSDC",
+          "parameters": {
+            "vidya_length": 6,
+            "momentum_length": 20,
+            "smoothing_length": 8,
+            "atr_length": 60,
+            "band_multiplier": 3.04,
+            "warmup_bars": 400
+          },
+          "trade_policy": {
+            "cmo_floor": 0,
+            "slope_bars": 24,
+            "stop_atr": 0,
+            "trail_atr": 0
+          }
+        },
+        "band120": {
+          "symbol": "ETHUSDC",
+          "parameters": {
+            "vidya_length": 6,
+            "momentum_length": 20,
+            "smoothing_length": 8,
+            "atr_length": 60,
+            "band_multiplier": 4.56,
+            "warmup_bars": 400
+          },
+          "trade_policy": {
+            "cmo_floor": 0,
+            "slope_bars": 24,
+            "stop_atr": 0,
+            "trail_atr": 0
+          }
+        },
+        "vidya75": {
+          "symbol": "ETHUSDC",
+          "parameters": {
+            "vidya_length": 4,
+            "momentum_length": 20,
+            "smoothing_length": 8,
+            "atr_length": 60,
+            "band_multiplier": 3.8,
+            "warmup_bars": 400
+          },
+          "trade_policy": {
+            "cmo_floor": 0,
+            "slope_bars": 24,
+            "stop_atr": 0,
+            "trail_atr": 0
+          }
+        },
+        "vidya125": {
+          "symbol": "ETHUSDC",
+          "parameters": {
+            "vidya_length": 8,
+            "momentum_length": 20,
+            "smoothing_length": 8,
+            "atr_length": 60,
+            "band_multiplier": 3.8,
+            "warmup_bars": 400
+          },
+          "trade_policy": {
+            "cmo_floor": 0,
+            "slope_bars": 24,
+            "stop_atr": 0,
+            "trail_atr": 0
+          }
+        },
+        "atr75": {
+          "symbol": "ETHUSDC",
+          "parameters": {
+            "vidya_length": 6,
+            "momentum_length": 20,
+            "smoothing_length": 8,
+            "atr_length": 45,
+            "band_multiplier": 3.8,
+            "warmup_bars": 400
+          },
+          "trade_policy": {
+            "cmo_floor": 0,
+            "slope_bars": 24,
+            "stop_atr": 0,
+            "trail_atr": 0
+          }
+        },
+        "atr125": {
+          "symbol": "ETHUSDC",
+          "parameters": {
+            "vidya_length": 6,
+            "momentum_length": 20,
+            "smoothing_length": 8,
+            "atr_length": 75,
+            "band_multiplier": 3.8,
+            "warmup_bars": 400
+          },
+          "trade_policy": {
+            "cmo_floor": 0,
+            "slope_bars": 24,
+            "stop_atr": 0,
+            "trail_atr": 0
+          }
+        }
+      },
+      "training_eligible": [],
+      "selected": "baseline",
+      "validation": {
+        "baseline": {
+          "current": {
+            "ending_usdc": "1214.82449561969300000",
+            "return_pct": "10.43859051088118181818181818",
+            "dd_pct": "25.21910120276324810488217773",
+            "trades": 11,
+            "fees_usdc": "21.76348712595450000",
+            "profit_factor": "1.389897833295498443531844048",
+            "open_at_end": false
+          },
+          "stress": {
+            "ending_usdc": "1151.8843155122700000",
+            "return_pct": "4.716755955660909090909090909",
+            "dd_pct": "27.79190899546711896210221797",
+            "trades": 11,
+            "fees_usdc": "21.2858512591160000",
+            "profit_factor": "1.161259613629439121171059179",
+            "open_at_end": false
+          }
+        }
+      },
+      "accepted": false,
+      "effective_profile": {
+        "symbol": "ETHUSDC",
+        "parameters": {
+          "vidya_length": 6,
+          "momentum_length": 20,
+          "smoothing_length": 8,
+          "atr_length": 60,
+          "band_multiplier": 3.8,
+          "warmup_bars": 400
+        },
+        "trade_policy": {
+          "cmo_floor": 0,
+          "slope_bars": 24,
+          "stop_atr": 0,
+          "trail_atr": 0
+        }
+      }
+    },
+    "BNBUSDC": {
+      "base_profile": {
+        "symbol": "BNBUSDC",
+        "parameters": {
+          "vidya_length": 10,
+          "momentum_length": 20,
+          "smoothing_length": 8,
+          "atr_length": 120,
+          "band_multiplier": 5.0,
+          "warmup_bars": 400
+        },
+        "trade_policy": {
+          "cmo_floor": 0,
+          "slope_bars": 0,
+          "stop_atr": 0,
+          "trail_atr": 0
+        }
+      },
+      "train": {
+        "baseline": [
+          {
+            "ending_usdc": "2007.236494787900000",
+            "return_pct": "82.47604498071818181818181818",
+            "dd_pct": "15.01216831354118413695792930",
+            "trades": 9,
+            "fees_usdc": "20.711700828900000",
+            "profit_factor": "5.805550196551653122373579121",
+            "open_at_end": false
+          },
+          {
+            "ending_usdc": "1835.3619308537300000",
+            "return_pct": "66.85108462306636363636363636",
+            "dd_pct": "18.28404781074417913150630938",
+            "trades": 8,
+            "fees_usdc": "18.3369985050100000",
+            "profit_factor": "7.280738364279014771799921021",
+            "open_at_end": false
+          }
+        ],
+        "band80": [
+          {
+            "ending_usdc": "1820.437195593700000",
+            "return_pct": "65.49429050851818181818181818",
+            "dd_pct": "24.40177185818942530471492447",
+            "trades": 19,
+            "fees_usdc": "42.213703387100000",
+            "profit_factor": "2.416298441189443947632684962",
+            "open_at_end": false
+          },
+          {
+            "ending_usdc": "998.1441245604200000",
+            "return_pct": "-9.259625039961818181818181818",
+            "dd_pct": "42.93040709523712148271443937",
+            "trades": 23,
+            "fees_usdc": "40.7688107799600000",
+            "profit_factor": "0.8016164317356978761301833577",
+            "open_at_end": false
+          }
+        ],
+        "band120": [
+          {
+            "ending_usdc": "1794.482648044000000",
+            "return_pct": "63.13478618581818181818181818",
+            "dd_pct": "22.23225550613732030554264915",
+            "trades": 6,
+            "fees_usdc": "13.896964380500000",
+            "profit_factor": "512.1654454405441404443913364",
+            "open_at_end": false
+          },
+          {
+            "ending_usdc": "1488.0077573937800000",
+            "return_pct": "35.27343249034363636363636364",
+            "dd_pct": "27.52434000099146697470858229",
+            "trades": 5,
+            "fees_usdc": "11.2184783307200000",
+            "profit_factor": "3.777319369880196004864777632",
+            "open_at_end": false
+          }
+        ],
+        "vidya75": [
+          {
+            "ending_usdc": "1995.020888469700000",
+            "return_pct": "81.36553531542727272727272727",
+            "dd_pct": "19.89309104776282316004076804",
+            "trades": 9,
+            "fees_usdc": "20.699202253100000",
+            "profit_factor": "6.222891760973877667863054898",
+            "open_at_end": false
+          },
+          {
+            "ending_usdc": "1858.5539718579300000",
+            "return_pct": "68.95945198708454545454545455",
+            "dd_pct": "18.52014712946644591882944637",
+            "trades": 7,
+            "fees_usdc": "16.1594145686100000",
+            "profit_factor": "10.17853940872170595048141684",
+            "open_at_end": false
+          }
+        ],
+        "vidya125": [
+          {
+            "ending_usdc": "1734.837713440300000",
+            "return_pct": "57.71251940366363636363636364",
+            "dd_pct": "24.11638312006412251673008787",
+            "trades": 10,
+            "fees_usdc": "22.639900931300000",
+            "profit_factor": "3.344740376651226203065549260",
+            "open_at_end": false
+          },
+          {
+            "ending_usdc": "1770.0888262532100000",
+            "return_pct": "60.91716602301909090909090909",
+            "dd_pct": "30.56967742906038092546298010",
+            "trades": 8,
+            "fees_usdc": "18.1813955056300000",
+            "profit_factor": "3.548489103224531083712776311",
+            "open_at_end": false
+          }
+        ],
+        "atr75": [
+          {
+            "ending_usdc": "1945.275916488400000",
+            "return_pct": "76.84326513530909090909090909",
+            "dd_pct": "15.01216831354118413695792930",
+            "trades": 10,
+            "fees_usdc": "22.850549783200000",
+            "profit_factor": "4.486017596923262012836825475",
+            "open_at_end": false
+          },
+          {
+            "ending_usdc": "1841.5598946193400000",
+            "return_pct": "67.41453587448545454545454545",
+            "dd_pct": "21.72097476773597108983744709",
+            "trades": 7,
+            "fees_usdc": "16.1427207211200000",
+            "profit_factor": "7.335212532517473915419912932",
+            "open_at_end": false
+          }
+        ],
+        "atr125": [
+          {
+            "ending_usdc": "1986.912116613800000",
+            "return_pct": "80.62837423761818181818181818",
+            "dd_pct": "19.21936155627939390251043843",
+            "trades": 9,
+            "fees_usdc": "20.690711321400000",
+            "profit_factor": "9.185937097777546383670515834",
+            "open_at_end": false
+          },
+          {
+            "ending_usdc": "1706.9746253336100000",
+            "return_pct": "55.17951139396454545454545455",
+            "dd_pct": "19.05234426779352733056013141",
+            "trades": 8,
+            "fees_usdc": "18.2075703071000000",
+            "profit_factor": "7.701185650563623150347730290",
+            "open_at_end": false
+          }
+        ]
+      },
+      "profiles": {
+        "baseline": {
+          "symbol": "BNBUSDC",
+          "parameters": {
+            "vidya_length": 10,
+            "momentum_length": 20,
+            "smoothing_length": 8,
+            "atr_length": 120,
+            "band_multiplier": 5.0,
+            "warmup_bars": 400
+          },
+          "trade_policy": {
+            "cmo_floor": 0,
+            "slope_bars": 0,
+            "stop_atr": 0,
+            "trail_atr": 0
+          }
+        },
+        "band80": {
+          "symbol": "BNBUSDC",
+          "parameters": {
+            "vidya_length": 10,
+            "momentum_length": 20,
+            "smoothing_length": 8,
+            "atr_length": 120,
+            "band_multiplier": 4.0,
+            "warmup_bars": 400
+          },
+          "trade_policy": {
+            "cmo_floor": 0,
+            "slope_bars": 0,
+            "stop_atr": 0,
+            "trail_atr": 0
+          }
+        },
+        "band120": {
+          "symbol": "BNBUSDC",
+          "parameters": {
+            "vidya_length": 10,
+            "momentum_length": 20,
+            "smoothing_length": 8,
+            "atr_length": 120,
+            "band_multiplier": 6.0,
+            "warmup_bars": 400
+          },
+          "trade_policy": {
+            "cmo_floor": 0,
+            "slope_bars": 0,
+            "stop_atr": 0,
+            "trail_atr": 0
+          }
+        },
+        "vidya75": {
+          "symbol": "BNBUSDC",
+          "parameters": {
+            "vidya_length": 8,
+            "momentum_length": 20,
+            "smoothing_length": 8,
+            "atr_length": 120,
+            "band_multiplier": 5.0,
+            "warmup_bars": 400
+          },
+          "trade_policy": {
+            "cmo_floor": 0,
+            "slope_bars": 0,
+            "stop_atr": 0,
+            "trail_atr": 0
+          }
+        },
+        "vidya125": {
+          "symbol": "BNBUSDC",
+          "parameters": {
+            "vidya_length": 12,
+            "momentum_length": 20,
+            "smoothing_length": 8,
+            "atr_length": 120,
+            "band_multiplier": 5.0,
+            "warmup_bars": 400
+          },
+          "trade_policy": {
+            "cmo_floor": 0,
+            "slope_bars": 0,
+            "stop_atr": 0,
+            "trail_atr": 0
+          }
+        },
+        "atr75": {
+          "symbol": "BNBUSDC",
+          "parameters": {
+            "vidya_length": 10,
+            "momentum_length": 20,
+            "smoothing_length": 8,
+            "atr_length": 90,
+            "band_multiplier": 5.0,
+            "warmup_bars": 400
+          },
+          "trade_policy": {
+            "cmo_floor": 0,
+            "slope_bars": 0,
+            "stop_atr": 0,
+            "trail_atr": 0
+          }
+        },
+        "atr125": {
+          "symbol": "BNBUSDC",
+          "parameters": {
+            "vidya_length": 10,
+            "momentum_length": 20,
+            "smoothing_length": 8,
+            "atr_length": 150,
+            "band_multiplier": 5.0,
+            "warmup_bars": 400
+          },
+          "trade_policy": {
+            "cmo_floor": 0,
+            "slope_bars": 0,
+            "stop_atr": 0,
+            "trail_atr": 0
+          }
+        }
+      },
+      "training_eligible": [],
+      "selected": "baseline",
+      "validation": {
+        "baseline": {
+          "current": {
+            "ending_usdc": "1308.64679962759500000",
+            "return_pct": "18.96789087523590909090909091",
+            "dd_pct": "24.28749300149741349146711326",
+            "trades": 8,
+            "fees_usdc": "16.29392016035500000",
+            "profit_factor": "2.163989657739501308680787758",
+            "open_at_end": false
+          },
+          "stress": {
+            "ending_usdc": "1259.1444502711300000",
+            "return_pct": "14.46767729737545454545454545",
+            "dd_pct": "25.39415254957516013495117348",
+            "trades": 8,
+            "fees_usdc": "16.0476246771900000",
+            "profit_factor": "1.823849281461034463569125560",
+            "open_at_end": false
+          }
+        }
+      },
+      "accepted": false,
+      "effective_profile": {
+        "symbol": "BNBUSDC",
+        "parameters": {
+          "vidya_length": 10,
+          "momentum_length": 20,
+          "smoothing_length": 8,
+          "atr_length": 120,
+          "band_multiplier": 5.0,
+          "warmup_bars": 400
+        },
+        "trade_policy": {
+          "cmo_floor": 0,
+          "slope_bars": 0,
+          "stop_atr": 0,
+          "trail_atr": 0
+        }
+      }
+    },
+    "SOLUSDC": {
+      "base_profile": {
+        "symbol": "SOLUSDC",
+        "parameters": {
+          "vidya_length": 6,
+          "momentum_length": 20,
+          "smoothing_length": 15,
+          "atr_length": 60,
+          "band_multiplier": 3.8,
+          "warmup_bars": 400
+        },
+        "trade_policy": {
+          "cmo_floor": 0,
+          "slope_bars": 0,
+          "stop_atr": 0,
+          "trail_atr": 0
+        }
+      },
+      "train": {
+        "baseline": [
+          {
+            "ending_usdc": "6137.1241687495500000",
+            "return_pct": "457.9203789772318181818181818",
+            "dd_pct": "23.80870834677742019574419368",
+            "trades": 14,
+            "fees_usdc": "36.9841125619100000",
+            "profit_factor": "22.45976910654036308507187340",
+            "open_at_end": true
+          },
+          {
+            "ending_usdc": "2106.7319909746700000",
+            "return_pct": "91.52109008860636363636363636",
+            "dd_pct": "25.66393312924883311026518081",
+            "trades": 19,
+            "fees_usdc": "42.8235580425400000",
+            "profit_factor": "3.043404480410963368545527684",
+            "open_at_end": false
+          }
+        ],
+        "band80": [
+          {
+            "ending_usdc": "2314.3064949654300000",
+            "return_pct": "110.3914995423118181818181818",
+            "dd_pct": "22.62898220677241697580932129",
+            "trades": 39,
+            "fees_usdc": "88.1471290329900000",
+            "profit_factor": "1.830217664460653080154946123",
+            "open_at_end": true
+          },
+          {
+            "ending_usdc": "1262.9913930721700000",
+            "return_pct": "14.81739937019727272727272727",
+            "dd_pct": "44.99941173932629390251787499",
+            "trades": 39,
+            "fees_usdc": "84.6239193343200000",
+            "profit_factor": "1.108589237701133093979106715",
+            "open_at_end": false
+          }
+        ],
+        "band120": [
+          {
+            "ending_usdc": "2115.9143851554400000",
+            "return_pct": "92.35585319594909090909090909",
+            "dd_pct": "20.51355360081630984815744890",
+            "trades": 7,
+            "fees_usdc": "17.5608175626300000",
+            "profit_factor": "6.002245370900785007108438795",
+            "open_at_end": true
+          },
+          {
+            "ending_usdc": "1905.8914719584400000",
+            "return_pct": "73.26286108713090909090909091",
+            "dd_pct": "24.44039473637034513412965904",
+            "trades": 12,
+            "fees_usdc": "27.2168265063400000",
+            "profit_factor": "3.206374405822651019015659880",
+            "open_at_end": false
+          }
+        ],
+        "vidya75": [
+          {
+            "ending_usdc": "4262.1979149135500000",
+            "return_pct": "287.4725377194136363636363636",
+            "dd_pct": "16.89474252867841434362005479",
+            "trades": 17,
+            "fees_usdc": "41.7180727512500000",
+            "profit_factor": "12.31086806539029598461700807",
+            "open_at_end": true
+          },
+          {
+            "ending_usdc": "2043.2739503668500000",
+            "return_pct": "85.75217730607727272727272727",
+            "dd_pct": "24.05551929719293782581464342",
+            "trades": 20,
+            "fees_usdc": "44.9612660592000000",
+            "profit_factor": "2.458005007986793646767761805",
+            "open_at_end": false
+          }
+        ],
+        "vidya125": [
+          {
+            "ending_usdc": "4069.5304325420600000",
+            "return_pct": "269.9573120492781818181818182",
+            "dd_pct": "23.80870834677742019574419368",
+            "trades": 17,
+            "fees_usdc": "40.3875106574300000",
+            "profit_factor": "6.850924080053249424664011433",
+            "open_at_end": false
+          },
+          {
+            "ending_usdc": "2101.6316286812100000",
+            "return_pct": "91.05742078920090909090909091",
+            "dd_pct": "25.35941803172412321315322332",
+            "trades": 19,
+            "fees_usdc": "42.8180512507300000",
+            "profit_factor": "3.406554218396292599593059528",
+            "open_at_end": false
+          }
+        ],
+        "atr75": [
+          {
+            "ending_usdc": "4430.2566399447800000",
+            "return_pct": "302.7506036313436363636363636",
+            "dd_pct": "23.80870834677742019574419368",
+            "trades": 14,
+            "fees_usdc": "35.2760701013100000",
+            "profit_factor": "20.26344051196762166645560501",
+            "open_at_end": true
+          },
+          {
+            "ending_usdc": "2016.1868154576300000",
+            "return_pct": "83.28971049614818181818181818",
+            "dd_pct": "21.93579814113564827737549036",
+            "trades": 19,
+            "fees_usdc": "42.7332799347300000",
+            "profit_factor": "3.247916957812445048727762619",
+            "open_at_end": false
+          }
+        ],
+        "atr125": [
+          {
+            "ending_usdc": "3609.4715216472900000",
+            "return_pct": "228.1337746952081818181818182",
+            "dd_pct": "15.91209423764314015560846178",
+            "trades": 19,
+            "fees_usdc": "45.4666666966400000",
+            "profit_factor": "8.140404221597414825900844799",
+            "open_at_end": true
+          },
+          {
+            "ending_usdc": "2244.7566298988200000",
+            "return_pct": "104.0687845362563636363636364",
+            "dd_pct": "23.36019222955136233671867694",
+            "trades": 19,
+            "fees_usdc": "42.9617160660900000",
+            "profit_factor": "3.507351781789220008538868415",
+            "open_at_end": false
+          }
+        ]
+      },
+      "profiles": {
+        "baseline": {
+          "symbol": "SOLUSDC",
+          "parameters": {
+            "vidya_length": 6,
+            "momentum_length": 20,
+            "smoothing_length": 15,
+            "atr_length": 60,
+            "band_multiplier": 3.8,
+            "warmup_bars": 400
+          },
+          "trade_policy": {
+            "cmo_floor": 0,
+            "slope_bars": 0,
+            "stop_atr": 0,
+            "trail_atr": 0
+          }
+        },
+        "band80": {
+          "symbol": "SOLUSDC",
+          "parameters": {
+            "vidya_length": 6,
+            "momentum_length": 20,
+            "smoothing_length": 15,
+            "atr_length": 60,
+            "band_multiplier": 3.04,
+            "warmup_bars": 400
+          },
+          "trade_policy": {
+            "cmo_floor": 0,
+            "slope_bars": 0,
+            "stop_atr": 0,
+            "trail_atr": 0
+          }
+        },
+        "band120": {
+          "symbol": "SOLUSDC",
+          "parameters": {
+            "vidya_length": 6,
+            "momentum_length": 20,
+            "smoothing_length": 15,
+            "atr_length": 60,
+            "band_multiplier": 4.56,
+            "warmup_bars": 400
+          },
+          "trade_policy": {
+            "cmo_floor": 0,
+            "slope_bars": 0,
+            "stop_atr": 0,
+            "trail_atr": 0
+          }
+        },
+        "vidya75": {
+          "symbol": "SOLUSDC",
+          "parameters": {
+            "vidya_length": 4,
+            "momentum_length": 20,
+            "smoothing_length": 15,
+            "atr_length": 60,
+            "band_multiplier": 3.8,
+            "warmup_bars": 400
+          },
+          "trade_policy": {
+            "cmo_floor": 0,
+            "slope_bars": 0,
+            "stop_atr": 0,
+            "trail_atr": 0
+          }
+        },
+        "vidya125": {
+          "symbol": "SOLUSDC",
+          "parameters": {
+            "vidya_length": 8,
+            "momentum_length": 20,
+            "smoothing_length": 15,
+            "atr_length": 60,
+            "band_multiplier": 3.8,
+            "warmup_bars": 400
+          },
+          "trade_policy": {
+            "cmo_floor": 0,
+            "slope_bars": 0,
+            "stop_atr": 0,
+            "trail_atr": 0
+          }
+        },
+        "atr75": {
+          "symbol": "SOLUSDC",
+          "parameters": {
+            "vidya_length": 6,
+            "momentum_length": 20,
+            "smoothing_length": 15,
+            "atr_length": 45,
+            "band_multiplier": 3.8,
+            "warmup_bars": 400
+          },
+          "trade_policy": {
+            "cmo_floor": 0,
+            "slope_bars": 0,
+            "stop_atr": 0,
+            "trail_atr": 0
+          }
+        },
+        "atr125": {
+          "symbol": "SOLUSDC",
+          "parameters": {
+            "vidya_length": 6,
+            "momentum_length": 20,
+            "smoothing_length": 15,
+            "atr_length": 75,
+            "band_multiplier": 3.8,
+            "warmup_bars": 400
+          },
+          "trade_policy": {
+            "cmo_floor": 0,
+            "slope_bars": 0,
+            "stop_atr": 0,
+            "trail_atr": 0
+          }
+        }
+      },
+      "training_eligible": [],
+      "selected": "baseline",
+      "validation": {
+        "baseline": {
+          "current": {
+            "ending_usdc": "907.78999903011500000",
+            "return_pct": "-17.47363645180772727272727273",
+            "dd_pct": "41.00320125036700956827190635",
+            "trades": 22,
+            "fees_usdc": "36.29951407755500000",
+            "profit_factor": "0.6765644420151132099332979106",
+            "open_at_end": false
+          },
+          "stress": {
+            "ending_usdc": "813.3664221062300000",
+            "return_pct": "-26.05759799034272727272727273",
+            "dd_pct": "45.26243354716272269341644414",
+            "trades": 22,
+            "fees_usdc": "34.4040172193300000",
+            "profit_factor": "0.5457367566828040122980671772",
+            "open_at_end": false
+          }
+        }
+      },
+      "accepted": false,
+      "effective_profile": {
+        "symbol": "SOLUSDC",
+        "parameters": {
+          "vidya_length": 6,
+          "momentum_length": 20,
+          "smoothing_length": 15,
+          "atr_length": 60,
+          "band_multiplier": 3.8,
+          "warmup_bars": 400
+        },
+        "trade_policy": {
+          "cmo_floor": 0,
+          "slope_bars": 0,
+          "stop_atr": 0,
+          "trail_atr": 0
+        }
+      }
+    },
+    "XRPUSDC": {
+      "base_profile": {
+        "symbol": "XRPUSDC",
+        "parameters": {
+          "vidya_length": 6,
+          "momentum_length": 20,
+          "smoothing_length": 8,
+          "atr_length": 120,
+          "band_multiplier": 3.2,
+          "warmup_bars": 400
+        },
+        "trade_policy": {
+          "cmo_floor": 0.15,
+          "slope_bars": 0,
+          "stop_atr": 4,
+          "trail_atr": 0
+        }
+      },
+      "train": {
+        "baseline": [
+          {
+            "ending_usdc": "883.938251630700000000",
+            "return_pct": "-19.64197712448181818181818182",
+            "dd_pct": "48.94674427940606079889633376",
+            "trades": 27,
+            "fees_usdc": "54.280784670960000000",
+            "profit_factor": "0.7545653293195433440254728870",
+            "open_at_end": false
+          },
+          {
+            "ending_usdc": "2231.997299715860000000",
+            "return_pct": "102.9088454287145454545454545",
+            "dd_pct": "29.23448316604326800800972372",
+            "trades": 26,
+            "fees_usdc": "58.117842803830000000",
+            "profit_factor": "2.270837085124708765299605400",
+            "open_at_end": false
+          }
+        ],
+        "band80": [
+          {
+            "ending_usdc": "752.528121187090000000",
+            "return_pct": "-31.58835261935545454545454545",
+            "dd_pct": "59.89556502125091661885023421",
+            "trades": 37,
+            "fees_usdc": "66.561452832590000000",
+            "profit_factor": "0.6423686449206639772638288041",
+            "open_at_end": false
+          },
+          {
+            "ending_usdc": "1743.316155309870000000",
+            "return_pct": "58.48328684635181818181818182",
+            "dd_pct": "26.33203325117070423378562658",
+            "trades": 43,
+            "fees_usdc": "94.639532271370000000",
+            "profit_factor": "1.479137154095584818031576137",
+            "open_at_end": false
+          }
+        ],
+        "band120": [
+          {
+            "ending_usdc": "820.442463591560000000",
+            "return_pct": "-25.41432149167636363636363636",
+            "dd_pct": "50.70189750962760624675411344",
+            "trades": 19,
+            "fees_usdc": "37.557332034280000000",
+            "profit_factor": "0.6034858071949586135323826620",
+            "open_at_end": false
+          },
+          {
+            "ending_usdc": "2085.925001540270000000",
+            "return_pct": "89.629545594570000000",
+            "dd_pct": "37.84368160714222670493560667",
+            "trades": 21,
+            "fees_usdc": "47.126356251160000000",
+            "profit_factor": "2.217350814484202863339753543",
+            "open_at_end": false
+          }
+        ],
+        "vidya75": [
+          {
+            "ending_usdc": "923.255470514360000000",
+            "return_pct": "-16.06768449869454545454545455",
+            "dd_pct": "49.85073716653047134641836213",
+            "trades": 24,
+            "fees_usdc": "47.360609143070000000",
+            "profit_factor": "0.7719009615374496923433598995",
+            "open_at_end": false
+          },
+          {
+            "ending_usdc": "764.616754139770000000",
+            "return_pct": "-30.48938598729363636363636364",
+            "dd_pct": "44.95494113195519232704153863",
+            "trades": 27,
+            "fees_usdc": "48.807710615390000000",
+            "profit_factor": "0.6170897520823261091743747535",
+            "open_at_end": false
+          }
+        ],
+        "vidya125": [
+          {
+            "ending_usdc": "682.662285714850000000",
+            "return_pct": "-37.93979220774090909090909091",
+            "dd_pct": "62.50057095564356762202668279",
+            "trades": 29,
+            "fees_usdc": "50.620743168200000000",
+            "profit_factor": "0.5358148170867399554828423440",
+            "open_at_end": false
+          },
+          {
+            "ending_usdc": "2848.864710840930000000",
+            "return_pct": "158.9877009855390909090909091",
+            "dd_pct": "23.73161803623173848035879624",
+            "trades": 27,
+            "fees_usdc": "61.094378528590000000",
+            "profit_factor": "2.965774752974903023739778119",
+            "open_at_end": false
+          }
+        ],
+        "atr75": [
+          {
+            "ending_usdc": "962.826323332110000000",
+            "return_pct": "-12.47033424253545454545454545",
+            "dd_pct": "54.75564861403466283689079385",
+            "trades": 27,
+            "fees_usdc": "51.723319561880000000",
+            "profit_factor": "0.8461506228666659774144479340",
+            "open_at_end": false
+          },
+          {
+            "ending_usdc": "2275.953107096330000000",
+            "return_pct": "106.9048279178481818181818182",
+            "dd_pct": "32.62355586118186239559458256",
+            "trades": 26,
+            "fees_usdc": "58.328934590740000000",
+            "profit_factor": "2.418659481541521163259028956",
+            "open_at_end": false
+          }
+        ],
+        "atr125": [
+          {
+            "ending_usdc": "993.561635224250000000",
+            "return_pct": "-9.676214979613636363636363636",
+            "dd_pct": "45.81053339773301386484488550",
+            "trades": 25,
+            "fees_usdc": "51.745075895650000000",
+            "profit_factor": "0.8668330690469008862521793403",
+            "open_at_end": false
+          },
+          {
+            "ending_usdc": "2560.994610983640000000",
+            "return_pct": "132.8176919076036363636363636",
+            "dd_pct": "22.57009348905550280874112315",
+            "trades": 26,
+            "fees_usdc": "58.605741772980000000",
+            "profit_factor": "2.702293607675257452392593842",
+            "open_at_end": false
+          }
+        ]
+      },
+      "profiles": {
+        "baseline": {
+          "symbol": "XRPUSDC",
+          "parameters": {
+            "vidya_length": 6,
+            "momentum_length": 20,
+            "smoothing_length": 8,
+            "atr_length": 120,
+            "band_multiplier": 3.2,
+            "warmup_bars": 400
+          },
+          "trade_policy": {
+            "cmo_floor": 0.15,
+            "slope_bars": 0,
+            "stop_atr": 4,
+            "trail_atr": 0
+          }
+        },
+        "band80": {
+          "symbol": "XRPUSDC",
+          "parameters": {
+            "vidya_length": 6,
+            "momentum_length": 20,
+            "smoothing_length": 8,
+            "atr_length": 120,
+            "band_multiplier": 2.56,
+            "warmup_bars": 400
+          },
+          "trade_policy": {
+            "cmo_floor": 0.15,
+            "slope_bars": 0,
+            "stop_atr": 4,
+            "trail_atr": 0
+          }
+        },
+        "band120": {
+          "symbol": "XRPUSDC",
+          "parameters": {
+            "vidya_length": 6,
+            "momentum_length": 20,
+            "smoothing_length": 8,
+            "atr_length": 120,
+            "band_multiplier": 3.84,
+            "warmup_bars": 400
+          },
+          "trade_policy": {
+            "cmo_floor": 0.15,
+            "slope_bars": 0,
+            "stop_atr": 4,
+            "trail_atr": 0
+          }
+        },
+        "vidya75": {
+          "symbol": "XRPUSDC",
+          "parameters": {
+            "vidya_length": 4,
+            "momentum_length": 20,
+            "smoothing_length": 8,
+            "atr_length": 120,
+            "band_multiplier": 3.2,
+            "warmup_bars": 400
+          },
+          "trade_policy": {
+            "cmo_floor": 0.15,
+            "slope_bars": 0,
+            "stop_atr": 4,
+            "trail_atr": 0
+          }
+        },
+        "vidya125": {
+          "symbol": "XRPUSDC",
+          "parameters": {
+            "vidya_length": 8,
+            "momentum_length": 20,
+            "smoothing_length": 8,
+            "atr_length": 120,
+            "band_multiplier": 3.2,
+            "warmup_bars": 400
+          },
+          "trade_policy": {
+            "cmo_floor": 0.15,
+            "slope_bars": 0,
+            "stop_atr": 4,
+            "trail_atr": 0
+          }
+        },
+        "atr75": {
+          "symbol": "XRPUSDC",
+          "parameters": {
+            "vidya_length": 6,
+            "momentum_length": 20,
+            "smoothing_length": 8,
+            "atr_length": 90,
+            "band_multiplier": 3.2,
+            "warmup_bars": 400
+          },
+          "trade_policy": {
+            "cmo_floor": 0.15,
+            "slope_bars": 0,
+            "stop_atr": 4,
+            "trail_atr": 0
+          }
+        },
+        "atr125": {
+          "symbol": "XRPUSDC",
+          "parameters": {
+            "vidya_length": 6,
+            "momentum_length": 20,
+            "smoothing_length": 8,
+            "atr_length": 150,
+            "band_multiplier": 3.2,
+            "warmup_bars": 400
+          },
+          "trade_policy": {
+            "cmo_floor": 0.15,
+            "slope_bars": 0,
+            "stop_atr": 4,
+            "trail_atr": 0
+          }
+        }
+      },
+      "training_eligible": [],
+      "selected": "baseline",
+      "validation": {
+        "baseline": {
+          "current": {
+            "ending_usdc": "1352.7849230875800000000",
+            "return_pct": "22.98044755341636363636363636",
+            "dd_pct": "21.71375589606226115542035965",
+            "trades": 28,
+            "fees_usdc": "60.1650846049450000000",
+            "profit_factor": "1.437745780252420671697988440",
+            "open_at_end": false
+          },
+          "stress": {
+            "ending_usdc": "1074.924499623190000000",
+            "return_pct": "-2.279590943346363636363636364",
+            "dd_pct": "26.77322516202345348324867384",
+            "trades": 28,
+            "fees_usdc": "56.037089724500000000",
+            "profit_factor": "0.9630412779962663375847387334",
+            "open_at_end": false
+          }
+        }
+      },
+      "accepted": false,
+      "effective_profile": {
+        "symbol": "XRPUSDC",
+        "parameters": {
+          "vidya_length": 6,
+          "momentum_length": 20,
+          "smoothing_length": 8,
+          "atr_length": 120,
+          "band_multiplier": 3.2,
+          "warmup_bars": 400
+        },
+        "trade_policy": {
+          "cmo_floor": 0.15,
+          "slope_bars": 0,
+          "stop_atr": 4,
+          "trail_atr": 0
+        }
+      }
+    },
+    "ADAUSDC": {
+      "base_profile": {
+        "symbol": "ADAUSDC",
+        "parameters": {
+          "vidya_length": 8,
+          "momentum_length": 20,
+          "smoothing_length": 8,
+          "atr_length": 60,
+          "band_multiplier": 4.4,
+          "warmup_bars": 400
+        },
+        "trade_policy": {
+          "cmo_floor": 0,
+          "slope_bars": 0,
+          "stop_atr": 0,
+          "trail_atr": 0
+        }
+      },
+      "train": {
+        "baseline": [
+          {
+            "ending_usdc": "831.780574624600000000",
+            "return_pct": "-24.38358412503636363636363636",
+            "dd_pct": "44.71537209978331794567851926",
+            "trades": 10,
+            "fees_usdc": "20.438577070890000000",
+            "profit_factor": "0.5694311500847022120662430474",
+            "open_at_end": true
+          },
+          {
+            "ending_usdc": "3347.129939691660000000",
+            "return_pct": "204.2845399719690909090909091",
+            "dd_pct": "27.89261152330026977948595954",
+            "trades": 10,
+            "fees_usdc": "24.259465318830000000",
+            "profit_factor": "5.579510010733422685458881607",
+            "open_at_end": false
+          }
+        ],
+        "band80": [
+          {
+            "ending_usdc": "1366.674518254150000000",
+            "return_pct": "24.24313802310454545454545455",
+            "dd_pct": "37.58989548534290382140769963",
+            "trades": 25,
+            "fees_usdc": "55.174776155680000000",
+            "profit_factor": "1.240508948708606700639552755",
+            "open_at_end": false
+          },
+          {
+            "ending_usdc": "2619.377027869720000000",
+            "return_pct": "138.1251843517927272727272727",
+            "dd_pct": "37.55049554344130639317085440",
+            "trades": 23,
+            "fees_usdc": "51.478768182400000000",
+            "profit_factor": "2.269675639376526667502506591",
+            "open_at_end": false
+          }
+        ],
+        "band120": [
+          {
+            "ending_usdc": "663.674435266590000000",
+            "return_pct": "-39.665960430310000000",
+            "dd_pct": "56.56978515249445051735636744",
+            "trades": 6,
+            "fees_usdc": "10.665243543980000000",
+            "profit_factor": "0.3180093737074896472621353129",
+            "open_at_end": false
+          },
+          {
+            "ending_usdc": "2991.588451639260000000",
+            "return_pct": "171.962586512660000000",
+            "dd_pct": "36.86351651521424702573228378",
+            "trades": 7,
+            "fees_usdc": "17.300614200540000000",
+            "profit_factor": "4.976679394616024723979108813",
+            "open_at_end": false
+          }
+        ],
+        "vidya75": [
+          {
+            "ending_usdc": "1295.218762389160000000",
+            "return_pct": "17.74716021719636363636363636",
+            "dd_pct": "41.13764210035590325110921939",
+            "trades": 10,
+            "fees_usdc": "22.205739004270000000",
+            "profit_factor": "1.270833728514412414961765604",
+            "open_at_end": false
+          },
+          {
+            "ending_usdc": "3249.351913539940000000",
+            "return_pct": "195.3956285036309090909090909",
+            "dd_pct": "27.66439878316414872982364542",
+            "trades": 10,
+            "fees_usdc": "24.038262456320000000",
+            "profit_factor": "4.828788209320397419470727695",
+            "open_at_end": false
+          }
+        ],
+        "vidya125": [
+          {
+            "ending_usdc": "2107.717761517660000000",
+            "return_pct": "91.61070559251454545454545455",
+            "dd_pct": "29.97756588555434769030171757",
+            "trades": 12,
+            "fees_usdc": "28.570456554030000000",
+            "profit_factor": "2.623039135845420916215675109",
+            "open_at_end": true
+          },
+          {
+            "ending_usdc": "2880.367543392740000000",
+            "return_pct": "161.8515948538854545454545455",
+            "dd_pct": "36.31832401545562095070689101",
+            "trades": 12,
+            "fees_usdc": "28.194287182910000000",
+            "profit_factor": "3.056248018998740485008541995",
+            "open_at_end": false
+          }
+        ],
+        "atr75": [
+          {
+            "ending_usdc": "715.610257721010000000",
+            "return_pct": "-34.94452202536272727272727273",
+            "dd_pct": "53.74753714536674589662036872",
+            "trades": 10,
+            "fees_usdc": "18.289801343470000000",
+            "profit_factor": "0.4041895394640627442511745143",
+            "open_at_end": true
+          },
+          {
+            "ending_usdc": "3335.036793121090000000",
+            "return_pct": "203.1851630110081818181818182",
+            "dd_pct": "28.82022794126212462502073906",
+            "trades": 10,
+            "fees_usdc": "24.247377266770000000",
+            "profit_factor": "5.497019024565930750834585706",
+            "open_at_end": false
+          }
+        ],
+        "atr125": [
+          {
+            "ending_usdc": "947.982750415470000000",
+            "return_pct": "-13.819749962230000000",
+            "dd_pct": "36.20105123480680935359552434",
+            "trades": 10,
+            "fees_usdc": "20.616192144280000000",
+            "profit_factor": "0.6791894051044582761171298313",
+            "open_at_end": false
+          },
+          {
+            "ending_usdc": "3088.907567209360000000",
+            "return_pct": "180.8097788372145454545454545",
+            "dd_pct": "28.35907281730985521983093326",
+            "trades": 12,
+            "fees_usdc": "28.279665635540000000",
+            "profit_factor": "4.138105085400395446434591472",
+            "open_at_end": false
+          }
+        ]
+      },
+      "profiles": {
+        "baseline": {
+          "symbol": "ADAUSDC",
+          "parameters": {
+            "vidya_length": 8,
+            "momentum_length": 20,
+            "smoothing_length": 8,
+            "atr_length": 60,
+            "band_multiplier": 4.4,
+            "warmup_bars": 400
+          },
+          "trade_policy": {
+            "cmo_floor": 0,
+            "slope_bars": 0,
+            "stop_atr": 0,
+            "trail_atr": 0
+          }
+        },
+        "band80": {
+          "symbol": "ADAUSDC",
+          "parameters": {
+            "vidya_length": 8,
+            "momentum_length": 20,
+            "smoothing_length": 8,
+            "atr_length": 60,
+            "band_multiplier": 3.52,
+            "warmup_bars": 400
+          },
+          "trade_policy": {
+            "cmo_floor": 0,
+            "slope_bars": 0,
+            "stop_atr": 0,
+            "trail_atr": 0
+          }
+        },
+        "band120": {
+          "symbol": "ADAUSDC",
+          "parameters": {
+            "vidya_length": 8,
+            "momentum_length": 20,
+            "smoothing_length": 8,
+            "atr_length": 60,
+            "band_multiplier": 5.28,
+            "warmup_bars": 400
+          },
+          "trade_policy": {
+            "cmo_floor": 0,
+            "slope_bars": 0,
+            "stop_atr": 0,
+            "trail_atr": 0
+          }
+        },
+        "vidya75": {
+          "symbol": "ADAUSDC",
+          "parameters": {
+            "vidya_length": 6,
+            "momentum_length": 20,
+            "smoothing_length": 8,
+            "atr_length": 60,
+            "band_multiplier": 4.4,
+            "warmup_bars": 400
+          },
+          "trade_policy": {
+            "cmo_floor": 0,
+            "slope_bars": 0,
+            "stop_atr": 0,
+            "trail_atr": 0
+          }
+        },
+        "vidya125": {
+          "symbol": "ADAUSDC",
+          "parameters": {
+            "vidya_length": 10,
+            "momentum_length": 20,
+            "smoothing_length": 8,
+            "atr_length": 60,
+            "band_multiplier": 4.4,
+            "warmup_bars": 400
+          },
+          "trade_policy": {
+            "cmo_floor": 0,
+            "slope_bars": 0,
+            "stop_atr": 0,
+            "trail_atr": 0
+          }
+        },
+        "atr75": {
+          "symbol": "ADAUSDC",
+          "parameters": {
+            "vidya_length": 8,
+            "momentum_length": 20,
+            "smoothing_length": 8,
+            "atr_length": 45,
+            "band_multiplier": 4.4,
+            "warmup_bars": 400
+          },
+          "trade_policy": {
+            "cmo_floor": 0,
+            "slope_bars": 0,
+            "stop_atr": 0,
+            "trail_atr": 0
+          }
+        },
+        "atr125": {
+          "symbol": "ADAUSDC",
+          "parameters": {
+            "vidya_length": 8,
+            "momentum_length": 20,
+            "smoothing_length": 8,
+            "atr_length": 75,
+            "band_multiplier": 4.4,
+            "warmup_bars": 400
+          },
+          "trade_policy": {
+            "cmo_floor": 0,
+            "slope_bars": 0,
+            "stop_atr": 0,
+            "trail_atr": 0
+          }
+        }
+      },
+      "training_eligible": [],
+      "selected": "baseline",
+      "validation": {
+        "baseline": {
+          "current": {
+            "ending_usdc": "897.0459079781150000000",
+            "return_pct": "-18.45037200198954545454545455",
+            "dd_pct": "49.77073631454275609612205988",
+            "trades": 11,
+            "fees_usdc": "19.4128382125950000000",
+            "profit_factor": "0.6518725385753427802457141094",
+            "open_at_end": true
+          },
+          "stress": {
+            "ending_usdc": "846.942070138700000000",
+            "return_pct": "-23.00526635102727272727272727",
+            "dd_pct": "52.21944102669344190223109368",
+            "trades": 11,
+            "fees_usdc": "18.907910414590000000",
+            "profit_factor": "0.5782873291546368057836411369",
+            "open_at_end": true
+          }
+        }
+      },
+      "accepted": false,
+      "effective_profile": {
+        "symbol": "ADAUSDC",
+        "parameters": {
+          "vidya_length": 8,
+          "momentum_length": 20,
+          "smoothing_length": 8,
+          "atr_length": 60,
+          "band_multiplier": 4.4,
+          "warmup_bars": 400
+        },
+        "trade_policy": {
+          "cmo_floor": 0,
+          "slope_bars": 0,
+          "stop_atr": 0,
+          "trail_atr": 0
+        }
+      }
+    },
+    "LINKUSDC": {
+      "base_profile": {
+        "symbol": "LINKUSDC",
+        "parameters": {
+          "vidya_length": 6,
+          "momentum_length": 20,
+          "smoothing_length": 8,
+          "atr_length": 60,
+          "band_multiplier": 3.8,
+          "warmup_bars": 400
+        },
+        "trade_policy": {
+          "cmo_floor": 0,
+          "slope_bars": 24,
+          "stop_atr": 0,
+          "trail_atr": 0
+        }
+      },
+      "train": {
+        "baseline": [
+          {
+            "ending_usdc": "1799.75056185652000000",
+            "return_pct": "63.61368744150181818181818182",
+            "dd_pct": "27.29233039980394465754904112",
+            "trades": 8,
+            "fees_usdc": "18.30784481544000000",
+            "profit_factor": "2.162845543800554192859173332",
+            "open_at_end": false
+          },
+          {
+            "ending_usdc": "2324.9550064383000000",
+            "return_pct": "111.3595460398454545454545455",
+            "dd_pct": "31.10430945749115952681535447",
+            "trades": 10,
+            "fees_usdc": "22.8026889288000000",
+            "profit_factor": "3.827833938992324781135725649",
+            "open_at_end": false
+          }
+        ],
+        "band80": [
+          {
+            "ending_usdc": "1538.34977882007000000",
+            "return_pct": "39.84997989273363636363636364",
+            "dd_pct": "36.07061391537192265159891959",
+            "trades": 16,
+            "fees_usdc": "35.65306258085000000",
+            "profit_factor": "1.753613433796800238413283747",
+            "open_at_end": false
+          },
+          {
+            "ending_usdc": "1275.6118584572000000",
+            "return_pct": "15.9647144052000000",
+            "dd_pct": "36.71263620304072096762493749",
+            "trades": 11,
+            "fees_usdc": "23.1230445186000000",
+            "profit_factor": "1.419746599777026826909050663",
+            "open_at_end": false
+          }
+        ],
+        "band120": [
+          {
+            "ending_usdc": "1919.89622544324000000",
+            "return_pct": "74.53602049484000000",
+            "dd_pct": "31.46121377936972824842031042",
+            "trades": 7,
+            "fees_usdc": "16.22699994358000000",
+            "profit_factor": "2.678943951249469398293776347",
+            "open_at_end": false
+          },
+          {
+            "ending_usdc": "2287.5602207569000000",
+            "return_pct": "107.9600200688090909090909091",
+            "dd_pct": "41.55935446951655189505972216",
+            "trades": 8,
+            "fees_usdc": "18.7951438967000000",
+            "profit_factor": "2.956857158809398918475071063",
+            "open_at_end": false
+          }
+        ],
+        "vidya75": [
+          {
+            "ending_usdc": "1707.13479329210000000",
+            "return_pct": "55.19407211746363636363636364",
+            "dd_pct": "30.94164731824712378152301453",
+            "trades": 5,
+            "fees_usdc": "11.61237161125000000",
+            "profit_factor": "2.461894332890162652119713493",
+            "open_at_end": false
+          },
+          {
+            "ending_usdc": "2243.7966400989000000",
+            "return_pct": "103.9815127362636363636363636",
+            "dd_pct": "37.77111778917296384774600430",
+            "trades": 9,
+            "fees_usdc": "20.7675406695000000",
+            "profit_factor": "3.049486450772066235844811836",
+            "open_at_end": false
+          }
+        ],
+        "vidya125": [
+          {
+            "ending_usdc": "2188.75973550082000000",
+            "return_pct": "98.97815777280181818181818182",
+            "dd_pct": "21.38116874735700311803484758",
+            "trades": 10,
+            "fees_usdc": "23.09945109854000000",
+            "profit_factor": "5.012866061848813148333119857",
+            "open_at_end": false
+          },
+          {
+            "ending_usdc": "2099.2949665069000000",
+            "return_pct": "90.84499695517272727272727273",
+            "dd_pct": "26.19094869895886525145064107",
+            "trades": 11,
+            "fees_usdc": "24.8146738771000000",
+            "profit_factor": "3.193524704677413395238877112",
+            "open_at_end": false
+          }
+        ],
+        "atr75": [
+          {
+            "ending_usdc": "1894.42732101200000000",
+            "return_pct": "72.22066554654545454545454545",
+            "dd_pct": "23.46686791515811088538226324",
+            "trades": 8,
+            "fees_usdc": "18.40282798992000000",
+            "profit_factor": "2.573794226051772833238485969",
+            "open_at_end": false
+          },
+          {
+            "ending_usdc": "2360.1063641586000000",
+            "return_pct": "114.5551240144181818181818182",
+            "dd_pct": "30.40750441764421439477540902",
+            "trades": 11,
+            "fees_usdc": "25.0386543714000000",
+            "profit_factor": "3.992266408194018235953921834",
+            "open_at_end": false
+          }
+        ],
+        "atr125": [
+          {
+            "ending_usdc": "1777.39466191292000000",
+            "return_pct": "61.58133290117454545454545455",
+            "dd_pct": "30.93528778434020217093618847",
+            "trades": 10,
+            "fees_usdc": "22.68741835852000000",
+            "profit_factor": "2.085431130625371183359383051",
+            "open_at_end": false
+          },
+          {
+            "ending_usdc": "2334.0600674631000000",
+            "return_pct": "112.1872788602818181818181818",
+            "dd_pct": "30.69850151301693510870854060",
+            "trades": 10,
+            "fees_usdc": "22.8118031040000000",
+            "profit_factor": "3.910027910375581946950009066",
+            "open_at_end": false
+          }
+        ]
+      },
+      "profiles": {
+        "baseline": {
+          "symbol": "LINKUSDC",
+          "parameters": {
+            "vidya_length": 6,
+            "momentum_length": 20,
+            "smoothing_length": 8,
+            "atr_length": 60,
+            "band_multiplier": 3.8,
+            "warmup_bars": 400
+          },
+          "trade_policy": {
+            "cmo_floor": 0,
+            "slope_bars": 24,
+            "stop_atr": 0,
+            "trail_atr": 0
+          }
+        },
+        "band80": {
+          "symbol": "LINKUSDC",
+          "parameters": {
+            "vidya_length": 6,
+            "momentum_length": 20,
+            "smoothing_length": 8,
+            "atr_length": 60,
+            "band_multiplier": 3.04,
+            "warmup_bars": 400
+          },
+          "trade_policy": {
+            "cmo_floor": 0,
+            "slope_bars": 24,
+            "stop_atr": 0,
+            "trail_atr": 0
+          }
+        },
+        "band120": {
+          "symbol": "LINKUSDC",
+          "parameters": {
+            "vidya_length": 6,
+            "momentum_length": 20,
+            "smoothing_length": 8,
+            "atr_length": 60,
+            "band_multiplier": 4.56,
+            "warmup_bars": 400
+          },
+          "trade_policy": {
+            "cmo_floor": 0,
+            "slope_bars": 24,
+            "stop_atr": 0,
+            "trail_atr": 0
+          }
+        },
+        "vidya75": {
+          "symbol": "LINKUSDC",
+          "parameters": {
+            "vidya_length": 4,
+            "momentum_length": 20,
+            "smoothing_length": 8,
+            "atr_length": 60,
+            "band_multiplier": 3.8,
+            "warmup_bars": 400
+          },
+          "trade_policy": {
+            "cmo_floor": 0,
+            "slope_bars": 24,
+            "stop_atr": 0,
+            "trail_atr": 0
+          }
+        },
+        "vidya125": {
+          "symbol": "LINKUSDC",
+          "parameters": {
+            "vidya_length": 8,
+            "momentum_length": 20,
+            "smoothing_length": 8,
+            "atr_length": 60,
+            "band_multiplier": 3.8,
+            "warmup_bars": 400
+          },
+          "trade_policy": {
+            "cmo_floor": 0,
+            "slope_bars": 24,
+            "stop_atr": 0,
+            "trail_atr": 0
+          }
+        },
+        "atr75": {
+          "symbol": "LINKUSDC",
+          "parameters": {
+            "vidya_length": 6,
+            "momentum_length": 20,
+            "smoothing_length": 8,
+            "atr_length": 45,
+            "band_multiplier": 3.8,
+            "warmup_bars": 400
+          },
+          "trade_policy": {
+            "cmo_floor": 0,
+            "slope_bars": 24,
+            "stop_atr": 0,
+            "trail_atr": 0
+          }
+        },
+        "atr125": {
+          "symbol": "LINKUSDC",
+          "parameters": {
+            "vidya_length": 6,
+            "momentum_length": 20,
+            "smoothing_length": 8,
+            "atr_length": 75,
+            "band_multiplier": 3.8,
+            "warmup_bars": 400
+          },
+          "trade_policy": {
+            "cmo_floor": 0,
+            "slope_bars": 24,
+            "stop_atr": 0,
+            "trail_atr": 0
+          }
+        }
+      },
+      "training_eligible": [
+        "vidya125"
+      ],
+      "selected": "vidya125",
+      "validation": {
+        "baseline": {
+          "current": {
+            "ending_usdc": "1046.026080729610000000",
+            "return_pct": "-4.906719933671818181818181818",
+            "dd_pct": "15.64337524773571511077818008",
+            "trades": 6,
+            "fees_usdc": "13.440313925995000000",
+            "profit_factor": "0.7179180834556395493738708571",
+            "open_at_end": true
+          },
+          "stress": {
+            "ending_usdc": "1012.62361865670000000",
+            "return_pct": "-7.943307394845454545454545455",
+            "dd_pct": "16.06379411393104975524075079",
+            "trades": 6,
+            "fees_usdc": "13.22507999844000000",
+            "profit_factor": "0.5556514466750641388061510764",
+            "open_at_end": true
+          }
+        },
+        "vidya125": {
+          "current": {
+            "ending_usdc": "1079.833680776220000000",
+            "return_pct": "-1.833301747616363636363636364",
+            "dd_pct": "15.64337524773571511077818008",
+            "trades": 6,
+            "fees_usdc": "13.639823867790000000",
+            "profit_factor": "0.9084946726630570403243584796",
+            "open_at_end": true
+          },
+          "stress": {
+            "ending_usdc": "1045.34990913832000000",
+            "return_pct": "-4.968190078334545454545454545",
+            "dd_pct": "16.06379411393104975524075079",
+            "trades": 6,
+            "fees_usdc": "13.41994959090000000",
+            "profit_factor": "0.6858564007008689972726427882",
+            "open_at_end": true
+          }
+        }
+      },
+      "accepted": true,
+      "effective_profile": {
+        "symbol": "LINKUSDC",
+        "parameters": {
+          "vidya_length": 8,
+          "momentum_length": 20,
+          "smoothing_length": 8,
+          "atr_length": 60,
+          "band_multiplier": 3.8,
+          "warmup_bars": 400
+        },
+        "trade_policy": {
+          "cmo_floor": 0,
+          "slope_bars": 24,
+          "stop_atr": 0,
+          "trail_atr": 0
+        }
+      }
+    },
+    "AVAXUSDC": {
+      "base_profile": {
+        "symbol": "AVAXUSDC",
+        "parameters": {
+          "vidya_length": 6,
+          "momentum_length": 20,
+          "smoothing_length": 8,
+          "atr_length": 90,
+          "band_multiplier": 5.5,
+          "warmup_bars": 400
+        },
+        "trade_policy": {
+          "cmo_floor": 0,
+          "slope_bars": 0,
+          "stop_atr": 0,
+          "trail_atr": 0
+        }
+      },
+      "train": {
+        "baseline": [
+          {
+            "ending_usdc": "657.3735283573000000",
+            "return_pct": "-40.23877014933636363636363636",
+            "dd_pct": "60.61877538759655019550446503",
+            "trades": 6,
+            "fees_usdc": "10.7925846861000000",
+            "profit_factor": "0.2207758727485811559779509288",
+            "open_at_end": false
+          },
+          {
+            "ending_usdc": "1388.3230603882000000",
+            "return_pct": "26.21118730801818181818181818",
+            "dd_pct": "53.40561713278166106449127131",
+            "trades": 5,
+            "fees_usdc": "11.1104315599000000",
+            "profit_factor": "2.253006558151642234241118079",
+            "open_at_end": false
+          }
+        ],
+        "band80": [
+          {
+            "ending_usdc": "1423.1968317883000000",
+            "return_pct": "29.38153016257272727272727273",
+            "dd_pct": "60.88685756741689044432293132",
+            "trades": 13,
+            "fees_usdc": "28.9321795704000000",
+            "profit_factor": "1.386307212826587568074718894",
+            "open_at_end": false
+          },
+          {
+            "ending_usdc": "1739.0578875924000000",
+            "return_pct": "58.09617159930909090909090909",
+            "dd_pct": "34.27260929269114315677063847",
+            "trades": 13,
+            "fees_usdc": "28.9283104004000000",
+            "profit_factor": "1.942411523513088250365194066",
+            "open_at_end": false
+          }
+        ],
+        "band120": [
+          {
+            "ending_usdc": "594.5651556420000000",
+            "return_pct": "-45.94862221436363636363636364",
+            "dd_pct": "62.69146437125937512149217416",
+            "trades": 2,
+            "fees_usdc": "4.2098244176000000",
+            "profit_factor": "0E+25",
+            "open_at_end": true
+          },
+          {
+            "ending_usdc": "1198.2314764592000000",
+            "return_pct": "8.930134223563636363636363636",
+            "dd_pct": "70.28977765088849438239566123",
+            "trades": 3,
+            "fees_usdc": "6.1315207192000000",
+            "profit_factor": "1.488110218682425436478395993",
+            "open_at_end": false
+          }
+        ],
+        "vidya75": [
+          {
+            "ending_usdc": "552.6148490823000000",
+            "return_pct": "-49.76228644706363636363636364",
+            "dd_pct": "71.26914274526187127658230724",
+            "trades": 4,
+            "fees_usdc": "6.4352566742000000",
+            "profit_factor": "0.03819952160695199147811338704",
+            "open_at_end": false
+          },
+          {
+            "ending_usdc": "1040.5481723347000000",
+            "return_pct": "-5.404711605936363636363636364",
+            "dd_pct": "70.30445176484054791111601073",
+            "trades": 4,
+            "fees_usdc": "7.6032178834000000",
+            "profit_factor": "0.8138341986340075635977939159",
+            "open_at_end": false
+          }
+        ],
+        "vidya125": [
+          {
+            "ending_usdc": "540.5995906543000000",
+            "return_pct": "-50.85458266779090909090909091",
+            "dd_pct": "66.72379728223852478342742337",
+            "trades": 7,
+            "fees_usdc": "12.1327982222000000",
+            "profit_factor": "0.1515294998751764931759456378",
+            "open_at_end": false
+          },
+          {
+            "ending_usdc": "1871.0613992726000000",
+            "return_pct": "70.09649084296363636363636364",
+            "dd_pct": "31.97344731224726472673875573",
+            "trades": 6,
+            "fees_usdc": "13.9768105645000000",
+            "profit_factor": "2.400946428831845140028279841",
+            "open_at_end": false
+          }
+        ],
+        "atr75": [
+          {
+            "ending_usdc": "653.0638602946000000",
+            "return_pct": "-40.63055815503636363636363636",
+            "dd_pct": "60.87722900018460174200273717",
+            "trades": 6,
+            "fees_usdc": "10.7980444522000000",
+            "profit_factor": "0.2261607778174583148209031680",
+            "open_at_end": false
+          },
+          {
+            "ending_usdc": "1388.3230603882000000",
+            "return_pct": "26.21118730801818181818181818",
+            "dd_pct": "53.40561713278166106449127131",
+            "trades": 5,
+            "fees_usdc": "11.1104315599000000",
+            "profit_factor": "2.253006558151642234241118079",
+            "open_at_end": false
+          }
+        ],
+        "atr125": [
+          {
+            "ending_usdc": "571.1155390971000000",
+            "return_pct": "-48.08040553662727272727272727",
+            "dd_pct": "66.00476358205803635138806260",
+            "trades": 6,
+            "fees_usdc": "9.9361373600000000",
+            "profit_factor": "0.1355098616684054433029037323",
+            "open_at_end": false
+          },
+          {
+            "ending_usdc": "1388.3230603882000000",
+            "return_pct": "26.21118730801818181818181818",
+            "dd_pct": "53.40561713278166106449127131",
+            "trades": 5,
+            "fees_usdc": "11.1104315599000000",
+            "profit_factor": "2.253006558151642234241118079",
+            "open_at_end": false
+          }
+        ]
+      },
+      "profiles": {
+        "baseline": {
+          "symbol": "AVAXUSDC",
+          "parameters": {
+            "vidya_length": 6,
+            "momentum_length": 20,
+            "smoothing_length": 8,
+            "atr_length": 90,
+            "band_multiplier": 5.5,
+            "warmup_bars": 400
+          },
+          "trade_policy": {
+            "cmo_floor": 0,
+            "slope_bars": 0,
+            "stop_atr": 0,
+            "trail_atr": 0
+          }
+        },
+        "band80": {
+          "symbol": "AVAXUSDC",
+          "parameters": {
+            "vidya_length": 6,
+            "momentum_length": 20,
+            "smoothing_length": 8,
+            "atr_length": 90,
+            "band_multiplier": 4.4,
+            "warmup_bars": 400
+          },
+          "trade_policy": {
+            "cmo_floor": 0,
+            "slope_bars": 0,
+            "stop_atr": 0,
+            "trail_atr": 0
+          }
+        },
+        "band120": {
+          "symbol": "AVAXUSDC",
+          "parameters": {
+            "vidya_length": 6,
+            "momentum_length": 20,
+            "smoothing_length": 8,
+            "atr_length": 90,
+            "band_multiplier": 6.6,
+            "warmup_bars": 400
+          },
+          "trade_policy": {
+            "cmo_floor": 0,
+            "slope_bars": 0,
+            "stop_atr": 0,
+            "trail_atr": 0
+          }
+        },
+        "vidya75": {
+          "symbol": "AVAXUSDC",
+          "parameters": {
+            "vidya_length": 4,
+            "momentum_length": 20,
+            "smoothing_length": 8,
+            "atr_length": 90,
+            "band_multiplier": 5.5,
+            "warmup_bars": 400
+          },
+          "trade_policy": {
+            "cmo_floor": 0,
+            "slope_bars": 0,
+            "stop_atr": 0,
+            "trail_atr": 0
+          }
+        },
+        "vidya125": {
+          "symbol": "AVAXUSDC",
+          "parameters": {
+            "vidya_length": 8,
+            "momentum_length": 20,
+            "smoothing_length": 8,
+            "atr_length": 90,
+            "band_multiplier": 5.5,
+            "warmup_bars": 400
+          },
+          "trade_policy": {
+            "cmo_floor": 0,
+            "slope_bars": 0,
+            "stop_atr": 0,
+            "trail_atr": 0
+          }
+        },
+        "atr75": {
+          "symbol": "AVAXUSDC",
+          "parameters": {
+            "vidya_length": 6,
+            "momentum_length": 20,
+            "smoothing_length": 8,
+            "atr_length": 68,
+            "band_multiplier": 5.5,
+            "warmup_bars": 400
+          },
+          "trade_policy": {
+            "cmo_floor": 0,
+            "slope_bars": 0,
+            "stop_atr": 0,
+            "trail_atr": 0
+          }
+        },
+        "atr125": {
+          "symbol": "AVAXUSDC",
+          "parameters": {
+            "vidya_length": 6,
+            "momentum_length": 20,
+            "smoothing_length": 8,
+            "atr_length": 112,
+            "band_multiplier": 5.5,
+            "warmup_bars": 400
+          },
+          "trade_policy": {
+            "cmo_floor": 0,
+            "slope_bars": 0,
+            "stop_atr": 0,
+            "trail_atr": 0
+          }
+        }
+      },
+      "training_eligible": [],
+      "selected": "baseline",
+      "validation": {
+        "baseline": {
+          "current": {
+            "ending_usdc": "1123.615496120280000000",
+            "return_pct": "2.146863283661818181818181818",
+            "dd_pct": "43.02097313766529879929492728",
+            "trades": 8,
+            "fees_usdc": "15.452469984040000000",
+            "profit_factor": "1.064578918065939859795207425",
+            "open_at_end": false
+          },
+          "stress": {
+            "ending_usdc": "1079.50802527143000000",
+            "return_pct": "-1.862906793506363636363636364",
+            "dd_pct": "44.70529280867034472481643481",
+            "trades": 8,
+            "fees_usdc": "15.16341156126000000",
+            "profit_factor": "0.9468044033796839360099508381",
+            "open_at_end": false
+          }
+        }
+      },
+      "accepted": false,
+      "effective_profile": {
+        "symbol": "AVAXUSDC",
+        "parameters": {
+          "vidya_length": 6,
+          "momentum_length": 20,
+          "smoothing_length": 8,
+          "atr_length": 90,
+          "band_multiplier": 5.5,
+          "warmup_bars": 400
+        },
+        "trade_policy": {
+          "cmo_floor": 0,
+          "slope_bars": 0,
+          "stop_atr": 0,
+          "trail_atr": 0
+        }
+      }
+    },
+    "DOTUSDC": {
+      "base_profile": {
+        "symbol": "DOTUSDC",
+        "parameters": {
+          "vidya_length": 6,
+          "momentum_length": 20,
+          "smoothing_length": 8,
+          "atr_length": 120,
+          "band_multiplier": 3.8,
+          "warmup_bars": 400
+        },
+        "trade_policy": {
+          "cmo_floor": 0.35,
+          "slope_bars": 24,
+          "stop_atr": 0,
+          "trail_atr": 0
+        }
+      },
+      "train": {
+        "baseline": [
+          {
+            "ending_usdc": "1421.20244943391000000",
+            "return_pct": "29.20022267581000000",
+            "dd_pct": "20.24260897011338637686182650",
+            "trades": 5,
+            "fees_usdc": "11.32663914785000000",
+            "profit_factor": "2.986576132735957591693695516",
+            "open_at_end": false
+          },
+          {
+            "ending_usdc": "1886.59048512953000000",
+            "return_pct": "71.50822592086636363636363636",
+            "dd_pct": "26.75870968638296912994721588",
+            "trades": 7,
+            "fees_usdc": "16.17691611047000000",
+            "profit_factor": "6.519414923211760284804938309",
+            "open_at_end": false
+          }
+        ],
+        "band80": [
+          {
+            "ending_usdc": "1046.97714974170000000",
+            "return_pct": "-4.820259114390909090909090909",
+            "dd_pct": "11.56289852827196338314126831",
+            "trades": 6,
+            "fees_usdc": "12.95280475089000000",
+            "profit_factor": "0.6009350320200123564324238982",
+            "open_at_end": false
+          },
+          {
+            "ending_usdc": "768.77860042804000000",
+            "return_pct": "-30.11103632472363636363636364",
+            "dd_pct": "39.10250592864464128352934031",
+            "trades": 11,
+            "fees_usdc": "20.10658333299000000",
+            "profit_factor": "0.2011665255676496116241379458",
+            "open_at_end": false
+          }
+        ],
+        "band120": [
+          {
+            "ending_usdc": "1978.41336891054000000",
+            "return_pct": "79.85576081004909090909090909",
+            "dd_pct": "16.92867142253873153339484769",
+            "trades": 2,
+            "fees_usdc": "5.28134464896000000",
+            "profit_factor": "None",
+            "open_at_end": false
+          },
+          {
+            "ending_usdc": "1548.03680004513000000",
+            "return_pct": "40.73061818592090909090909091",
+            "dd_pct": "37.11010485136484205324529351",
+            "trades": 8,
+            "fees_usdc": "17.81700931238000000",
+            "profit_factor": "2.127360769029112042100298790",
+            "open_at_end": false
+          }
+        ],
+        "vidya75": [
+          {
+            "ending_usdc": "1148.10420918279000000",
+            "return_pct": "4.373109925708181818181818182",
+            "dd_pct": "32.55964526288426860974839687",
+            "trades": 6,
+            "fees_usdc": "13.24922150816000000",
+            "profit_factor": "1.157363511757760660423633935",
+            "open_at_end": false
+          },
+          {
+            "ending_usdc": "1647.41072481229000000",
+            "return_pct": "49.76461134657181818181818182",
+            "dd_pct": "23.51433556704482496830189956",
+            "trades": 6,
+            "fees_usdc": "13.75415499199000000",
+            "profit_factor": "3.880766818932392248312497006",
+            "open_at_end": false
+          }
+        ],
+        "vidya125": [
+          {
+            "ending_usdc": "1505.04791896459000000",
+            "return_pct": "36.82253808769000000",
+            "dd_pct": "17.60781025670637453126441566",
+            "trades": 6,
+            "fees_usdc": "13.61166926359000000",
+            "profit_factor": "3.559788200186810617143154027",
+            "open_at_end": false
+          },
+          {
+            "ending_usdc": "1368.12727049644000000",
+            "return_pct": "24.37520640876727272727272727",
+            "dd_pct": "47.45972292056245998622496831",
+            "trades": 12,
+            "fees_usdc": "26.66315656916000000",
+            "profit_factor": "1.390864910348623210139383315",
+            "open_at_end": false
+          }
+        ],
+        "atr75": [
+          {
+            "ending_usdc": "1512.41566184925000000",
+            "return_pct": "37.49233289538636363636363636",
+            "dd_pct": "15.39330898450941097623211264",
+            "trades": 7,
+            "fees_usdc": "15.81998529823000000",
+            "profit_factor": "3.606354396141693038738437239",
+            "open_at_end": false
+          },
+          {
+            "ending_usdc": "1853.84898148338000000",
+            "return_pct": "68.53172558939818181818181818",
+            "dd_pct": "31.61591272294161374638363973",
+            "trades": 8,
+            "fees_usdc": "18.34516256556000000",
+            "profit_factor": "3.995789914802579019166861696",
+            "open_at_end": false
+          }
+        ],
+        "atr125": [
+          {
+            "ending_usdc": "1427.59940097397000000",
+            "return_pct": "29.78176372490636363636363636",
+            "dd_pct": "23.19952595000782452826918718",
+            "trades": 4,
+            "fees_usdc": "9.13202384028000000",
+            "profit_factor": "3.207846230679142251286741617",
+            "open_at_end": false
+          },
+          {
+            "ending_usdc": "1571.88277391562000000",
+            "return_pct": "42.89843399232909090909090909",
+            "dd_pct": "25.44482505954312771710931320",
+            "trades": 8,
+            "fees_usdc": "17.85085977854000000",
+            "profit_factor": "2.572090211018889021304806193",
+            "open_at_end": false
+          }
+        ]
+      },
+      "profiles": {
+        "baseline": {
+          "symbol": "DOTUSDC",
+          "parameters": {
+            "vidya_length": 6,
+            "momentum_length": 20,
+            "smoothing_length": 8,
+            "atr_length": 120,
+            "band_multiplier": 3.8,
+            "warmup_bars": 400
+          },
+          "trade_policy": {
+            "cmo_floor": 0.35,
+            "slope_bars": 24,
+            "stop_atr": 0,
+            "trail_atr": 0
+          }
+        },
+        "band80": {
+          "symbol": "DOTUSDC",
+          "parameters": {
+            "vidya_length": 6,
+            "momentum_length": 20,
+            "smoothing_length": 8,
+            "atr_length": 120,
+            "band_multiplier": 3.04,
+            "warmup_bars": 400
+          },
+          "trade_policy": {
+            "cmo_floor": 0.35,
+            "slope_bars": 24,
+            "stop_atr": 0,
+            "trail_atr": 0
+          }
+        },
+        "band120": {
+          "symbol": "DOTUSDC",
+          "parameters": {
+            "vidya_length": 6,
+            "momentum_length": 20,
+            "smoothing_length": 8,
+            "atr_length": 120,
+            "band_multiplier": 4.56,
+            "warmup_bars": 400
+          },
+          "trade_policy": {
+            "cmo_floor": 0.35,
+            "slope_bars": 24,
+            "stop_atr": 0,
+            "trail_atr": 0
+          }
+        },
+        "vidya75": {
+          "symbol": "DOTUSDC",
+          "parameters": {
+            "vidya_length": 4,
+            "momentum_length": 20,
+            "smoothing_length": 8,
+            "atr_length": 120,
+            "band_multiplier": 3.8,
+            "warmup_bars": 400
+          },
+          "trade_policy": {
+            "cmo_floor": 0.35,
+            "slope_bars": 24,
+            "stop_atr": 0,
+            "trail_atr": 0
+          }
+        },
+        "vidya125": {
+          "symbol": "DOTUSDC",
+          "parameters": {
+            "vidya_length": 8,
+            "momentum_length": 20,
+            "smoothing_length": 8,
+            "atr_length": 120,
+            "band_multiplier": 3.8,
+            "warmup_bars": 400
+          },
+          "trade_policy": {
+            "cmo_floor": 0.35,
+            "slope_bars": 24,
+            "stop_atr": 0,
+            "trail_atr": 0
+          }
+        },
+        "atr75": {
+          "symbol": "DOTUSDC",
+          "parameters": {
+            "vidya_length": 6,
+            "momentum_length": 20,
+            "smoothing_length": 8,
+            "atr_length": 90,
+            "band_multiplier": 3.8,
+            "warmup_bars": 400
+          },
+          "trade_policy": {
+            "cmo_floor": 0.35,
+            "slope_bars": 24,
+            "stop_atr": 0,
+            "trail_atr": 0
+          }
+        },
+        "atr125": {
+          "symbol": "DOTUSDC",
+          "parameters": {
+            "vidya_length": 6,
+            "momentum_length": 20,
+            "smoothing_length": 8,
+            "atr_length": 150,
+            "band_multiplier": 3.8,
+            "warmup_bars": 400
+          },
+          "trade_policy": {
+            "cmo_floor": 0.35,
+            "slope_bars": 24,
+            "stop_atr": 0,
+            "trail_atr": 0
+          }
+        }
+      },
+      "training_eligible": [],
+      "selected": "baseline",
+      "validation": {
+        "baseline": {
+          "current": {
+            "ending_usdc": "1061.073084129975000000",
+            "return_pct": "-3.538810533638636363636363636",
+            "dd_pct": "28.28185874865543701401662496",
+            "trades": 7,
+            "fees_usdc": "15.069394051095000000",
+            "profit_factor": "0.8960399304582768932583061966",
+            "open_at_end": false
+          },
+          "stress": {
+            "ending_usdc": "1019.50043389309000000",
+            "return_pct": "-7.318142373355454545454545455",
+            "dd_pct": "30.13065084602688068697510961",
+            "trades": 7,
+            "fees_usdc": "14.93216107203000000",
+            "profit_factor": "0.7955263038430724130357673105",
+            "open_at_end": false
+          }
+        }
+      },
+      "accepted": false,
+      "effective_profile": {
+        "symbol": "DOTUSDC",
+        "parameters": {
+          "vidya_length": 6,
+          "momentum_length": 20,
+          "smoothing_length": 8,
+          "atr_length": 120,
+          "band_multiplier": 3.8,
+          "warmup_bars": 400
+        },
+        "trade_policy": {
+          "cmo_floor": 0.35,
+          "slope_bars": 24,
+          "stop_atr": 0,
+          "trail_atr": 0
+        }
+      }
+    },
+    "DOGEUSDC": {
+      "base_profile": {
+        "symbol": "DOGEUSDC",
+        "parameters": {
+          "vidya_length": 6,
+          "momentum_length": 16,
+          "smoothing_length": 14,
+          "atr_length": 120,
+          "band_multiplier": 4.3,
+          "warmup_bars": 400
+        },
+        "trade_policy": {
+          "cmo_floor": 0.2,
+          "slope_bars": 0,
+          "stop_atr": 0,
+          "trail_atr": 0
+        }
+      },
+      "train": {
+        "baseline": [
+          {
+            "ending_usdc": "2026.3957151080800000000",
+            "return_pct": "84.21779228255272727272727273",
+            "dd_pct": "32.78880626979637904095025125",
+            "trades": 14,
+            "fees_usdc": "31.7404020231400000000",
+            "profit_factor": "3.071997381370050453343162874",
+            "open_at_end": false
+          },
+          {
+            "ending_usdc": "2793.1075518591600000000",
+            "return_pct": "153.9188683508327272727272727",
+            "dd_pct": "31.57887854569523061892540590",
+            "trades": 18,
+            "fees_usdc": "41.3084684398200000000",
+            "profit_factor": "3.054913454575953629209205064",
+            "open_at_end": false
+          }
+        ],
+        "band80": [
+          {
+            "ending_usdc": "1696.8411828061800000000",
+            "return_pct": "54.25828934601636363636363636",
+            "dd_pct": "31.54876603770392500411519915",
+            "trades": 27,
+            "fees_usdc": "60.0141458547900000000",
+            "profit_factor": "1.538913530074292950870342832",
+            "open_at_end": true
+          },
+          {
+            "ending_usdc": "2672.4159676688400000000",
+            "return_pct": "142.9469061517127272727272727",
+            "dd_pct": "30.04568524417841602790739205",
+            "trades": 27,
+            "fees_usdc": "60.9952663362000000000",
+            "profit_factor": "2.168585377432383629549540021",
+            "open_at_end": false
+          }
+        ],
+        "band120": [
+          {
+            "ending_usdc": "935.0972507351200000000",
+            "return_pct": "-14.9911590240800000000",
+            "dd_pct": "64.85693868823758417394456983",
+            "trades": 11,
+            "fees_usdc": "23.7134367881700000000",
+            "profit_factor": "0.8336346174807878486734655205",
+            "open_at_end": false
+          },
+          {
+            "ending_usdc": "2661.8861635102300000000",
+            "return_pct": "141.9896512282027272727272727",
+            "dd_pct": "54.02366882463204304057707462",
+            "trades": 10,
+            "fees_usdc": "23.5704139327300000000",
+            "profit_factor": "2.608352231377057632039041067",
+            "open_at_end": false
+          }
+        ],
+        "vidya75": [
+          {
+            "ending_usdc": "1623.3675489958700000000",
+            "return_pct": "47.57886809053363636363636364",
+            "dd_pct": "29.67969062366746257422346518",
+            "trades": 14,
+            "fees_usdc": "31.3368151153700000000",
+            "profit_factor": "2.188306598988571857767361358",
+            "open_at_end": false
+          },
+          {
+            "ending_usdc": "2537.9792394917700000000",
+            "return_pct": "130.7253854083427272727272727",
+            "dd_pct": "38.86129807463935695202828137",
+            "trades": 15,
+            "fees_usdc": "34.4502522560800000000",
+            "profit_factor": "2.442715504423767003739313230",
+            "open_at_end": false
+          }
+        ],
+        "vidya125": [
+          {
+            "ending_usdc": "796.8358518675000000000",
+            "return_pct": "-27.56037710295454545454545455",
+            "dd_pct": "59.32254187794802835974695323",
+            "trades": 18,
+            "fees_usdc": "35.9512082179000000000",
+            "profit_factor": "0.7441173720482884828938732079",
+            "open_at_end": true
+          },
+          {
+            "ending_usdc": "3120.4704266849000000000",
+            "return_pct": "183.6791296986272727272727273",
+            "dd_pct": "24.85473598179889575233802407",
+            "trades": 17,
+            "fees_usdc": "39.4350026497900000000",
+            "profit_factor": "3.619392726213976475160920772",
+            "open_at_end": false
+          }
+        ],
+        "atr75": [
+          {
+            "ending_usdc": "2095.9404854710500000000",
+            "return_pct": "90.54004413373181818181818182",
+            "dd_pct": "32.48970692874289101658966844",
+            "trades": 14,
+            "fees_usdc": "31.8098408423400000000",
+            "profit_factor": "3.424861092614266686022235429",
+            "open_at_end": false
+          },
+          {
+            "ending_usdc": "2917.7048339343800000000",
+            "return_pct": "165.2458939940345454545454545",
+            "dd_pct": "29.41085575162638016949247795",
+            "trades": 15,
+            "fees_usdc": "34.8303561515000000000",
+            "profit_factor": "3.974767330831590378526193369",
+            "open_at_end": false
+          }
+        ],
+        "atr125": [
+          {
+            "ending_usdc": "1635.6631325630400000000",
+            "return_pct": "48.69664841482181818181818182",
+            "dd_pct": "37.76930571684918327493003776",
+            "trades": 17,
+            "fees_usdc": "37.6888558725500000000",
+            "profit_factor": "1.752343660802242541077995254",
+            "open_at_end": false
+          },
+          {
+            "ending_usdc": "2949.3609627752800000000",
+            "return_pct": "168.1237238886618181818181818",
+            "dd_pct": "26.59840443797408211123548048",
+            "trades": 17,
+            "fees_usdc": "39.2634607774300000000",
+            "profit_factor": "3.075470779915043292360533005",
+            "open_at_end": false
+          }
+        ]
+      },
+      "profiles": {
+        "baseline": {
+          "symbol": "DOGEUSDC",
+          "parameters": {
+            "vidya_length": 6,
+            "momentum_length": 16,
+            "smoothing_length": 14,
+            "atr_length": 120,
+            "band_multiplier": 4.3,
+            "warmup_bars": 400
+          },
+          "trade_policy": {
+            "cmo_floor": 0.2,
+            "slope_bars": 0,
+            "stop_atr": 0,
+            "trail_atr": 0
+          }
+        },
+        "band80": {
+          "symbol": "DOGEUSDC",
+          "parameters": {
+            "vidya_length": 6,
+            "momentum_length": 16,
+            "smoothing_length": 14,
+            "atr_length": 120,
+            "band_multiplier": 3.44,
+            "warmup_bars": 400
+          },
+          "trade_policy": {
+            "cmo_floor": 0.2,
+            "slope_bars": 0,
+            "stop_atr": 0,
+            "trail_atr": 0
+          }
+        },
+        "band120": {
+          "symbol": "DOGEUSDC",
+          "parameters": {
+            "vidya_length": 6,
+            "momentum_length": 16,
+            "smoothing_length": 14,
+            "atr_length": 120,
+            "band_multiplier": 5.16,
+            "warmup_bars": 400
+          },
+          "trade_policy": {
+            "cmo_floor": 0.2,
+            "slope_bars": 0,
+            "stop_atr": 0,
+            "trail_atr": 0
+          }
+        },
+        "vidya75": {
+          "symbol": "DOGEUSDC",
+          "parameters": {
+            "vidya_length": 4,
+            "momentum_length": 16,
+            "smoothing_length": 14,
+            "atr_length": 120,
+            "band_multiplier": 4.3,
+            "warmup_bars": 400
+          },
+          "trade_policy": {
+            "cmo_floor": 0.2,
+            "slope_bars": 0,
+            "stop_atr": 0,
+            "trail_atr": 0
+          }
+        },
+        "vidya125": {
+          "symbol": "DOGEUSDC",
+          "parameters": {
+            "vidya_length": 8,
+            "momentum_length": 16,
+            "smoothing_length": 14,
+            "atr_length": 120,
+            "band_multiplier": 4.3,
+            "warmup_bars": 400
+          },
+          "trade_policy": {
+            "cmo_floor": 0.2,
+            "slope_bars": 0,
+            "stop_atr": 0,
+            "trail_atr": 0
+          }
+        },
+        "atr75": {
+          "symbol": "DOGEUSDC",
+          "parameters": {
+            "vidya_length": 6,
+            "momentum_length": 16,
+            "smoothing_length": 14,
+            "atr_length": 90,
+            "band_multiplier": 4.3,
+            "warmup_bars": 400
+          },
+          "trade_policy": {
+            "cmo_floor": 0.2,
+            "slope_bars": 0,
+            "stop_atr": 0,
+            "trail_atr": 0
+          }
+        },
+        "atr125": {
+          "symbol": "DOGEUSDC",
+          "parameters": {
+            "vidya_length": 6,
+            "momentum_length": 16,
+            "smoothing_length": 14,
+            "atr_length": 150,
+            "band_multiplier": 4.3,
+            "warmup_bars": 400
+          },
+          "trade_policy": {
+            "cmo_floor": 0.2,
+            "slope_bars": 0,
+            "stop_atr": 0,
+            "trail_atr": 0
+          }
+        }
+      },
+      "training_eligible": [],
+      "selected": "baseline",
+      "validation": {
+        "baseline": {
+          "current": {
+            "ending_usdc": "1036.54467050403000000000",
+            "return_pct": "-5.768666317815454545454545455",
+            "dd_pct": "31.06578870556253127712461723",
+            "trades": 14,
+            "fees_usdc": "25.81457210844000000000",
+            "profit_factor": "0.8760287234551454742889388181",
+            "open_at_end": false
+          },
+          "stress": {
+            "ending_usdc": "966.4790317009500000000",
+            "return_pct": "-12.13826984536818181818181818",
+            "dd_pct": "34.58033988230326163967679398",
+            "trades": 14,
+            "fees_usdc": "24.9482720019700000000",
+            "profit_factor": "0.7518270673772127951872527051",
+            "open_at_end": false
+          }
+        }
+      },
+      "accepted": false,
+      "effective_profile": {
+        "symbol": "DOGEUSDC",
+        "parameters": {
+          "vidya_length": 6,
+          "momentum_length": 16,
+          "smoothing_length": 14,
+          "atr_length": 120,
+          "band_multiplier": 4.3,
+          "warmup_bars": 400
+        },
+        "trade_policy": {
+          "cmo_floor": 0.2,
+          "slope_bars": 0,
+          "stop_atr": 0,
+          "trail_atr": 0
+        }
+      }
+    },
+    "SUIUSDC": {
+      "base_profile": {
+        "symbol": "SUIUSDC",
+        "parameters": {
+          "vidya_length": 15,
+          "momentum_length": 20,
+          "smoothing_length": 14,
+          "atr_length": 120,
+          "band_multiplier": 2.3,
+          "warmup_bars": 400
+        },
+        "trade_policy": {
+          "cmo_floor": 0.4,
+          "slope_bars": 0,
+          "stop_atr": 2.5,
+          "trail_atr": 0
+        }
+      },
+      "train": {
+        "baseline": [
+          {
+            "ending_usdc": "1420.035515692710000000",
+            "return_pct": "29.09413779024636363636363636",
+            "dd_pct": "49.67403720449015556748789408",
+            "trades": 26,
+            "fees_usdc": "49.229491711220000000",
+            "profit_factor": "1.416042469731169732499344539",
+            "open_at_end": false
+          },
+          {
+            "ending_usdc": "2131.009336332180000000",
+            "return_pct": "93.72812148474363636363636364",
+            "dd_pct": "17.56552411158301181082026234",
+            "trades": 29,
+            "fees_usdc": "64.851539793460000000",
+            "profit_factor": "2.463887917194952723899096023",
+            "open_at_end": false
+          }
+        ],
+        "band80": [
+          {
+            "ending_usdc": "1249.956573246810000000",
+            "return_pct": "13.632415749710000000",
+            "dd_pct": "43.26838277075710243662149497",
+            "trades": 30,
+            "fees_usdc": "62.886696867170000000",
+            "profit_factor": "1.160089051130940053007421873",
+            "open_at_end": false
+          },
+          {
+            "ending_usdc": "2054.211442743470000000",
+            "return_pct": "86.74649479486090909090909091",
+            "dd_pct": "16.15517182751253093569478470",
+            "trades": 32,
+            "fees_usdc": "71.261143395270000000",
+            "profit_factor": "2.252796449482103130696511358",
+            "open_at_end": false
+          }
+        ],
+        "band120": [
+          {
+            "ending_usdc": "1649.017517159740000000",
+            "return_pct": "49.91068337815818181818181818",
+            "dd_pct": "34.44068797294249157927641983",
+            "trades": 24,
+            "fees_usdc": "50.076582437670000000",
+            "profit_factor": "1.768903212088480714045257600",
+            "open_at_end": false
+          },
+          {
+            "ending_usdc": "1762.725276153800000000",
+            "return_pct": "60.24775237761818181818181818",
+            "dd_pct": "23.55414422830506186336125307",
+            "trades": 31,
+            "fees_usdc": "68.885065483730000000",
+            "profit_factor": "1.777228383297393384680281968",
+            "open_at_end": false
+          }
+        ],
+        "vidya75": [
+          {
+            "ending_usdc": "1772.660784788790000000",
+            "return_pct": "61.15098043534454545454545455",
+            "dd_pct": "36.14931449860084376237106834",
+            "trades": 27,
+            "fees_usdc": "60.096939955390000000",
+            "profit_factor": "1.840035638641067408961567891",
+            "open_at_end": false
+          },
+          {
+            "ending_usdc": "2081.984529296030000000",
+            "return_pct": "89.27132084509363636363636364",
+            "dd_pct": "15.90987136037517493003673213",
+            "trades": 32,
+            "fees_usdc": "71.275245005630000000",
+            "profit_factor": "2.261123448846400578212875696",
+            "open_at_end": false
+          }
+        ],
+        "vidya125": [
+          {
+            "ending_usdc": "1340.679520519940000000",
+            "return_pct": "21.87995641090363636363636364",
+            "dd_pct": "46.35918172571499698576239152",
+            "trades": 26,
+            "fees_usdc": "48.274556298810000000",
+            "profit_factor": "1.317114336040314044007398277",
+            "open_at_end": false
+          },
+          {
+            "ending_usdc": "1994.658202067110000000",
+            "return_pct": "81.33256382428272727272727273",
+            "dd_pct": "19.16843755991861855326907477",
+            "trades": 29,
+            "fees_usdc": "64.715046980730000000",
+            "profit_factor": "2.236861034008402669543202692",
+            "open_at_end": false
+          }
+        ],
+        "atr75": [
+          {
+            "ending_usdc": "1541.705547087120000000",
+            "return_pct": "40.15504973519272727272727273",
+            "dd_pct": "46.22287449327402852248544731",
+            "trades": 25,
+            "fees_usdc": "49.930166540570000000",
+            "profit_factor": "1.612594359329434691424639528",
+            "open_at_end": false
+          },
+          {
+            "ending_usdc": "2198.913759365200000000",
+            "return_pct": "99.90125085138181818181818182",
+            "dd_pct": "16.77642305721849426535575731",
+            "trades": 28,
+            "fees_usdc": "62.718887052980000000",
+            "profit_factor": "2.749408198661524600401458575",
+            "open_at_end": false
+          }
+        ],
+        "atr125": [
+          {
+            "ending_usdc": "1640.698817108260000000",
+            "return_pct": "49.15443791893272727272727273",
+            "dd_pct": "42.81622082543834615380696062",
+            "trades": 25,
+            "fees_usdc": "51.691255884340000000",
+            "profit_factor": "1.713572885900840204393068372",
+            "open_at_end": false
+          },
+          {
+            "ending_usdc": "1897.829379588080000000",
+            "return_pct": "72.52994359891636363636363636",
+            "dd_pct": "18.44186906790938049253683307",
+            "trades": 29,
+            "fees_usdc": "64.447450591430000000",
+            "profit_factor": "2.134766354737955021509620874",
+            "open_at_end": false
+          }
+        ]
+      },
+      "profiles": {
+        "baseline": {
+          "symbol": "SUIUSDC",
+          "parameters": {
+            "vidya_length": 15,
+            "momentum_length": 20,
+            "smoothing_length": 14,
+            "atr_length": 120,
+            "band_multiplier": 2.3,
+            "warmup_bars": 400
+          },
+          "trade_policy": {
+            "cmo_floor": 0.4,
+            "slope_bars": 0,
+            "stop_atr": 2.5,
+            "trail_atr": 0
+          }
+        },
+        "band80": {
+          "symbol": "SUIUSDC",
+          "parameters": {
+            "vidya_length": 15,
+            "momentum_length": 20,
+            "smoothing_length": 14,
+            "atr_length": 120,
+            "band_multiplier": 1.84,
+            "warmup_bars": 400
+          },
+          "trade_policy": {
+            "cmo_floor": 0.4,
+            "slope_bars": 0,
+            "stop_atr": 2.5,
+            "trail_atr": 0
+          }
+        },
+        "band120": {
+          "symbol": "SUIUSDC",
+          "parameters": {
+            "vidya_length": 15,
+            "momentum_length": 20,
+            "smoothing_length": 14,
+            "atr_length": 120,
+            "band_multiplier": 2.76,
+            "warmup_bars": 400
+          },
+          "trade_policy": {
+            "cmo_floor": 0.4,
+            "slope_bars": 0,
+            "stop_atr": 2.5,
+            "trail_atr": 0
+          }
+        },
+        "vidya75": {
+          "symbol": "SUIUSDC",
+          "parameters": {
+            "vidya_length": 11,
+            "momentum_length": 20,
+            "smoothing_length": 14,
+            "atr_length": 120,
+            "band_multiplier": 2.3,
+            "warmup_bars": 400
+          },
+          "trade_policy": {
+            "cmo_floor": 0.4,
+            "slope_bars": 0,
+            "stop_atr": 2.5,
+            "trail_atr": 0
+          }
+        },
+        "vidya125": {
+          "symbol": "SUIUSDC",
+          "parameters": {
+            "vidya_length": 19,
+            "momentum_length": 20,
+            "smoothing_length": 14,
+            "atr_length": 120,
+            "band_multiplier": 2.3,
+            "warmup_bars": 400
+          },
+          "trade_policy": {
+            "cmo_floor": 0.4,
+            "slope_bars": 0,
+            "stop_atr": 2.5,
+            "trail_atr": 0
+          }
+        },
+        "atr75": {
+          "symbol": "SUIUSDC",
+          "parameters": {
+            "vidya_length": 15,
+            "momentum_length": 20,
+            "smoothing_length": 14,
+            "atr_length": 90,
+            "band_multiplier": 2.3,
+            "warmup_bars": 400
+          },
+          "trade_policy": {
+            "cmo_floor": 0.4,
+            "slope_bars": 0,
+            "stop_atr": 2.5,
+            "trail_atr": 0
+          }
+        },
+        "atr125": {
+          "symbol": "SUIUSDC",
+          "parameters": {
+            "vidya_length": 15,
+            "momentum_length": 20,
+            "smoothing_length": 14,
+            "atr_length": 150,
+            "band_multiplier": 2.3,
+            "warmup_bars": 400
+          },
+          "trade_policy": {
+            "cmo_floor": 0.4,
+            "slope_bars": 0,
+            "stop_atr": 2.5,
+            "trail_atr": 0
+          }
+        }
+      },
+      "training_eligible": [
+        "vidya75"
+      ],
+      "selected": "vidya75",
+      "validation": {
+        "baseline": {
+          "current": {
+            "ending_usdc": "1385.1470654090850000000",
+            "return_pct": "25.9224604917350000000",
+            "dd_pct": "32.31902990924705446991898448",
+            "trades": 31,
+            "fees_usdc": "60.8443900291300000000",
+            "profit_factor": "1.315075113849943564852322872",
+            "open_at_end": true
+          },
+          "stress": {
+            "ending_usdc": "1245.806005176030000000",
+            "return_pct": "13.25509137963909090909090909",
+            "dd_pct": "35.61269479968466230816148152",
+            "trades": 31,
+            "fees_usdc": "58.293433417730000000",
+            "profit_factor": "1.161182107888628613294403153",
+            "open_at_end": true
+          }
+        },
+        "vidya75": {
+          "current": {
+            "ending_usdc": "1130.7906755927200000000",
+            "return_pct": "2.799152326610909090909090909",
+            "dd_pct": "32.35405460292379014225121942",
+            "trades": 35,
+            "fees_usdc": "70.0940691800800000000",
+            "profit_factor": "1.035520973711236408991614555",
+            "open_at_end": true
+          },
+          "stress": {
+            "ending_usdc": "989.436509928770000000",
+            "return_pct": "-10.05122637011181818181818182",
+            "dd_pct": "35.51588353169704444044347933",
+            "trades": 34,
+            "fees_usdc": "64.911858658560000000",
+            "profit_factor": "0.9008507135453021323049837785",
+            "open_at_end": true
+          }
+        }
+      },
+      "accepted": false,
+      "effective_profile": {
+        "symbol": "SUIUSDC",
+        "parameters": {
+          "vidya_length": 15,
+          "momentum_length": 20,
+          "smoothing_length": 14,
+          "atr_length": 120,
+          "band_multiplier": 2.3,
+          "warmup_bars": 400
+        },
+        "trade_policy": {
+          "cmo_floor": 0.4,
+          "slope_bars": 0,
+          "stop_atr": 2.5,
+          "trail_atr": 0
+        }
+      }
+    },
+    "NEARUSDC": {
+      "base_profile": {
+        "symbol": "NEARUSDC",
+        "parameters": {
+          "vidya_length": 10,
+          "momentum_length": 20,
+          "smoothing_length": 15,
+          "atr_length": 200,
+          "band_multiplier": 2.8,
+          "warmup_bars": 400
+        },
+        "trade_policy": {
+          "cmo_floor": 0,
+          "slope_bars": 0,
+          "stop_atr": 0,
+          "trail_atr": 0
+        }
+      },
+      "train": {
+        "baseline": [
+          {
+            "ending_usdc": "1263.33474958040000000",
+            "return_pct": "14.84861359821818181818181818",
+            "dd_pct": "46.00472706618756476970052468",
+            "trades": 109,
+            "fees_usdc": "239.81734235190000000",
+            "profit_factor": "1.043430069928476093368309555",
+            "open_at_end": false
+          },
+          {
+            "ending_usdc": "416.36467589700000000",
+            "return_pct": "-62.14866582754545454545454545",
+            "dd_pct": "69.30284461947261308450217386",
+            "trades": 89,
+            "fees_usdc": "121.09826738480000000",
+            "profit_factor": "0.6691137541287367124906688255",
+            "open_at_end": false
+          }
+        ],
+        "band80": [
+          {
+            "ending_usdc": "1238.69550522280000000",
+            "return_pct": "12.60868229298181818181818182",
+            "dd_pct": "43.98486220552158415388310988",
+            "trades": 106,
+            "fees_usdc": "233.26032480510000000",
+            "profit_factor": "1.039047811523047221335978215",
+            "open_at_end": false
+          },
+          {
+            "ending_usdc": "223.21923043300000000",
+            "return_pct": "-79.70734268790909090909090909",
+            "dd_pct": "85.35019585657249261005669834",
+            "trades": 110,
+            "fees_usdc": "121.10101058980000000",
+            "profit_factor": "0.5771428226430732989662571015",
+            "open_at_end": false
+          }
+        ],
+        "band120": [
+          {
+            "ending_usdc": "1553.53216280070000000",
+            "return_pct": "41.23019661824545454545454545",
+            "dd_pct": "48.16795618514363832950876384",
+            "trades": 104,
+            "fees_usdc": "229.29263819760000000",
+            "profit_factor": "1.141220927588524738118665937",
+            "open_at_end": false
+          },
+          {
+            "ending_usdc": "422.99532391860000000",
+            "return_pct": "-61.54587964376363636363636364",
+            "dd_pct": "71.06460191498468510824631631",
+            "trades": 79,
+            "fees_usdc": "125.93989554310000000",
+            "profit_factor": "0.6827944356992160477256273862",
+            "open_at_end": false
+          }
+        ],
+        "vidya75": [
+          {
+            "ending_usdc": "985.07758347360000000",
+            "return_pct": "-10.44749241149090909090909091",
+            "dd_pct": "52.30831206417216928382170071",
+            "trades": 110,
+            "fees_usdc": "237.39265000080000000",
+            "profit_factor": "0.9688371435573848204206744628",
+            "open_at_end": false
+          },
+          {
+            "ending_usdc": "254.04293483270000000",
+            "return_pct": "-76.90518774248181818181818182",
+            "dd_pct": "79.74872807286026724215717200",
+            "trades": 93,
+            "fees_usdc": "110.96508686470000000",
+            "profit_factor": "0.5837857896112641606959901523",
+            "open_at_end": false
+          }
+        ],
+        "vidya125": [
+          {
+            "ending_usdc": "1507.77991483010000000",
+            "return_pct": "37.07090134819090909090909091",
+            "dd_pct": "40.11888942561412532479007669",
+            "trades": 108,
+            "fees_usdc": "237.86207097910000000",
+            "profit_factor": "1.120239325959746000313257161",
+            "open_at_end": false
+          },
+          {
+            "ending_usdc": "535.41707828440000000",
+            "return_pct": "-51.32572015596363636363636364",
+            "dd_pct": "60.74208715667217485176416772",
+            "trades": 88,
+            "fees_usdc": "151.11214935790000000",
+            "profit_factor": "0.7740979515821430060265939060",
+            "open_at_end": false
+          }
+        ],
+        "atr75": [
+          {
+            "ending_usdc": "1410.11161467070000000",
+            "return_pct": "28.19196497006363636363636364",
+            "dd_pct": "40.75503751991991608745323190",
+            "trades": 107,
+            "fees_usdc": "235.56404527130000000",
+            "profit_factor": "1.088347215320762797671375449",
+            "open_at_end": false
+          },
+          {
+            "ending_usdc": "438.16437289100000000",
+            "return_pct": "-60.16687519172727272727272727",
+            "dd_pct": "68.10067673935534323306991626",
+            "trades": 90,
+            "fees_usdc": "128.37097593960000000",
+            "profit_factor": "0.6883962681541961330775653943",
+            "open_at_end": false
+          }
+        ],
+        "atr125": [
+          {
+            "ending_usdc": "1466.48999339090000000",
+            "return_pct": "33.31727212644545454545454545",
+            "dd_pct": "36.28178001209925932013071911",
+            "trades": 108,
+            "fees_usdc": "237.81944280270000000",
+            "profit_factor": "1.104556627761202964842376164",
+            "open_at_end": false
+          },
+          {
+            "ending_usdc": "382.85090563910000000",
+            "return_pct": "-65.19537221462727272727272727",
+            "dd_pct": "70.90584446264051540621463168",
+            "trades": 88,
+            "fees_usdc": "116.58736112480000000",
+            "profit_factor": "0.6371815094430009096742639602",
+            "open_at_end": false
+          }
+        ]
+      },
+      "profiles": {
+        "baseline": {
+          "symbol": "NEARUSDC",
+          "parameters": {
+            "vidya_length": 10,
+            "momentum_length": 20,
+            "smoothing_length": 15,
+            "atr_length": 200,
+            "band_multiplier": 2.8,
+            "warmup_bars": 400
+          },
+          "trade_policy": {
+            "cmo_floor": 0,
+            "slope_bars": 0,
+            "stop_atr": 0,
+            "trail_atr": 0
+          }
+        },
+        "band80": {
+          "symbol": "NEARUSDC",
+          "parameters": {
+            "vidya_length": 10,
+            "momentum_length": 20,
+            "smoothing_length": 15,
+            "atr_length": 200,
+            "band_multiplier": 2.24,
+            "warmup_bars": 400
+          },
+          "trade_policy": {
+            "cmo_floor": 0,
+            "slope_bars": 0,
+            "stop_atr": 0,
+            "trail_atr": 0
+          }
+        },
+        "band120": {
+          "symbol": "NEARUSDC",
+          "parameters": {
+            "vidya_length": 10,
+            "momentum_length": 20,
+            "smoothing_length": 15,
+            "atr_length": 200,
+            "band_multiplier": 3.36,
+            "warmup_bars": 400
+          },
+          "trade_policy": {
+            "cmo_floor": 0,
+            "slope_bars": 0,
+            "stop_atr": 0,
+            "trail_atr": 0
+          }
+        },
+        "vidya75": {
+          "symbol": "NEARUSDC",
+          "parameters": {
+            "vidya_length": 8,
+            "momentum_length": 20,
+            "smoothing_length": 15,
+            "atr_length": 200,
+            "band_multiplier": 2.8,
+            "warmup_bars": 400
+          },
+          "trade_policy": {
+            "cmo_floor": 0,
+            "slope_bars": 0,
+            "stop_atr": 0,
+            "trail_atr": 0
+          }
+        },
+        "vidya125": {
+          "symbol": "NEARUSDC",
+          "parameters": {
+            "vidya_length": 12,
+            "momentum_length": 20,
+            "smoothing_length": 15,
+            "atr_length": 200,
+            "band_multiplier": 2.8,
+            "warmup_bars": 400
+          },
+          "trade_policy": {
+            "cmo_floor": 0,
+            "slope_bars": 0,
+            "stop_atr": 0,
+            "trail_atr": 0
+          }
+        },
+        "atr75": {
+          "symbol": "NEARUSDC",
+          "parameters": {
+            "vidya_length": 10,
+            "momentum_length": 20,
+            "smoothing_length": 15,
+            "atr_length": 150,
+            "band_multiplier": 2.8,
+            "warmup_bars": 400
+          },
+          "trade_policy": {
+            "cmo_floor": 0,
+            "slope_bars": 0,
+            "stop_atr": 0,
+            "trail_atr": 0
+          }
+        },
+        "atr125": {
+          "symbol": "NEARUSDC",
+          "parameters": {
+            "vidya_length": 10,
+            "momentum_length": 20,
+            "smoothing_length": 15,
+            "atr_length": 250,
+            "band_multiplier": 2.8,
+            "warmup_bars": 400
+          },
+          "trade_policy": {
+            "cmo_floor": 0,
+            "slope_bars": 0,
+            "stop_atr": 0,
+            "trail_atr": 0
+          }
+        }
+      },
+      "training_eligible": [],
+      "selected": "baseline",
+      "validation": {
+        "baseline": {
+          "current": {
+            "ending_usdc": "2352.122578171700000000",
+            "return_pct": "113.8293252883363636363636364",
+            "dd_pct": "38.82754360174405944020036119",
+            "trades": 84,
+            "fees_usdc": "183.608072940800000000",
+            "profit_factor": "1.475401843392785879954515588",
+            "open_at_end": true
+          },
+          "stress": {
+            "ending_usdc": "1757.12355877590000000",
+            "return_pct": "59.73850534326363636363636364",
+            "dd_pct": "44.72713314426287632051845820",
+            "trades": 84,
+            "fees_usdc": "168.57415856600000000",
+            "profit_factor": "1.212381820983526312464088432",
+            "open_at_end": true
+          }
+        }
+      },
+      "accepted": false,
+      "effective_profile": {
+        "symbol": "NEARUSDC",
+        "parameters": {
+          "vidya_length": 10,
+          "momentum_length": 20,
+          "smoothing_length": 15,
+          "atr_length": 200,
+          "band_multiplier": 2.8,
+          "warmup_bars": 400
+        },
+        "trade_policy": {
+          "cmo_floor": 0,
+          "slope_bars": 0,
+          "stop_atr": 0,
+          "trail_atr": 0
+        }
+      }
+    },
+    "UNIUSDC": {
+      "base_profile": {
+        "symbol": "UNIUSDC",
+        "parameters": {
+          "vidya_length": 12,
+          "momentum_length": 20,
+          "smoothing_length": 10,
+          "atr_length": 120,
+          "band_multiplier": 2.0,
+          "warmup_bars": 400
+        },
+        "trade_policy": {
+          "cmo_floor": 0.3,
+          "slope_bars": 72,
+          "stop_atr": 0,
+          "trail_atr": 0
+        }
+      },
+      "train": {
+        "baseline": [
+          {
+            "ending_usdc": "632.50511251639000000",
+            "return_pct": "-42.49953522578272727272727273",
+            "dd_pct": "59.27332729780128967148107437",
+            "trades": 39,
+            "fees_usdc": "68.90955452699000000",
+            "profit_factor": "0.4877341773120896832178571245",
+            "open_at_end": true
+          },
+          {
+            "ending_usdc": "458.91427696041000000",
+            "return_pct": "-58.28052027632636363636363636",
+            "dd_pct": "59.28357749388196572991500417",
+            "trades": 41,
+            "fees_usdc": "57.14705069737000000",
+            "profit_factor": "0.5155677393506567635180614271",
+            "open_at_end": false
+          }
+        ],
+        "band80": [
+          {
+            "ending_usdc": "478.02397659040000000",
+            "return_pct": "-56.54327485541818181818181818",
+            "dd_pct": "63.17058446038390066259900753",
+            "trades": 43,
+            "fees_usdc": "68.19881442581000000",
+            "profit_factor": "0.3456807832042961015010370528",
+            "open_at_end": false
+          },
+          {
+            "ending_usdc": "432.69396623722000000",
+            "return_pct": "-60.66418488752545454545454545",
+            "dd_pct": "60.67365294207090909090909091",
+            "trades": 45,
+            "fees_usdc": "60.78132304834000000",
+            "profit_factor": "0.5009744144147610516877231967",
+            "open_at_end": false
+          }
+        ],
+        "band120": [
+          {
+            "ending_usdc": "862.62718270134000000",
+            "return_pct": "-21.57934702715090909090909091",
+            "dd_pct": "41.67570949057062845707928670",
+            "trades": 33,
+            "fees_usdc": "61.50977497552000000",
+            "profit_factor": "0.6953539417853053874670637172",
+            "open_at_end": true
+          },
+          {
+            "ending_usdc": "473.81341424881000000",
+            "return_pct": "-56.92605325010818181818181818",
+            "dd_pct": "62.19120623414511415591066221",
+            "trades": 38,
+            "fees_usdc": "58.70758572899000000",
+            "profit_factor": "0.5651358805558629245818813685",
+            "open_at_end": false
+          }
+        ],
+        "vidya75": [
+          {
+            "ending_usdc": "569.68167186677000000",
+            "return_pct": "-48.21075710302090909090909091",
+            "dd_pct": "58.12524153183272289663257748",
+            "trades": 43,
+            "fees_usdc": "67.51178878497000000",
+            "profit_factor": "0.3488983421002149366628256593",
+            "open_at_end": true
+          },
+          {
+            "ending_usdc": "452.22369680119000000",
+            "return_pct": "-58.88875483625545454545454545",
+            "dd_pct": "58.89834416352818181818181818",
+            "trades": 48,
+            "fees_usdc": "67.79599134196000000",
+            "profit_factor": "0.5402669328757779081770763344",
+            "open_at_end": false
+          }
+        ],
+        "vidya125": [
+          {
+            "ending_usdc": "859.46673794214000000",
+            "return_pct": "-21.86666018707818181818181818",
+            "dd_pct": "43.42282908009504782061773169",
+            "trades": 32,
+            "fees_usdc": "62.15773092196000000",
+            "profit_factor": "0.6799557520153204188574794315",
+            "open_at_end": true
+          },
+          {
+            "ending_usdc": "637.38448427815000000",
+            "return_pct": "-42.05595597471363636363636364",
+            "dd_pct": "52.21838351595673899009275452",
+            "trades": 36,
+            "fees_usdc": "61.31256942820000000",
+            "profit_factor": "0.6435565749788335555441495922",
+            "open_at_end": false
+          }
+        ],
+        "atr75": [
+          {
+            "ending_usdc": "675.14924455501000000",
+            "return_pct": "-38.62279594954454545454545455",
+            "dd_pct": "56.52734327800379781786550251",
+            "trades": 39,
+            "fees_usdc": "71.52722156352000000",
+            "profit_factor": "0.5545353673300828464807520358",
+            "open_at_end": true
+          },
+          {
+            "ending_usdc": "425.32178327928000000",
+            "return_pct": "-61.33438333824727272727272727",
+            "dd_pct": "62.06541110364344425450025100",
+            "trades": 42,
+            "fees_usdc": "56.46893002362000000",
+            "profit_factor": "0.4949105092876088012840646450",
+            "open_at_end": false
+          }
+        ],
+        "atr125": [
+          {
+            "ending_usdc": "525.02850172922000000",
+            "return_pct": "-52.27013620643454545454545455",
+            "dd_pct": "66.19354517181807504653585386",
+            "trades": 38,
+            "fees_usdc": "60.46295340196000000",
+            "profit_factor": "0.3731564018104114162286518796",
+            "open_at_end": true
+          },
+          {
+            "ending_usdc": "531.64678522946000000",
+            "return_pct": "-51.66847407004909090909090909",
+            "dd_pct": "51.94732681906909090909090909",
+            "trades": 40,
+            "fees_usdc": "57.04774964859000000",
+            "profit_factor": "0.5658395002761909186533867008",
+            "open_at_end": false
+          }
+        ]
+      },
+      "profiles": {
+        "baseline": {
+          "symbol": "UNIUSDC",
+          "parameters": {
+            "vidya_length": 12,
+            "momentum_length": 20,
+            "smoothing_length": 10,
+            "atr_length": 120,
+            "band_multiplier": 2.0,
+            "warmup_bars": 400
+          },
+          "trade_policy": {
+            "cmo_floor": 0.3,
+            "slope_bars": 72,
+            "stop_atr": 0,
+            "trail_atr": 0
+          }
+        },
+        "band80": {
+          "symbol": "UNIUSDC",
+          "parameters": {
+            "vidya_length": 12,
+            "momentum_length": 20,
+            "smoothing_length": 10,
+            "atr_length": 120,
+            "band_multiplier": 1.6,
+            "warmup_bars": 400
+          },
+          "trade_policy": {
+            "cmo_floor": 0.3,
+            "slope_bars": 72,
+            "stop_atr": 0,
+            "trail_atr": 0
+          }
+        },
+        "band120": {
+          "symbol": "UNIUSDC",
+          "parameters": {
+            "vidya_length": 12,
+            "momentum_length": 20,
+            "smoothing_length": 10,
+            "atr_length": 120,
+            "band_multiplier": 2.4,
+            "warmup_bars": 400
+          },
+          "trade_policy": {
+            "cmo_floor": 0.3,
+            "slope_bars": 72,
+            "stop_atr": 0,
+            "trail_atr": 0
+          }
+        },
+        "vidya75": {
+          "symbol": "UNIUSDC",
+          "parameters": {
+            "vidya_length": 9,
+            "momentum_length": 20,
+            "smoothing_length": 10,
+            "atr_length": 120,
+            "band_multiplier": 2.0,
+            "warmup_bars": 400
+          },
+          "trade_policy": {
+            "cmo_floor": 0.3,
+            "slope_bars": 72,
+            "stop_atr": 0,
+            "trail_atr": 0
+          }
+        },
+        "vidya125": {
+          "symbol": "UNIUSDC",
+          "parameters": {
+            "vidya_length": 15,
+            "momentum_length": 20,
+            "smoothing_length": 10,
+            "atr_length": 120,
+            "band_multiplier": 2.0,
+            "warmup_bars": 400
+          },
+          "trade_policy": {
+            "cmo_floor": 0.3,
+            "slope_bars": 72,
+            "stop_atr": 0,
+            "trail_atr": 0
+          }
+        },
+        "atr75": {
+          "symbol": "UNIUSDC",
+          "parameters": {
+            "vidya_length": 12,
+            "momentum_length": 20,
+            "smoothing_length": 10,
+            "atr_length": 90,
+            "band_multiplier": 2.0,
+            "warmup_bars": 400
+          },
+          "trade_policy": {
+            "cmo_floor": 0.3,
+            "slope_bars": 72,
+            "stop_atr": 0,
+            "trail_atr": 0
+          }
+        },
+        "atr125": {
+          "symbol": "UNIUSDC",
+          "parameters": {
+            "vidya_length": 12,
+            "momentum_length": 20,
+            "smoothing_length": 10,
+            "atr_length": 150,
+            "band_multiplier": 2.0,
+            "warmup_bars": 400
+          },
+          "trade_policy": {
+            "cmo_floor": 0.3,
+            "slope_bars": 72,
+            "stop_atr": 0,
+            "trail_atr": 0
+          }
+        }
+      },
+      "training_eligible": [],
+      "selected": "baseline",
+      "validation": {
+        "baseline": {
+          "current": {
+            "ending_usdc": "2699.871369991455000000",
+            "return_pct": "145.442851817405000000",
+            "dd_pct": "32.42005635154115447097367129",
+            "trades": 26,
+            "fees_usdc": "58.691033528440000000",
+            "profit_factor": "3.458846592053980541456883468",
+            "open_at_end": false
+          },
+          "stress": {
+            "ending_usdc": "2546.36120480076000000",
+            "return_pct": "131.4873822546145454545454545",
+            "dd_pct": "36.11527788628870727724273599",
+            "trades": 26,
+            "fees_usdc": "58.50043271408000000",
+            "profit_factor": "2.982692991106113613839461229",
+            "open_at_end": false
+          }
+        }
+      },
+      "accepted": false,
+      "effective_profile": {
+        "symbol": "UNIUSDC",
+        "parameters": {
+          "vidya_length": 12,
+          "momentum_length": 20,
+          "smoothing_length": 10,
+          "atr_length": 120,
+          "band_multiplier": 2.0,
+          "warmup_bars": 400
+        },
+        "trade_policy": {
+          "cmo_floor": 0.3,
+          "slope_bars": 72,
+          "stop_atr": 0,
+          "trail_atr": 0
+        }
+      }
+    },
+    "AAVEUSDC": {
+      "base_profile": {
+        "symbol": "AAVEUSDC",
+        "parameters": {
+          "vidya_length": 10,
+          "momentum_length": 12,
+          "smoothing_length": 15,
+          "atr_length": 200,
+          "band_multiplier": 2.0,
+          "warmup_bars": 400
+        },
+        "trade_policy": {
+          "cmo_floor": 0.3,
+          "slope_bars": 0,
+          "stop_atr": 2.0,
+          "trail_atr": 0
+        }
+      },
+      "train": {
+        "baseline": [
+          {
+            "ending_usdc": "1431.8379560025300000",
+            "return_pct": "30.16708690932090909090909091",
+            "dd_pct": "31.00216273185108886721157343",
+            "trades": 54,
+            "fees_usdc": "119.1219664264700000",
+            "profit_factor": "1.239474147117405418849687836",
+            "open_at_end": false
+          },
+          {
+            "ending_usdc": "1423.8229399738500000",
+            "return_pct": "29.43844908853181818181818182",
+            "dd_pct": "27.51260281345394819228981195",
+            "trades": 55,
+            "fees_usdc": "120.4848731717900000",
+            "profit_factor": "1.214919377302473160587269245",
+            "open_at_end": false
+          }
+        ],
+        "band80": [
+          {
+            "ending_usdc": "806.7059877690600000",
+            "return_pct": "-26.66309202099454545454545455",
+            "dd_pct": "50.98559181182688639858171445",
+            "trades": 65,
+            "fees_usdc": "128.9633721469700000",
+            "profit_factor": "0.8311561235854467817476566135",
+            "open_at_end": true
+          },
+          {
+            "ending_usdc": "833.6454506623000000",
+            "return_pct": "-24.21404993979090909090909091",
+            "dd_pct": "44.44058987959842534038646352",
+            "trades": 71,
+            "fees_usdc": "145.8398512721700000",
+            "profit_factor": "0.8522863563409055760381933702",
+            "open_at_end": false
+          }
+        ],
+        "band120": [
+          {
+            "ending_usdc": "956.8505282249700000",
+            "return_pct": "-13.01358834318454545454545455",
+            "dd_pct": "57.65787983842160058587970484",
+            "trades": 45,
+            "fees_usdc": "91.0431637096400000",
+            "profit_factor": "0.8882451271282856441789541633",
+            "open_at_end": false
+          },
+          {
+            "ending_usdc": "689.8193038036100000",
+            "return_pct": "-37.28915419967181818181818182",
+            "dd_pct": "52.15823856675877589822171597",
+            "trades": 27,
+            "fees_usdc": "51.6567541079300000",
+            "profit_factor": "0.5098914010820117527088625015",
+            "open_at_end": false
+          }
+        ],
+        "vidya75": [
+          {
+            "ending_usdc": "719.0190504311100000",
+            "return_pct": "-34.6346317789900000",
+            "dd_pct": "54.49909242372160900186023426",
+            "trades": 65,
+            "fees_usdc": "128.6083146727700000",
+            "profit_factor": "0.7725458182745025180898890930",
+            "open_at_end": false
+          },
+          {
+            "ending_usdc": "1088.5499125581100000",
+            "return_pct": "-1.040917040171818181818181818",
+            "dd_pct": "40.39082721397901003131484469",
+            "trades": 55,
+            "fees_usdc": "120.3833787100600000",
+            "profit_factor": "0.9926118614417645206557994434",
+            "open_at_end": false
+          }
+        ],
+        "vidya125": [
+          {
+            "ending_usdc": "1007.9313762596500000",
+            "return_pct": "-8.369874885486363636363636364",
+            "dd_pct": "54.86984737720729325115478038",
+            "trades": 55,
+            "fees_usdc": "114.6362185816200000",
+            "profit_factor": "0.9374517247113649896043319484",
+            "open_at_end": false
+          },
+          {
+            "ending_usdc": "1892.5488556925500000",
+            "return_pct": "72.0498959720500000",
+            "dd_pct": "23.83444352453557256627297886",
+            "trades": 53,
+            "fees_usdc": "117.4303656846400000",
+            "profit_factor": "1.558336175725212499410731393",
+            "open_at_end": false
+          }
+        ],
+        "atr75": [
+          {
+            "ending_usdc": "1156.4538693619200000",
+            "return_pct": "5.132169941992727272727272727",
+            "dd_pct": "43.37148325471600554947776909",
+            "trades": 59,
+            "fees_usdc": "128.4442721756900000",
+            "profit_factor": "1.033818863136964976187055968",
+            "open_at_end": false
+          },
+          {
+            "ending_usdc": "1049.0276676241300000",
+            "return_pct": "-4.633848397806363636363636364",
+            "dd_pct": "35.88964375768320790727911629",
+            "trades": 59,
+            "fees_usdc": "128.9712580671800000",
+            "profit_factor": "0.9701448650780942038109480902",
+            "open_at_end": false
+          }
+        ],
+        "atr125": [
+          {
+            "ending_usdc": "1722.7390628774300000",
+            "return_pct": "56.61264207976636363636363636",
+            "dd_pct": "22.20804886062176731464329319",
+            "trades": 49,
+            "fees_usdc": "108.4086360702100000",
+            "profit_factor": "1.530779176351963058924407876",
+            "open_at_end": false
+          },
+          {
+            "ending_usdc": "1298.3300579801300000",
+            "return_pct": "18.03000527092090909090909091",
+            "dd_pct": "33.56085895452041656880648604",
+            "trades": 53,
+            "fees_usdc": "116.6495057587000000",
+            "profit_factor": "1.142502816989590588808253597",
+            "open_at_end": false
+          }
+        ]
+      },
+      "profiles": {
+        "baseline": {
+          "symbol": "AAVEUSDC",
+          "parameters": {
+            "vidya_length": 10,
+            "momentum_length": 12,
+            "smoothing_length": 15,
+            "atr_length": 200,
+            "band_multiplier": 2.0,
+            "warmup_bars": 400
+          },
+          "trade_policy": {
+            "cmo_floor": 0.3,
+            "slope_bars": 0,
+            "stop_atr": 2.0,
+            "trail_atr": 0
+          }
+        },
+        "band80": {
+          "symbol": "AAVEUSDC",
+          "parameters": {
+            "vidya_length": 10,
+            "momentum_length": 12,
+            "smoothing_length": 15,
+            "atr_length": 200,
+            "band_multiplier": 1.6,
+            "warmup_bars": 400
+          },
+          "trade_policy": {
+            "cmo_floor": 0.3,
+            "slope_bars": 0,
+            "stop_atr": 2.0,
+            "trail_atr": 0
+          }
+        },
+        "band120": {
+          "symbol": "AAVEUSDC",
+          "parameters": {
+            "vidya_length": 10,
+            "momentum_length": 12,
+            "smoothing_length": 15,
+            "atr_length": 200,
+            "band_multiplier": 2.4,
+            "warmup_bars": 400
+          },
+          "trade_policy": {
+            "cmo_floor": 0.3,
+            "slope_bars": 0,
+            "stop_atr": 2.0,
+            "trail_atr": 0
+          }
+        },
+        "vidya75": {
+          "symbol": "AAVEUSDC",
+          "parameters": {
+            "vidya_length": 8,
+            "momentum_length": 12,
+            "smoothing_length": 15,
+            "atr_length": 200,
+            "band_multiplier": 2.0,
+            "warmup_bars": 400
+          },
+          "trade_policy": {
+            "cmo_floor": 0.3,
+            "slope_bars": 0,
+            "stop_atr": 2.0,
+            "trail_atr": 0
+          }
+        },
+        "vidya125": {
+          "symbol": "AAVEUSDC",
+          "parameters": {
+            "vidya_length": 12,
+            "momentum_length": 12,
+            "smoothing_length": 15,
+            "atr_length": 200,
+            "band_multiplier": 2.0,
+            "warmup_bars": 400
+          },
+          "trade_policy": {
+            "cmo_floor": 0.3,
+            "slope_bars": 0,
+            "stop_atr": 2.0,
+            "trail_atr": 0
+          }
+        },
+        "atr75": {
+          "symbol": "AAVEUSDC",
+          "parameters": {
+            "vidya_length": 10,
+            "momentum_length": 12,
+            "smoothing_length": 15,
+            "atr_length": 150,
+            "band_multiplier": 2.0,
+            "warmup_bars": 400
+          },
+          "trade_policy": {
+            "cmo_floor": 0.3,
+            "slope_bars": 0,
+            "stop_atr": 2.0,
+            "trail_atr": 0
+          }
+        },
+        "atr125": {
+          "symbol": "AAVEUSDC",
+          "parameters": {
+            "vidya_length": 10,
+            "momentum_length": 12,
+            "smoothing_length": 15,
+            "atr_length": 250,
+            "band_multiplier": 2.0,
+            "warmup_bars": 400
+          },
+          "trade_policy": {
+            "cmo_floor": 0.3,
+            "slope_bars": 0,
+            "stop_atr": 2.0,
+            "trail_atr": 0
+          }
+        }
+      },
+      "training_eligible": [],
+      "selected": "baseline",
+      "validation": {
+        "baseline": {
+          "current": {
+            "ending_usdc": "1186.83410471567000000",
+            "return_pct": "7.894009519606363636363636364",
+            "dd_pct": "41.52311725385871911535667530",
+            "trades": 62,
+            "fees_usdc": "110.90783833602000000",
+            "profit_factor": "1.068880186513277862487705564",
+            "open_at_end": false
+          },
+          "stress": {
+            "ending_usdc": "973.5577685411400000",
+            "return_pct": "-11.49474831444181818181818182",
+            "dd_pct": "48.34007749204229885397752912",
+            "trades": 62,
+            "fees_usdc": "101.1828182904300000",
+            "profit_factor": "0.8967323669368267117616242697",
+            "open_at_end": false
+          }
+        }
+      },
+      "accepted": false,
+      "effective_profile": {
+        "symbol": "AAVEUSDC",
+        "parameters": {
+          "vidya_length": 10,
+          "momentum_length": 12,
+          "smoothing_length": 15,
+          "atr_length": 200,
+          "band_multiplier": 2.0,
+          "warmup_bars": 400
+        },
+        "trade_policy": {
+          "cmo_floor": 0.3,
+          "slope_bars": 0,
+          "stop_atr": 2.0,
+          "trail_atr": 0
+        }
+      }
+    },
+    "BCHUSDC": {
+      "base_profile": {
+        "symbol": "BCHUSDC",
+        "parameters": {
+          "vidya_length": 13,
+          "momentum_length": 16,
+          "smoothing_length": 15,
+          "atr_length": 200,
+          "band_multiplier": 3.2,
+          "warmup_bars": 400
+        },
+        "trade_policy": {
+          "cmo_floor": 0,
+          "slope_bars": 0,
+          "stop_atr": 0,
+          "trail_atr": 0
+        }
+      },
+      "train": {
+        "baseline": [
+          {
+            "ending_usdc": "1875.400527351400000",
+            "return_pct": "70.49095703194545454545454545",
+            "dd_pct": "27.00412380123761671428909524",
+            "trades": 26,
+            "fees_usdc": "57.079089101400000",
+            "profit_factor": "1.837876455204260278267178651",
+            "open_at_end": false
+          },
+          {
+            "ending_usdc": "1386.559823833400000",
+            "return_pct": "26.05089307576363636363636364",
+            "dd_pct": "25.32557848168019257597727644",
+            "trades": 27,
+            "fees_usdc": "58.959541040700000",
+            "profit_factor": "1.551236714040302737012215910",
+            "open_at_end": false
+          }
+        ],
+        "band80": [
+          {
+            "ending_usdc": "1883.654090572900000",
+            "return_pct": "71.24128096117272727272727273",
+            "dd_pct": "33.66205281263756587460478854",
+            "trades": 34,
+            "fees_usdc": "72.363015285700000",
+            "profit_factor": "1.803822659171824525851359538",
+            "open_at_end": false
+          },
+          {
+            "ending_usdc": "713.048550164500000",
+            "return_pct": "-35.177404530500000",
+            "dd_pct": "56.81975949893085289617056224",
+            "trades": 44,
+            "fees_usdc": "74.039305111600000",
+            "profit_factor": "0.6541535974140260777334658751",
+            "open_at_end": false
+          }
+        ],
+        "band120": [
+          {
+            "ending_usdc": "1279.073199330600000",
+            "return_pct": "16.27938175732727272727272727",
+            "dd_pct": "41.90419143077229037871967171",
+            "trades": 24,
+            "fees_usdc": "50.237026376400000",
+            "profit_factor": "1.167362715813934754573142401",
+            "open_at_end": false
+          },
+          {
+            "ending_usdc": "1311.875640891900000",
+            "return_pct": "19.26142189926363636363636364",
+            "dd_pct": "28.87769924685005184928237349",
+            "trades": 21,
+            "fees_usdc": "46.240226515500000",
+            "profit_factor": "1.371606109816670331219048438",
+            "open_at_end": false
+          }
+        ],
+        "vidya75": [
+          {
+            "ending_usdc": "2028.817771507100000",
+            "return_pct": "84.43797922791818181818181818",
+            "dd_pct": "34.57507029780750502616554884",
+            "trades": 28,
+            "fees_usdc": "59.735797678300000",
+            "profit_factor": "2.139125275630009218667894386",
+            "open_at_end": false
+          },
+          {
+            "ending_usdc": "1355.692865401500000",
+            "return_pct": "23.24480594559090909090909091",
+            "dd_pct": "22.01825319433756024477921243",
+            "trades": 29,
+            "fees_usdc": "63.653197942300000",
+            "profit_factor": "1.362305106003532607161640546",
+            "open_at_end": false
+          }
+        ],
+        "vidya125": [
+          {
+            "ending_usdc": "1628.670530428900000",
+            "return_pct": "48.06095731171818181818181818",
+            "dd_pct": "31.63276496359440651553904088",
+            "trades": 26,
+            "fees_usdc": "55.914163213900000",
+            "profit_factor": "1.549367818599559377333909082",
+            "open_at_end": false
+          },
+          {
+            "ending_usdc": "1380.002272302600000",
+            "return_pct": "25.45475202750909090909090909",
+            "dd_pct": "30.53065221613903650850189763",
+            "trades": 26,
+            "fees_usdc": "57.426387631400000",
+            "profit_factor": "1.467989936084767007612932895",
+            "open_at_end": false
+          }
+        ],
+        "atr75": [
+          {
+            "ending_usdc": "1759.140679981900000",
+            "return_pct": "59.92187999835454545454545455",
+            "dd_pct": "33.63210279266435224934571110",
+            "trades": 25,
+            "fees_usdc": "53.911602234600000",
+            "profit_factor": "1.728010624859853198402514377",
+            "open_at_end": false
+          },
+          {
+            "ending_usdc": "1151.004903305500000",
+            "return_pct": "4.636809391409090909090909091",
+            "dd_pct": "35.20373226574028889950247106",
+            "trades": 29,
+            "fees_usdc": "60.837333205500000",
+            "profit_factor": "1.075818603708579016935565201",
+            "open_at_end": false
+          }
+        ],
+        "atr125": [
+          {
+            "ending_usdc": "1928.337515354600000",
+            "return_pct": "75.30341048678181818181818182",
+            "dd_pct": "25.97875566004369343014479703",
+            "trades": 27,
+            "fees_usdc": "59.392662465100000",
+            "profit_factor": "1.836566118792734560318152734",
+            "open_at_end": false
+          },
+          {
+            "ending_usdc": "1427.621341606600000",
+            "return_pct": "29.78375832787272727272727273",
+            "dd_pct": "20.08163691391620380866880530",
+            "trades": 26,
+            "fees_usdc": "57.116991461400000",
+            "profit_factor": "1.733637878730349362890017483",
+            "open_at_end": false
+          }
+        ]
+      },
+      "profiles": {
+        "baseline": {
+          "symbol": "BCHUSDC",
+          "parameters": {
+            "vidya_length": 13,
+            "momentum_length": 16,
+            "smoothing_length": 15,
+            "atr_length": 200,
+            "band_multiplier": 3.2,
+            "warmup_bars": 400
+          },
+          "trade_policy": {
+            "cmo_floor": 0,
+            "slope_bars": 0,
+            "stop_atr": 0,
+            "trail_atr": 0
+          }
+        },
+        "band80": {
+          "symbol": "BCHUSDC",
+          "parameters": {
+            "vidya_length": 13,
+            "momentum_length": 16,
+            "smoothing_length": 15,
+            "atr_length": 200,
+            "band_multiplier": 2.56,
+            "warmup_bars": 400
+          },
+          "trade_policy": {
+            "cmo_floor": 0,
+            "slope_bars": 0,
+            "stop_atr": 0,
+            "trail_atr": 0
+          }
+        },
+        "band120": {
+          "symbol": "BCHUSDC",
+          "parameters": {
+            "vidya_length": 13,
+            "momentum_length": 16,
+            "smoothing_length": 15,
+            "atr_length": 200,
+            "band_multiplier": 3.84,
+            "warmup_bars": 400
+          },
+          "trade_policy": {
+            "cmo_floor": 0,
+            "slope_bars": 0,
+            "stop_atr": 0,
+            "trail_atr": 0
+          }
+        },
+        "vidya75": {
+          "symbol": "BCHUSDC",
+          "parameters": {
+            "vidya_length": 10,
+            "momentum_length": 16,
+            "smoothing_length": 15,
+            "atr_length": 200,
+            "band_multiplier": 3.2,
+            "warmup_bars": 400
+          },
+          "trade_policy": {
+            "cmo_floor": 0,
+            "slope_bars": 0,
+            "stop_atr": 0,
+            "trail_atr": 0
+          }
+        },
+        "vidya125": {
+          "symbol": "BCHUSDC",
+          "parameters": {
+            "vidya_length": 16,
+            "momentum_length": 16,
+            "smoothing_length": 15,
+            "atr_length": 200,
+            "band_multiplier": 3.2,
+            "warmup_bars": 400
+          },
+          "trade_policy": {
+            "cmo_floor": 0,
+            "slope_bars": 0,
+            "stop_atr": 0,
+            "trail_atr": 0
+          }
+        },
+        "atr75": {
+          "symbol": "BCHUSDC",
+          "parameters": {
+            "vidya_length": 13,
+            "momentum_length": 16,
+            "smoothing_length": 15,
+            "atr_length": 150,
+            "band_multiplier": 3.2,
+            "warmup_bars": 400
+          },
+          "trade_policy": {
+            "cmo_floor": 0,
+            "slope_bars": 0,
+            "stop_atr": 0,
+            "trail_atr": 0
+          }
+        },
+        "atr125": {
+          "symbol": "BCHUSDC",
+          "parameters": {
+            "vidya_length": 13,
+            "momentum_length": 16,
+            "smoothing_length": 15,
+            "atr_length": 250,
+            "band_multiplier": 3.2,
+            "warmup_bars": 400
+          },
+          "trade_policy": {
+            "cmo_floor": 0,
+            "slope_bars": 0,
+            "stop_atr": 0,
+            "trail_atr": 0
+          }
+        }
+      },
+      "training_eligible": [],
+      "selected": "baseline",
+      "validation": {
+        "baseline": {
+          "current": {
+            "ending_usdc": "1014.1787415251500000",
+            "return_pct": "-7.801932588622727272727272727",
+            "dd_pct": "50.55578140624956232986411277",
+            "trades": 30,
+            "fees_usdc": "51.4520383592500000",
+            "profit_factor": "0.8957322589260842003309019436",
+            "open_at_end": false
+          },
+          "stress": {
+            "ending_usdc": "872.499481282700000",
+            "return_pct": "-20.68186533793636363636363636",
+            "dd_pct": "55.73417986441450942092889122",
+            "trades": 30,
+            "fees_usdc": "48.089767872500000",
+            "profit_factor": "0.7316954544024666491628804694",
+            "open_at_end": false
+          }
+        }
+      },
+      "accepted": false,
+      "effective_profile": {
+        "symbol": "BCHUSDC",
+        "parameters": {
+          "vidya_length": 13,
+          "momentum_length": 16,
+          "smoothing_length": 15,
+          "atr_length": 200,
+          "band_multiplier": 3.2,
+          "warmup_bars": 400
+        },
+        "trade_policy": {
+          "cmo_floor": 0,
+          "slope_bars": 0,
+          "stop_atr": 0,
+          "trail_atr": 0
+        }
+      }
+    }
+  },
+  "portfolio": {
+    "full": {
+      "baseline": {
+        "current": {
+          "ending_usdc": "28922.29449189693165000000",
+          "return_pct": "2548.421731503692592886222163",
+          "dd_pct": "47.62821518106107766365810424",
+          "trades": 153,
+          "fees_usdc": "3276.86973394498360000000",
+          "profit_factor": "1.556951325931057411406362381",
+          "open_at_end": null,
+          "trades_by_symbol": {
+            "BTCUSDC": 17,
+            "SOLUSDC": 17,
+            "NEARUSDC": 34,
+            "LINKUSDC": 5,
+            "BNBUSDC": 2,
+            "BCHUSDC": 30,
+            "DOTUSDC": 6,
+            "XRPUSDC": 25,
+            "DOGEUSDC": 8,
+            "ETHUSDC": 4,
+            "ADAUSDC": 3,
+            "AVAXUSDC": 2
+          }
+        },
+        "stress": {
+          "ending_usdc": "17491.5471730217670000000",
+          "return_pct": "1501.705344077440166014817580",
+          "dd_pct": "60.75992597185538846828388933",
+          "trades": 155,
+          "fees_usdc": "2504.5901179548593000000",
+          "profit_factor": "1.390761121249883076536612363",
+          "open_at_end": null,
+          "trades_by_symbol": {
+            "BTCUSDC": 16,
+            "SOLUSDC": 18,
+            "NEARUSDC": 36,
+            "LINKUSDC": 5,
+            "BNBUSDC": 2,
+            "BCHUSDC": 31,
+            "DOTUSDC": 6,
+            "XRPUSDC": 25,
+            "DOGEUSDC": 8,
+            "ADAUSDC": 3,
+            "AVAXUSDC": 2,
+            "ETHUSDC": 3
+          }
+        },
+        "report": "C:\\Users\\andre\\AppData\\Local\\Temp\\hixton-coin-parameter-research-20261011\\reports\\full\\baseline\\27ad312a-906b-4ef0-bc66-376e0b284750"
+      },
+      "candidate": {
+        "current": {
+          "ending_usdc": "35855.55093575210370000000",
+          "return_pct": "3183.301756016911114397184002",
+          "dd_pct": "46.54649203606093082845836525",
+          "trades": 148,
+          "fees_usdc": "3952.57915350799245000000",
+          "profit_factor": "1.576587597028160065341297171",
+          "open_at_end": null,
+          "trades_by_symbol": {
+            "BTCUSDC": 17,
+            "SOLUSDC": 17,
+            "NEARUSDC": 32,
+            "BNBUSDC": 2,
+            "BCHUSDC": 29,
+            "LINKUSDC": 5,
+            "XRPUSDC": 25,
+            "DOTUSDC": 5,
+            "DOGEUSDC": 7,
+            "ETHUSDC": 4,
+            "ADAUSDC": 3,
+            "AVAXUSDC": 2
+          }
+        },
+        "stress": {
+          "ending_usdc": "21956.5504456338837000000",
+          "return_pct": "1910.566809122478984589760090",
+          "dd_pct": "59.95283103083661166457813007",
+          "trades": 150,
+          "fees_usdc": "3041.4223047965620000000",
+          "profit_factor": "1.410236591950181730275194645",
+          "open_at_end": null,
+          "trades_by_symbol": {
+            "BTCUSDC": 16,
+            "SOLUSDC": 18,
+            "NEARUSDC": 34,
+            "BNBUSDC": 2,
+            "BCHUSDC": 30,
+            "LINKUSDC": 5,
+            "XRPUSDC": 25,
+            "DOTUSDC": 5,
+            "DOGEUSDC": 7,
+            "ADAUSDC": 3,
+            "AVAXUSDC": 2,
+            "ETHUSDC": 3
+          }
+        },
+        "report": "C:\\Users\\andre\\AppData\\Local\\Temp\\hixton-coin-parameter-research-20261011\\reports\\full\\candidate\\26192160-d6a9-4b30-abe8-444649e9b05b"
+      }
+    },
+    "validation": {
+      "baseline": {
+        "current": {
+          "ending_usdc": "1147.04876986251130000000",
+          "return_pct": "5.035542392722781983967952016",
+          "dd_pct": "37.50387482450033335267347736",
+          "trades": 56,
+          "fees_usdc": "67.08886040881090000000",
+          "profit_factor": "1.051673742825662350879126881",
+          "open_at_end": null,
+          "trades_by_symbol": {
+            "BNBUSDC": 1,
+            "LINKUSDC": 1,
+            "XRPUSDC": 9,
+            "NEARUSDC": 13,
+            "ADAUSDC": 1,
+            "DOGEUSDC": 3,
+            "BCHUSDC": 13,
+            "BTCUSDC": 5,
+            "SOLUSDC": 6,
+            "DOTUSDC": 3,
+            "AVAXUSDC": 1
+          }
+        },
+        "stress": {
+          "ending_usdc": "885.6868379541014000000",
+          "return_pct": "-18.89743500116800014681831758",
+          "dd_pct": "51.18185008277283201261102175",
+          "trades": 56,
+          "fees_usdc": "57.5534352559780000000",
+          "profit_factor": "0.8132585919621261942814666272",
+          "open_at_end": null,
+          "trades_by_symbol": {
+            "BNBUSDC": 1,
+            "LINKUSDC": 1,
+            "XRPUSDC": 9,
+            "NEARUSDC": 13,
+            "ADAUSDC": 1,
+            "DOGEUSDC": 3,
+            "BCHUSDC": 13,
+            "BTCUSDC": 5,
+            "SOLUSDC": 6,
+            "DOTUSDC": 3,
+            "AVAXUSDC": 1
+          }
+        },
+        "report": "C:\\Users\\andre\\AppData\\Local\\Temp\\hixton-coin-parameter-research-20261011\\reports\\validation\\baseline\\975b1f2e-db53-4f26-b63b-584ee653fa08"
+      },
+      "candidate": {
+        "current": {
+          "ending_usdc": "1147.04876986251130000000",
+          "return_pct": "5.035542392722781983967952016",
+          "dd_pct": "37.50387482450033335267347736",
+          "trades": 56,
+          "fees_usdc": "67.08886040881090000000",
+          "profit_factor": "1.051673742825662350879126881",
+          "open_at_end": null,
+          "trades_by_symbol": {
+            "BNBUSDC": 1,
+            "LINKUSDC": 1,
+            "XRPUSDC": 9,
+            "NEARUSDC": 13,
+            "ADAUSDC": 1,
+            "DOGEUSDC": 3,
+            "BCHUSDC": 13,
+            "BTCUSDC": 5,
+            "SOLUSDC": 6,
+            "DOTUSDC": 3,
+            "AVAXUSDC": 1
+          }
+        },
+        "stress": {
+          "ending_usdc": "885.6868379541014000000",
+          "return_pct": "-18.89743500116800014681831758",
+          "dd_pct": "51.18185008277283201261102175",
+          "trades": 56,
+          "fees_usdc": "57.5534352559780000000",
+          "profit_factor": "0.8132585919621261942814666272",
+          "open_at_end": null,
+          "trades_by_symbol": {
+            "BNBUSDC": 1,
+            "LINKUSDC": 1,
+            "XRPUSDC": 9,
+            "NEARUSDC": 13,
+            "ADAUSDC": 1,
+            "DOGEUSDC": 3,
+            "BCHUSDC": 13,
+            "BTCUSDC": 5,
+            "SOLUSDC": 6,
+            "DOTUSDC": 3,
+            "AVAXUSDC": 1
+          }
+        },
+        "report": "C:\\Users\\andre\\AppData\\Local\\Temp\\hixton-coin-parameter-research-20261011\\reports\\validation\\candidate\\fa6cae6a-b341-4c8f-9213-d5f6be08dcda"
+      }
+    }
+  },
+  "frozen_training_selection_sha256": "610d23ba8a0bf6b08d3e60517fb961f683450fecf083158fb1bf9791d8307367",
+  "accepted_coins": [
+    "LINKUSDC"
+  ],
+  "candidate_version": "HIXTON-V8-COIN-DD-RESEARCH-b1c13cf0e6cf",
+  "portfolio_acceptance_checks": {
+    "full_current": false,
+    "full_stress": false,
+    "validation_current": true,
+    "validation_stress": true
+  },
+  "portfolio_candidate_passed": false
+}

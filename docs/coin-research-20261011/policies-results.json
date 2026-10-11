@@ -1,0 +1,4263 @@
+{
+  "status": "RESEARCH_ONLY",
+  "installed": false,
+  "orders_sent": false,
+  "kind": "TEMPORAL_REJECTION_ON_PREVIOUSLY_EXAMINED_HISTORY",
+  "source_sha256": "7956f1b7c2ea1041c787313a14644da060ee3437eead077c49b163dfc42fe326",
+  "base_strategy": "HIXTON-V8-CORE10-SAT3-DOTFILTER-5-eeb47b53b080",
+  "period": [
+    "2023-10-11T19:00:00+00:00",
+    "2026-10-11T19:00:00+00:00"
+  ],
+  "selection_rule": "Two fresh-account training years, stress costs. Each year retains at least min(0, baseline return), has >=3 completed trades and no worse DD. Retain >=70% of summed positive baseline profit; worst training DD <=85% baseline. Select lowest worst DD, then highest summed return. Freeze selection before final year. Reject selected coin on either cost case if final-year DD increases or return retains <80% of positive baseline / worsens negative baseline.",
+  "catalogue": [
+    "baseline",
+    "slope24",
+    "slope72",
+    "cmo40",
+    "stop4",
+    "trail6",
+    "stop4_trail6",
+    "slope24_trail6",
+    "cmo40_trail6"
+  ],
+  "data": {
+    "history_mode": "THREE_YEAR_SCHEMA_F_CONTINUITY",
+    "purpose": "THREE_YEAR_STRATEGY_CONTINUITY",
+    "runtime_quote": "USDC",
+    "market_proxy_quote": "USDT",
+    "proxy_scope": "HISTORICAL_MARKET_CANDLES_ONLY",
+    "paper_state_modified": false,
+    "orders_sent": false,
+    "historical_usdc_liquidity_claimed": false,
+    "provenance_by_symbol": {
+      "BTCUSDC": {
+        "target_market": "BTCUSDC",
+        "market_proxy": "BTCUSDT",
+        "proxy_quote": "USDT",
+        "target_quote": "USDC",
+        "first_open_utc": "2023-09-25T03:00:00+00:00",
+        "last_open_utc": "2026-10-11T18:00:00+00:00",
+        "candle_count": 26704,
+        "execution_rules_from": "BTCUSDC",
+        "native_usdc_candle_count": 26704,
+        "proxy_candle_count": 0,
+        "native_usdc_first_open_utc": "2023-09-25T03:00:00+00:00",
+        "proxy_end_exclusive_utc": null
+      },
+      "ETHUSDC": {
+        "target_market": "ETHUSDC",
+        "market_proxy": "ETHUSDT",
+        "proxy_quote": "USDT",
+        "target_quote": "USDC",
+        "first_open_utc": "2023-09-25T03:00:00+00:00",
+        "last_open_utc": "2026-10-11T18:00:00+00:00",
+        "candle_count": 26704,
+        "execution_rules_from": "ETHUSDC",
+        "native_usdc_candle_count": 26704,
+        "proxy_candle_count": 0,
+        "native_usdc_first_open_utc": "2023-09-25T03:00:00+00:00",
+        "proxy_end_exclusive_utc": null
+      },
+      "BNBUSDC": {
+        "target_market": "BNBUSDC",
+        "market_proxy": "BNBUSDT",
+        "proxy_quote": "USDT",
+        "target_quote": "USDC",
+        "first_open_utc": "2023-09-25T03:00:00+00:00",
+        "last_open_utc": "2026-10-11T18:00:00+00:00",
+        "candle_count": 26704,
+        "execution_rules_from": "BNBUSDC",
+        "native_usdc_candle_count": 26704,
+        "proxy_candle_count": 0,
+        "native_usdc_first_open_utc": "2023-09-25T03:00:00+00:00",
+        "proxy_end_exclusive_utc": null
+      },
+      "SOLUSDC": {
+        "target_market": "SOLUSDC",
+        "market_proxy": "SOLUSDT",
+        "proxy_quote": "USDT",
+        "target_quote": "USDC",
+        "first_open_utc": "2023-09-25T03:00:00+00:00",
+        "last_open_utc": "2026-10-11T18:00:00+00:00",
+        "candle_count": 26704,
+        "execution_rules_from": "SOLUSDC",
+        "native_usdc_candle_count": 24443,
+        "proxy_candle_count": 2261,
+        "native_usdc_first_open_utc": "2023-12-28T08:00:00+00:00",
+        "proxy_end_exclusive_utc": "2023-12-28T08:00:00+00:00"
+      },
+      "XRPUSDC": {
+        "target_market": "XRPUSDC",
+        "market_proxy": "XRPUSDT",
+        "proxy_quote": "USDT",
+        "target_quote": "USDC",
+        "first_open_utc": "2023-09-25T03:00:00+00:00",
+        "last_open_utc": "2026-10-11T18:00:00+00:00",
+        "candle_count": 26704,
+        "execution_rules_from": "XRPUSDC",
+        "native_usdc_candle_count": 24443,
+        "proxy_candle_count": 2261,
+        "native_usdc_first_open_utc": "2023-12-28T08:00:00+00:00",
+        "proxy_end_exclusive_utc": "2023-12-28T08:00:00+00:00"
+      },
+      "ADAUSDC": {
+        "target_market": "ADAUSDC",
+        "market_proxy": "ADAUSDT",
+        "proxy_quote": "USDT",
+        "target_quote": "USDC",
+        "first_open_utc": "2023-09-25T03:00:00+00:00",
+        "last_open_utc": "2026-10-11T18:00:00+00:00",
+        "candle_count": 26704,
+        "execution_rules_from": "ADAUSDC",
+        "native_usdc_candle_count": 24443,
+        "proxy_candle_count": 2261,
+        "native_usdc_first_open_utc": "2023-12-28T08:00:00+00:00",
+        "proxy_end_exclusive_utc": "2023-12-28T08:00:00+00:00"
+      },
+      "LINKUSDC": {
+        "target_market": "LINKUSDC",
+        "market_proxy": "LINKUSDT",
+        "proxy_quote": "USDT",
+        "target_quote": "USDC",
+        "first_open_utc": "2023-09-25T03:00:00+00:00",
+        "last_open_utc": "2026-10-11T18:00:00+00:00",
+        "candle_count": 26704,
+        "execution_rules_from": "LINKUSDC",
+        "native_usdc_candle_count": 23795,
+        "proxy_candle_count": 2909,
+        "native_usdc_first_open_utc": "2024-01-24T08:00:00+00:00",
+        "proxy_end_exclusive_utc": "2024-01-24T08:00:00+00:00"
+      },
+      "AVAXUSDC": {
+        "target_market": "AVAXUSDC",
+        "market_proxy": "AVAXUSDT",
+        "proxy_quote": "USDT",
+        "target_quote": "USDC",
+        "first_open_utc": "2023-09-25T03:00:00+00:00",
+        "last_open_utc": "2026-10-11T18:00:00+00:00",
+        "candle_count": 26704,
+        "execution_rules_from": "AVAXUSDC",
+        "native_usdc_candle_count": 24443,
+        "proxy_candle_count": 2261,
+        "native_usdc_first_open_utc": "2023-12-28T08:00:00+00:00",
+        "proxy_end_exclusive_utc": "2023-12-28T08:00:00+00:00"
+      },
+      "DOTUSDC": {
+        "target_market": "DOTUSDC",
+        "market_proxy": "DOTUSDT",
+        "proxy_quote": "USDT",
+        "target_quote": "USDC",
+        "first_open_utc": "2023-09-25T03:00:00+00:00",
+        "last_open_utc": "2026-10-11T18:00:00+00:00",
+        "candle_count": 26704,
+        "execution_rules_from": "DOTUSDC",
+        "native_usdc_candle_count": 24443,
+        "proxy_candle_count": 2261,
+        "native_usdc_first_open_utc": "2023-12-28T08:00:00+00:00",
+        "proxy_end_exclusive_utc": "2023-12-28T08:00:00+00:00"
+      },
+      "DOGEUSDC": {
+        "target_market": "DOGEUSDC",
+        "market_proxy": "DOGEUSDT",
+        "proxy_quote": "USDT",
+        "target_quote": "USDC",
+        "first_open_utc": "2023-09-25T03:00:00+00:00",
+        "last_open_utc": "2026-10-11T18:00:00+00:00",
+        "candle_count": 26704,
+        "execution_rules_from": "DOGEUSDC",
+        "native_usdc_candle_count": 22763,
+        "proxy_candle_count": 3941,
+        "native_usdc_first_open_utc": "2024-03-07T08:00:00+00:00",
+        "proxy_end_exclusive_utc": "2024-03-07T08:00:00+00:00"
+      },
+      "SUIUSDC": {
+        "target_market": "SUIUSDC",
+        "market_proxy": "SUIUSDT",
+        "proxy_quote": "USDT",
+        "target_quote": "USDC",
+        "first_open_utc": "2023-09-25T03:00:00+00:00",
+        "last_open_utc": "2026-10-11T18:00:00+00:00",
+        "candle_count": 26704,
+        "execution_rules_from": "SUIUSDC",
+        "native_usdc_candle_count": 23915,
+        "proxy_candle_count": 2789,
+        "native_usdc_first_open_utc": "2024-01-19T08:00:00+00:00",
+        "proxy_end_exclusive_utc": "2024-01-19T08:00:00+00:00"
+      },
+      "NEARUSDC": {
+        "target_market": "NEARUSDC",
+        "market_proxy": "NEARUSDT",
+        "proxy_quote": "USDT",
+        "target_quote": "USDC",
+        "first_open_utc": "2023-09-25T03:00:00+00:00",
+        "last_open_utc": "2026-10-11T18:00:00+00:00",
+        "candle_count": 26704,
+        "execution_rules_from": "NEARUSDC",
+        "native_usdc_candle_count": 22619,
+        "proxy_candle_count": 4085,
+        "native_usdc_first_open_utc": "2024-03-13T08:00:00+00:00",
+        "proxy_end_exclusive_utc": "2024-03-13T08:00:00+00:00"
+      },
+      "UNIUSDC": {
+        "target_market": "UNIUSDC",
+        "market_proxy": "UNIUSDT",
+        "proxy_quote": "USDT",
+        "target_quote": "USDC",
+        "first_open_utc": "2023-09-25T03:00:00+00:00",
+        "last_open_utc": "2026-10-11T18:00:00+00:00",
+        "candle_count": 26704,
+        "execution_rules_from": "UNIUSDC",
+        "native_usdc_candle_count": 22955,
+        "proxy_candle_count": 3749,
+        "native_usdc_first_open_utc": "2024-02-28T08:00:00+00:00",
+        "proxy_end_exclusive_utc": "2024-02-28T08:00:00+00:00"
+      },
+      "AAVEUSDC": {
+        "target_market": "AAVEUSDC",
+        "market_proxy": "AAVEUSDT",
+        "proxy_quote": "USDT",
+        "target_quote": "USDC",
+        "first_open_utc": "2023-09-25T03:00:00+00:00",
+        "last_open_utc": "2026-10-11T18:00:00+00:00",
+        "candle_count": 26704,
+        "execution_rules_from": "AAVEUSDC",
+        "native_usdc_candle_count": 18419,
+        "proxy_candle_count": 8285,
+        "native_usdc_first_open_utc": "2024-09-04T08:00:00+00:00",
+        "proxy_end_exclusive_utc": "2024-09-04T08:00:00+00:00"
+      },
+      "BCHUSDC": {
+        "target_market": "BCHUSDC",
+        "market_proxy": "BCHUSDT",
+        "proxy_quote": "USDT",
+        "target_quote": "USDC",
+        "first_open_utc": "2023-09-25T03:00:00+00:00",
+        "last_open_utc": "2026-10-11T18:00:00+00:00",
+        "candle_count": 26704,
+        "execution_rules_from": "BCHUSDC",
+        "native_usdc_candle_count": 22115,
+        "proxy_candle_count": 4589,
+        "native_usdc_first_open_utc": "2024-04-03T08:00:00+00:00",
+        "proxy_end_exclusive_utc": "2024-04-03T08:00:00+00:00"
+      }
+    },
+    "note": "Ein durchgehender Backtest der aktiven USDC-Strategie. Vorhandene USDC-Kerzen werden verwendet; historische USDT-Kerzen erg\u00e4nzen ausschlie\u00dflich fehlende \u00e4ltere Historie, sofern native_usdc_candle_count dokumentiert ist. Strategie, Konto, Risiko, Kosten und aktuelle USDC-Ausfuehrungsregeln bleiben unveraendert."
+  },
+  "coins": {
+    "BTCUSDC": {
+      "base_policy": {
+        "cmo_floor": 0.2,
+        "slope_bars": 0,
+        "stop_atr": 0,
+        "trail_atr": 0
+      },
+      "train": {
+        "baseline": [
+          {
+            "ending_usdc": "1946.7325006755116000",
+            "return_pct": "76.97568187959196363636363636",
+            "dd_pct": "14.65929065269560770491546783",
+            "trades": 14,
+            "fees_usdc": "32.7575948304414000",
+            "profit_factor": "3.213686345645223901939983589",
+            "open_at_end": true
+          },
+          {
+            "ending_usdc": "1165.8599364209070000",
+            "return_pct": "5.987266947355181818181818182",
+            "dd_pct": "20.97987328661449119567118634",
+            "trades": 11,
+            "fees_usdc": "23.2124461131970000",
+            "profit_factor": "1.162827635135887253671013053",
+            "open_at_end": false
+          }
+        ],
+        "slope24": [
+          {
+            "ending_usdc": "1882.9020299327106000",
+            "return_pct": "71.1729118120646000",
+            "dd_pct": "15.19913102834052447674748773",
+            "trades": 8,
+            "fees_usdc": "19.4912493396540000",
+            "profit_factor": "4.041352160140990633059101762",
+            "open_at_end": true
+          },
+          {
+            "ending_usdc": "925.5208653440324000",
+            "return_pct": "-15.86173951417887272727272727",
+            "dd_pct": "29.75837798760506458076915389",
+            "trades": 8,
+            "fees_usdc": "14.7001309831550000",
+            "profit_factor": "0.4742398980264510642723836634",
+            "open_at_end": false
+          }
+        ],
+        "slope72": [
+          {
+            "ending_usdc": "2009.1223512066087000",
+            "return_pct": "82.64748647332806363636363636",
+            "dd_pct": "12.02672782379205640539044522",
+            "trades": 8,
+            "fees_usdc": "18.5136499946178000",
+            "profit_factor": "5.281986135938249472802783335",
+            "open_at_end": false
+          },
+          {
+            "ending_usdc": "812.9511111499309000",
+            "return_pct": "-26.09535353182446363636363636",
+            "dd_pct": "26.10555438264264545454545455",
+            "trades": 5,
+            "fees_usdc": "9.4396682886994000",
+            "profit_factor": "0E+25",
+            "open_at_end": false
+          }
+        ],
+        "cmo40": [
+          {
+            "ending_usdc": "1988.9466003374428000",
+            "return_pct": "80.81332730340389090909090909",
+            "dd_pct": "14.36600474954281214916062335",
+            "trades": 12,
+            "fees_usdc": "28.3988696091830000",
+            "profit_factor": "3.743545999498544496723520698",
+            "open_at_end": true
+          },
+          {
+            "ending_usdc": "968.5886327022726000",
+            "return_pct": "-11.94648793615703636363636364",
+            "dd_pct": "25.76584951072947286115164247",
+            "trades": 9,
+            "fees_usdc": "17.3265935235701000",
+            "profit_factor": "0.5851759801992405452298963399",
+            "open_at_end": false
+          }
+        ],
+        "stop4": [
+          {
+            "ending_usdc": "1775.7307766548292000",
+            "return_pct": "61.43007060498447272727272727",
+            "dd_pct": "14.10144351752328138584787790",
+            "trades": 14,
+            "fees_usdc": "32.5864219335238000",
+            "profit_factor": "2.572062284735713549212005420",
+            "open_at_end": true
+          },
+          {
+            "ending_usdc": "988.0200040233413000",
+            "return_pct": "-10.1799996342417000",
+            "dd_pct": "22.70971260267264999496016443",
+            "trades": 11,
+            "fees_usdc": "21.2041201762320000",
+            "profit_factor": "0.6260425087526325771038996867",
+            "open_at_end": false
+          }
+        ],
+        "trail6": [
+          {
+            "ending_usdc": "1239.1476562454792000",
+            "return_pct": "12.6497869314072000",
+            "dd_pct": "17.15629750814572910306572501",
+            "trades": 14,
+            "fees_usdc": "32.0493016928738000",
+            "profit_factor": "1.445987401418096114460121679",
+            "open_at_end": true
+          },
+          {
+            "ending_usdc": "997.3873383039137000",
+            "return_pct": "-9.3284237905533000",
+            "dd_pct": "22.06842087688919997315947382",
+            "trades": 11,
+            "fees_usdc": "21.5021241228677000",
+            "profit_factor": "0.6717045873216045439994278680",
+            "open_at_end": false
+          }
+        ],
+        "stop4_trail6": [
+          {
+            "ending_usdc": "1154.2053042121919000",
+            "return_pct": "4.927754928381081818181818182",
+            "dd_pct": "21.10887802461990965979781718",
+            "trades": 14,
+            "fees_usdc": "31.9642743134611000",
+            "profit_factor": "1.143490943835084191722512084",
+            "open_at_end": true
+          },
+          {
+            "ending_usdc": "1058.2857315890047000",
+            "return_pct": "-3.792206219181390909090909091",
+            "dd_pct": "18.19404306244617868767389618",
+            "trades": 11,
+            "fees_usdc": "22.3038449922664000",
+            "profit_factor": "0.8399476656108824408575593666",
+            "open_at_end": false
+          }
+        ],
+        "slope24_trail6": [
+          {
+            "ending_usdc": "1187.8956816928008000",
+            "return_pct": "7.990516517527345454545454545",
+            "dd_pct": "14.43110478793709849796446225",
+            "trades": 8,
+            "fees_usdc": "18.7955472893638000",
+            "profit_factor": "1.505273993113834378088957509",
+            "open_at_end": true
+          },
+          {
+            "ending_usdc": "1068.6019916244166000",
+            "return_pct": "-2.854364397780309090909090909",
+            "dd_pct": "19.47634960107900774155580385",
+            "trades": 8,
+            "fees_usdc": "15.9669290045407000",
+            "profit_factor": "0.8549540497529712890638761784",
+            "open_at_end": false
+          }
+        ],
+        "cmo40_trail6": [
+          {
+            "ending_usdc": "1316.0185286877658000",
+            "return_pct": "19.63804806252416363636363636",
+            "dd_pct": "15.10595839091749311276851076",
+            "trades": 12,
+            "fees_usdc": "27.7252679358600000",
+            "profit_factor": "1.902588956719948515811933798",
+            "open_at_end": true
+          },
+          {
+            "ending_usdc": "1097.9839570814367000",
+            "return_pct": "-0.1832766289603000",
+            "dd_pct": "15.57676354057967152153856300",
+            "trades": 9,
+            "fees_usdc": "18.7357689909099000",
+            "profit_factor": "0.9897282800012843286106288035",
+            "open_at_end": false
+          }
+        ]
+      },
+      "policies": {
+        "baseline": {
+          "cmo_floor": 0.2,
+          "slope_bars": 0,
+          "stop_atr": 0,
+          "trail_atr": 0
+        },
+        "slope24": {
+          "cmo_floor": 0.2,
+          "slope_bars": 24,
+          "stop_atr": 0,
+          "trail_atr": 0
+        },
+        "slope72": {
+          "cmo_floor": 0.2,
+          "slope_bars": 72,
+          "stop_atr": 0,
+          "trail_atr": 0
+        },
+        "cmo40": {
+          "cmo_floor": 0.4,
+          "slope_bars": 0,
+          "stop_atr": 0,
+          "trail_atr": 0
+        },
+        "stop4": {
+          "cmo_floor": 0.2,
+          "slope_bars": 0,
+          "stop_atr": 4,
+          "trail_atr": 0
+        },
+        "trail6": {
+          "cmo_floor": 0.2,
+          "slope_bars": 0,
+          "stop_atr": 0,
+          "trail_atr": 6
+        },
+        "stop4_trail6": {
+          "cmo_floor": 0.2,
+          "slope_bars": 0,
+          "stop_atr": 4,
+          "trail_atr": 6
+        },
+        "slope24_trail6": {
+          "cmo_floor": 0.2,
+          "slope_bars": 24,
+          "stop_atr": 0,
+          "trail_atr": 6
+        },
+        "cmo40_trail6": {
+          "cmo_floor": 0.4,
+          "slope_bars": 0,
+          "stop_atr": 0,
+          "trail_atr": 6
+        }
+      },
+      "training_eligible": [],
+      "selected": "baseline",
+      "validation": {
+        "baseline": {
+          "current": {
+            "ending_usdc": "966.89249430143965000",
+            "return_pct": "-12.10068233623275909090909091",
+            "dd_pct": "32.86973113144595497960878389",
+            "trades": 15,
+            "fees_usdc": "26.76366127004120000",
+            "profit_factor": "0.6647481212866050302224450829",
+            "open_at_end": false
+          },
+          "stress": {
+            "ending_usdc": "897.3257606201372000",
+            "return_pct": "-18.4249308527148000",
+            "dd_pct": "35.49560579487612527469549283",
+            "trades": 15,
+            "fees_usdc": "25.8141612109100000",
+            "profit_factor": "0.5344933129475400319256970958",
+            "open_at_end": false
+          }
+        }
+      },
+      "accepted": false,
+      "effective_policy": {
+        "cmo_floor": 0.2,
+        "slope_bars": 0,
+        "stop_atr": 0,
+        "trail_atr": 0
+      }
+    },
+    "ETHUSDC": {
+      "base_policy": {
+        "cmo_floor": 0,
+        "slope_bars": 24,
+        "stop_atr": 0,
+        "trail_atr": 0
+      },
+      "train": {
+        "baseline": [
+          {
+            "ending_usdc": "1698.8716192753580000",
+            "return_pct": "54.4428744795780000",
+            "dd_pct": "17.32351035469477917017910510",
+            "trades": 11,
+            "fees_usdc": "24.8071081474050000",
+            "profit_factor": "2.690680761185748743923273911",
+            "open_at_end": false
+          },
+          {
+            "ending_usdc": "2345.8043506128030000",
+            "return_pct": "113.2549409648002727272727273",
+            "dd_pct": "33.90207816903818891120252577",
+            "trades": 13,
+            "fees_usdc": "29.8130206920700000",
+            "profit_factor": "3.214029252611069599102938118",
+            "open_at_end": false
+          }
+        ],
+        "slope72": [
+          {
+            "ending_usdc": "1551.1542627416440000",
+            "return_pct": "41.0140238856040000",
+            "dd_pct": "23.16498251033503615675019745",
+            "trades": 11,
+            "fees_usdc": "24.6592513665010000",
+            "profit_factor": "2.401616580255721557162543847",
+            "open_at_end": false
+          },
+          {
+            "ending_usdc": "930.4398426894240000",
+            "return_pct": "-15.41455975550690909090909091",
+            "dd_pct": "28.95741785801873966762338597",
+            "trades": 8,
+            "fees_usdc": "15.0388084675400000",
+            "profit_factor": "0.3666184893011838684824662916",
+            "open_at_end": false
+          }
+        ],
+        "cmo40": [
+          {
+            "ending_usdc": "1710.8736121754480000",
+            "return_pct": "55.53396474322254545454545455",
+            "dd_pct": "17.22118607584768477569459425",
+            "trades": 10,
+            "fees_usdc": "22.6184728460300000",
+            "profit_factor": "2.785022741844866173493765828",
+            "open_at_end": false
+          },
+          {
+            "ending_usdc": "1571.8460811658990000",
+            "return_pct": "42.8950982878090000",
+            "dd_pct": "27.41073192202753300502412456",
+            "trades": 8,
+            "fees_usdc": "16.4176078819810000",
+            "profit_factor": "2.700404435536836347897127906",
+            "open_at_end": false
+          }
+        ],
+        "stop4": [
+          {
+            "ending_usdc": "1434.0115495754420000",
+            "return_pct": "30.36468632504018181818181818",
+            "dd_pct": "16.05570744582880453381245941",
+            "trades": 11,
+            "fees_usdc": "24.1120226007520000",
+            "profit_factor": "2.040729722565315155359121085",
+            "open_at_end": false
+          },
+          {
+            "ending_usdc": "2539.3784300655030000",
+            "return_pct": "130.8525845514093636363636364",
+            "dd_pct": "24.90647001561983940661390630",
+            "trades": 13,
+            "fees_usdc": "30.0067885393700000",
+            "profit_factor": "4.900926527300157402815937096",
+            "open_at_end": false
+          }
+        ],
+        "trail6": [
+          {
+            "ending_usdc": "1087.4105300063060000",
+            "return_pct": "-1.1444972721540000",
+            "dd_pct": "21.06884797632273067296698565",
+            "trades": 11,
+            "fees_usdc": "23.6956502164570000",
+            "profit_factor": "0.9690723725023401551348743920",
+            "open_at_end": false
+          },
+          {
+            "ending_usdc": "1802.1333556406540000",
+            "return_pct": "63.83030505824127272727272727",
+            "dd_pct": "28.25646912085876237983174351",
+            "trades": 13,
+            "fees_usdc": "29.1153017205740000",
+            "profit_factor": "2.517539377496076828171377432",
+            "open_at_end": false
+          }
+        ],
+        "stop4_trail6": [
+          {
+            "ending_usdc": "1176.0920996759690000",
+            "return_pct": "6.917463606906272727272727273",
+            "dd_pct": "16.03203636472511964037860308",
+            "trades": 11,
+            "fees_usdc": "23.8538449732250000",
+            "profit_factor": "1.243580522054493150270844193",
+            "open_at_end": false
+          },
+          {
+            "ending_usdc": "1916.0083572268230000",
+            "return_pct": "74.18257792971118181818181818",
+            "dd_pct": "24.81920882488169930548545427",
+            "trades": 13,
+            "fees_usdc": "29.3530051966500000",
+            "profit_factor": "3.274918999569334577643274649",
+            "open_at_end": false
+          }
+        ],
+        "cmo40_trail6": [
+          {
+            "ending_usdc": "1146.7798130632930000",
+            "return_pct": "4.252710278481181818181818182",
+            "dd_pct": "20.22351226396644091562713233",
+            "trades": 10,
+            "fees_usdc": "21.8391687230000000",
+            "profit_factor": "1.135367058182082461680425202",
+            "open_at_end": false
+          },
+          {
+            "ending_usdc": "1402.3149914032120000",
+            "return_pct": "27.48318103665563636363636364",
+            "dd_pct": "25.07589525053299006499518858",
+            "trades": 8,
+            "fees_usdc": "16.4480225733230000",
+            "profit_factor": "2.165343490761989262256582608",
+            "open_at_end": false
+          }
+        ]
+      },
+      "policies": {
+        "baseline": {
+          "cmo_floor": 0,
+          "slope_bars": 24,
+          "stop_atr": 0,
+          "trail_atr": 0
+        },
+        "slope72": {
+          "cmo_floor": 0,
+          "slope_bars": 72,
+          "stop_atr": 0,
+          "trail_atr": 0
+        },
+        "cmo40": {
+          "cmo_floor": 0.4,
+          "slope_bars": 24,
+          "stop_atr": 0,
+          "trail_atr": 0
+        },
+        "stop4": {
+          "cmo_floor": 0,
+          "slope_bars": 24,
+          "stop_atr": 4,
+          "trail_atr": 0
+        },
+        "trail6": {
+          "cmo_floor": 0,
+          "slope_bars": 24,
+          "stop_atr": 0,
+          "trail_atr": 6
+        },
+        "stop4_trail6": {
+          "cmo_floor": 0,
+          "slope_bars": 24,
+          "stop_atr": 4,
+          "trail_atr": 6
+        },
+        "cmo40_trail6": {
+          "cmo_floor": 0.4,
+          "slope_bars": 24,
+          "stop_atr": 0,
+          "trail_atr": 6
+        }
+      },
+      "training_eligible": [
+        "stop4"
+      ],
+      "selected": "stop4",
+      "validation": {
+        "baseline": {
+          "current": {
+            "ending_usdc": "1214.82449561969300000",
+            "return_pct": "10.43859051088118181818181818",
+            "dd_pct": "25.21910120276324810488217773",
+            "trades": 11,
+            "fees_usdc": "21.76348712595450000",
+            "profit_factor": "1.389897833295498443531844048",
+            "open_at_end": false
+          },
+          "stress": {
+            "ending_usdc": "1151.8843155122700000",
+            "return_pct": "4.716755955660909090909090909",
+            "dd_pct": "27.79190899546711896210221797",
+            "trades": 11,
+            "fees_usdc": "21.2858512591160000",
+            "profit_factor": "1.161259613629439121171059179",
+            "open_at_end": false
+          }
+        },
+        "stop4": {
+          "current": {
+            "ending_usdc": "1000.82363840049500000",
+            "return_pct": "-9.016032872682272727272727273",
+            "dd_pct": "21.04280040910915838967465561",
+            "trades": 11,
+            "fees_usdc": "21.84304765103600000",
+            "profit_factor": "0.6317645004415223068217010304",
+            "open_at_end": false
+          },
+          "stress": {
+            "ending_usdc": "955.6368038514200000",
+            "return_pct": "-13.12392692259818181818181818",
+            "dd_pct": "23.43246800310577251449920224",
+            "trades": 11,
+            "fees_usdc": "21.3235169271220000",
+            "profit_factor": "0.5107537959468249134129278939",
+            "open_at_end": false
+          }
+        }
+      },
+      "accepted": false,
+      "effective_policy": {
+        "cmo_floor": 0,
+        "slope_bars": 24,
+        "stop_atr": 0,
+        "trail_atr": 0
+      }
+    },
+    "BNBUSDC": {
+      "base_policy": {
+        "cmo_floor": 0,
+        "slope_bars": 0,
+        "stop_atr": 0,
+        "trail_atr": 0
+      },
+      "train": {
+        "baseline": [
+          {
+            "ending_usdc": "2007.236494787900000",
+            "return_pct": "82.47604498071818181818181818",
+            "dd_pct": "15.01216831354118413695792930",
+            "trades": 9,
+            "fees_usdc": "20.711700828900000",
+            "profit_factor": "5.805550196551653122373579121",
+            "open_at_end": false
+          },
+          {
+            "ending_usdc": "1835.3619308537300000",
+            "return_pct": "66.85108462306636363636363636",
+            "dd_pct": "18.28404781074417913150630938",
+            "trades": 8,
+            "fees_usdc": "18.3369985050100000",
+            "profit_factor": "7.280738364279014771799921021",
+            "open_at_end": false
+          }
+        ],
+        "slope24": [
+          {
+            "ending_usdc": "1543.876101517800000",
+            "return_pct": "40.35237286525454545454545455",
+            "dd_pct": "20.68533045242249942117547572",
+            "trades": 7,
+            "fees_usdc": "15.846696333200000",
+            "profit_factor": "3.349630457569930531096427957",
+            "open_at_end": false
+          },
+          {
+            "ending_usdc": "1660.6870616606300000",
+            "return_pct": "50.97155106005727272727272727",
+            "dd_pct": "19.03033278000815649971570218",
+            "trades": 6,
+            "fees_usdc": "13.7615116178700000",
+            "profit_factor": "5.788492698876136067594737396",
+            "open_at_end": false
+          }
+        ],
+        "slope72": [
+          {
+            "ending_usdc": "1637.297196428200000",
+            "return_pct": "48.84519967529090909090909091",
+            "dd_pct": "15.59207076625205998201353003",
+            "trades": 8,
+            "fees_usdc": "18.141055703200000",
+            "profit_factor": "3.844869133931225131082647092",
+            "open_at_end": false
+          },
+          {
+            "ending_usdc": "1400.3341495964900000",
+            "return_pct": "27.30310450877181818181818182",
+            "dd_pct": "18.67487388387605955265089683",
+            "trades": 5,
+            "fees_usdc": "10.7837048749200000",
+            "profit_factor": "3.641261079200035538063590639",
+            "open_at_end": false
+          }
+        ],
+        "cmo40": [
+          {
+            "ending_usdc": "1543.876101517800000",
+            "return_pct": "40.35237286525454545454545455",
+            "dd_pct": "20.68533045242249942117547572",
+            "trades": 7,
+            "fees_usdc": "15.846696333200000",
+            "profit_factor": "3.349630457569930531096427957",
+            "open_at_end": false
+          },
+          {
+            "ending_usdc": "1056.4111073949500000",
+            "return_pct": "-3.962626600459090909090909091",
+            "dd_pct": "19.13662469791748148286954626",
+            "trades": 5,
+            "fees_usdc": "10.3111028215300000",
+            "profit_factor": "0.6074624073248284009533360822",
+            "open_at_end": false
+          }
+        ],
+        "stop4": [
+          {
+            "ending_usdc": "1662.702265407300000",
+            "return_pct": "51.15475140066363636363636364",
+            "dd_pct": "18.32601063091771152803255985",
+            "trades": 9,
+            "fees_usdc": "20.207652224600000",
+            "profit_factor": "4.197827638622876443533997772",
+            "open_at_end": false
+          },
+          {
+            "ending_usdc": "1877.7991286762300000",
+            "return_pct": "70.70901169783909090909090909",
+            "dd_pct": "16.05621478192853186110595995",
+            "trades": 8,
+            "fees_usdc": "18.3794781825100000",
+            "profit_factor": "11.42984862765463809943216424",
+            "open_at_end": false
+          }
+        ],
+        "trail6": [
+          {
+            "ending_usdc": "1317.415048253300000",
+            "return_pct": "19.76500438666363636363636364",
+            "dd_pct": "11.76367668952004756151076486",
+            "trades": 9,
+            "fees_usdc": "19.596264840200000",
+            "profit_factor": "2.101759017646916593201539574",
+            "open_at_end": false
+          },
+          {
+            "ending_usdc": "1316.5236367596500000",
+            "return_pct": "19.6839669781500000",
+            "dd_pct": "14.10913743884103911867306574",
+            "trades": 8,
+            "fees_usdc": "17.6189403826100000",
+            "profit_factor": "2.916981716710623341757548783",
+            "open_at_end": false
+          }
+        ],
+        "stop4_trail6": [
+          {
+            "ending_usdc": "1367.118621150900000",
+            "return_pct": "24.28351101371818181818181818",
+            "dd_pct": "10.34213273072146469653494834",
+            "trades": 9,
+            "fees_usdc": "19.810099103300000",
+            "profit_factor": "2.650509160212556314584568682",
+            "open_at_end": false
+          },
+          {
+            "ending_usdc": "1340.1425902424600000",
+            "return_pct": "21.83114456749636363636363636",
+            "dd_pct": "12.28038314204158911011861818",
+            "trades": 8,
+            "fees_usdc": "17.7766683897800000",
+            "profit_factor": "3.655445907284303499634210173",
+            "open_at_end": false
+          }
+        ],
+        "slope24_trail6": [
+          {
+            "ending_usdc": "920.654572432800000",
+            "return_pct": "-16.30412977883636363636363636",
+            "dd_pct": "17.54871516724738999547939166",
+            "trades": 7,
+            "fees_usdc": "13.819288200800000",
+            "profit_factor": "0.03441575955893368826333374580",
+            "open_at_end": false
+          },
+          {
+            "ending_usdc": "1252.8469525682500000",
+            "return_pct": "13.89517750620454545454545455",
+            "dd_pct": "13.32337337334919744905875542",
+            "trades": 6,
+            "fees_usdc": "13.1786942691300000",
+            "profit_factor": "2.398072562314540164078631303",
+            "open_at_end": false
+          }
+        ],
+        "cmo40_trail6": [
+          {
+            "ending_usdc": "920.654572432800000",
+            "return_pct": "-16.30412977883636363636363636",
+            "dd_pct": "17.54871516724738999547939166",
+            "trades": 7,
+            "fees_usdc": "13.819288200800000",
+            "profit_factor": "0.03441575955893368826333374580",
+            "open_at_end": false
+          },
+          {
+            "ending_usdc": "1217.5929971119600000",
+            "return_pct": "10.69027246472363636363636364",
+            "dd_pct": "10.60285333910545454545454545",
+            "trades": 5,
+            "fees_usdc": "10.5372054643600000",
+            "profit_factor": "2.102496083479721814581163215",
+            "open_at_end": false
+          }
+        ]
+      },
+      "policies": {
+        "baseline": {
+          "cmo_floor": 0,
+          "slope_bars": 0,
+          "stop_atr": 0,
+          "trail_atr": 0
+        },
+        "slope24": {
+          "cmo_floor": 0,
+          "slope_bars": 24,
+          "stop_atr": 0,
+          "trail_atr": 0
+        },
+        "slope72": {
+          "cmo_floor": 0,
+          "slope_bars": 72,
+          "stop_atr": 0,
+          "trail_atr": 0
+        },
+        "cmo40": {
+          "cmo_floor": 0.4,
+          "slope_bars": 0,
+          "stop_atr": 0,
+          "trail_atr": 0
+        },
+        "stop4": {
+          "cmo_floor": 0,
+          "slope_bars": 0,
+          "stop_atr": 4,
+          "trail_atr": 0
+        },
+        "trail6": {
+          "cmo_floor": 0,
+          "slope_bars": 0,
+          "stop_atr": 0,
+          "trail_atr": 6
+        },
+        "stop4_trail6": {
+          "cmo_floor": 0,
+          "slope_bars": 0,
+          "stop_atr": 4,
+          "trail_atr": 6
+        },
+        "slope24_trail6": {
+          "cmo_floor": 0,
+          "slope_bars": 24,
+          "stop_atr": 0,
+          "trail_atr": 6
+        },
+        "cmo40_trail6": {
+          "cmo_floor": 0.4,
+          "slope_bars": 0,
+          "stop_atr": 0,
+          "trail_atr": 6
+        }
+      },
+      "training_eligible": [],
+      "selected": "baseline",
+      "validation": {
+        "baseline": {
+          "current": {
+            "ending_usdc": "1308.64679962759500000",
+            "return_pct": "18.96789087523590909090909091",
+            "dd_pct": "24.28749300149741349146711326",
+            "trades": 8,
+            "fees_usdc": "16.29392016035500000",
+            "profit_factor": "2.163989657739501308680787758",
+            "open_at_end": false
+          },
+          "stress": {
+            "ending_usdc": "1259.1444502711300000",
+            "return_pct": "14.46767729737545454545454545",
+            "dd_pct": "25.39415254957516013495117348",
+            "trades": 8,
+            "fees_usdc": "16.0476246771900000",
+            "profit_factor": "1.823849281461034463569125560",
+            "open_at_end": false
+          }
+        }
+      },
+      "accepted": false,
+      "effective_policy": {
+        "cmo_floor": 0,
+        "slope_bars": 0,
+        "stop_atr": 0,
+        "trail_atr": 0
+      }
+    },
+    "SOLUSDC": {
+      "base_policy": {
+        "cmo_floor": 0,
+        "slope_bars": 0,
+        "stop_atr": 0,
+        "trail_atr": 0
+      },
+      "train": {
+        "baseline": [
+          {
+            "ending_usdc": "6137.1241687495500000",
+            "return_pct": "457.9203789772318181818181818",
+            "dd_pct": "23.80870834677742019574419368",
+            "trades": 14,
+            "fees_usdc": "36.9841125619100000",
+            "profit_factor": "22.45976910654036308507187340",
+            "open_at_end": true
+          },
+          {
+            "ending_usdc": "2106.7319909746700000",
+            "return_pct": "91.52109008860636363636363636",
+            "dd_pct": "25.66393312924883311026518081",
+            "trades": 19,
+            "fees_usdc": "42.8235580425400000",
+            "profit_factor": "3.043404480410963368545527684",
+            "open_at_end": false
+          }
+        ],
+        "slope24": [
+          {
+            "ending_usdc": "1307.8545499702000000",
+            "return_pct": "18.89586817910909090909090909",
+            "dd_pct": "16.62640795951590822620762109",
+            "trades": 6,
+            "fees_usdc": "14.5430169987000000",
+            "profit_factor": "3.150677804963045618883430511",
+            "open_at_end": true
+          },
+          {
+            "ending_usdc": "820.5406407801600000",
+            "return_pct": "-25.40539629271272727272727273",
+            "dd_pct": "36.92948467917033538649649150",
+            "trades": 6,
+            "fees_usdc": "10.8802210849200000",
+            "profit_factor": "0.1291080837258100984594587408",
+            "open_at_end": false
+          }
+        ],
+        "slope72": [
+          {
+            "ending_usdc": "5129.5661523901500000",
+            "return_pct": "366.3241956718318181818181818",
+            "dd_pct": "23.80870834677742019574419368",
+            "trades": 2,
+            "fees_usdc": "9.5650675188900000",
+            "profit_factor": "None",
+            "open_at_end": true
+          },
+          {
+            "ending_usdc": "1018.5194074330100000",
+            "return_pct": "-7.407326596999090909090909091",
+            "dd_pct": "14.91692778625330003166724168",
+            "trades": 2,
+            "fees_usdc": "4.2635553087100000",
+            "profit_factor": "0E+24",
+            "open_at_end": false
+          }
+        ],
+        "cmo40": [
+          {
+            "ending_usdc": "1315.9686526130900000",
+            "return_pct": "19.63351387391727272727272727",
+            "dd_pct": "22.46572678333483356699956606",
+            "trades": 7,
+            "fees_usdc": "16.5912675918500000",
+            "profit_factor": "2.224826198639874502970082842",
+            "open_at_end": true
+          },
+          {
+            "ending_usdc": "2063.5820288694100000",
+            "return_pct": "87.59836626085545454545454545",
+            "dd_pct": "21.65812829243148652908998194",
+            "trades": 13,
+            "fees_usdc": "29.5753542291300000",
+            "profit_factor": "5.054269986721806753305915889",
+            "open_at_end": false
+          }
+        ],
+        "stop4": [
+          {
+            "ending_usdc": "6183.3221092062900000",
+            "return_pct": "462.1201917460263636363636364",
+            "dd_pct": "23.80870834677742019574419368",
+            "trades": 15,
+            "fees_usdc": "38.1016753651700000",
+            "profit_factor": "24.16304623830269107139044590",
+            "open_at_end": false
+          },
+          {
+            "ending_usdc": "1766.2234852697300000",
+            "return_pct": "60.56577138815727272727272727",
+            "dd_pct": "27.44247641942182011179472438",
+            "trades": 19,
+            "fees_usdc": "42.4827086874800000",
+            "profit_factor": "2.289934136913436618919950018",
+            "open_at_end": false
+          }
+        ],
+        "trail6": [
+          {
+            "ending_usdc": "1572.6930486111900000",
+            "return_pct": "42.9720953282900000",
+            "dd_pct": "14.35176337976016490771378447",
+            "trades": 15,
+            "fees_usdc": "33.4864310602700000",
+            "profit_factor": "2.856719076503347787139865902",
+            "open_at_end": false
+          },
+          {
+            "ending_usdc": "1730.3059139246000000",
+            "return_pct": "57.30053762950909090909090909",
+            "dd_pct": "22.87157108622507453594074999",
+            "trades": 19,
+            "fees_usdc": "42.4467551626100000",
+            "profit_factor": "2.279939087896945704047254614",
+            "open_at_end": false
+          }
+        ],
+        "stop4_trail6": [
+          {
+            "ending_usdc": "1607.7493263620700000",
+            "return_pct": "46.15902966927909090909090909",
+            "dd_pct": "14.35176337976016490771378447",
+            "trades": 15,
+            "fees_usdc": "33.5215224293900000",
+            "profit_factor": "3.313064343162720618788365816",
+            "open_at_end": false
+          },
+          {
+            "ending_usdc": "1714.8315033550700000",
+            "return_pct": "55.89377303227909090909090909",
+            "dd_pct": "23.83261419015898214034657138",
+            "trades": 19,
+            "fees_usdc": "42.4312652621400000",
+            "profit_factor": "2.297662385798015265340938158",
+            "open_at_end": false
+          }
+        ],
+        "slope24_trail6": [
+          {
+            "ending_usdc": "1215.4916406762400000",
+            "return_pct": "10.49924006147636363636363636",
+            "dd_pct": "13.55506604552290636175166481",
+            "trades": 7,
+            "fees_usdc": "15.5218802526600000",
+            "profit_factor": "1.661661525173728454099824396",
+            "open_at_end": false
+          },
+          {
+            "ending_usdc": "882.5919691997600000",
+            "return_pct": "-19.76436643638545454545454545",
+            "dd_pct": "26.96666992256667264287694657",
+            "trades": 6,
+            "fees_usdc": "11.0684166976000000",
+            "profit_factor": "0.1700901794040414802473706988",
+            "open_at_end": false
+          }
+        ],
+        "cmo40_trail6": [
+          {
+            "ending_usdc": "1312.6714393964100000",
+            "return_pct": "19.33376721785545454545454545",
+            "dd_pct": "13.82869616862687963417796620",
+            "trades": 8,
+            "fees_usdc": "17.7704672881100000",
+            "profit_factor": "1.971674300025807247797892914",
+            "open_at_end": false
+          },
+          {
+            "ending_usdc": "1422.7212887317900000",
+            "return_pct": "29.33829897561727272727272727",
+            "dd_pct": "25.29346887117044057232532798",
+            "trades": 13,
+            "fees_usdc": "28.9338519867500000",
+            "profit_factor": "1.882467594096898960707164004",
+            "open_at_end": false
+          }
+        ]
+      },
+      "policies": {
+        "baseline": {
+          "cmo_floor": 0,
+          "slope_bars": 0,
+          "stop_atr": 0,
+          "trail_atr": 0
+        },
+        "slope24": {
+          "cmo_floor": 0,
+          "slope_bars": 24,
+          "stop_atr": 0,
+          "trail_atr": 0
+        },
+        "slope72": {
+          "cmo_floor": 0,
+          "slope_bars": 72,
+          "stop_atr": 0,
+          "trail_atr": 0
+        },
+        "cmo40": {
+          "cmo_floor": 0.4,
+          "slope_bars": 0,
+          "stop_atr": 0,
+          "trail_atr": 0
+        },
+        "stop4": {
+          "cmo_floor": 0,
+          "slope_bars": 0,
+          "stop_atr": 4,
+          "trail_atr": 0
+        },
+        "trail6": {
+          "cmo_floor": 0,
+          "slope_bars": 0,
+          "stop_atr": 0,
+          "trail_atr": 6
+        },
+        "stop4_trail6": {
+          "cmo_floor": 0,
+          "slope_bars": 0,
+          "stop_atr": 4,
+          "trail_atr": 6
+        },
+        "slope24_trail6": {
+          "cmo_floor": 0,
+          "slope_bars": 24,
+          "stop_atr": 0,
+          "trail_atr": 6
+        },
+        "cmo40_trail6": {
+          "cmo_floor": 0.4,
+          "slope_bars": 0,
+          "stop_atr": 0,
+          "trail_atr": 6
+        }
+      },
+      "training_eligible": [],
+      "selected": "baseline",
+      "validation": {
+        "baseline": {
+          "current": {
+            "ending_usdc": "907.78999903011500000",
+            "return_pct": "-17.47363645180772727272727273",
+            "dd_pct": "41.00320125036700956827190635",
+            "trades": 22,
+            "fees_usdc": "36.29951407755500000",
+            "profit_factor": "0.6765644420151132099332979106",
+            "open_at_end": false
+          },
+          "stress": {
+            "ending_usdc": "813.3664221062300000",
+            "return_pct": "-26.05759799034272727272727273",
+            "dd_pct": "45.26243354716272269341644414",
+            "trades": 22,
+            "fees_usdc": "34.4040172193300000",
+            "profit_factor": "0.5457367566828040122980671772",
+            "open_at_end": false
+          }
+        }
+      },
+      "accepted": false,
+      "effective_policy": {
+        "cmo_floor": 0,
+        "slope_bars": 0,
+        "stop_atr": 0,
+        "trail_atr": 0
+      }
+    },
+    "XRPUSDC": {
+      "base_policy": {
+        "cmo_floor": 0.15,
+        "slope_bars": 0,
+        "stop_atr": 4,
+        "trail_atr": 0
+      },
+      "train": {
+        "baseline": [
+          {
+            "ending_usdc": "883.938251630700000000",
+            "return_pct": "-19.64197712448181818181818182",
+            "dd_pct": "48.94674427940606079889633376",
+            "trades": 27,
+            "fees_usdc": "54.280784670960000000",
+            "profit_factor": "0.7545653293195433440254728870",
+            "open_at_end": false
+          },
+          {
+            "ending_usdc": "2231.997299715860000000",
+            "return_pct": "102.9088454287145454545454545",
+            "dd_pct": "29.23448316604326800800972372",
+            "trades": 26,
+            "fees_usdc": "58.117842803830000000",
+            "profit_factor": "2.270837085124708765299605400",
+            "open_at_end": false
+          }
+        ],
+        "slope24": [
+          {
+            "ending_usdc": "856.935710840700000000",
+            "return_pct": "-22.09675355993636363636363636",
+            "dd_pct": "25.30926036570272727272727273",
+            "trades": 9,
+            "fees_usdc": "16.968391667190000000",
+            "profit_factor": "0.1485971069870995486815767570",
+            "open_at_end": false
+          },
+          {
+            "ending_usdc": "1442.514321128150000000",
+            "return_pct": "31.13766555710454545454545455",
+            "dd_pct": "32.32641020579338290699436617",
+            "trades": 15,
+            "fees_usdc": "33.354386523220000000",
+            "profit_factor": "1.712032827489591290270489740",
+            "open_at_end": false
+          }
+        ],
+        "slope72": [
+          {
+            "ending_usdc": "819.686183450450000000",
+            "return_pct": "-25.48307423177727272727272727",
+            "dd_pct": "25.95242221872909090909090909",
+            "trades": 10,
+            "fees_usdc": "18.640442316950000000",
+            "profit_factor": "0.1304681808911362702921114411",
+            "open_at_end": false
+          },
+          {
+            "ending_usdc": "1846.670830985460000000",
+            "return_pct": "67.87916645322363636363636364",
+            "dd_pct": "27.38504037989872654633573953",
+            "trades": 12,
+            "fees_usdc": "27.080823724380000000",
+            "profit_factor": "2.752461835827108387012454583",
+            "open_at_end": false
+          }
+        ],
+        "cmo40": [
+          {
+            "ending_usdc": "689.599661038940000000",
+            "return_pct": "-37.30912172373272727272727273",
+            "dd_pct": "38.28846871555000",
+            "trades": 11,
+            "fees_usdc": "18.364223603190000000",
+            "profit_factor": "0.01672593858428828199862325085",
+            "open_at_end": false
+          },
+          {
+            "ending_usdc": "1059.329072933940000000",
+            "return_pct": "-3.697357006005454545454545455",
+            "dd_pct": "41.72652260992342351057417011",
+            "trades": 19,
+            "fees_usdc": "41.466511277890000000",
+            "profit_factor": "0.9438862650255072600867119764",
+            "open_at_end": false
+          }
+        ],
+        "trail6": [
+          {
+            "ending_usdc": "648.761619820790000000",
+            "return_pct": "-41.02167092538272727272727273",
+            "dd_pct": "51.16875617786248129786957357",
+            "trades": 27,
+            "fees_usdc": "44.064203978030000000",
+            "profit_factor": "0.3458305576553302194485891932",
+            "open_at_end": false
+          },
+          {
+            "ending_usdc": "1229.080510466350000000",
+            "return_pct": "11.73459186057727272727272727",
+            "dd_pct": "31.87698343463085263154041195",
+            "trades": 26,
+            "fees_usdc": "57.030648446140000000",
+            "profit_factor": "1.158095842088984827899230077",
+            "open_at_end": false
+          }
+        ],
+        "slope24_trail6": [
+          {
+            "ending_usdc": "856.935710840700000000",
+            "return_pct": "-22.09675355993636363636363636",
+            "dd_pct": "25.30926036570272727272727273",
+            "trades": 9,
+            "fees_usdc": "16.968391667190000000",
+            "profit_factor": "0.1485971069870995486815767570",
+            "open_at_end": false
+          },
+          {
+            "ending_usdc": "1591.371650692250000000",
+            "return_pct": "44.67015006293181818181818182",
+            "dd_pct": "16.50738568673090377579675775",
+            "trades": 15,
+            "fees_usdc": "33.503392859120000000",
+            "profit_factor": "2.167203649288570368117145766",
+            "open_at_end": false
+          }
+        ],
+        "cmo40_trail6": [
+          {
+            "ending_usdc": "722.201737065910000000",
+            "return_pct": "-34.34529663037181818181818182",
+            "dd_pct": "35.37154176967454545454545455",
+            "trades": 11,
+            "fees_usdc": "18.907127562620000000",
+            "profit_factor": "0.01898631374152949298298036885",
+            "open_at_end": false
+          },
+          {
+            "ending_usdc": "1166.532657964680000000",
+            "return_pct": "6.048423451334545454545454545",
+            "dd_pct": "26.91982255440352504581579721",
+            "trades": 19,
+            "fees_usdc": "41.645459722980000000",
+            "profit_factor": "1.100205310422153140524876337",
+            "open_at_end": false
+          }
+        ]
+      },
+      "policies": {
+        "baseline": {
+          "cmo_floor": 0.15,
+          "slope_bars": 0,
+          "stop_atr": 4,
+          "trail_atr": 0
+        },
+        "slope24": {
+          "cmo_floor": 0.15,
+          "slope_bars": 24,
+          "stop_atr": 4,
+          "trail_atr": 0
+        },
+        "slope72": {
+          "cmo_floor": 0.15,
+          "slope_bars": 72,
+          "stop_atr": 4,
+          "trail_atr": 0
+        },
+        "cmo40": {
+          "cmo_floor": 0.4,
+          "slope_bars": 0,
+          "stop_atr": 4,
+          "trail_atr": 0
+        },
+        "trail6": {
+          "cmo_floor": 0.15,
+          "slope_bars": 0,
+          "stop_atr": 4,
+          "trail_atr": 6
+        },
+        "slope24_trail6": {
+          "cmo_floor": 0.15,
+          "slope_bars": 24,
+          "stop_atr": 4,
+          "trail_atr": 6
+        },
+        "cmo40_trail6": {
+          "cmo_floor": 0.4,
+          "slope_bars": 0,
+          "stop_atr": 4,
+          "trail_atr": 6
+        }
+      },
+      "training_eligible": [],
+      "selected": "baseline",
+      "validation": {
+        "baseline": {
+          "current": {
+            "ending_usdc": "1352.7849230875800000000",
+            "return_pct": "22.98044755341636363636363636",
+            "dd_pct": "21.71375589606226115542035965",
+            "trades": 28,
+            "fees_usdc": "60.1650846049450000000",
+            "profit_factor": "1.437745780252420671697988440",
+            "open_at_end": false
+          },
+          "stress": {
+            "ending_usdc": "1074.924499623190000000",
+            "return_pct": "-2.279590943346363636363636364",
+            "dd_pct": "26.77322516202345348324867384",
+            "trades": 28,
+            "fees_usdc": "56.037089724500000000",
+            "profit_factor": "0.9630412779962663375847387334",
+            "open_at_end": false
+          }
+        }
+      },
+      "accepted": false,
+      "effective_policy": {
+        "cmo_floor": 0.15,
+        "slope_bars": 0,
+        "stop_atr": 4,
+        "trail_atr": 0
+      }
+    },
+    "ADAUSDC": {
+      "base_policy": {
+        "cmo_floor": 0,
+        "slope_bars": 0,
+        "stop_atr": 0,
+        "trail_atr": 0
+      },
+      "train": {
+        "baseline": [
+          {
+            "ending_usdc": "831.780574624600000000",
+            "return_pct": "-24.38358412503636363636363636",
+            "dd_pct": "44.71537209978331794567851926",
+            "trades": 10,
+            "fees_usdc": "20.438577070890000000",
+            "profit_factor": "0.5694311500847022120662430474",
+            "open_at_end": true
+          },
+          {
+            "ending_usdc": "3347.129939691660000000",
+            "return_pct": "204.2845399719690909090909091",
+            "dd_pct": "27.89261152330026977948595954",
+            "trades": 10,
+            "fees_usdc": "24.259465318830000000",
+            "profit_factor": "5.579510010733422685458881607",
+            "open_at_end": false
+          }
+        ],
+        "slope24": [
+          {
+            "ending_usdc": "805.447525973290000000",
+            "return_pct": "-26.77749763879181818181818182",
+            "dd_pct": "32.40320248080776233478488941",
+            "trades": 4,
+            "fees_usdc": "8.619438275020000000",
+            "profit_factor": "0E+25",
+            "open_at_end": true
+          },
+          {
+            "ending_usdc": "1128.257969654840000000",
+            "return_pct": "2.568906332258181818181818182",
+            "dd_pct": "41.78038353746809606601792555",
+            "trades": 6,
+            "fees_usdc": "10.920466125680000000",
+            "profit_factor": "1.079023432497210373262152217",
+            "open_at_end": false
+          }
+        ],
+        "slope72": [
+          {
+            "ending_usdc": "929.265285736610000000",
+            "return_pct": "-15.52133766030818181818181818",
+            "dd_pct": "26.43270127492894345121043626",
+            "trades": 4,
+            "fees_usdc": "9.238469631990000000",
+            "profit_factor": "0.3334795796811988080484847394",
+            "open_at_end": true
+          },
+          {
+            "ending_usdc": "2958.760917710260000000",
+            "return_pct": "168.9782652463872727272727273",
+            "dd_pct": "25.01205710224113781425118222",
+            "trades": 3,
+            "fees_usdc": "8.463519701560000000",
+            "profit_factor": "10.48934093090465127306530854",
+            "open_at_end": false
+          }
+        ],
+        "cmo40": [
+          {
+            "ending_usdc": "921.780942330460000000",
+            "return_pct": "-16.20173251541272727272727273",
+            "dd_pct": "43.95777831497889517488988279",
+            "trades": 5,
+            "fees_usdc": "11.592117511760000000",
+            "profit_factor": "0.6398328862709963281316932752",
+            "open_at_end": true
+          },
+          {
+            "ending_usdc": "3388.816214511780000000",
+            "return_pct": "208.0742013192527272727272727",
+            "dd_pct": "29.02496752790007164798453990",
+            "trades": 8,
+            "fees_usdc": "19.899265287360000000",
+            "profit_factor": "6.660611887825675300696917590",
+            "open_at_end": false
+          }
+        ],
+        "stop4": [
+          {
+            "ending_usdc": "1013.967120911190000000",
+            "return_pct": "-7.821170826255454545454545455",
+            "dd_pct": "33.05331655871736217086429996",
+            "trades": 11,
+            "fees_usdc": "23.497304594820000000",
+            "profit_factor": "0.7930570247902596419627990796",
+            "open_at_end": false
+          },
+          {
+            "ending_usdc": "856.144952215290000000",
+            "return_pct": "-22.16864070770090909090909091",
+            "dd_pct": "33.90515313047190187710057230",
+            "trades": 10,
+            "fees_usdc": "19.822167888390000000",
+            "profit_factor": "0.4062546593983385343976186540",
+            "open_at_end": false
+          }
+        ],
+        "trail6": [
+          {
+            "ending_usdc": "1042.838081364920000000",
+            "return_pct": "-5.196538057734545454545454545",
+            "dd_pct": "17.56233202528545454545454545",
+            "trades": 11,
+            "fees_usdc": "22.413786840340000000",
+            "profit_factor": "0.8548466599328161049717271678",
+            "open_at_end": false
+          },
+          {
+            "ending_usdc": "1117.474769286640000000",
+            "return_pct": "1.588615389694545454545454545",
+            "dd_pct": "24.82831882803608848134986812",
+            "trades": 10,
+            "fees_usdc": "21.400632091620000000",
+            "profit_factor": "1.042631981036136206025506117",
+            "open_at_end": false
+          }
+        ],
+        "stop4_trail6": [
+          {
+            "ending_usdc": "1106.217756506180000000",
+            "return_pct": "0.5652505914709090909090909091",
+            "dd_pct": "15.59532445870181818181818182",
+            "trades": 11,
+            "fees_usdc": "22.935164537600000000",
+            "profit_factor": "1.018462015056181322771622988",
+            "open_at_end": false
+          },
+          {
+            "ending_usdc": "1216.801786777980000000",
+            "return_pct": "10.61834425254363636363636364",
+            "dd_pct": "21.68806501630643330121890276",
+            "trades": 10,
+            "fees_usdc": "21.850995397510000000",
+            "profit_factor": "1.358755042053040747824954829",
+            "open_at_end": false
+          }
+        ],
+        "slope24_trail6": [
+          {
+            "ending_usdc": "992.874932196820000000",
+            "return_pct": "-9.738642527561818181818181818",
+            "dd_pct": "16.77751532729478956069759401",
+            "trades": 5,
+            "fees_usdc": "10.665710026960000000",
+            "profit_factor": "0.4019001029030256081504694646",
+            "open_at_end": false
+          },
+          {
+            "ending_usdc": "1028.566939059930000000",
+            "return_pct": "-6.493914630915454545454545455",
+            "dd_pct": "18.09533942693272727272727273",
+            "trades": 6,
+            "fees_usdc": "12.363423274620000000",
+            "profit_factor": "0.7734067042559455575440520716",
+            "open_at_end": false
+          }
+        ],
+        "cmo40_trail6": [
+          {
+            "ending_usdc": "923.841364365850000000",
+            "return_pct": "-16.01442142128636363636363636",
+            "dd_pct": "21.07401777914793870852227788",
+            "trades": 6,
+            "fees_usdc": "12.480675400620000000",
+            "profit_factor": "0.2838073577023232000437906768",
+            "open_at_end": false
+          },
+          {
+            "ending_usdc": "1018.144170478420000000",
+            "return_pct": "-7.441439047416363636363636364",
+            "dd_pct": "24.82831882803608848134986812",
+            "trades": 8,
+            "fees_usdc": "16.899274028490000000",
+            "profit_factor": "0.7941978431286138878848406539",
+            "open_at_end": false
+          }
+        ]
+      },
+      "policies": {
+        "baseline": {
+          "cmo_floor": 0,
+          "slope_bars": 0,
+          "stop_atr": 0,
+          "trail_atr": 0
+        },
+        "slope24": {
+          "cmo_floor": 0,
+          "slope_bars": 24,
+          "stop_atr": 0,
+          "trail_atr": 0
+        },
+        "slope72": {
+          "cmo_floor": 0,
+          "slope_bars": 72,
+          "stop_atr": 0,
+          "trail_atr": 0
+        },
+        "cmo40": {
+          "cmo_floor": 0.4,
+          "slope_bars": 0,
+          "stop_atr": 0,
+          "trail_atr": 0
+        },
+        "stop4": {
+          "cmo_floor": 0,
+          "slope_bars": 0,
+          "stop_atr": 4,
+          "trail_atr": 0
+        },
+        "trail6": {
+          "cmo_floor": 0,
+          "slope_bars": 0,
+          "stop_atr": 0,
+          "trail_atr": 6
+        },
+        "stop4_trail6": {
+          "cmo_floor": 0,
+          "slope_bars": 0,
+          "stop_atr": 4,
+          "trail_atr": 6
+        },
+        "slope24_trail6": {
+          "cmo_floor": 0,
+          "slope_bars": 24,
+          "stop_atr": 0,
+          "trail_atr": 6
+        },
+        "cmo40_trail6": {
+          "cmo_floor": 0.4,
+          "slope_bars": 0,
+          "stop_atr": 0,
+          "trail_atr": 6
+        }
+      },
+      "training_eligible": [
+        "slope72"
+      ],
+      "selected": "slope72",
+      "validation": {
+        "baseline": {
+          "current": {
+            "ending_usdc": "897.0459079781150000000",
+            "return_pct": "-18.45037200198954545454545455",
+            "dd_pct": "49.77073631454275609612205988",
+            "trades": 11,
+            "fees_usdc": "19.4128382125950000000",
+            "profit_factor": "0.6518725385753427802457141094",
+            "open_at_end": true
+          },
+          "stress": {
+            "ending_usdc": "846.942070138700000000",
+            "return_pct": "-23.00526635102727272727272727",
+            "dd_pct": "52.21944102669344190223109368",
+            "trades": 11,
+            "fees_usdc": "18.907910414590000000",
+            "profit_factor": "0.5782873291546368057836411369",
+            "open_at_end": true
+          }
+        },
+        "slope72": {
+          "current": {
+            "ending_usdc": "702.1768597927800000000",
+            "return_pct": "-36.16574001883818181818181818",
+            "dd_pct": "38.66508049338899695556533316",
+            "trades": 5,
+            "fees_usdc": "8.8794753348100000000",
+            "profit_factor": "0.02665930302676178790601043949",
+            "open_at_end": false
+          },
+          "stress": {
+            "ending_usdc": "684.853237142270000000",
+            "return_pct": "-37.74061480524818181818181818",
+            "dd_pct": "39.87985167377190622991309345",
+            "trades": 5,
+            "fees_usdc": "8.778064035070000000",
+            "profit_factor": "0.01508712096439456377276775009",
+            "open_at_end": false
+          }
+        }
+      },
+      "accepted": false,
+      "effective_policy": {
+        "cmo_floor": 0,
+        "slope_bars": 0,
+        "stop_atr": 0,
+        "trail_atr": 0
+      }
+    },
+    "LINKUSDC": {
+      "base_policy": {
+        "cmo_floor": 0,
+        "slope_bars": 24,
+        "stop_atr": 0,
+        "trail_atr": 0
+      },
+      "train": {
+        "baseline": [
+          {
+            "ending_usdc": "1799.75056185652000000",
+            "return_pct": "63.61368744150181818181818182",
+            "dd_pct": "27.29233039980394465754904112",
+            "trades": 8,
+            "fees_usdc": "18.30784481544000000",
+            "profit_factor": "2.162845543800554192859173332",
+            "open_at_end": false
+          },
+          {
+            "ending_usdc": "2324.9550064383000000",
+            "return_pct": "111.3595460398454545454545455",
+            "dd_pct": "31.10430945749115952681535447",
+            "trades": 10,
+            "fees_usdc": "22.8026889288000000",
+            "profit_factor": "3.827833938992324781135725649",
+            "open_at_end": false
+          }
+        ],
+        "slope72": [
+          {
+            "ending_usdc": "1887.86401190929000000",
+            "return_pct": "71.62400108266272727272727273",
+            "dd_pct": "27.96734462391827807616291486",
+            "trades": 9,
+            "fees_usdc": "20.59624358922000000",
+            "profit_factor": "2.518933633387851158816319146",
+            "open_at_end": false
+          },
+          {
+            "ending_usdc": "1261.8029052348000000",
+            "return_pct": "14.70935502134545454545454545",
+            "dd_pct": "18.26717830250099679225646433",
+            "trades": 6,
+            "fees_usdc": "12.8154109207000000",
+            "profit_factor": "2.110662332699468999965403260",
+            "open_at_end": false
+          }
+        ],
+        "cmo40": [
+          {
+            "ending_usdc": "734.04989016311000000",
+            "return_pct": "-33.26819180335363636363636364",
+            "dd_pct": "34.19681161213095933315548392",
+            "trades": 4,
+            "fees_usdc": "7.03224549504000000",
+            "profit_factor": "0E+25",
+            "open_at_end": false
+          },
+          {
+            "ending_usdc": "2380.9468260258000000",
+            "return_pct": "116.4497114568909090909090909",
+            "dd_pct": "28.60614987620949182713219768",
+            "trades": 8,
+            "fees_usdc": "18.4570715709000000",
+            "profit_factor": "4.396517057334513660065629901",
+            "open_at_end": false
+          }
+        ],
+        "stop4": [
+          {
+            "ending_usdc": "971.38501249329000000",
+            "return_pct": "-11.69227159151909090909090909",
+            "dd_pct": "29.01875455978861885432735910",
+            "trades": 8,
+            "fees_usdc": "16.89123603190000000",
+            "profit_factor": "0.6592022250223329207047679051",
+            "open_at_end": false
+          },
+          {
+            "ending_usdc": "2384.7701246089000000",
+            "return_pct": "116.7972840553545454545454545",
+            "dd_pct": "29.04443325877672942228932921",
+            "trades": 10,
+            "fees_usdc": "22.8789637532000000",
+            "profit_factor": "4.372477547374786846804896105",
+            "open_at_end": false
+          }
+        ],
+        "trail6": [
+          {
+            "ending_usdc": "776.15759259523000000",
+            "return_pct": "-29.44021885497909090909090909",
+            "dd_pct": "29.44827621861545454545454545",
+            "trades": 8,
+            "fees_usdc": "14.75299125869000000",
+            "profit_factor": "0.009677931133529040426391817063",
+            "open_at_end": false
+          },
+          {
+            "ending_usdc": "1573.2614366316000000",
+            "return_pct": "43.02376696650909090909090909",
+            "dd_pct": "22.21274518511073278975572945",
+            "trades": 10,
+            "fees_usdc": "21.7506011787000000",
+            "profit_factor": "2.777576119380111171200967973",
+            "open_at_end": false
+          }
+        ],
+        "stop4_trail6": [
+          {
+            "ending_usdc": "832.89710583438000000",
+            "return_pct": "-24.28208128778363636363636364",
+            "dd_pct": "24.29311294232909090909090909",
+            "trades": 8,
+            "fees_usdc": "15.39958504180000000",
+            "profit_factor": "0.01222469337814831435241859806",
+            "open_at_end": false
+          },
+          {
+            "ending_usdc": "1584.0069624199000000",
+            "return_pct": "44.00063294726363636363636364",
+            "dd_pct": "22.06783623250702106463317757",
+            "trades": 10,
+            "fees_usdc": "21.8165211596000000",
+            "profit_factor": "2.874144038002212624194221742",
+            "open_at_end": false
+          }
+        ],
+        "cmo40_trail6": [
+          {
+            "ending_usdc": "857.77212985323000000",
+            "return_pct": "-22.02071546788818181818181818",
+            "dd_pct": "23.10641035673318974898306700",
+            "trades": 4,
+            "fees_usdc": "7.63452921852000000",
+            "profit_factor": "0E+25",
+            "open_at_end": false
+          },
+          {
+            "ending_usdc": "1461.9454721246000000",
+            "return_pct": "32.90413382950909090909090909",
+            "dd_pct": "20.32538382129751466176268560",
+            "trades": 8,
+            "fees_usdc": "17.3355660450000000",
+            "profit_factor": "2.497711928784525323349408840",
+            "open_at_end": false
+          }
+        ]
+      },
+      "policies": {
+        "baseline": {
+          "cmo_floor": 0,
+          "slope_bars": 24,
+          "stop_atr": 0,
+          "trail_atr": 0
+        },
+        "slope72": {
+          "cmo_floor": 0,
+          "slope_bars": 72,
+          "stop_atr": 0,
+          "trail_atr": 0
+        },
+        "cmo40": {
+          "cmo_floor": 0.4,
+          "slope_bars": 24,
+          "stop_atr": 0,
+          "trail_atr": 0
+        },
+        "stop4": {
+          "cmo_floor": 0,
+          "slope_bars": 24,
+          "stop_atr": 4,
+          "trail_atr": 0
+        },
+        "trail6": {
+          "cmo_floor": 0,
+          "slope_bars": 24,
+          "stop_atr": 0,
+          "trail_atr": 6
+        },
+        "stop4_trail6": {
+          "cmo_floor": 0,
+          "slope_bars": 24,
+          "stop_atr": 4,
+          "trail_atr": 6
+        },
+        "cmo40_trail6": {
+          "cmo_floor": 0.4,
+          "slope_bars": 24,
+          "stop_atr": 0,
+          "trail_atr": 6
+        }
+      },
+      "training_eligible": [],
+      "selected": "baseline",
+      "validation": {
+        "baseline": {
+          "current": {
+            "ending_usdc": "1046.026080729610000000",
+            "return_pct": "-4.906719933671818181818181818",
+            "dd_pct": "15.64337524773571511077818008",
+            "trades": 6,
+            "fees_usdc": "13.440313925995000000",
+            "profit_factor": "0.7179180834556395493738708571",
+            "open_at_end": true
+          },
+          "stress": {
+            "ending_usdc": "1012.62361865670000000",
+            "return_pct": "-7.943307394845454545454545455",
+            "dd_pct": "16.06379411393104975524075079",
+            "trades": 6,
+            "fees_usdc": "13.22507999844000000",
+            "profit_factor": "0.5556514466750641388061510764",
+            "open_at_end": true
+          }
+        }
+      },
+      "accepted": false,
+      "effective_policy": {
+        "cmo_floor": 0,
+        "slope_bars": 24,
+        "stop_atr": 0,
+        "trail_atr": 0
+      }
+    },
+    "AVAXUSDC": {
+      "base_policy": {
+        "cmo_floor": 0,
+        "slope_bars": 0,
+        "stop_atr": 0,
+        "trail_atr": 0
+      },
+      "train": {
+        "baseline": [
+          {
+            "ending_usdc": "657.3735283573000000",
+            "return_pct": "-40.23877014933636363636363636",
+            "dd_pct": "60.61877538759655019550446503",
+            "trades": 6,
+            "fees_usdc": "10.7925846861000000",
+            "profit_factor": "0.2207758727485811559779509288",
+            "open_at_end": false
+          },
+          {
+            "ending_usdc": "1388.3230603882000000",
+            "return_pct": "26.21118730801818181818181818",
+            "dd_pct": "53.40561713278166106449127131",
+            "trades": 5,
+            "fees_usdc": "11.1104315599000000",
+            "profit_factor": "2.253006558151642234241118079",
+            "open_at_end": false
+          }
+        ],
+        "slope24": [
+          {
+            "ending_usdc": "594.0028815670000000",
+            "return_pct": "-45.99973803936363636363636364",
+            "dd_pct": "56.18365292204600479436607441",
+            "trades": 4,
+            "fees_usdc": "7.1638154763000000",
+            "profit_factor": "0.08172954408820029755174766929",
+            "open_at_end": false
+          },
+          {
+            "ending_usdc": "1068.4283813738000000",
+            "return_pct": "-2.870147147836363636363636364",
+            "dd_pct": "49.42171765918995269027682386",
+            "trades": 3,
+            "fees_usdc": "6.5706044855000000",
+            "profit_factor": "0.8445209748247185732807571904",
+            "open_at_end": false
+          }
+        ],
+        "slope72": [
+          {
+            "ending_usdc": "594.0028815670000000",
+            "return_pct": "-45.99973803936363636363636364",
+            "dd_pct": "56.18365292204600479436607441",
+            "trades": 4,
+            "fees_usdc": "7.1638154763000000",
+            "profit_factor": "0.08172954408820029755174766929",
+            "open_at_end": false
+          },
+          {
+            "ending_usdc": "1226.0494536963000000",
+            "return_pct": "11.45904124511818181818181818",
+            "dd_pct": "41.95748902175048632707002893",
+            "trades": 2,
+            "fees_usdc": "4.5277080070000000",
+            "profit_factor": "3.777185380039703065503272609",
+            "open_at_end": false
+          }
+        ],
+        "cmo40": [
+          {
+            "ending_usdc": "617.7081313415000000",
+            "return_pct": "-43.84471533259090909090909091",
+            "dd_pct": "60.61877538759655019550446503",
+            "trades": 5,
+            "fees_usdc": "9.5186462062000000",
+            "profit_factor": "0.1509327136711695741745358632",
+            "open_at_end": false
+          },
+          {
+            "ending_usdc": "1388.3230603882000000",
+            "return_pct": "26.21118730801818181818181818",
+            "dd_pct": "53.40561713278166106449127131",
+            "trades": 5,
+            "fees_usdc": "11.1104315599000000",
+            "profit_factor": "2.253006558151642234241118079",
+            "open_at_end": false
+          }
+        ],
+        "stop4": [
+          {
+            "ending_usdc": "979.0699714480000000",
+            "return_pct": "-10.99363895927272727272727273",
+            "dd_pct": "35.84631824307535245631109550",
+            "trades": 6,
+            "fees_usdc": "12.0744201485000000",
+            "profit_factor": "0.4465195537285764916890953831",
+            "open_at_end": false
+          },
+          {
+            "ending_usdc": "841.8809773961000000",
+            "return_pct": "-23.46536569126363636363636364",
+            "dd_pct": "33.66194261311267813757724038",
+            "trades": 5,
+            "fees_usdc": "9.5030974714000000",
+            "profit_factor": "0E+25",
+            "open_at_end": false
+          }
+        ],
+        "trail6": [
+          {
+            "ending_usdc": "1314.2607848574000000",
+            "return_pct": "19.47825316885454545454545455",
+            "dd_pct": "12.67311864661965671660631386",
+            "trades": 6,
+            "fees_usdc": "13.3035652211000000",
+            "profit_factor": "3.445694576231947773030355555",
+            "open_at_end": false
+          },
+          {
+            "ending_usdc": "1008.1791137389000000",
+            "return_pct": "-8.347353296463636363636363636",
+            "dd_pct": "19.77327660157746897537239896",
+            "trades": 5,
+            "fees_usdc": "10.1229141512000000",
+            "profit_factor": "0.5271841601297400846746641794",
+            "open_at_end": false
+          }
+        ],
+        "stop4_trail6": [
+          {
+            "ending_usdc": "1234.3678938339000000",
+            "return_pct": "12.21526307580909090909090909",
+            "dd_pct": "17.31121591432071247514632942",
+            "trades": 6,
+            "fees_usdc": "13.2190886162000000",
+            "profit_factor": "1.892320699290713958335994406",
+            "open_at_end": false
+          },
+          {
+            "ending_usdc": "1008.1791137389000000",
+            "return_pct": "-8.347353296463636363636363636",
+            "dd_pct": "19.77327660157746897537239896",
+            "trades": 5,
+            "fees_usdc": "10.1229141512000000",
+            "profit_factor": "0.5271841601297400846746641794",
+            "open_at_end": false
+          }
+        ],
+        "slope24_trail6": [
+          {
+            "ending_usdc": "1069.2641978560000000",
+            "return_pct": "-2.794163831272727272727272727",
+            "dd_pct": "13.62768235854111914172743551",
+            "trades": 4,
+            "fees_usdc": "8.4318608530000000",
+            "profit_factor": "0.6461473403658646547286076002",
+            "open_at_end": false
+          },
+          {
+            "ending_usdc": "967.6385793763000000",
+            "return_pct": "-12.03285642033636363636363636",
+            "dd_pct": "16.29212853333905742139161057",
+            "trades": 3,
+            "fees_usdc": "6.0540846974000000",
+            "profit_factor": "0.1505919276400335451662874278",
+            "open_at_end": false
+          }
+        ],
+        "cmo40_trail6": [
+          {
+            "ending_usdc": "1221.0197272676000000",
+            "return_pct": "11.00179338796363636363636364",
+            "dd_pct": "12.67311864661965671660631386",
+            "trades": 5,
+            "fees_usdc": "11.0094423215000000",
+            "profit_factor": "2.382655422871481728504767394",
+            "open_at_end": false
+          },
+          {
+            "ending_usdc": "1008.1791137389000000",
+            "return_pct": "-8.347353296463636363636363636",
+            "dd_pct": "19.77327660157746897537239896",
+            "trades": 5,
+            "fees_usdc": "10.1229141512000000",
+            "profit_factor": "0.5271841601297400846746641794",
+            "open_at_end": false
+          }
+        ]
+      },
+      "policies": {
+        "baseline": {
+          "cmo_floor": 0,
+          "slope_bars": 0,
+          "stop_atr": 0,
+          "trail_atr": 0
+        },
+        "slope24": {
+          "cmo_floor": 0,
+          "slope_bars": 24,
+          "stop_atr": 0,
+          "trail_atr": 0
+        },
+        "slope72": {
+          "cmo_floor": 0,
+          "slope_bars": 72,
+          "stop_atr": 0,
+          "trail_atr": 0
+        },
+        "cmo40": {
+          "cmo_floor": 0.4,
+          "slope_bars": 0,
+          "stop_atr": 0,
+          "trail_atr": 0
+        },
+        "stop4": {
+          "cmo_floor": 0,
+          "slope_bars": 0,
+          "stop_atr": 4,
+          "trail_atr": 0
+        },
+        "trail6": {
+          "cmo_floor": 0,
+          "slope_bars": 0,
+          "stop_atr": 0,
+          "trail_atr": 6
+        },
+        "stop4_trail6": {
+          "cmo_floor": 0,
+          "slope_bars": 0,
+          "stop_atr": 4,
+          "trail_atr": 6
+        },
+        "slope24_trail6": {
+          "cmo_floor": 0,
+          "slope_bars": 24,
+          "stop_atr": 0,
+          "trail_atr": 6
+        },
+        "cmo40_trail6": {
+          "cmo_floor": 0.4,
+          "slope_bars": 0,
+          "stop_atr": 0,
+          "trail_atr": 6
+        }
+      },
+      "training_eligible": [],
+      "selected": "baseline",
+      "validation": {
+        "baseline": {
+          "current": {
+            "ending_usdc": "1123.615496120280000000",
+            "return_pct": "2.146863283661818181818181818",
+            "dd_pct": "43.02097313766529879929492728",
+            "trades": 8,
+            "fees_usdc": "15.452469984040000000",
+            "profit_factor": "1.064578918065939859795207425",
+            "open_at_end": false
+          },
+          "stress": {
+            "ending_usdc": "1079.50802527143000000",
+            "return_pct": "-1.862906793506363636363636364",
+            "dd_pct": "44.70529280867034472481643481",
+            "trades": 8,
+            "fees_usdc": "15.16341156126000000",
+            "profit_factor": "0.9468044033796839360099508381",
+            "open_at_end": false
+          }
+        }
+      },
+      "accepted": false,
+      "effective_policy": {
+        "cmo_floor": 0,
+        "slope_bars": 0,
+        "stop_atr": 0,
+        "trail_atr": 0
+      }
+    },
+    "DOTUSDC": {
+      "base_policy": {
+        "cmo_floor": 0.35,
+        "slope_bars": 24,
+        "stop_atr": 0,
+        "trail_atr": 0
+      },
+      "train": {
+        "baseline": [
+          {
+            "ending_usdc": "1421.20244943391000000",
+            "return_pct": "29.20022267581000000",
+            "dd_pct": "20.24260897011338637686182650",
+            "trades": 5,
+            "fees_usdc": "11.32663914785000000",
+            "profit_factor": "2.986576132735957591693695516",
+            "open_at_end": false
+          },
+          {
+            "ending_usdc": "1886.59048512953000000",
+            "return_pct": "71.50822592086636363636363636",
+            "dd_pct": "26.75870968638296912994721588",
+            "trades": 7,
+            "fees_usdc": "16.17691611047000000",
+            "profit_factor": "6.519414923211760284804938309",
+            "open_at_end": false
+          }
+        ],
+        "slope72": [
+          {
+            "ending_usdc": "877.25197064839000000",
+            "return_pct": "-20.24982085014636363636363636",
+            "dd_pct": "30.74960251354196630732774972",
+            "trades": 5,
+            "fees_usdc": "9.73686357326000000",
+            "profit_factor": "0.02511579297016665063691512931",
+            "open_at_end": false
+          },
+          {
+            "ending_usdc": "1563.78550709009000000",
+            "return_pct": "42.16231882637181818181818182",
+            "dd_pct": "30.41127728059999294404525790",
+            "trades": 7,
+            "fees_usdc": "15.78815243949000000",
+            "profit_factor": "3.644521840863662904248151283",
+            "open_at_end": false
+          }
+        ],
+        "cmo40": [
+          {
+            "ending_usdc": "1370.90940619491000000",
+            "return_pct": "24.62812783590090909090909091",
+            "dd_pct": "23.19795528860233106778687553",
+            "trades": 4,
+            "fees_usdc": "9.07530485921000000",
+            "profit_factor": "2.675541888262694013176556499",
+            "open_at_end": false
+          },
+          {
+            "ending_usdc": "1614.05864137637000000",
+            "return_pct": "46.73260376148818181818181818",
+            "dd_pct": "30.13820858105192400113640027",
+            "trades": 5,
+            "fees_usdc": "11.51974153283000000",
+            "profit_factor": "4.843452711353482283408855755",
+            "open_at_end": false
+          }
+        ],
+        "stop4": [
+          {
+            "ending_usdc": "1317.61218133597000000",
+            "return_pct": "19.78292557599727272727272727",
+            "dd_pct": "22.57402175569583834940564944",
+            "trades": 5,
+            "fees_usdc": "11.22294518579000000",
+            "profit_factor": "2.047571394939185720230920335",
+            "open_at_end": false
+          },
+          {
+            "ending_usdc": "1292.74416424118000000",
+            "return_pct": "17.52219674919818181818181818",
+            "dd_pct": "24.39458410123693053881318302",
+            "trades": 7,
+            "fees_usdc": "15.58247534882000000",
+            "profit_factor": "2.052797268573627694398039858",
+            "open_at_end": false
+          }
+        ],
+        "trail6": [
+          {
+            "ending_usdc": "926.77035159856000000",
+            "return_pct": "-15.74814985467636363636363636",
+            "dd_pct": "19.93201791464137947898209580",
+            "trades": 5,
+            "fees_usdc": "10.47305398377000000",
+            "profit_factor": "0.05943072214480104447462459653",
+            "open_at_end": false
+          },
+          {
+            "ending_usdc": "1362.90705773456000000",
+            "return_pct": "23.90064161223272727272727273",
+            "dd_pct": "20.43106665541219264755306818",
+            "trades": 7,
+            "fees_usdc": "15.65270847544000000",
+            "profit_factor": "2.263890036626828503517648665",
+            "open_at_end": false
+          }
+        ],
+        "stop4_trail6": [
+          {
+            "ending_usdc": "964.37699524139000000",
+            "return_pct": "-12.32936406896454545454545455",
+            "dd_pct": "16.68307022055602097178150174",
+            "trades": 5,
+            "fees_usdc": "10.55705499224000000",
+            "profit_factor": "0.07468532973283128477578120336",
+            "open_at_end": false
+          },
+          {
+            "ending_usdc": "1396.32161378051000000",
+            "return_pct": "26.93832852550090909090909091",
+            "dd_pct": "18.14801910443577767916855108",
+            "trades": 7,
+            "fees_usdc": "15.68615647949000000",
+            "profit_factor": "2.697047881656120601037118861",
+            "open_at_end": false
+          }
+        ],
+        "cmo40_trail6": [
+          {
+            "ending_usdc": "936.40646463525000000",
+            "return_pct": "-14.87213957861363636363636364",
+            "dd_pct": "19.09953688971691999788114972",
+            "trades": 4,
+            "fees_usdc": "8.37577895594000000",
+            "profit_factor": "0.06270767528139388491716087184",
+            "open_at_end": false
+          },
+          {
+            "ending_usdc": "1071.07123885643000000",
+            "return_pct": "-2.629887376688181818181818182",
+            "dd_pct": "21.51357564430702715722073872",
+            "trades": 5,
+            "fees_usdc": "9.91889199450000000",
+            "profit_factor": "0.8461057886270721135130661747",
+            "open_at_end": false
+          }
+        ]
+      },
+      "policies": {
+        "baseline": {
+          "cmo_floor": 0.35,
+          "slope_bars": 24,
+          "stop_atr": 0,
+          "trail_atr": 0
+        },
+        "slope72": {
+          "cmo_floor": 0.35,
+          "slope_bars": 72,
+          "stop_atr": 0,
+          "trail_atr": 0
+        },
+        "cmo40": {
+          "cmo_floor": 0.4,
+          "slope_bars": 24,
+          "stop_atr": 0,
+          "trail_atr": 0
+        },
+        "stop4": {
+          "cmo_floor": 0.35,
+          "slope_bars": 24,
+          "stop_atr": 4,
+          "trail_atr": 0
+        },
+        "trail6": {
+          "cmo_floor": 0.35,
+          "slope_bars": 24,
+          "stop_atr": 0,
+          "trail_atr": 6
+        },
+        "stop4_trail6": {
+          "cmo_floor": 0.35,
+          "slope_bars": 24,
+          "stop_atr": 4,
+          "trail_atr": 6
+        },
+        "cmo40_trail6": {
+          "cmo_floor": 0.4,
+          "slope_bars": 24,
+          "stop_atr": 0,
+          "trail_atr": 6
+        }
+      },
+      "training_eligible": [],
+      "selected": "baseline",
+      "validation": {
+        "baseline": {
+          "current": {
+            "ending_usdc": "1061.073084129975000000",
+            "return_pct": "-3.538810533638636363636363636",
+            "dd_pct": "28.28185874865543701401662496",
+            "trades": 7,
+            "fees_usdc": "15.069394051095000000",
+            "profit_factor": "0.8960399304582768932583061966",
+            "open_at_end": false
+          },
+          "stress": {
+            "ending_usdc": "1019.50043389309000000",
+            "return_pct": "-7.318142373355454545454545455",
+            "dd_pct": "30.13065084602688068697510961",
+            "trades": 7,
+            "fees_usdc": "14.93216107203000000",
+            "profit_factor": "0.7955263038430724130357673105",
+            "open_at_end": false
+          }
+        }
+      },
+      "accepted": false,
+      "effective_policy": {
+        "cmo_floor": 0.35,
+        "slope_bars": 24,
+        "stop_atr": 0,
+        "trail_atr": 0
+      }
+    },
+    "DOGEUSDC": {
+      "base_policy": {
+        "cmo_floor": 0.2,
+        "slope_bars": 0,
+        "stop_atr": 0,
+        "trail_atr": 0
+      },
+      "train": {
+        "baseline": [
+          {
+            "ending_usdc": "2026.3957151080800000000",
+            "return_pct": "84.21779228255272727272727273",
+            "dd_pct": "32.78880626979637904095025125",
+            "trades": 14,
+            "fees_usdc": "31.7404020231400000000",
+            "profit_factor": "3.071997381370050453343162874",
+            "open_at_end": false
+          },
+          {
+            "ending_usdc": "2793.1075518591600000000",
+            "return_pct": "153.9188683508327272727272727",
+            "dd_pct": "31.57887854569523061892540590",
+            "trades": 18,
+            "fees_usdc": "41.3084684398200000000",
+            "profit_factor": "3.054913454575953629209205064",
+            "open_at_end": false
+          }
+        ],
+        "slope24": [
+          {
+            "ending_usdc": "1420.4251783176300000000",
+            "return_pct": "29.12956166523909090909090909",
+            "dd_pct": "28.23863086742522313115829774",
+            "trades": 8,
+            "fees_usdc": "17.9280710434200000000",
+            "profit_factor": "2.565490313785949612027052542",
+            "open_at_end": false
+          },
+          {
+            "ending_usdc": "3308.2413480102900000000",
+            "return_pct": "200.7492134554809090909090909",
+            "dd_pct": "24.87422350313851975169237953",
+            "trades": 10,
+            "fees_usdc": "24.2181874500300000000",
+            "profit_factor": "13.15241870356609556336689499",
+            "open_at_end": false
+          }
+        ],
+        "slope72": [
+          {
+            "ending_usdc": "2050.2793040331400000000",
+            "return_pct": "86.38902763937636363636363636",
+            "dd_pct": "25.57342744891634295172690940",
+            "trades": 4,
+            "fees_usdc": "9.7550782004100000000",
+            "profit_factor": "11.87049401925022202806775968",
+            "open_at_end": false
+          },
+          {
+            "ending_usdc": "1526.8116945892100000000",
+            "return_pct": "38.80106314447363636363636364",
+            "dd_pct": "24.36609319773050125180456432",
+            "trades": 7,
+            "fees_usdc": "15.8327265984200000000",
+            "profit_factor": "3.265097627735546159687280452",
+            "open_at_end": false
+          }
+        ],
+        "cmo40": [
+          {
+            "ending_usdc": "1995.2567117089700000000",
+            "return_pct": "81.38697379172454545454545455",
+            "dd_pct": "31.83038280530365792914853489",
+            "trades": 11,
+            "fees_usdc": "25.1065892160600000000",
+            "profit_factor": "3.472655450757385960592955886",
+            "open_at_end": false
+          },
+          {
+            "ending_usdc": "1487.4407340198000000000",
+            "return_pct": "35.22188491089090909090909091",
+            "dd_pct": "36.79788580283253974315132578",
+            "trades": 17,
+            "fees_usdc": "37.7889551817500000000",
+            "profit_factor": "1.470385764483485904565641691",
+            "open_at_end": false
+          }
+        ],
+        "stop4": [
+          {
+            "ending_usdc": "1840.6200104643900000000",
+            "return_pct": "67.32909186039909090909090909",
+            "dd_pct": "33.56826678106144955134748205",
+            "trades": 14,
+            "fees_usdc": "31.5544403568300000000",
+            "profit_factor": "2.479569025284497035635116438",
+            "open_at_end": false
+          },
+          {
+            "ending_usdc": "2189.2358269417400000000",
+            "return_pct": "99.02143881288545454545454545",
+            "dd_pct": "37.97540276005894872200251221",
+            "trades": 18,
+            "fees_usdc": "40.5996497079900000000",
+            "profit_factor": "2.375069859757188778737189183",
+            "open_at_end": false
+          }
+        ],
+        "trail6": [
+          {
+            "ending_usdc": "1138.6093447663600000000",
+            "return_pct": "3.509940433305454545454545455",
+            "dd_pct": "26.39078775433457007476964240",
+            "trades": 14,
+            "fees_usdc": "30.0784647495200000000",
+            "profit_factor": "1.099803836783574781356580074",
+            "open_at_end": false
+          },
+          {
+            "ending_usdc": "1939.7804990258200000000",
+            "return_pct": "76.3436817296200000000",
+            "dd_pct": "27.36988482892606491185947319",
+            "trades": 18,
+            "fees_usdc": "40.4208567411600000000",
+            "profit_factor": "2.899037451202140095063392469",
+            "open_at_end": false
+          }
+        ],
+        "stop4_trail6": [
+          {
+            "ending_usdc": "1117.6368798486000000000",
+            "return_pct": "1.603352713509090909090909091",
+            "dd_pct": "25.12447566552747428598243445",
+            "trades": 14,
+            "fees_usdc": "29.6074742005900000000",
+            "profit_factor": "1.045322503167431426506540425",
+            "open_at_end": false
+          },
+          {
+            "ending_usdc": "1258.0336919044500000000",
+            "return_pct": "14.36669926404090909090909091",
+            "dd_pct": "33.97722657524989974746395031",
+            "trades": 18,
+            "fees_usdc": "36.6972170655400000000",
+            "profit_factor": "1.238157553022509971173492687",
+            "open_at_end": false
+          }
+        ],
+        "slope24_trail6": [
+          {
+            "ending_usdc": "1228.2702198287000000000",
+            "return_pct": "11.66092907533636363636363636",
+            "dd_pct": "18.16831758257131844862926156",
+            "trades": 8,
+            "fees_usdc": "17.4822696628500000000",
+            "profit_factor": "1.543113754682298962236170377",
+            "open_at_end": false
+          },
+          {
+            "ending_usdc": "2136.0114834880800000000",
+            "return_pct": "94.1828621352800000000",
+            "dd_pct": "15.86632805593561310261869331",
+            "trades": 10,
+            "fees_usdc": "23.0447841822400000000",
+            "profit_factor": "12.93820102117637210958277163",
+            "open_at_end": false
+          }
+        ],
+        "cmo40_trail6": [
+          {
+            "ending_usdc": "1035.8563538375600000000",
+            "return_pct": "-5.831240560221818181818181818",
+            "dd_pct": "24.26508784491800292085021922",
+            "trades": 11,
+            "fees_usdc": "24.1462284974700000000",
+            "profit_factor": "0.7999493627682924624643435837",
+            "open_at_end": false
+          },
+          {
+            "ending_usdc": "1780.5715506063600000000",
+            "return_pct": "61.87014096421454545454545455",
+            "dd_pct": "29.80313562423007082424875729",
+            "trades": 17,
+            "fees_usdc": "37.3694680135300000000",
+            "profit_factor": "2.558369561897006013336506903",
+            "open_at_end": false
+          }
+        ]
+      },
+      "policies": {
+        "baseline": {
+          "cmo_floor": 0.2,
+          "slope_bars": 0,
+          "stop_atr": 0,
+          "trail_atr": 0
+        },
+        "slope24": {
+          "cmo_floor": 0.2,
+          "slope_bars": 24,
+          "stop_atr": 0,
+          "trail_atr": 0
+        },
+        "slope72": {
+          "cmo_floor": 0.2,
+          "slope_bars": 72,
+          "stop_atr": 0,
+          "trail_atr": 0
+        },
+        "cmo40": {
+          "cmo_floor": 0.4,
+          "slope_bars": 0,
+          "stop_atr": 0,
+          "trail_atr": 0
+        },
+        "stop4": {
+          "cmo_floor": 0.2,
+          "slope_bars": 0,
+          "stop_atr": 4,
+          "trail_atr": 0
+        },
+        "trail6": {
+          "cmo_floor": 0.2,
+          "slope_bars": 0,
+          "stop_atr": 0,
+          "trail_atr": 6
+        },
+        "stop4_trail6": {
+          "cmo_floor": 0.2,
+          "slope_bars": 0,
+          "stop_atr": 4,
+          "trail_atr": 6
+        },
+        "slope24_trail6": {
+          "cmo_floor": 0.2,
+          "slope_bars": 24,
+          "stop_atr": 0,
+          "trail_atr": 6
+        },
+        "cmo40_trail6": {
+          "cmo_floor": 0.4,
+          "slope_bars": 0,
+          "stop_atr": 0,
+          "trail_atr": 6
+        }
+      },
+      "training_eligible": [],
+      "selected": "baseline",
+      "validation": {
+        "baseline": {
+          "current": {
+            "ending_usdc": "1036.54467050403000000000",
+            "return_pct": "-5.768666317815454545454545455",
+            "dd_pct": "31.06578870556253127712461723",
+            "trades": 14,
+            "fees_usdc": "25.81457210844000000000",
+            "profit_factor": "0.8760287234551454742889388181",
+            "open_at_end": false
+          },
+          "stress": {
+            "ending_usdc": "966.4790317009500000000",
+            "return_pct": "-12.13826984536818181818181818",
+            "dd_pct": "34.58033988230326163967679398",
+            "trades": 14,
+            "fees_usdc": "24.9482720019700000000",
+            "profit_factor": "0.7518270673772127951872527051",
+            "open_at_end": false
+          }
+        }
+      },
+      "accepted": false,
+      "effective_policy": {
+        "cmo_floor": 0.2,
+        "slope_bars": 0,
+        "stop_atr": 0,
+        "trail_atr": 0
+      }
+    },
+    "SUIUSDC": {
+      "base_policy": {
+        "cmo_floor": 0.4,
+        "slope_bars": 0,
+        "stop_atr": 2.5,
+        "trail_atr": 0
+      },
+      "train": {
+        "baseline": [
+          {
+            "ending_usdc": "1420.035515692710000000",
+            "return_pct": "29.09413779024636363636363636",
+            "dd_pct": "49.67403720449015556748789408",
+            "trades": 26,
+            "fees_usdc": "49.229491711220000000",
+            "profit_factor": "1.416042469731169732499344539",
+            "open_at_end": false
+          },
+          {
+            "ending_usdc": "2131.009336332180000000",
+            "return_pct": "93.72812148474363636363636364",
+            "dd_pct": "17.56552411158301181082026234",
+            "trades": 29,
+            "fees_usdc": "64.851539793460000000",
+            "profit_factor": "2.463887917194952723899096023",
+            "open_at_end": false
+          }
+        ],
+        "slope24": [
+          {
+            "ending_usdc": "1098.692787240290000000",
+            "return_pct": "-0.118837523610000000",
+            "dd_pct": "39.87104094274823120415375628",
+            "trades": 21,
+            "fees_usdc": "38.498877264130000000",
+            "profit_factor": "0.9963392455478411643643612473",
+            "open_at_end": false
+          },
+          {
+            "ending_usdc": "1952.247013302880000000",
+            "return_pct": "77.47700120935272727272727273",
+            "dd_pct": "16.47869565159933861835135421",
+            "trades": 20,
+            "fees_usdc": "44.766971441290000000",
+            "profit_factor": "2.844784630904087062397665282",
+            "open_at_end": false
+          }
+        ],
+        "slope72": [
+          {
+            "ending_usdc": "1642.701059721600000000",
+            "return_pct": "49.33645997469090909090909091",
+            "dd_pct": "33.83121413405200237048702050",
+            "trades": 15,
+            "fees_usdc": "30.428732978070000000",
+            "profit_factor": "2.229474175472671269690813647",
+            "open_at_end": false
+          },
+          {
+            "ending_usdc": "2130.512147503050000000",
+            "return_pct": "93.68292250027727272727272727",
+            "dd_pct": "13.53494403543484210154134125",
+            "trades": 14,
+            "fees_usdc": "31.741050016630000000",
+            "profit_factor": "5.669086709451731307195258152",
+            "open_at_end": false
+          }
+        ],
+        "trail6": [
+          {
+            "ending_usdc": "1385.571511498320000000",
+            "return_pct": "25.96104649984727272727272727",
+            "dd_pct": "45.80880058525503479936143554",
+            "trades": 28,
+            "fees_usdc": "55.586404047100000000",
+            "profit_factor": "1.337972441362021852642490007",
+            "open_at_end": false
+          },
+          {
+            "ending_usdc": "1895.718458090160000000",
+            "return_pct": "72.338041644560000000",
+            "dd_pct": "16.57416781706649011834369658",
+            "trades": 31,
+            "fees_usdc": "69.017050569550000000",
+            "profit_factor": "2.052186893476559499137089564",
+            "open_at_end": false
+          }
+        ],
+        "slope24_trail6": [
+          {
+            "ending_usdc": "977.856647506490000000",
+            "return_pct": "-11.10394113577363636363636364",
+            "dd_pct": "36.14511085311609107910493059",
+            "trades": 23,
+            "fees_usdc": "43.749327676050000000",
+            "profit_factor": "0.8328705438943933817439128061",
+            "open_at_end": false
+          },
+          {
+            "ending_usdc": "1747.341610807770000000",
+            "return_pct": "58.84923734616090909090909091",
+            "dd_pct": "15.57945096706493463345095479",
+            "trades": 21,
+            "fees_usdc": "46.762477896280000000",
+            "profit_factor": "2.429016794711964916789934351",
+            "open_at_end": false
+          }
+        ]
+      },
+      "policies": {
+        "baseline": {
+          "cmo_floor": 0.4,
+          "slope_bars": 0,
+          "stop_atr": 2.5,
+          "trail_atr": 0
+        },
+        "slope24": {
+          "cmo_floor": 0.4,
+          "slope_bars": 24,
+          "stop_atr": 2.5,
+          "trail_atr": 0
+        },
+        "slope72": {
+          "cmo_floor": 0.4,
+          "slope_bars": 72,
+          "stop_atr": 2.5,
+          "trail_atr": 0
+        },
+        "trail6": {
+          "cmo_floor": 0.4,
+          "slope_bars": 0,
+          "stop_atr": 2.5,
+          "trail_atr": 6
+        },
+        "slope24_trail6": {
+          "cmo_floor": 0.4,
+          "slope_bars": 24,
+          "stop_atr": 2.5,
+          "trail_atr": 6
+        }
+      },
+      "training_eligible": [
+        "slope72"
+      ],
+      "selected": "slope72",
+      "validation": {
+        "baseline": {
+          "current": {
+            "ending_usdc": "1385.1470654090850000000",
+            "return_pct": "25.9224604917350000000",
+            "dd_pct": "32.31902990924705446991898448",
+            "trades": 31,
+            "fees_usdc": "60.8443900291300000000",
+            "profit_factor": "1.315075113849943564852322872",
+            "open_at_end": true
+          },
+          "stress": {
+            "ending_usdc": "1245.806005176030000000",
+            "return_pct": "13.25509137963909090909090909",
+            "dd_pct": "35.61269479968466230816148152",
+            "trades": 31,
+            "fees_usdc": "58.293433417730000000",
+            "profit_factor": "1.161182107888628613294403153",
+            "open_at_end": true
+          }
+        },
+        "slope72": {
+          "current": {
+            "ending_usdc": "1606.1713016222850000000",
+            "return_pct": "46.01557287475318181818181818",
+            "dd_pct": "23.90363537785783904149797064",
+            "trades": 19,
+            "fees_usdc": "38.7490639434400000000",
+            "profit_factor": "1.923170680845044403054927691",
+            "open_at_end": false
+          },
+          "stress": {
+            "ending_usdc": "1508.378120306400000000",
+            "return_pct": "37.12528366421818181818181818",
+            "dd_pct": "24.53815206149771198154861466",
+            "trades": 19,
+            "fees_usdc": "38.043475290630000000",
+            "profit_factor": "1.692568433915106000303036566",
+            "open_at_end": false
+          }
+        }
+      },
+      "accepted": true,
+      "effective_policy": {
+        "cmo_floor": 0.4,
+        "slope_bars": 72,
+        "stop_atr": 2.5,
+        "trail_atr": 0
+      }
+    },
+    "NEARUSDC": {
+      "base_policy": {
+        "cmo_floor": 0,
+        "slope_bars": 0,
+        "stop_atr": 0,
+        "trail_atr": 0
+      },
+      "train": {
+        "baseline": [
+          {
+            "ending_usdc": "1263.33474958040000000",
+            "return_pct": "14.84861359821818181818181818",
+            "dd_pct": "46.00472706618756476970052468",
+            "trades": 109,
+            "fees_usdc": "239.81734235190000000",
+            "profit_factor": "1.043430069928476093368309555",
+            "open_at_end": false
+          },
+          {
+            "ending_usdc": "416.36467589700000000",
+            "return_pct": "-62.14866582754545454545454545",
+            "dd_pct": "69.30284461947261308450217386",
+            "trades": 89,
+            "fees_usdc": "121.09826738480000000",
+            "profit_factor": "0.6691137541287367124906688255",
+            "open_at_end": false
+          }
+        ],
+        "slope24": [
+          {
+            "ending_usdc": "2474.46042274760000000",
+            "return_pct": "124.9509475225090909090909091",
+            "dd_pct": "24.21406093347108875734326772",
+            "trades": 91,
+            "fees_usdc": "201.50703293720000000",
+            "profit_factor": "1.467362180118924530277039399",
+            "open_at_end": false
+          },
+          {
+            "ending_usdc": "795.12861195850000000",
+            "return_pct": "-27.71558073104545454545454545",
+            "dd_pct": "58.51058182942537523062186536",
+            "trades": 74,
+            "fees_usdc": "135.91025680690000000",
+            "profit_factor": "0.8481600882934769677291670281",
+            "open_at_end": false
+          }
+        ],
+        "slope72": [
+          {
+            "ending_usdc": "1788.33954974350000000",
+            "return_pct": "62.57632270395454545454545455",
+            "dd_pct": "30.69619275687909309334718721",
+            "trades": 88,
+            "fees_usdc": "194.23520926900000000",
+            "profit_factor": "1.273949554506666907886624600",
+            "open_at_end": false
+          },
+          {
+            "ending_usdc": "480.31738157330000000",
+            "return_pct": "-56.33478349333636363636363636",
+            "dd_pct": "64.26352418475129790873092763",
+            "trades": 73,
+            "fees_usdc": "109.01062320630000000",
+            "profit_factor": "0.6350052921628125106491344133",
+            "open_at_end": false
+          }
+        ],
+        "cmo40": [
+          {
+            "ending_usdc": "1841.20731056840000000",
+            "return_pct": "67.38248277894545454545454545",
+            "dd_pct": "24.93753162963939621155622296",
+            "trades": 56,
+            "fees_usdc": "123.96819080410000000",
+            "profit_factor": "1.492544306090957076666926609",
+            "open_at_end": false
+          },
+          {
+            "ending_usdc": "702.26505239060000000",
+            "return_pct": "-36.15772250994545454545454545",
+            "dd_pct": "43.62562156600251406495449897",
+            "trades": 49,
+            "fees_usdc": "89.64884545490000000",
+            "profit_factor": "0.7314903767316675336512148808",
+            "open_at_end": false
+          }
+        ],
+        "stop4": [
+          {
+            "ending_usdc": "1552.16750900880000000",
+            "return_pct": "41.10613718261818181818181818",
+            "dd_pct": "40.56677817702900816961385578",
+            "trades": 115,
+            "fees_usdc": "253.34711703870000000",
+            "profit_factor": "1.118903811636757477181801477",
+            "open_at_end": false
+          },
+          {
+            "ending_usdc": "419.96400140810000000",
+            "return_pct": "-61.82145441744545454545454545",
+            "dd_pct": "68.53494409461122685969846213",
+            "trades": 93,
+            "fees_usdc": "135.50129592000000000",
+            "profit_factor": "0.6815457434306164283127888441",
+            "open_at_end": false
+          }
+        ],
+        "trail6": [
+          {
+            "ending_usdc": "1667.14031743710000000",
+            "return_pct": "51.55821067610000000",
+            "dd_pct": "37.62992530454286229839934182",
+            "trades": 111,
+            "fees_usdc": "244.62365796410000000",
+            "profit_factor": "1.157411526549077620453804420",
+            "open_at_end": false
+          },
+          {
+            "ending_usdc": "342.31334687390000000",
+            "return_pct": "-68.88060482964545454545454545",
+            "dd_pct": "73.23988738270436134831522325",
+            "trades": 91,
+            "fees_usdc": "117.32461337250000000",
+            "profit_factor": "0.6264736451228135788389743947",
+            "open_at_end": false
+          }
+        ],
+        "stop4_trail6": [
+          {
+            "ending_usdc": "1948.40352738910000000",
+            "return_pct": "77.12759339900909090909090909",
+            "dd_pct": "33.29678826079757873004299656",
+            "trades": 114,
+            "fees_usdc": "251.54431598450000000",
+            "profit_factor": "1.239202177999990799879889286",
+            "open_at_end": false
+          },
+          {
+            "ending_usdc": "378.25242998490000000",
+            "return_pct": "-65.61341545591818181818181818",
+            "dd_pct": "71.02148953062971647956104467",
+            "trades": 95,
+            "fees_usdc": "132.92319620020000000",
+            "profit_factor": "0.6570700145228135498086834751",
+            "open_at_end": false
+          }
+        ],
+        "slope24_trail6": [
+          {
+            "ending_usdc": "2062.07128404670000000",
+            "return_pct": "87.46102582242727272727272727",
+            "dd_pct": "26.48379359060800924825841159",
+            "trades": 93,
+            "fees_usdc": "205.49609723850000000",
+            "profit_factor": "1.330421038371888793408995059",
+            "open_at_end": false
+          },
+          {
+            "ending_usdc": "736.57384712870000000",
+            "return_pct": "-33.03874117011818181818181818",
+            "dd_pct": "58.90089844782386001618453611",
+            "trades": 74,
+            "fees_usdc": "131.61259210220000000",
+            "profit_factor": "0.8128928947185853115797353645",
+            "open_at_end": false
+          }
+        ],
+        "cmo40_trail6": [
+          {
+            "ending_usdc": "1881.85728060770000000",
+            "return_pct": "71.07793460070000000",
+            "dd_pct": "24.42625692782367833730444359",
+            "trades": 56,
+            "fees_usdc": "124.00888146480000000",
+            "profit_factor": "1.555964630633677199670403836",
+            "open_at_end": false
+          },
+          {
+            "ending_usdc": "585.09311683930000000",
+            "return_pct": "-46.80971665097272727272727273",
+            "dd_pct": "50.05914757847228951769049290",
+            "trades": 49,
+            "fees_usdc": "75.36913931790000000",
+            "profit_factor": "0.5892199895523477918705890659",
+            "open_at_end": false
+          }
+        ]
+      },
+      "policies": {
+        "baseline": {
+          "cmo_floor": 0,
+          "slope_bars": 0,
+          "stop_atr": 0,
+          "trail_atr": 0
+        },
+        "slope24": {
+          "cmo_floor": 0,
+          "slope_bars": 24,
+          "stop_atr": 0,
+          "trail_atr": 0
+        },
+        "slope72": {
+          "cmo_floor": 0,
+          "slope_bars": 72,
+          "stop_atr": 0,
+          "trail_atr": 0
+        },
+        "cmo40": {
+          "cmo_floor": 0.4,
+          "slope_bars": 0,
+          "stop_atr": 0,
+          "trail_atr": 0
+        },
+        "stop4": {
+          "cmo_floor": 0,
+          "slope_bars": 0,
+          "stop_atr": 4,
+          "trail_atr": 0
+        },
+        "trail6": {
+          "cmo_floor": 0,
+          "slope_bars": 0,
+          "stop_atr": 0,
+          "trail_atr": 6
+        },
+        "stop4_trail6": {
+          "cmo_floor": 0,
+          "slope_bars": 0,
+          "stop_atr": 4,
+          "trail_atr": 6
+        },
+        "slope24_trail6": {
+          "cmo_floor": 0,
+          "slope_bars": 24,
+          "stop_atr": 0,
+          "trail_atr": 6
+        },
+        "cmo40_trail6": {
+          "cmo_floor": 0.4,
+          "slope_bars": 0,
+          "stop_atr": 0,
+          "trail_atr": 6
+        }
+      },
+      "training_eligible": [
+        "slope24",
+        "cmo40",
+        "slope24_trail6",
+        "cmo40_trail6"
+      ],
+      "selected": "cmo40",
+      "validation": {
+        "baseline": {
+          "current": {
+            "ending_usdc": "2352.122578171700000000",
+            "return_pct": "113.8293252883363636363636364",
+            "dd_pct": "38.82754360174405944020036119",
+            "trades": 84,
+            "fees_usdc": "183.608072940800000000",
+            "profit_factor": "1.475401843392785879954515588",
+            "open_at_end": true
+          },
+          "stress": {
+            "ending_usdc": "1757.12355877590000000",
+            "return_pct": "59.73850534326363636363636364",
+            "dd_pct": "44.72713314426287632051845820",
+            "trades": 84,
+            "fees_usdc": "168.57415856600000000",
+            "profit_factor": "1.212381820983526312464088432",
+            "open_at_end": true
+          }
+        },
+        "cmo40": {
+          "current": {
+            "ending_usdc": "1780.766558359100000000",
+            "return_pct": "61.88786894173636363636363636",
+            "dd_pct": "33.65836382411755945121504617",
+            "trades": 46,
+            "fees_usdc": "102.910642900150000000",
+            "profit_factor": "1.391002767747163742548199080",
+            "open_at_end": true
+          },
+          "stress": {
+            "ending_usdc": "1434.87850413140000000",
+            "return_pct": "30.44350037558181818181818182",
+            "dd_pct": "46.77841968354918476021432729",
+            "trades": 46,
+            "fees_usdc": "100.23464420830000000",
+            "profit_factor": "1.153028391286740527916651390",
+            "open_at_end": true
+          }
+        }
+      },
+      "accepted": false,
+      "effective_policy": {
+        "cmo_floor": 0,
+        "slope_bars": 0,
+        "stop_atr": 0,
+        "trail_atr": 0
+      }
+    },
+    "UNIUSDC": {
+      "base_policy": {
+        "cmo_floor": 0.3,
+        "slope_bars": 72,
+        "stop_atr": 0,
+        "trail_atr": 0
+      },
+      "train": {
+        "baseline": [
+          {
+            "ending_usdc": "632.50511251639000000",
+            "return_pct": "-42.49953522578272727272727273",
+            "dd_pct": "59.27332729780128967148107437",
+            "trades": 39,
+            "fees_usdc": "68.90955452699000000",
+            "profit_factor": "0.4877341773120896832178571245",
+            "open_at_end": true
+          },
+          {
+            "ending_usdc": "458.91427696041000000",
+            "return_pct": "-58.28052027632636363636363636",
+            "dd_pct": "59.28357749388196572991500417",
+            "trades": 41,
+            "fees_usdc": "57.14705069737000000",
+            "profit_factor": "0.5155677393506567635180614271",
+            "open_at_end": false
+          }
+        ],
+        "cmo40": [
+          {
+            "ending_usdc": "823.06815356430000000",
+            "return_pct": "-25.17562240324545454545454545",
+            "dd_pct": "47.44616019414265540454475768",
+            "trades": 26,
+            "fees_usdc": "50.95362102523000000",
+            "profit_factor": "0.5395116646495947700049374415",
+            "open_at_end": true
+          },
+          {
+            "ending_usdc": "546.86688085926000000",
+            "return_pct": "-50.28482901279454545454545455",
+            "dd_pct": "52.93500656977831985473607594",
+            "trades": 32,
+            "fees_usdc": "50.17223363278000000",
+            "profit_factor": "0.5291499502440556930835915748",
+            "open_at_end": false
+          }
+        ],
+        "stop4": [
+          {
+            "ending_usdc": "592.39214878290000000",
+            "return_pct": "-46.14616829246363636363636364",
+            "dd_pct": "61.03247131817762487233739875",
+            "trades": 41,
+            "fees_usdc": "71.29085574284000000",
+            "profit_factor": "0.4876308530343082222519026585",
+            "open_at_end": true
+          },
+          {
+            "ending_usdc": "412.34055374092000000",
+            "return_pct": "-62.51449511446181818181818182",
+            "dd_pct": "64.10035492923381825750483868",
+            "trades": 43,
+            "fees_usdc": "59.49986487293000000",
+            "profit_factor": "0.5025685282778420623538577979",
+            "open_at_end": false
+          }
+        ],
+        "trail6": [
+          {
+            "ending_usdc": "537.83344641841000000",
+            "return_pct": "-51.10605032559909090909090909",
+            "dd_pct": "63.15127924585400549259527023",
+            "trades": 42,
+            "fees_usdc": "67.80266632319000000",
+            "profit_factor": "0.4177014636322621079922586813",
+            "open_at_end": true
+          },
+          {
+            "ending_usdc": "559.37370663504000000",
+            "return_pct": "-49.14784485136000000",
+            "dd_pct": "53.86944248623923678453926919",
+            "trades": 42,
+            "fees_usdc": "65.18064574258000000",
+            "profit_factor": "0.6111967941247168239309903044",
+            "open_at_end": false
+          }
+        ],
+        "stop4_trail6": [
+          {
+            "ending_usdc": "496.60235849618000000",
+            "return_pct": "-54.85433104580181818181818182",
+            "dd_pct": "65.25792699848895988889090938",
+            "trades": 44,
+            "fees_usdc": "69.81521028325000000",
+            "profit_factor": "0.4166186626777806250459735899",
+            "open_at_end": true
+          },
+          {
+            "ending_usdc": "493.73416642721000000",
+            "return_pct": "-55.11507577934454545454545455",
+            "dd_pct": "59.31779036145847741989664629",
+            "trades": 44,
+            "fees_usdc": "67.08320429193000000",
+            "profit_factor": "0.5840364037491032604013255590",
+            "open_at_end": false
+          }
+        ],
+        "cmo40_trail6": [
+          {
+            "ending_usdc": "815.16547379169000000",
+            "return_pct": "-25.89404783711909090909090909",
+            "dd_pct": "45.04739997529199318371127768",
+            "trades": 26,
+            "fees_usdc": "50.33208428043000000",
+            "profit_factor": "0.5014006555017277996505633396",
+            "open_at_end": true
+          },
+          {
+            "ending_usdc": "656.50630367762000000",
+            "return_pct": "-40.31760875658000000",
+            "dd_pct": "47.47822489813955650211308634",
+            "trades": 32,
+            "fees_usdc": "56.23116787676000000",
+            "profit_factor": "0.6425232679662868170124989573",
+            "open_at_end": false
+          }
+        ]
+      },
+      "policies": {
+        "baseline": {
+          "cmo_floor": 0.3,
+          "slope_bars": 72,
+          "stop_atr": 0,
+          "trail_atr": 0
+        },
+        "cmo40": {
+          "cmo_floor": 0.4,
+          "slope_bars": 72,
+          "stop_atr": 0,
+          "trail_atr": 0
+        },
+        "stop4": {
+          "cmo_floor": 0.3,
+          "slope_bars": 72,
+          "stop_atr": 4,
+          "trail_atr": 0
+        },
+        "trail6": {
+          "cmo_floor": 0.3,
+          "slope_bars": 72,
+          "stop_atr": 0,
+          "trail_atr": 6
+        },
+        "stop4_trail6": {
+          "cmo_floor": 0.3,
+          "slope_bars": 72,
+          "stop_atr": 4,
+          "trail_atr": 6
+        },
+        "cmo40_trail6": {
+          "cmo_floor": 0.4,
+          "slope_bars": 72,
+          "stop_atr": 0,
+          "trail_atr": 6
+        }
+      },
+      "training_eligible": [],
+      "selected": "baseline",
+      "validation": {
+        "baseline": {
+          "current": {
+            "ending_usdc": "2699.871369991455000000",
+            "return_pct": "145.442851817405000000",
+            "dd_pct": "32.42005635154115447097367129",
+            "trades": 26,
+            "fees_usdc": "58.691033528440000000",
+            "profit_factor": "3.458846592053980541456883468",
+            "open_at_end": false
+          },
+          "stress": {
+            "ending_usdc": "2546.36120480076000000",
+            "return_pct": "131.4873822546145454545454545",
+            "dd_pct": "36.11527788628870727724273599",
+            "trades": 26,
+            "fees_usdc": "58.50043271408000000",
+            "profit_factor": "2.982692991106113613839461229",
+            "open_at_end": false
+          }
+        }
+      },
+      "accepted": false,
+      "effective_policy": {
+        "cmo_floor": 0.3,
+        "slope_bars": 72,
+        "stop_atr": 0,
+        "trail_atr": 0
+      }
+    },
+    "AAVEUSDC": {
+      "base_policy": {
+        "cmo_floor": 0.3,
+        "slope_bars": 0,
+        "stop_atr": 2.0,
+        "trail_atr": 0
+      },
+      "train": {
+        "baseline": [
+          {
+            "ending_usdc": "1431.8379560025300000",
+            "return_pct": "30.16708690932090909090909091",
+            "dd_pct": "31.00216273185108886721157343",
+            "trades": 54,
+            "fees_usdc": "119.1219664264700000",
+            "profit_factor": "1.239474147117405418849687836",
+            "open_at_end": false
+          },
+          {
+            "ending_usdc": "1423.8229399738500000",
+            "return_pct": "29.43844908853181818181818182",
+            "dd_pct": "27.51260281345394819228981195",
+            "trades": 55,
+            "fees_usdc": "120.4848731717900000",
+            "profit_factor": "1.214919377302473160587269245",
+            "open_at_end": false
+          }
+        ],
+        "slope24": [
+          {
+            "ending_usdc": "1005.9799626692700000",
+            "return_pct": "-8.547276120975454545454545455",
+            "dd_pct": "51.47679486684410143989043669",
+            "trades": 42,
+            "fees_usdc": "81.2074690741600000",
+            "profit_factor": "0.9077326385647968192000612636",
+            "open_at_end": false
+          },
+          {
+            "ending_usdc": "1211.8801117322300000",
+            "return_pct": "10.17091924838454545454545455",
+            "dd_pct": "30.83064965899482231501366867",
+            "trades": 38,
+            "fees_usdc": "83.4873144816300000",
+            "profit_factor": "1.106895430203449033751592582",
+            "open_at_end": false
+          }
+        ],
+        "slope72": [
+          {
+            "ending_usdc": "1249.0083631029000000",
+            "return_pct": "13.54621482753636363636363636",
+            "dd_pct": "42.87799155653718339520285203",
+            "trades": 33,
+            "fees_usdc": "69.2094308913800000",
+            "profit_factor": "1.204075134625675077515702439",
+            "open_at_end": false
+          },
+          {
+            "ending_usdc": "899.5954973574900000",
+            "return_pct": "-18.21859114931909090909090909",
+            "dd_pct": "33.34190960291796554025577599",
+            "trades": 33,
+            "fees_usdc": "66.9925264906800000",
+            "profit_factor": "0.7617045318393902793725453776",
+            "open_at_end": false
+          }
+        ],
+        "cmo40": [
+          {
+            "ending_usdc": "1546.9656027497200000",
+            "return_pct": "40.63323661361090909090909091",
+            "dd_pct": "32.46884037710576047234657828",
+            "trades": 46,
+            "fees_usdc": "101.6300937947000000",
+            "profit_factor": "1.390079967289823600982335877",
+            "open_at_end": false
+          },
+          {
+            "ending_usdc": "1388.9311713899000000",
+            "return_pct": "26.26647012635454545454545455",
+            "dd_pct": "24.03157738434113374307676330",
+            "trades": 38,
+            "fees_usdc": "83.5755670230900000",
+            "profit_factor": "1.283668467255973224925274905",
+            "open_at_end": false
+          }
+        ],
+        "trail6": [
+          {
+            "ending_usdc": "1118.9055754501300000",
+            "return_pct": "1.718688677284545454545454545",
+            "dd_pct": "37.93412458742305845796534728",
+            "trades": 55,
+            "fees_usdc": "116.6248955746200000",
+            "profit_factor": "1.013007289113803723299279202",
+            "open_at_end": false
+          },
+          {
+            "ending_usdc": "1386.2562964216500000",
+            "return_pct": "26.02329967469545454545454545",
+            "dd_pct": "28.60476741676985155031800646",
+            "trades": 55,
+            "fees_usdc": "120.4472689239900000",
+            "profit_factor": "1.190005413752070000081640429",
+            "open_at_end": false
+          }
+        ],
+        "slope24_trail6": [
+          {
+            "ending_usdc": "876.8367037608000000",
+            "return_pct": "-20.28757238538181818181818182",
+            "dd_pct": "51.51657699499837391577013191",
+            "trades": 43,
+            "fees_usdc": "75.8516409061500000",
+            "profit_factor": "0.7626872698841477063654849900",
+            "open_at_end": false
+          },
+          {
+            "ending_usdc": "1210.5809552991200000",
+            "return_pct": "10.05281411810181818181818182",
+            "dd_pct": "30.85353510004899701000446794",
+            "trades": 38,
+            "fees_usdc": "83.4860140247400000",
+            "profit_factor": "1.105657314281373778019807808",
+            "open_at_end": false
+          }
+        ],
+        "cmo40_trail6": [
+          {
+            "ending_usdc": "1246.8086252500000000",
+            "return_pct": "13.34623865909090909090909091",
+            "dd_pct": "36.58798992637872156144135267",
+            "trades": 47,
+            "fees_usdc": "102.1466161044500000",
+            "profit_factor": "1.126331947051711570171188078",
+            "open_at_end": false
+          },
+          {
+            "ending_usdc": "1388.9311713899000000",
+            "return_pct": "26.26647012635454545454545455",
+            "dd_pct": "24.03157738434113374307676330",
+            "trades": 38,
+            "fees_usdc": "83.5755670230900000",
+            "profit_factor": "1.283668467255973224925274905",
+            "open_at_end": false
+          }
+        ]
+      },
+      "policies": {
+        "baseline": {
+          "cmo_floor": 0.3,
+          "slope_bars": 0,
+          "stop_atr": 2.0,
+          "trail_atr": 0
+        },
+        "slope24": {
+          "cmo_floor": 0.3,
+          "slope_bars": 24,
+          "stop_atr": 2.0,
+          "trail_atr": 0
+        },
+        "slope72": {
+          "cmo_floor": 0.3,
+          "slope_bars": 72,
+          "stop_atr": 2.0,
+          "trail_atr": 0
+        },
+        "cmo40": {
+          "cmo_floor": 0.4,
+          "slope_bars": 0,
+          "stop_atr": 2.0,
+          "trail_atr": 0
+        },
+        "trail6": {
+          "cmo_floor": 0.3,
+          "slope_bars": 0,
+          "stop_atr": 2.0,
+          "trail_atr": 6
+        },
+        "slope24_trail6": {
+          "cmo_floor": 0.3,
+          "slope_bars": 24,
+          "stop_atr": 2.0,
+          "trail_atr": 6
+        },
+        "cmo40_trail6": {
+          "cmo_floor": 0.4,
+          "slope_bars": 0,
+          "stop_atr": 2.0,
+          "trail_atr": 6
+        }
+      },
+      "training_eligible": [],
+      "selected": "baseline",
+      "validation": {
+        "baseline": {
+          "current": {
+            "ending_usdc": "1186.83410471567000000",
+            "return_pct": "7.894009519606363636363636364",
+            "dd_pct": "41.52311725385871911535667530",
+            "trades": 62,
+            "fees_usdc": "110.90783833602000000",
+            "profit_factor": "1.068880186513277862487705564",
+            "open_at_end": false
+          },
+          "stress": {
+            "ending_usdc": "973.5577685411400000",
+            "return_pct": "-11.49474831444181818181818182",
+            "dd_pct": "48.34007749204229885397752912",
+            "trades": 62,
+            "fees_usdc": "101.1828182904300000",
+            "profit_factor": "0.8967323669368267117616242697",
+            "open_at_end": false
+          }
+        }
+      },
+      "accepted": false,
+      "effective_policy": {
+        "cmo_floor": 0.3,
+        "slope_bars": 0,
+        "stop_atr": 2.0,
+        "trail_atr": 0
+      }
+    },
+    "BCHUSDC": {
+      "base_policy": {
+        "cmo_floor": 0,
+        "slope_bars": 0,
+        "stop_atr": 0,
+        "trail_atr": 0
+      },
+      "train": {
+        "baseline": [
+          {
+            "ending_usdc": "1875.400527351400000",
+            "return_pct": "70.49095703194545454545454545",
+            "dd_pct": "27.00412380123761671428909524",
+            "trades": 26,
+            "fees_usdc": "57.079089101400000",
+            "profit_factor": "1.837876455204260278267178651",
+            "open_at_end": false
+          },
+          {
+            "ending_usdc": "1386.559823833400000",
+            "return_pct": "26.05089307576363636363636364",
+            "dd_pct": "25.32557848168019257597727644",
+            "trades": 27,
+            "fees_usdc": "58.959541040700000",
+            "profit_factor": "1.551236714040302737012215910",
+            "open_at_end": false
+          }
+        ],
+        "slope24": [
+          {
+            "ending_usdc": "1837.103687266300000",
+            "return_pct": "67.00942611511818181818181818",
+            "dd_pct": "30.51692325515629927369181780",
+            "trades": 25,
+            "fees_usdc": "54.635658564600000",
+            "profit_factor": "1.946205589081055415864248057",
+            "open_at_end": false
+          },
+          {
+            "ending_usdc": "1015.822808076100000",
+            "return_pct": "-7.652471993081818181818181818",
+            "dd_pct": "34.89860561591494395891348504",
+            "trades": 27,
+            "fees_usdc": "51.153519402800000",
+            "profit_factor": "0.8617213275598548217309323796",
+            "open_at_end": false
+          }
+        ],
+        "slope72": [
+          {
+            "ending_usdc": "1954.821074815800000",
+            "return_pct": "77.71100680143636363636363636",
+            "dd_pct": "26.60454533538933765481452209",
+            "trades": 22,
+            "fees_usdc": "48.728892443000000",
+            "profit_factor": "2.263113889994793338724325509",
+            "open_at_end": false
+          },
+          {
+            "ending_usdc": "1185.014970409200000",
+            "return_pct": "7.728633673563636363636363636",
+            "dd_pct": "27.52975248079067224346915905",
+            "trades": 26,
+            "fees_usdc": "56.417719731300000",
+            "profit_factor": "1.139714252389578398244308599",
+            "open_at_end": false
+          }
+        ],
+        "cmo40": [
+          {
+            "ending_usdc": "1672.596155623700000",
+            "return_pct": "52.05419596579090909090909091",
+            "dd_pct": "31.81905788484679126673511412",
+            "trades": 26,
+            "fees_usdc": "56.725556720000000",
+            "profit_factor": "1.530596396037516499681383991",
+            "open_at_end": false
+          },
+          {
+            "ending_usdc": "999.873025219300000",
+            "return_pct": "-9.102452252790909090909090909",
+            "dd_pct": "41.46806879983048019560932205",
+            "trades": 27,
+            "fees_usdc": "54.027482054700000",
+            "profit_factor": "0.8525052223703390734037916281",
+            "open_at_end": false
+          }
+        ],
+        "stop4": [
+          {
+            "ending_usdc": "1600.218739335400000",
+            "return_pct": "45.47443084867272727272727273",
+            "dd_pct": "30.49766313487668053058389628",
+            "trades": 34,
+            "fees_usdc": "72.785616623300000",
+            "profit_factor": "1.449029555904865578738101520",
+            "open_at_end": false
+          },
+          {
+            "ending_usdc": "947.400917371200000",
+            "return_pct": "-13.87264387534545454545454545",
+            "dd_pct": "36.58109507343721297987646952",
+            "trades": 34,
+            "fees_usdc": "67.753563645000000",
+            "profit_factor": "0.8240940565935867993387116555",
+            "open_at_end": false
+          }
+        ],
+        "trail6": [
+          {
+            "ending_usdc": "1675.720398654000000",
+            "return_pct": "52.33821805945454545454545455",
+            "dd_pct": "28.89564215244350894195490841",
+            "trades": 51,
+            "fees_usdc": "109.812515609200000",
+            "profit_factor": "1.367268479079270020019341823",
+            "open_at_end": false
+          },
+          {
+            "ending_usdc": "1082.116736923000000",
+            "return_pct": "-1.625751188818181818181818182",
+            "dd_pct": "28.18246879377364200544839556",
+            "trades": 47,
+            "fees_usdc": "100.358277081800000",
+            "profit_factor": "0.9816679767383960664497619128",
+            "open_at_end": false
+          }
+        ],
+        "stop4_trail6": [
+          {
+            "ending_usdc": "1419.191402187500000",
+            "return_pct": "29.01740019886363636363636364",
+            "dd_pct": "32.58110559365566806680619307",
+            "trades": 56,
+            "fees_usdc": "116.820159967000000",
+            "profit_factor": "1.192957035923921940575182079",
+            "open_at_end": false
+          },
+          {
+            "ending_usdc": "828.971031877000000",
+            "return_pct": "-24.63899710209090909090909091",
+            "dd_pct": "43.62672983645408421316967781",
+            "trades": 52,
+            "fees_usdc": "100.731397343900000",
+            "profit_factor": "0.7678508996838899014473122575",
+            "open_at_end": false
+          }
+        ],
+        "slope24_trail6": [
+          {
+            "ending_usdc": "1765.891956882800000",
+            "return_pct": "60.53563244389090909090909091",
+            "dd_pct": "33.71418563504600670080944546",
+            "trades": 43,
+            "fees_usdc": "91.445340368100000",
+            "profit_factor": "1.532846523610149878728522532",
+            "open_at_end": false
+          },
+          {
+            "ending_usdc": "901.109377383600000",
+            "return_pct": "-18.080965692400000",
+            "dd_pct": "32.27545182581576870511892355",
+            "trades": 40,
+            "fees_usdc": "74.800737816300000",
+            "profit_factor": "0.7547002309149933930273021688",
+            "open_at_end": false
+          }
+        ],
+        "cmo40_trail6": [
+          {
+            "ending_usdc": "1787.010044462000000",
+            "return_pct": "62.45545858745454545454545455",
+            "dd_pct": "28.01728528762115029328830807",
+            "trades": 39,
+            "fees_usdc": "84.875065674200000",
+            "profit_factor": "1.489469460722888294171404934",
+            "open_at_end": false
+          },
+          {
+            "ending_usdc": "806.523042916400000",
+            "return_pct": "-26.67972337123636363636363636",
+            "dd_pct": "49.56328830123550477234061946",
+            "trades": 39,
+            "fees_usdc": "69.811982455500000",
+            "profit_factor": "0.6952879888283103183530897238",
+            "open_at_end": false
+          }
+        ]
+      },
+      "policies": {
+        "baseline": {
+          "cmo_floor": 0,
+          "slope_bars": 0,
+          "stop_atr": 0,
+          "trail_atr": 0
+        },
+        "slope24": {
+          "cmo_floor": 0,
+          "slope_bars": 24,
+          "stop_atr": 0,
+          "trail_atr": 0
+        },
+        "slope72": {
+          "cmo_floor": 0,
+          "slope_bars": 72,
+          "stop_atr": 0,
+          "trail_atr": 0
+        },
+        "cmo40": {
+          "cmo_floor": 0.4,
+          "slope_bars": 0,
+          "stop_atr": 0,
+          "trail_atr": 0
+        },
+        "stop4": {
+          "cmo_floor": 0,
+          "slope_bars": 0,
+          "stop_atr": 4,
+          "trail_atr": 0
+        },
+        "trail6": {
+          "cmo_floor": 0,
+          "slope_bars": 0,
+          "stop_atr": 0,
+          "trail_atr": 6
+        },
+        "stop4_trail6": {
+          "cmo_floor": 0,
+          "slope_bars": 0,
+          "stop_atr": 4,
+          "trail_atr": 6
+        },
+        "slope24_trail6": {
+          "cmo_floor": 0,
+          "slope_bars": 24,
+          "stop_atr": 0,
+          "trail_atr": 6
+        },
+        "cmo40_trail6": {
+          "cmo_floor": 0.4,
+          "slope_bars": 0,
+          "stop_atr": 0,
+          "trail_atr": 6
+        }
+      },
+      "training_eligible": [],
+      "selected": "baseline",
+      "validation": {
+        "baseline": {
+          "current": {
+            "ending_usdc": "1014.1787415251500000",
+            "return_pct": "-7.801932588622727272727272727",
+            "dd_pct": "50.55578140624956232986411277",
+            "trades": 30,
+            "fees_usdc": "51.4520383592500000",
+            "profit_factor": "0.8957322589260842003309019436",
+            "open_at_end": false
+          },
+          "stress": {
+            "ending_usdc": "872.499481282700000",
+            "return_pct": "-20.68186533793636363636363636",
+            "dd_pct": "55.73417986441450942092889122",
+            "trades": 30,
+            "fees_usdc": "48.089767872500000",
+            "profit_factor": "0.7316954544024666491628804694",
+            "open_at_end": false
+          }
+        }
+      },
+      "accepted": false,
+      "effective_policy": {
+        "cmo_floor": 0,
+        "slope_bars": 0,
+        "stop_atr": 0,
+        "trail_atr": 0
+      }
+    }
+  },
+  "portfolio": {
+    "full": {
+      "baseline": {
+        "current": {
+          "ending_usdc": "28922.29449189693165000000",
+          "return_pct": "2548.421731503692592886222163",
+          "dd_pct": "47.62821518106107766365810424",
+          "trades": 153,
+          "fees_usdc": "3276.86973394498360000000",
+          "profit_factor": "1.556951325931057411406362381",
+          "open_at_end": null,
+          "trades_by_symbol": {
+            "BTCUSDC": 17,
+            "SOLUSDC": 17,
+            "NEARUSDC": 34,
+            "LINKUSDC": 5,
+            "BNBUSDC": 2,
+            "BCHUSDC": 30,
+            "DOTUSDC": 6,
+            "XRPUSDC": 25,
+            "DOGEUSDC": 8,
+            "ETHUSDC": 4,
+            "ADAUSDC": 3,
+            "AVAXUSDC": 2
+          }
+        },
+        "stress": {
+          "ending_usdc": "17491.5471730217670000000",
+          "return_pct": "1501.705344077440166014817580",
+          "dd_pct": "60.75992597185538846828388933",
+          "trades": 155,
+          "fees_usdc": "2504.5901179548593000000",
+          "profit_factor": "1.390761121249883076536612363",
+          "open_at_end": null,
+          "trades_by_symbol": {
+            "BTCUSDC": 16,
+            "SOLUSDC": 18,
+            "NEARUSDC": 36,
+            "LINKUSDC": 5,
+            "BNBUSDC": 2,
+            "BCHUSDC": 31,
+            "DOTUSDC": 6,
+            "XRPUSDC": 25,
+            "DOGEUSDC": 8,
+            "ADAUSDC": 3,
+            "AVAXUSDC": 2,
+            "ETHUSDC": 3
+          }
+        },
+        "report": "C:\\Users\\andre\\AppData\\Local\\Temp\\hixton-coin-policy-research-20261011\\reports\\full\\baseline\\687c64de-2b2e-4b6f-944c-9a8b1e8053d9"
+      },
+      "candidate": {
+        "current": {
+          "ending_usdc": "28922.29449189693165000000",
+          "return_pct": "2548.421731503692592886222163",
+          "dd_pct": "47.62821518106107766365810424",
+          "trades": 153,
+          "fees_usdc": "3276.86973394498360000000",
+          "profit_factor": "1.556951325931057411406362381",
+          "open_at_end": null,
+          "trades_by_symbol": {
+            "BTCUSDC": 17,
+            "SOLUSDC": 17,
+            "NEARUSDC": 34,
+            "LINKUSDC": 5,
+            "BNBUSDC": 2,
+            "BCHUSDC": 30,
+            "DOTUSDC": 6,
+            "XRPUSDC": 25,
+            "DOGEUSDC": 8,
+            "ETHUSDC": 4,
+            "ADAUSDC": 3,
+            "AVAXUSDC": 2
+          }
+        },
+        "stress": {
+          "ending_usdc": "17491.5471730217670000000",
+          "return_pct": "1501.705344077440166014817580",
+          "dd_pct": "60.75992597185538846828388933",
+          "trades": 155,
+          "fees_usdc": "2504.5901179548593000000",
+          "profit_factor": "1.390761121249883076536612363",
+          "open_at_end": null,
+          "trades_by_symbol": {
+            "BTCUSDC": 16,
+            "SOLUSDC": 18,
+            "NEARUSDC": 36,
+            "LINKUSDC": 5,
+            "BNBUSDC": 2,
+            "BCHUSDC": 31,
+            "DOTUSDC": 6,
+            "XRPUSDC": 25,
+            "DOGEUSDC": 8,
+            "ADAUSDC": 3,
+            "AVAXUSDC": 2,
+            "ETHUSDC": 3
+          }
+        },
+        "report": "C:\\Users\\andre\\AppData\\Local\\Temp\\hixton-coin-policy-research-20261011\\reports\\full\\candidate\\15a2b949-29aa-46e6-90b2-7f298e3feb92"
+      }
+    },
+    "validation": {
+      "baseline": {
+        "current": {
+          "ending_usdc": "1147.04876986251130000000",
+          "return_pct": "5.035542392722781983967952016",
+          "dd_pct": "37.50387482450033335267347736",
+          "trades": 56,
+          "fees_usdc": "67.08886040881090000000",
+          "profit_factor": "1.051673742825662350879126881",
+          "open_at_end": null,
+          "trades_by_symbol": {
+            "BNBUSDC": 1,
+            "LINKUSDC": 1,
+            "XRPUSDC": 9,
+            "NEARUSDC": 13,
+            "ADAUSDC": 1,
+            "DOGEUSDC": 3,
+            "BCHUSDC": 13,
+            "BTCUSDC": 5,
+            "SOLUSDC": 6,
+            "DOTUSDC": 3,
+            "AVAXUSDC": 1
+          }
+        },
+        "stress": {
+          "ending_usdc": "885.6868379541014000000",
+          "return_pct": "-18.89743500116800014681831758",
+          "dd_pct": "51.18185008277283201261102175",
+          "trades": 56,
+          "fees_usdc": "57.5534352559780000000",
+          "profit_factor": "0.8132585919621261942814666272",
+          "open_at_end": null,
+          "trades_by_symbol": {
+            "BNBUSDC": 1,
+            "LINKUSDC": 1,
+            "XRPUSDC": 9,
+            "NEARUSDC": 13,
+            "ADAUSDC": 1,
+            "DOGEUSDC": 3,
+            "BCHUSDC": 13,
+            "BTCUSDC": 5,
+            "SOLUSDC": 6,
+            "DOTUSDC": 3,
+            "AVAXUSDC": 1
+          }
+        },
+        "report": "C:\\Users\\andre\\AppData\\Local\\Temp\\hixton-coin-policy-research-20261011\\reports\\validation\\baseline\\bcf5b48c-d172-41f0-a28d-cc724d9f92fb"
+      },
+      "candidate": {
+        "current": {
+          "ending_usdc": "1147.04876986251130000000",
+          "return_pct": "5.035542392722781983967952016",
+          "dd_pct": "37.50387482450033335267347736",
+          "trades": 56,
+          "fees_usdc": "67.08886040881090000000",
+          "profit_factor": "1.051673742825662350879126881",
+          "open_at_end": null,
+          "trades_by_symbol": {
+            "BNBUSDC": 1,
+            "LINKUSDC": 1,
+            "XRPUSDC": 9,
+            "NEARUSDC": 13,
+            "ADAUSDC": 1,
+            "DOGEUSDC": 3,
+            "BCHUSDC": 13,
+            "BTCUSDC": 5,
+            "SOLUSDC": 6,
+            "DOTUSDC": 3,
+            "AVAXUSDC": 1
+          }
+        },
+        "stress": {
+          "ending_usdc": "885.6868379541014000000",
+          "return_pct": "-18.89743500116800014681831758",
+          "dd_pct": "51.18185008277283201261102175",
+          "trades": 56,
+          "fees_usdc": "57.5534352559780000000",
+          "profit_factor": "0.8132585919621261942814666272",
+          "open_at_end": null,
+          "trades_by_symbol": {
+            "BNBUSDC": 1,
+            "LINKUSDC": 1,
+            "XRPUSDC": 9,
+            "NEARUSDC": 13,
+            "ADAUSDC": 1,
+            "DOGEUSDC": 3,
+            "BCHUSDC": 13,
+            "BTCUSDC": 5,
+            "SOLUSDC": 6,
+            "DOTUSDC": 3,
+            "AVAXUSDC": 1
+          }
+        },
+        "report": "C:\\Users\\andre\\AppData\\Local\\Temp\\hixton-coin-policy-research-20261011\\reports\\validation\\candidate\\05d74c5d-97fa-47e7-a589-4b5d8080f62b"
+      }
+    }
+  },
+  "frozen_training_selection_sha256": "78eeb1b2306f217a1bea7f5146ec28db3fa9048462cbdec7d529e647f3ef830b",
+  "accepted_coins": [
+    "SUIUSDC"
+  ],
+  "candidate_version": "HIXTON-V8-COIN-DD-RESEARCH-4fcf77e4a997",
+  "portfolio_acceptance_checks": {
+    "full_current": false,
+    "full_stress": false,
+    "validation_current": true,
+    "validation_stress": true
+  },
+  "portfolio_candidate_passed": false
+}

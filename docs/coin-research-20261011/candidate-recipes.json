@@ -1,0 +1,99 @@
+{
+  "status": "RESEARCH_ONLY_NOT_INSTALLED",
+  "source_sha256": "7956f1b7c2ea1041c787313a14644da060ee3437eead077c49b163dfc42fe326",
+  "live_acceptance": false,
+  "paper_activation": false,
+  "portfolio_release_gate_passed": false,
+  "notes": "LINK VIDYA 6 -> 8 improves historical shared profit but only modestly reduces shared DD. SUI slope72 is research-only and does not enter the current shared portfolio.",
+  "variants": {
+    "policies/SUIUSDC/slope72": {
+      "profile": {
+        "symbol": "SUIUSDC",
+        "parameters": {
+          "vidya_length": 15,
+          "momentum_length": 20,
+          "smoothing_length": 14,
+          "atr_length": 120,
+          "band_multiplier": 2.3,
+          "warmup_bars": 400
+        },
+        "trade_policy": {
+          "cmo_floor": 0.4,
+          "slope_bars": 72,
+          "stop_atr": 2.5,
+          "trail_atr": 0
+        }
+      },
+      "full": {
+        "current": {
+          "ending_usdc": "3378.5937079053950000000",
+          "return_pct": "207.1448825368540909090909091",
+          "dd_pct": "30.81562893444865729014120136",
+          "trades": 49,
+          "fees_usdc": "107.9570092900800000000",
+          "profit_factor": "2.785841078765521914696105556",
+          "open_at_end": false
+        },
+        "stress": {
+          "ending_usdc": "3136.891787126970000000",
+          "return_pct": "185.1719806479063636363636364",
+          "dd_pct": "33.83121413405200237048702050",
+          "trades": 49,
+          "fees_usdc": "106.754228433460000000",
+          "profit_factor": "2.508224696314181458934040275",
+          "open_at_end": false
+        }
+      },
+      "validation_matches": {
+        "current": true,
+        "stress": true
+      },
+      "portfolio_research_version": "HIXTON-V8-COIN-DD-RESEARCH-4fcf77e4a997"
+    },
+    "parameters/LINKUSDC/vidya125": {
+      "profile": {
+        "symbol": "LINKUSDC",
+        "parameters": {
+          "vidya_length": 8,
+          "momentum_length": 20,
+          "smoothing_length": 8,
+          "atr_length": 60,
+          "band_multiplier": 3.8,
+          "warmup_bars": 400
+        },
+        "trade_policy": {
+          "cmo_floor": 0,
+          "slope_bars": 24,
+          "stop_atr": 0,
+          "trail_atr": 0
+        }
+      },
+      "full": {
+        "current": {
+          "ending_usdc": "3409.836274895165000000",
+          "return_pct": "209.9851158995604545454545455",
+          "dd_pct": "21.38115578773423930436096965",
+          "trades": 27,
+          "fees_usdc": "62.844694156815000000",
+          "profit_factor": "3.924399970443881846435844528",
+          "open_at_end": true
+        },
+        "stress": {
+          "ending_usdc": "3247.45153494384000000",
+          "return_pct": "195.2228668130763636363636364",
+          "dd_pct": "21.38116874735700311803484758",
+          "trades": 27,
+          "fees_usdc": "62.68529703836000000",
+          "profit_factor": "3.478165741940807633760501398",
+          "open_at_end": true
+        }
+      },
+      "validation_matches": {
+        "current": true,
+        "stress": true
+      },
+      "portfolio_research_version": "HIXTON-V8-COIN-DD-RESEARCH-b1c13cf0e6cf"
+    }
+  },
+  "base_strategy": "HIXTON-V8-CORE10-SAT3-DOTFILTER-5-eeb47b53b080"
+}
