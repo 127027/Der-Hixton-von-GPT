@@ -1,0 +1,64 @@
+name: Hixton Auto-Budget Toggle Safety Review
+
+on:
+  push:
+    branches: [codex/hixton-auto-budget-toggle-20261011]
+    paths:
+      - .github/workflows/hixton-auto-budget-toggle-review.yml
+      - src/hixton/paper/models.py
+      - src/hixton/paper/storage.py
+      - src/hixton/ui/api.py
+      - src/hixton/ui/live.py
+      - tests/test_auto_budget_preference.py
+      - ui/**
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  read-only-feature-review:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install isolated Python environment
+        shell: bash
+        run: |
+          python -m venv .venv
+          .venv/bin/python -m pip install -e '.[dev]'
+      - name: Prove settings persistence and server-side Live lock
+        shell: bash
+        run: |
+          set -euo pipefail
+          .venv/bin/python -m pytest -q \
+            tests/test_auto_budget_preference.py \
+            tests/test_ui_api.py \
+            tests/test_v8_live_wiring.py \
+            tests/test_current_v6_product_contract.py
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - name: Verify new settings UI and built assets
+        shell: bash
+        working-directory: ui
+        run: |
+          set -euo pipefail
+          npm ci
+          npm run check
+          npm test
+          npm run build
+      - name: Bundle review-only built UI
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: hixton-auto-budget-ui-review-${{ github.run_id }}
+          path: |
+            src/hixton/ui/static/
+          retention-days: 14
+          if-no-files-found: warn
