@@ -454,7 +454,7 @@ def process_new_closed_points(
 
             used_slots = sum(position.slot_count for position in positions.values())
             free_slots = max(0, settings.slot_count - used_slots)
-            if settings.autonomous_performance_enabled:
+            if settings.autonomous_performance_enabled and settings.slot_count > 2:
                 allocations = research_slot_allocations(
                     [(signal.symbol, signal.breakout_strength) for signal, _ in candidates],
                     free_slots=free_slots,
