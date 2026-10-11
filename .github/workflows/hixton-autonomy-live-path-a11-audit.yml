@@ -4,7 +4,7 @@ on:
   push:
     branches: [codex/hixton-live-equity-parity-20261011]
     paths:
-      - .github/workflows/hixton-spot-autonomy-package.yml
+      - .github/workflows/hixton-autonomy-live-path-a11-audit.yml
       - src/**
       - ui/**
       - tests/**
