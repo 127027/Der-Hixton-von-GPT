@@ -1,0 +1,109 @@
+name: Hixton V8 Spot Compounding Filler Profit and Cadence
+
+on:
+  push:
+    branches: [codex/hixton-spot-profit-filler-20261011]
+    paths:
+      - .github/workflows/hixton-spot-filler-profit-research.yml
+      - scripts/research_spot_filler_profit_20261011.py
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  evidence:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 95
+    env:
+      PYTHONUNBUFFERED: "1"
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install key-free study dependencies
+        shell: bash
+        run: |
+          set -euo pipefail
+          python -m venv .venv
+          .venv/bin/python -m pip install -e '.[dev]'
+          .venv/bin/python -m py_compile scripts/research_spot_filler_profit_20261011.py
+      - name: Confirm the untouched conservative product contract
+        shell: bash
+        run: |
+          set -euo pipefail
+          .venv/bin/python -m pytest -q tests/test_current_v6_product_contract.py tests/test_v8_product_backtest.py
+      - name: Restore existing public 15-coin research cache
+        id: candles
+        uses: actions/cache@v4
+        with:
+          path: data/
+          key: hixton-keyfree-public-15-20261010-19-v1
+      - name: Recover public Binance Vision 15-coin history only if cache missing
+        if: steps.candles.outputs.cache-hit != 'true'
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p evidence
+          .venv/bin/python - <<'PY' | tee evidence/public-market-sync.log
+          from datetime import UTC,datetime,timedelta
+          from pathlib import Path
+          from hixton.domain.versions import strategy_definition
+          from hixton.data.binance import BinancePublicClient
+          from hixton.data.storage import CandleStore
+          from hixton.data.sync import synchronize_symbol
+          end=datetime(2026,10,10,19,tzinfo=UTC)
+          start=end.replace(year=end.year-3)-timedelta(hours=400)
+          client=BinancePublicClient(base_url="https://data-api.binance.vision")
+          with CandleStore(Path("data/hixton-usdc.sqlite3")) as store:
+            for symbol in strategy_definition("v8").symbols:
+              first=client.first_available_open(symbol,start=start,end_exclusive=end)
+              report=synchronize_symbol(client=client,store=store,symbol=symbol,start=first,end_exclusive=end)
+              print(symbol,first.isoformat(),report.quality.candle_count,flush=True)
+          PY
+      - name: A02 analyze every active filler subset and causal weak-entry hypotheses
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p evidence
+          .venv/bin/python scripts/research_spot_filler_profit_20261011.py \
+            --end 2026-10-10T19:00:00Z \
+            --output evidence/spot-filler-profit-1100.json \
+            | tee evidence/spot-filler-research.log
+      - name: A08 independent basic budget, baseline and cadence evidence checks
+        shell: bash
+        run: |
+          set -euo pipefail
+          .venv/bin/python - <<'PY'
+          import json
+          from decimal import Decimal as D
+          j=json.load(open("evidence/spot-filler-profit-1100.json"))
+          assert j["canonical_1100_compound_baseline_reproduced"]
+          assert len(j["market_universe"])==15 and len(j["cases"])==14
+          assert j["no_live_or_paper_orders"] and j["no_private_exchange_keys"]
+          assert j["no_product_strategy_edits"]
+          for name,v in j["cases"].items():
+            for cost in ("current","stress"):
+              row=v["scenarios"][cost]
+              assert row["total_completed_trades"]>=0
+              assert row["cadence"]["opened_trades"] >= row["total_completed_trades"]
+              assert D(row["ending_equity"])>=0
+              assert row["cadence"]["max_days_between_new_entries_including_edges"]>=0
+          for name,v in j["cases"].items():
+            print(name,
+                  "end",v["scenarios"]["current"]["ending_equity"],
+                  "stress",v["scenarios"]["stress"]["ending_equity"],
+                  "trades",v["scenarios"]["current"]["total_completed_trades"],
+                  "max_idle_days",v["scenarios"]["current"]["cadence"]["max_days_between_new_entries_including_edges"])
+          PY
+      - name: Upload public research evidence, never secrets
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: hixton-spot-filler-profit-${{ github.run_id }}
+          path: evidence/
+          retention-days: 30
+          if-no-files-found: warn
