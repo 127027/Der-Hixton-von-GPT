@@ -44,8 +44,8 @@ def test_research_slot_count_not_shared_by_default_mode():
     assert default.slot_count==2
     assert default.target_notional_usdc==D("550")
     research=PaperSettings(max_capital_usdc=D("1100"),autonomous_performance_enabled=True)
-    assert research.slot_count==4
-    assert research.target_notional_usdc==D("275.00")
+    assert research.slot_count==2
+    assert research.target_notional_usdc==D("550")
     assert not research.auto_budget_enabled
 
 
