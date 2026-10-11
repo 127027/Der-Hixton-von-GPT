@@ -1,0 +1,43 @@
+name: Hixton A01-A11 Checkout Repair Smoke
+
+on:
+  push:
+    branches: [codex/hixton-swarm-checkout-fix-20261011]
+    paths:
+      - .github/workflows/hixton-cloud-swarm-reusable.yml
+      - .github/workflows/hixton-swarm-checkout-smoke.yml
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  safe-smoke:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: codex/hixton-swarm-checkout-fix-20261011
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Reproduce first formerly failing lifecycle action, no writes
+        shell: bash
+        run: |
+          set -euo pipefail
+          python -m scripts.swarm_lifecycle
+          python - <<'PY'
+          from pathlib import Path
+          code=Path(".github/workflows/hixton-cloud-swarm-reusable.yml").read_text()
+          assert "ref: ${{ inputs.base_branch }}" in code
+          assert "ref: ${{ github.sha }}" not in code
+          assert Path("scripts/swarm_lifecycle.py").is_file()
+          print("Lifecycle module and engineering ref available; no production write.")
+          PY
+      - name: Verify swarm support tests (read only)
+        shell: bash
+        run: |
+          python -m pip install -e '.[dev]'
+          python -m pytest -q tests/test_swarm_lifecycle.py tests/test_swarm_core.py
