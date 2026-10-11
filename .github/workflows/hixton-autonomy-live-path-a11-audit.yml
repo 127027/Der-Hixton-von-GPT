@@ -300,7 +300,7 @@ jobs:
             '1. ZIP vollstaendig in einen NEUEN ORDNER entpacken.\n'
             '2. Startbot.bat starten. Python 3.12 + Internet benoetigt.\n'
             '3. Erste Demo startet mit 1100 USDC VIRTUELLEM PAPER-KONTO.\n'
-            '4. Einstellungen: Haken Budgetautomatik + Spot-Performance setzen und Uebernehmen.\n'
+            '4. Einstellungen: Haken Bot alleine alles entscheiden lassen setzen und Uebernehmen.\n'
             '5. Der Bot verwendet Paper-Equity; zwei Referenz-Slots bleiben aktiv.\n'
             '6. ECHTGELD IST fuer diese Modi SERVERSEITIG GESPERRT.\n'
             '7. AAVE und schwache NEAR/BCH Filler werden NUR im Paper-Forschungsmodus blockiert.\n'
@@ -334,6 +334,6 @@ jobs:
       - uses: actions/upload-artifact@v4
         with:
           name: hixton-v8-spot-autonomy-LIVE-LOCKED-${{ github.run_id }}
-          path: dist/Hixton_V8_Spot_Autonomy_PAPER_TEST.zip
+          path: dist/Hixton_V8_Spot_Autonomy_LIVE_LOCKED_QA.zip
           retention-days: 30
           if-no-files-found: error
