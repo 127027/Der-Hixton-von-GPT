@@ -61,6 +61,8 @@ def _settings_payload(
         "gap_fillers_enabled": settings.gap_fillers_enabled,
         "auto_budget_enabled": settings.auto_budget_enabled,
         "auto_budget_live_available": False,
+        "autonomous_performance_enabled": settings.autonomous_performance_enabled,
+        "autonomous_performance_live_available": False,
     }
 
 
@@ -585,6 +587,7 @@ def create_app(
                 emergency_stop=payload.get("emergency_stop", False),
                 gap_fillers_enabled=payload.get("gap_fillers_enabled", True),
                 auto_budget_enabled=payload.get("auto_budget_enabled", False),
+                autonomous_performance_enabled=payload.get("autonomous_performance_enabled", False),
             )
         except (KeyError, TypeError, ValueError, InvalidOperation):
             raise HTTPException(
