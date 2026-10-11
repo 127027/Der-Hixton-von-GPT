@@ -69,20 +69,6 @@ def synchronize_symbol(
 
     normalized = symbol.replace("/", "").upper()
     rules = client.symbol_rules(normalized)
-    store.put_symbol_rules(
-        StoredSymbolRules(
-            symbol=rules.symbol,
-            status=rules.status,
-            quote_asset=rules.quote_asset,
-            spot_allowed=rules.spot_allowed,
-            order_types=rules.order_types,
-            tick_size=rules.tick_size,
-            step_size=rules.step_size,
-            min_qty=rules.min_qty,
-            min_notional=rules.min_notional,
-            checked_at_utc=datetime.now(UTC),
-        )
-    )
     if not rules.tradable_for_v1:
         raise ValueError(f"{normalized} is not tradable for Binance Spot V1")
 
@@ -104,48 +90,48 @@ def synchronize_symbol(
     if not full_refresh and (tail_start, end_exclusive) not in ranges:
         ranges.append((tail_start, end_exclusive))
 
-    fetched = 0
-    inserted = 0
-    unchanged = 0
-    revised = 0
+    # Network requests must never run under a SQLite writer transaction.
+    # Collect and validate the provider batch before the short atomic write.
+    fetched_candles = []
     next_open_seen = False
     if include_next_open:
         ranges.append((end_exclusive, end_exclusive + TIMEFRAME_DELTA))
     for range_start, range_end in _merge_ranges(ranges):
-        candles = client.fetch_klines(
-            normalized,
-            start=range_start,
-            end_exclusive=range_end,
-        )
+        candles = client.fetch_klines(normalized, start=range_start, end_exclusive=range_end)
         next_open_seen = next_open_seen or any(
             candle.open_time_utc == end_exclusive for candle in candles
         )
-        fetched += len(candles)
-        result: StoreResult = store.put_candles(candles)
-        inserted += result.inserted
-        unchanged += result.unchanged
-        revised += result.revised
-
+        fetched_candles.extend(candles)
     if include_next_open and not next_open_seen:
         raise RuntimeError(f"{normalized}: next opening candle not yet available; retry")
 
-    final = store.load_candles(
-        normalized,
-        start=start,
-        end_exclusive=end_exclusive,
-    )
+    existing = store.load_candles(normalized, start=start, end_exclusive=end_exclusive)
+    merged = {c.open_time_utc: c for c in existing}
+    for candle in fetched_candles:
+        if start <= candle.open_time_utc < end_exclusive:
+            merged[candle.open_time_utc] = candle
+    final = [merged[key] for key in sorted(merged)]
     quality = audit_candles(
-        final,
-        expected_symbol=normalized,
-        expected_start=start,
+        final, expected_symbol=normalized, expected_start=start,
         expected_end_exclusive=end_exclusive,
     )
     quality.require_valid()
+    store.put_symbol_rules(
+        StoredSymbolRules(
+            symbol=rules.symbol,
+            status=rules.status,
+            quote_asset=rules.quote_asset,
+            spot_allowed=rules.spot_allowed,
+            order_types=rules.order_types,
+            tick_size=rules.tick_size,
+            step_size=rules.step_size,
+            min_qty=rules.min_qty,
+            min_notional=rules.min_notional,
+            checked_at_utc=datetime.now(UTC),
+        )
+    )
+    result = store.put_candles(fetched_candles)
     return DataSyncResult(
-        symbol=normalized,
-        fetched=fetched,
-        inserted=inserted,
-        unchanged=unchanged,
-        revised=revised,
-        quality=quality,
+        symbol=normalized, fetched=len(fetched_candles), inserted=result.inserted,
+        unchanged=result.unchanged, revised=result.revised, quality=quality,
     )

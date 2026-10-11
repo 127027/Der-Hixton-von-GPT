@@ -323,7 +323,12 @@ class RuntimeSupervisor:
                 message="Marktdaten und Binance-Filter werden synchronisiert",
             )
             try:
+                sync_started = time.monotonic()
                 points, quality, rules = await asyncio.to_thread(self._synchronous_sync)
+                self.state.log(
+                    level="INFO", component="runtime", event_code="MARKETS_VALIDATED",
+                    message=f"{len(points)} Maerkte vollstaendig geprueft in {time.monotonic() - sync_started:.1f} Sekunden.",
+                )
                 if self._stop.is_set():
                     return
                 previous = self.state.points()
@@ -420,6 +425,15 @@ class RuntimeSupervisor:
             if not store.integrity_check():
                 raise RuntimeError("SQLite integrity check failed")
 
+        previous = self.state.points()
+        incremental = (
+            self.state.snapshot().health == "HEALTHY"
+            and set(previous) == set(self.strategy.symbols)
+            and all(values and values[-1].strategy_version == self.strategy.version
+                and values[-1].candle.close_time_utc >= report_end - timedelta(hours=48)
+                for values in previous.values())
+        )
+
         def synchronize_market(symbol: str) -> None:
             # Independent public reads can overlap; each worker owns its SQLite
             # connection. Publish analysis only after the complete universe passes.
@@ -435,7 +449,10 @@ class RuntimeSupervisor:
                     client=market_client,
                     store=store,
                     symbol=symbol,
-                    start=max(warmup_start, self._available_starts[symbol]),
+                    start=max(
+                        warmup_start, self._available_starts[symbol],
+                        report_end - timedelta(hours=48) if incremental else warmup_start,
+                    ),
                     end_exclusive=report_end,
                     include_next_open=True,
                 )
@@ -698,7 +715,10 @@ class RuntimeSupervisor:
 
             snapshot = self.state.snapshot()
             if snapshot.last_stream_update_utc is None:
-                stale = (now - snapshot.started_at_utc).total_seconds() > 90
+                # A completed cold-start REST audit is a fresh feed proof while
+                # the first WebSocket message is still arriving.
+                reference = snapshot.last_sync_utc or snapshot.started_at_utc
+                stale = (now - reference).total_seconds() > 90
             else:
                 stale = (now - snapshot.last_stream_update_utc).total_seconds() > 90
             current_hour = now.replace(minute=0, second=0, microsecond=0)
