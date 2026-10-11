@@ -72,7 +72,7 @@ export function initializeLivePreparation(sharedSettingsBlocker: (mode?: "live" 
       element(id).classList.toggle("is-selected", active);
     }
     message("live-request", enabled ? "● Live ist an" : "Live an");
-    message("live-off", disabled ? "● Live ist aus" : "Live aus");
+    message("live-off", "Echtgeld-Einstiege stoppen");
   };
   const render = (status: LiveStatus): void => {
     if (last?.authenticated && !status.authenticated) {
@@ -335,7 +335,7 @@ export function initializeLivePreparation(sharedSettingsBlocker: (mode?: "live" 
   bind("live-off", "click", "live-result", async () => {
     requireAuth();
     await request("disable", {});
-    message("live-result", "Neue Echtgeld-Einstiege gestoppt, auch beim Einmaltest. Kein Sofortverkauf; Paper läuft weiter.");
+    message("live-result", "Neue Echtgeld-Einstiege gestoppt. Ein wartender 50-USDC-Test ist abgebrochen; bereits gekaufte Positionen bleiben bis zum regulären Ausstieg überwacht. Kein Sofortverkauf; Paper läuft weiter.");
   });
   bind("live-trial-start", "click", "live-trial-result", async () => {
     requireAuth();
