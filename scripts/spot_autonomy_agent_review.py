@@ -8,6 +8,7 @@ from __future__ import annotations
 import argparse
 import json
 import subprocess
+import sys
 from datetime import UTC,datetime
 from pathlib import Path
 
@@ -15,7 +16,7 @@ ROLES=tuple(f"A{i:02d}" for i in range(1,12))
 SOURCE=Path(__file__).resolve().parents[1]
 
 def run_tests(*names: str) -> str:
-    args=["python","-m","pytest","-q",*names]
+    args=[sys.executable,"-m","pytest","-q",*names]
     r=subprocess.run(args,cwd=SOURCE,text=True,capture_output=True,timeout=240)
     if r.returncode:
         raise RuntimeError("Tests failed: "+" ".join(names)+"\n"+(r.stdout+r.stderr)[-4000:])
