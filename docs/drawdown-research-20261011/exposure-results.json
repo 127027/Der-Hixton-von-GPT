@@ -1,0 +1,1679 @@
+{
+  "period": [
+    "2023-10-11T15:00:00+00:00",
+    "2026-10-11T15:00:00+00:00"
+  ],
+  "seed": "1092.05773944",
+  "data": {
+    "history_mode": "THREE_YEAR_SCHEMA_F_CONTINUITY",
+    "purpose": "THREE_YEAR_STRATEGY_CONTINUITY",
+    "runtime_quote": "USDC",
+    "market_proxy_quote": "USDT",
+    "proxy_scope": "HISTORICAL_MARKET_CANDLES_ONLY",
+    "paper_state_modified": false,
+    "orders_sent": false,
+    "historical_usdc_liquidity_claimed": false,
+    "provenance_by_symbol": {
+      "BTCUSDC": {
+        "target_market": "BTCUSDC",
+        "market_proxy": "BTCUSDT",
+        "proxy_quote": "USDT",
+        "target_quote": "USDC",
+        "first_open_utc": "2023-09-24T23:00:00+00:00",
+        "last_open_utc": "2026-10-11T14:00:00+00:00",
+        "candle_count": 26704,
+        "execution_rules_from": "BTCUSDC",
+        "native_usdc_candle_count": 26704,
+        "proxy_candle_count": 0,
+        "native_usdc_first_open_utc": "2023-09-24T23:00:00+00:00",
+        "proxy_end_exclusive_utc": null
+      },
+      "ETHUSDC": {
+        "target_market": "ETHUSDC",
+        "market_proxy": "ETHUSDT",
+        "proxy_quote": "USDT",
+        "target_quote": "USDC",
+        "first_open_utc": "2023-09-24T23:00:00+00:00",
+        "last_open_utc": "2026-10-11T14:00:00+00:00",
+        "candle_count": 26704,
+        "execution_rules_from": "ETHUSDC",
+        "native_usdc_candle_count": 26704,
+        "proxy_candle_count": 0,
+        "native_usdc_first_open_utc": "2023-09-24T23:00:00+00:00",
+        "proxy_end_exclusive_utc": null
+      },
+      "BNBUSDC": {
+        "target_market": "BNBUSDC",
+        "market_proxy": "BNBUSDT",
+        "proxy_quote": "USDT",
+        "target_quote": "USDC",
+        "first_open_utc": "2023-09-24T23:00:00+00:00",
+        "last_open_utc": "2026-10-11T14:00:00+00:00",
+        "candle_count": 26704,
+        "execution_rules_from": "BNBUSDC",
+        "native_usdc_candle_count": 26704,
+        "proxy_candle_count": 0,
+        "native_usdc_first_open_utc": "2023-09-24T23:00:00+00:00",
+        "proxy_end_exclusive_utc": null
+      },
+      "SOLUSDC": {
+        "target_market": "SOLUSDC",
+        "market_proxy": "SOLUSDT",
+        "proxy_quote": "USDT",
+        "target_quote": "USDC",
+        "first_open_utc": "2023-09-24T23:00:00+00:00",
+        "last_open_utc": "2026-10-11T14:00:00+00:00",
+        "candle_count": 26704,
+        "execution_rules_from": "SOLUSDC",
+        "native_usdc_candle_count": 24439,
+        "proxy_candle_count": 2265,
+        "native_usdc_first_open_utc": "2023-12-28T08:00:00+00:00",
+        "proxy_end_exclusive_utc": "2023-12-28T08:00:00+00:00"
+      },
+      "XRPUSDC": {
+        "target_market": "XRPUSDC",
+        "market_proxy": "XRPUSDT",
+        "proxy_quote": "USDT",
+        "target_quote": "USDC",
+        "first_open_utc": "2023-09-24T23:00:00+00:00",
+        "last_open_utc": "2026-10-11T14:00:00+00:00",
+        "candle_count": 26704,
+        "execution_rules_from": "XRPUSDC",
+        "native_usdc_candle_count": 24439,
+        "proxy_candle_count": 2265,
+        "native_usdc_first_open_utc": "2023-12-28T08:00:00+00:00",
+        "proxy_end_exclusive_utc": "2023-12-28T08:00:00+00:00"
+      },
+      "ADAUSDC": {
+        "target_market": "ADAUSDC",
+        "market_proxy": "ADAUSDT",
+        "proxy_quote": "USDT",
+        "target_quote": "USDC",
+        "first_open_utc": "2023-09-24T23:00:00+00:00",
+        "last_open_utc": "2026-10-11T14:00:00+00:00",
+        "candle_count": 26704,
+        "execution_rules_from": "ADAUSDC",
+        "native_usdc_candle_count": 24439,
+        "proxy_candle_count": 2265,
+        "native_usdc_first_open_utc": "2023-12-28T08:00:00+00:00",
+        "proxy_end_exclusive_utc": "2023-12-28T08:00:00+00:00"
+      },
+      "LINKUSDC": {
+        "target_market": "LINKUSDC",
+        "market_proxy": "LINKUSDT",
+        "proxy_quote": "USDT",
+        "target_quote": "USDC",
+        "first_open_utc": "2023-09-24T23:00:00+00:00",
+        "last_open_utc": "2026-10-11T14:00:00+00:00",
+        "candle_count": 26704,
+        "execution_rules_from": "LINKUSDC",
+        "native_usdc_candle_count": 23791,
+        "proxy_candle_count": 2913,
+        "native_usdc_first_open_utc": "2024-01-24T08:00:00+00:00",
+        "proxy_end_exclusive_utc": "2024-01-24T08:00:00+00:00"
+      },
+      "AVAXUSDC": {
+        "target_market": "AVAXUSDC",
+        "market_proxy": "AVAXUSDT",
+        "proxy_quote": "USDT",
+        "target_quote": "USDC",
+        "first_open_utc": "2023-09-24T23:00:00+00:00",
+        "last_open_utc": "2026-10-11T14:00:00+00:00",
+        "candle_count": 26704,
+        "execution_rules_from": "AVAXUSDC",
+        "native_usdc_candle_count": 24439,
+        "proxy_candle_count": 2265,
+        "native_usdc_first_open_utc": "2023-12-28T08:00:00+00:00",
+        "proxy_end_exclusive_utc": "2023-12-28T08:00:00+00:00"
+      },
+      "DOTUSDC": {
+        "target_market": "DOTUSDC",
+        "market_proxy": "DOTUSDT",
+        "proxy_quote": "USDT",
+        "target_quote": "USDC",
+        "first_open_utc": "2023-09-24T23:00:00+00:00",
+        "last_open_utc": "2026-10-11T14:00:00+00:00",
+        "candle_count": 26704,
+        "execution_rules_from": "DOTUSDC",
+        "native_usdc_candle_count": 24439,
+        "proxy_candle_count": 2265,
+        "native_usdc_first_open_utc": "2023-12-28T08:00:00+00:00",
+        "proxy_end_exclusive_utc": "2023-12-28T08:00:00+00:00"
+      },
+      "DOGEUSDC": {
+        "target_market": "DOGEUSDC",
+        "market_proxy": "DOGEUSDT",
+        "proxy_quote": "USDT",
+        "target_quote": "USDC",
+        "first_open_utc": "2023-09-24T23:00:00+00:00",
+        "last_open_utc": "2026-10-11T14:00:00+00:00",
+        "candle_count": 26704,
+        "execution_rules_from": "DOGEUSDC",
+        "native_usdc_candle_count": 22759,
+        "proxy_candle_count": 3945,
+        "native_usdc_first_open_utc": "2024-03-07T08:00:00+00:00",
+        "proxy_end_exclusive_utc": "2024-03-07T08:00:00+00:00"
+      },
+      "SUIUSDC": {
+        "target_market": "SUIUSDC",
+        "market_proxy": "SUIUSDT",
+        "proxy_quote": "USDT",
+        "target_quote": "USDC",
+        "first_open_utc": "2023-09-24T23:00:00+00:00",
+        "last_open_utc": "2026-10-11T14:00:00+00:00",
+        "candle_count": 26704,
+        "execution_rules_from": "SUIUSDC",
+        "native_usdc_candle_count": 23911,
+        "proxy_candle_count": 2793,
+        "native_usdc_first_open_utc": "2024-01-19T08:00:00+00:00",
+        "proxy_end_exclusive_utc": "2024-01-19T08:00:00+00:00"
+      },
+      "NEARUSDC": {
+        "target_market": "NEARUSDC",
+        "market_proxy": "NEARUSDT",
+        "proxy_quote": "USDT",
+        "target_quote": "USDC",
+        "first_open_utc": "2023-09-24T23:00:00+00:00",
+        "last_open_utc": "2026-10-11T14:00:00+00:00",
+        "candle_count": 26704,
+        "execution_rules_from": "NEARUSDC",
+        "native_usdc_candle_count": 22615,
+        "proxy_candle_count": 4089,
+        "native_usdc_first_open_utc": "2024-03-13T08:00:00+00:00",
+        "proxy_end_exclusive_utc": "2024-03-13T08:00:00+00:00"
+      },
+      "UNIUSDC": {
+        "target_market": "UNIUSDC",
+        "market_proxy": "UNIUSDT",
+        "proxy_quote": "USDT",
+        "target_quote": "USDC",
+        "first_open_utc": "2023-09-24T23:00:00+00:00",
+        "last_open_utc": "2026-10-11T14:00:00+00:00",
+        "candle_count": 26704,
+        "execution_rules_from": "UNIUSDC",
+        "native_usdc_candle_count": 22951,
+        "proxy_candle_count": 3753,
+        "native_usdc_first_open_utc": "2024-02-28T08:00:00+00:00",
+        "proxy_end_exclusive_utc": "2024-02-28T08:00:00+00:00"
+      },
+      "AAVEUSDC": {
+        "target_market": "AAVEUSDC",
+        "market_proxy": "AAVEUSDT",
+        "proxy_quote": "USDT",
+        "target_quote": "USDC",
+        "first_open_utc": "2023-09-24T23:00:00+00:00",
+        "last_open_utc": "2026-10-11T14:00:00+00:00",
+        "candle_count": 26704,
+        "execution_rules_from": "AAVEUSDC",
+        "native_usdc_candle_count": 18415,
+        "proxy_candle_count": 8289,
+        "native_usdc_first_open_utc": "2024-09-04T08:00:00+00:00",
+        "proxy_end_exclusive_utc": "2024-09-04T08:00:00+00:00"
+      },
+      "BCHUSDC": {
+        "target_market": "BCHUSDC",
+        "market_proxy": "BCHUSDT",
+        "proxy_quote": "USDT",
+        "target_quote": "USDC",
+        "first_open_utc": "2023-09-24T23:00:00+00:00",
+        "last_open_utc": "2026-10-11T14:00:00+00:00",
+        "candle_count": 26704,
+        "execution_rules_from": "BCHUSDC",
+        "native_usdc_candle_count": 22111,
+        "proxy_candle_count": 4593,
+        "native_usdc_first_open_utc": "2024-04-03T08:00:00+00:00",
+        "proxy_end_exclusive_utc": "2024-04-03T08:00:00+00:00"
+      }
+    },
+    "note": "Ein durchgehender Backtest der aktiven USDC-Strategie. Vorhandene USDC-Kerzen werden verwendet; historische USDT-Kerzen erg\u00e4nzen ausschlie\u00dflich fehlende \u00e4ltere Historie, sofern native_usdc_candle_count dokumentiert ist. Strategie, Konto, Risiko, Kosten und aktuelle USDC-Ausfuehrungsregeln bleiben unveraendert."
+  },
+  "kind": "PREVIOUSLY_EXAMINED_HISTORY_TEMPORAL_REJECTION_NOT_UNSEEN_OUT_OF_SAMPLE",
+  "selection_rule": "Risk-priority experiment after rejection of entry/exit/profit overlays. Both training folds profitable, retain >=20% baseline profit, DD <=80% baseline; choose lowest worst training DD. Final year rejection only: lower DD and return >= min(0,baseline return). Reduced market exposure explicitly changes prior all-capital preference.",
+  "train": {
+    "baseline": [
+      {
+        "end_usdc": "4799.4613871033790000000",
+        "return_pct": "339.4878781376991218038631439",
+        "dd_pct": "32.85480488448604004564261621",
+        "trades": 47,
+        "fees_usdc": "262.9033716789155000000",
+        "modeled_slippage_usdc": "788.7085641735000000",
+        "drawdown_interval": {
+          "peak": "5827.99664059737900000",
+          "trough": "3913.219715654709000000",
+          "peak_time": "2024-03-15T23:59:59.999000+00:00",
+          "trough_time": "2024-07-10T00:59:59.999000+00:00"
+        },
+        "coin_attribution": {
+          "BTCUSDC": {
+            "trades": 7,
+            "losses": 3,
+            "pnl": "1291.526335427992123123123122",
+            "worst_return_pct": "-5.345411896636176670624573329"
+          },
+          "SOLUSDC": {
+            "trades": 4,
+            "losses": 1,
+            "pnl": "2965.672091152298568568568568",
+            "worst_return_pct": "-11.09504593370031548414247345"
+          },
+          "NEARUSDC": {
+            "trades": 12,
+            "losses": 3,
+            "pnl": "249.532471220509109109109110",
+            "worst_return_pct": "-10.84195230196249133818448349"
+          },
+          "LINKUSDC": {
+            "trades": 2,
+            "losses": 2,
+            "pnl": "-535.616687985897697697697698",
+            "worst_return_pct": "-14.18975761526686846026011803"
+          },
+          "BNBUSDC": {
+            "trades": 1,
+            "losses": 0,
+            "pnl": "1345.196756821538038038038038",
+            "worst_return_pct": "0"
+          },
+          "BCHUSDC": {
+            "trades": 5,
+            "losses": 3,
+            "pnl": "-275.301400976112612612612613",
+            "worst_return_pct": "-13.73021244046841058622615361"
+          },
+          "DOTUSDC": {
+            "trades": 2,
+            "losses": 1,
+            "pnl": "24.332055036034704704704705",
+            "worst_return_pct": "-3.327530483373116474781948343"
+          },
+          "XRPUSDC": {
+            "trades": 9,
+            "losses": 6,
+            "pnl": "-424.604180155411621621621622",
+            "worst_return_pct": "-4.384194396886665452811454188"
+          },
+          "DOGEUSDC": {
+            "trades": 3,
+            "losses": 3,
+            "pnl": "-466.776713747290540540540541",
+            "worst_return_pct": "-6.950901581860231525988353874"
+          },
+          "ADAUSDC": {
+            "trades": 1,
+            "losses": 1,
+            "pnl": "-566.614523323863453453453454",
+            "worst_return_pct": "-10.58533858256839525735938419"
+          },
+          "AVAXUSDC": {
+            "trades": 1,
+            "losses": 0,
+            "pnl": "301.777080822842142142142142",
+            "worst_return_pct": "0"
+          }
+        },
+        "open_symbols": [
+          "SOLUSDC"
+        ]
+      },
+      {
+        "end_usdc": "2934.1360223912766000000",
+        "return_pct": "168.6795685268328562691441567",
+        "dd_pct": "54.65145565715854729344780408",
+        "trades": 55,
+        "fees_usdc": "151.0121194203209000000",
+        "modeled_slippage_usdc": "453.0576099741000000",
+        "drawdown_interval": {
+          "peak": "2766.05864970547840000",
+          "trough": "1254.3673333106904000000",
+          "peak_time": "2024-12-03T11:59:59.999000+00:00",
+          "trough_time": "2025-04-09T03:59:59.999000+00:00"
+        },
+        "coin_attribution": {
+          "BTCUSDC": {
+            "trades": 5,
+            "losses": 1,
+            "pnl": "644.9469198767819423423423429",
+            "worst_return_pct": "-9.561135734016089643599386958"
+          },
+          "NEARUSDC": {
+            "trades": 14,
+            "losses": 11,
+            "pnl": "-422.4146405898367367367367362",
+            "worst_return_pct": "-10.22796261983032084796874787"
+          },
+          "BCHUSDC": {
+            "trades": 14,
+            "losses": 3,
+            "pnl": "195.6868071519323323323323324",
+            "worst_return_pct": "-8.778401189205788768270425615"
+          },
+          "XRPUSDC": {
+            "trades": 8,
+            "losses": 6,
+            "pnl": "788.585480805167697697697698",
+            "worst_return_pct": "-8.052972015927243906213434257"
+          },
+          "LINKUSDC": {
+            "trades": 2,
+            "losses": 1,
+            "pnl": "573.354701526809409409409409",
+            "worst_return_pct": "-7.011140896254632329426813905"
+          },
+          "DOGEUSDC": {
+            "trades": 2,
+            "losses": 1,
+            "pnl": "-190.531680497830260260260260",
+            "worst_return_pct": "-17.67093219390392790297514765"
+          },
+          "SOLUSDC": {
+            "trades": 7,
+            "losses": 3,
+            "pnl": "205.2076346745435335335335341",
+            "worst_return_pct": "-4.668154150400863742019532334"
+          },
+          "ETHUSDC": {
+            "trades": 2,
+            "losses": 1,
+            "pnl": "-62.921649433029936936936937",
+            "worst_return_pct": "-9.814293703067331911692264457"
+          },
+          "DOTUSDC": {
+            "trades": 1,
+            "losses": 0,
+            "pnl": "111.279647048613393393393393",
+            "worst_return_pct": "0"
+          }
+        },
+        "open_symbols": []
+      }
+    ],
+    "exposure75": [
+      {
+        "end_usdc": "3752.2612989638384000000",
+        "return_pct": "243.5955044728654388776225749",
+        "dd_pct": "25.96977305313870219925739712",
+        "trades": 48,
+        "fees_usdc": "160.2325424389322000000",
+        "modeled_slippage_usdc": "480.7014972090000000",
+        "drawdown_interval": {
+          "peak": "4316.96986565965840000",
+          "trough": "3195.862588775458400000",
+          "peak_time": "2024-03-15T23:59:59.999000+00:00",
+          "trough_time": "2024-07-10T00:59:59.999000+00:00"
+        },
+        "coin_attribution": {
+          "BTCUSDC": {
+            "trades": 7,
+            "losses": 3,
+            "pnl": "892.2558020800442958958958964",
+            "worst_return_pct": "-5.345411896636176670624573311"
+          },
+          "SOLUSDC": {
+            "trades": 4,
+            "losses": 1,
+            "pnl": "2081.165326847214174174174174",
+            "worst_return_pct": "-11.09504593370031548414247339"
+          },
+          "BCHUSDC": {
+            "trades": 6,
+            "losses": 4,
+            "pnl": "-168.4413717468057057057057067",
+            "worst_return_pct": "-13.73021244046841058622615359"
+          },
+          "NEARUSDC": {
+            "trades": 12,
+            "losses": 3,
+            "pnl": "153.5312546387437437437437429",
+            "worst_return_pct": "-10.84195230196249133818448348"
+          },
+          "LINKUSDC": {
+            "trades": 2,
+            "losses": 2,
+            "pnl": "-333.558123027537157157157157",
+            "worst_return_pct": "-14.18975761526686846026011802"
+          },
+          "BNBUSDC": {
+            "trades": 1,
+            "losses": 0,
+            "pnl": "811.209907345611911911911912",
+            "worst_return_pct": "0"
+          },
+          "DOTUSDC": {
+            "trades": 2,
+            "losses": 1,
+            "pnl": "14.981039540733703703703704",
+            "worst_return_pct": "-3.327530483373116474781948326"
+          },
+          "XRPUSDC": {
+            "trades": 9,
+            "losses": 6,
+            "pnl": "-253.231060397283413413413413",
+            "worst_return_pct": "-4.384194396886665452811454175"
+          },
+          "DOGEUSDC": {
+            "trades": 3,
+            "losses": 3,
+            "pnl": "-275.621065387180270270270271",
+            "worst_return_pct": "-6.950901581860231525988353867"
+          },
+          "ADAUSDC": {
+            "trades": 1,
+            "losses": 1,
+            "pnl": "-322.859799560792172172172172",
+            "worst_return_pct": "-10.58533858256839525735938418"
+          },
+          "AVAXUSDC": {
+            "trades": 1,
+            "losses": 0,
+            "pnl": "177.981323950593193193193193",
+            "worst_return_pct": "0"
+          }
+        },
+        "open_symbols": [
+          "SOLUSDC"
+        ]
+      },
+      {
+        "end_usdc": "2338.3433397426081000000",
+        "return_pct": "114.1226837457967313135349139",
+        "dd_pct": "47.51596206328595735168867224",
+        "trades": 56,
+        "fees_usdc": "99.9356598387711000000",
+        "modeled_slippage_usdc": "299.8212444873000000",
+        "drawdown_interval": {
+          "peak": "2282.56249099008850000",
+          "trough": "1197.9809637004431000000",
+          "peak_time": "2024-12-03T11:59:59.999000+00:00",
+          "trough_time": "2025-04-09T03:59:59.999000+00:00"
+        },
+        "coin_attribution": {
+          "BTCUSDC": {
+            "trades": 6,
+            "losses": 2,
+            "pnl": "398.0702937966436565565565569",
+            "worst_return_pct": "-9.561135734016089643599386988"
+          },
+          "NEARUSDC": {
+            "trades": 14,
+            "losses": 11,
+            "pnl": "-264.9826241499501501501501499",
+            "worst_return_pct": "-10.22796261983032084796874787"
+          },
+          "BCHUSDC": {
+            "trades": 14,
+            "losses": 3,
+            "pnl": "126.7075499103604604604604605",
+            "worst_return_pct": "-8.778401189205788768270425591"
+          },
+          "XRPUSDC": {
+            "trades": 8,
+            "losses": 6,
+            "pnl": "585.579868527589559559559559",
+            "worst_return_pct": "-8.052972015927243906213434290"
+          },
+          "LINKUSDC": {
+            "trades": 2,
+            "losses": 1,
+            "pnl": "359.303114070791791791791791",
+            "worst_return_pct": "-7.011140896254632329426813923"
+          },
+          "DOGEUSDC": {
+            "trades": 2,
+            "losses": 1,
+            "pnl": "-128.839913936118978978978979",
+            "worst_return_pct": "-17.67093219390392790297514769"
+          },
+          "SOLUSDC": {
+            "trades": 7,
+            "losses": 3,
+            "pnl": "149.9312900652166766766766768",
+            "worst_return_pct": "-4.668154150400863742019532344"
+          },
+          "ETHUSDC": {
+            "trades": 2,
+            "losses": 1,
+            "pnl": "-46.1585827310825135135135140",
+            "worst_return_pct": "-9.814293703067331911692264470"
+          },
+          "DOTUSDC": {
+            "trades": 1,
+            "losses": 0,
+            "pnl": "66.193234143848288288288288",
+            "worst_return_pct": "0"
+          }
+        },
+        "open_symbols": []
+      }
+    ],
+    "exposure50": [
+      {
+        "end_usdc": "2768.1393628028851000000",
+        "return_pct": "153.4792129418329741863525142",
+        "dd_pct": "19.15248985392404524129543833",
+        "trades": 48,
+        "fees_usdc": "80.9705903598929000000",
+        "modeled_slippage_usdc": "242.9171375631000000",
+        "drawdown_interval": {
+          "peak": "2388.8803006473921000",
+          "trough": "1931.35024344351010000",
+          "peak_time": "2023-12-25T17:59:59.999000+00:00",
+          "trough_time": "2024-01-23T13:59:59.999000+00:00"
+        },
+        "coin_attribution": {
+          "BTCUSDC": {
+            "trades": 7,
+            "losses": 3,
+            "pnl": "523.5282746026972221221221221",
+            "worst_return_pct": "-5.345411896636176670624573311"
+          },
+          "SOLUSDC": {
+            "trades": 4,
+            "losses": 1,
+            "pnl": "1293.948582667058688688688688",
+            "worst_return_pct": "-11.09504593370031548414247343"
+          },
+          "BCHUSDC": {
+            "trades": 6,
+            "losses": 4,
+            "pnl": "-77.2682698090267267267267267",
+            "worst_return_pct": "-13.73021244046841058622615360"
+          },
+          "NEARUSDC": {
+            "trades": 12,
+            "losses": 3,
+            "pnl": "78.3563823112752752752752752",
+            "worst_return_pct": "-10.84195230196249133818448348"
+          },
+          "LINKUSDC": {
+            "trades": 2,
+            "losses": 2,
+            "pnl": "-177.9462808895443043043043039",
+            "worst_return_pct": "-14.18975761526686846026011799"
+          },
+          "BNBUSDC": {
+            "trades": 1,
+            "losses": 0,
+            "pnl": "414.884692299440140140140140",
+            "worst_return_pct": "0"
+          },
+          "DOTUSDC": {
+            "trades": 2,
+            "losses": 1,
+            "pnl": "7.7454601155524824824824824",
+            "worst_return_pct": "-3.327530483373116474781948347"
+          },
+          "XRPUSDC": {
+            "trades": 9,
+            "losses": 6,
+            "pnl": "-127.1480752604982882882882886",
+            "worst_return_pct": "-4.384194396886665452811454209"
+          },
+          "DOGEUSDC": {
+            "trades": 3,
+            "losses": 3,
+            "pnl": "-136.8818950359016016016016022",
+            "worst_return_pct": "-6.950901581860231525988353891"
+          },
+          "ADAUSDC": {
+            "trades": 1,
+            "losses": 1,
+            "pnl": "-154.346453773496616616616617",
+            "worst_return_pct": "-10.58533858256839525735938420"
+          },
+          "AVAXUSDC": {
+            "trades": 1,
+            "losses": 0,
+            "pnl": "87.969797597017517517517518",
+            "worst_return_pct": "0"
+          }
+        },
+        "open_symbols": [
+          "SOLUSDC"
+        ]
+      },
+      {
+        "end_usdc": "1894.8800608639573000000",
+        "return_pct": "73.51464052034824522318299518",
+        "dd_pct": "35.53648543422336763826792460",
+        "trades": 56,
+        "fees_usdc": "58.6884817310092000000",
+        "modeled_slippage_usdc": "176.0744357238000000",
+        "drawdown_interval": {
+          "peak": "1841.68136386773920000",
+          "trough": "1187.2125342520738000000",
+          "peak_time": "2024-12-03T11:59:59.999000+00:00",
+          "trough_time": "2025-04-09T03:59:59.999000+00:00"
+        },
+        "coin_attribution": {
+          "BTCUSDC": {
+            "trades": 6,
+            "losses": 2,
+            "pnl": "268.1975050630895722722722722",
+            "worst_return_pct": "-9.561135734016089643599386976"
+          },
+          "NEARUSDC": {
+            "trades": 14,
+            "losses": 11,
+            "pnl": "-150.4219818200986986986986986",
+            "worst_return_pct": "-10.22796261983032084796874786"
+          },
+          "BCHUSDC": {
+            "trades": 14,
+            "losses": 3,
+            "pnl": "74.5219688982605605605605603",
+            "worst_return_pct": "-8.778401189205788768270425601"
+          },
+          "XRPUSDC": {
+            "trades": 8,
+            "losses": 6,
+            "pnl": "383.6003628458016416416416417",
+            "worst_return_pct": "-8.052972015927243906213434256"
+          },
+          "LINKUSDC": {
+            "trades": 2,
+            "losses": 1,
+            "pnl": "202.9514066967331331331331331",
+            "worst_return_pct": "-7.011140896254632329426813898"
+          },
+          "DOGEUSDC": {
+            "trades": 2,
+            "losses": 1,
+            "pnl": "-80.0980226337673473473473474",
+            "worst_return_pct": "-17.67093219390392790297514767"
+          },
+          "SOLUSDC": {
+            "trades": 7,
+            "losses": 3,
+            "pnl": "101.0448019066511811811811813",
+            "worst_return_pct": "-4.668154150400863742019532339"
+          },
+          "ETHUSDC": {
+            "trades": 2,
+            "losses": 1,
+            "pnl": "-31.4943444169227927927927927",
+            "worst_return_pct": "-9.814293703067331911692264426"
+          },
+          "DOTUSDC": {
+            "trades": 1,
+            "losses": 0,
+            "pnl": "35.5105114827693093093093093",
+            "worst_return_pct": "0"
+          }
+        },
+        "open_symbols": []
+      }
+    ],
+    "exposure35": [
+      {
+        "end_usdc": "2215.5569206837507000000",
+        "return_pct": "102.8791006801411126676131823",
+        "dd_pct": "14.79835635836381087251732685",
+        "trades": 48,
+        "fees_usdc": "46.4450889970697000000",
+        "modeled_slippage_usdc": "139.3399968711000000",
+        "drawdown_interval": {
+          "peak": "1998.7581627120207000",
+          "trough": "1702.97480705201070000",
+          "peak_time": "2023-12-25T17:59:59.999000+00:00",
+          "trough_time": "2024-01-23T13:59:59.999000+00:00"
+        },
+        "coin_attribution": {
+          "BTCUSDC": {
+            "trades": 7,
+            "losses": 3,
+            "pnl": "331.7662514776351744744744744",
+            "worst_return_pct": "-5.345411896636176670624573311"
+          },
+          "SOLUSDC": {
+            "trades": 4,
+            "losses": 1,
+            "pnl": "867.6346807884250850850850852",
+            "worst_return_pct": "-11.09504593370031548414247342"
+          },
+          "BCHUSDC": {
+            "trades": 6,
+            "losses": 4,
+            "pnl": "-41.7771824576889889889889889",
+            "worst_return_pct": "-13.73021244046841058622615360"
+          },
+          "NEARUSDC": {
+            "trades": 12,
+            "losses": 3,
+            "pnl": "44.8534835727640640640640640",
+            "worst_return_pct": "-10.84195230196249133818448348"
+          },
+          "LINKUSDC": {
+            "trades": 2,
+            "losses": 2,
+            "pnl": "-105.9007479345309509509509510",
+            "worst_return_pct": "-14.18975761526686846026011802"
+          },
+          "BNBUSDC": {
+            "trades": 1,
+            "losses": 0,
+            "pnl": "239.2272776661442442442442442",
+            "worst_return_pct": "0"
+          },
+          "DOTUSDC": {
+            "trades": 2,
+            "losses": 1,
+            "pnl": "4.4752646091361861861861862",
+            "worst_return_pct": "-3.327530483373116474781948346"
+          },
+          "XRPUSDC": {
+            "trades": 9,
+            "losses": 6,
+            "pnl": "-72.2909419835750250250250250",
+            "worst_return_pct": "-4.384194396886665452811454197"
+          },
+          "DOGEUSDC": {
+            "trades": 3,
+            "losses": 3,
+            "pnl": "-77.2970893472930230230230231",
+            "worst_return_pct": "-6.950901581860231525988353871"
+          },
+          "ADAUSDC": {
+            "trades": 1,
+            "losses": 1,
+            "pnl": "-85.0804967309154154154154154",
+            "worst_return_pct": "-10.58533858256839525735938418"
+          },
+          "AVAXUSDC": {
+            "trades": 1,
+            "losses": 0,
+            "pnl": "49.4321673169822822822822823",
+            "worst_return_pct": "0"
+          }
+        },
+        "open_symbols": [
+          "SOLUSDC"
+        ]
+      },
+      {
+        "end_usdc": "1653.4363438797627000000",
+        "return_pct": "51.40557904270097867161542947",
+        "dd_pct": "26.19284783613607391943638654",
+        "trades": 56,
+        "fees_usdc": "38.0102548487258000000",
+        "modeled_slippage_usdc": "114.0369136512000000",
+        "drawdown_interval": {
+          "peak": "1597.87582843076120000",
+          "trough": "1179.3466440794932000000",
+          "peak_time": "2024-12-03T11:59:59.999000+00:00",
+          "trough_time": "2025-04-09T03:59:59.999000+00:00"
+        },
+        "coin_attribution": {
+          "BTCUSDC": {
+            "trades": 6,
+            "losses": 2,
+            "pnl": "188.5726797003048411411411411",
+            "worst_return_pct": "-9.561135734016089643599386983"
+          },
+          "NEARUSDC": {
+            "trades": 14,
+            "losses": 11,
+            "pnl": "-95.3699627809722722722722723",
+            "worst_return_pct": "-10.22796261983032084796874787"
+          },
+          "BCHUSDC": {
+            "trades": 14,
+            "losses": 3,
+            "pnl": "61.2549349823459459459459461",
+            "worst_return_pct": "-3.493561706623249517502538258"
+          },
+          "XRPUSDC": {
+            "trades": 8,
+            "losses": 6,
+            "pnl": "263.8125325976158158158158159",
+            "worst_return_pct": "-8.052972015927243906213434259"
+          },
+          "LINKUSDC": {
+            "trades": 2,
+            "losses": 1,
+            "pnl": "127.2921866599321321321321321",
+            "worst_return_pct": "-7.011140896254632329426813899"
+          },
+          "DOGEUSDC": {
+            "trades": 2,
+            "losses": 1,
+            "pnl": "-53.7145859634166566566566566",
+            "worst_return_pct": "-17.67093219390392790297514766"
+          },
+          "SOLUSDC": {
+            "trades": 7,
+            "losses": 3,
+            "pnl": "70.9024552866460360360360360",
+            "worst_return_pct": "-4.668154150400863742019532357"
+          },
+          "ETHUSDC": {
+            "trades": 2,
+            "losses": 1,
+            "pnl": "-22.3216888946711801801801801",
+            "worst_return_pct": "-9.814293703067331911692264423"
+          },
+          "DOTUSDC": {
+            "trades": 1,
+            "losses": 0,
+            "pnl": "21.6129127934351951951951952",
+            "worst_return_pct": "0"
+          }
+        },
+        "open_symbols": []
+      }
+    ]
+  },
+  "training_accepted": [
+    "exposure50",
+    "exposure35"
+  ],
+  "winner": "exposure35",
+  "validation": {
+    "baseline": {
+      "current": {
+        "end_usdc": "1128.28003268711130000000",
+        "return_pct": "3.316884441081462677061030765",
+        "dd_pct": "37.50387482450033335267347736",
+        "trades": 56,
+        "fees_usdc": "67.08886040881090000000",
+        "modeled_slippage_usdc": "33.54417383350000000",
+        "drawdown_interval": {
+          "peak": "1146.33634407000000",
+          "trough": "716.41579652223375000000",
+          "peak_time": "2025-10-13T08:59:59.999000+00:00",
+          "trough_time": "2026-02-06T07:59:59.999000+00:00"
+        },
+        "coin_attribution": {
+          "BNBUSDC": {
+            "trades": 1,
+            "losses": 1,
+            "pnl": "-130.191605679556336336336336",
+            "worst_return_pct": "-11.93605154462860374903278807"
+          },
+          "LINKUSDC": {
+            "trades": 1,
+            "losses": 1,
+            "pnl": "-80.0150050263813813813813814",
+            "worst_return_pct": "-8.322747041554330131071803156"
+          },
+          "XRPUSDC": {
+            "trades": 9,
+            "losses": 7,
+            "pnl": "-83.4516319759644444444444445",
+            "worst_return_pct": "-5.651300079364232474510075919"
+          },
+          "NEARUSDC": {
+            "trades": 13,
+            "losses": 4,
+            "pnl": "272.4595778720009009009009010",
+            "worst_return_pct": "-10.57028927207250646033767035"
+          },
+          "ADAUSDC": {
+            "trades": 1,
+            "losses": 1,
+            "pnl": "-48.6763216220338288288288288",
+            "worst_return_pct": "-9.869642290814122513285038555"
+          },
+          "DOGEUSDC": {
+            "trades": 3,
+            "losses": 3,
+            "pnl": "-175.6759961118980480480480481",
+            "worst_return_pct": "-9.811697729933619762556884105"
+          },
+          "BCHUSDC": {
+            "trades": 13,
+            "losses": 7,
+            "pnl": "9.4792239667133633633633635",
+            "worst_return_pct": "-8.058136341280056138247870157"
+          },
+          "BTCUSDC": {
+            "trades": 5,
+            "losses": 4,
+            "pnl": "13.5935946428763450450450451",
+            "worst_return_pct": "-5.512586283929246930958048451"
+          },
+          "SOLUSDC": {
+            "trades": 6,
+            "losses": 4,
+            "pnl": "-31.1325626389590540540540540",
+            "worst_return_pct": "-7.599549398076823657136948765"
+          },
+          "DOTUSDC": {
+            "trades": 3,
+            "losses": 2,
+            "pnl": "-56.0022468535314114114114115",
+            "worst_return_pct": "-10.56292152526677837551812330"
+          },
+          "AVAXUSDC": {
+            "trades": 1,
+            "losses": 0,
+            "pnl": "367.4282093014878378378378378",
+            "worst_return_pct": "0"
+          }
+        },
+        "open_symbols": [
+          "ADAUSDC"
+        ]
+      },
+      "stress": {
+        "end_usdc": "871.1161543853014000000",
+        "return_pct": "-20.23167613536588151081177598",
+        "dd_pct": "51.18185008277283201261102175",
+        "trades": 56,
+        "fees_usdc": "57.5534352559780000000",
+        "modeled_slippage_usdc": "172.6522853808000000",
+        "drawdown_interval": {
+          "peak": "1143.4871345900000",
+          "trough": "558.2292636483514000000",
+          "peak_time": "2025-10-13T08:59:59.999000+00:00",
+          "trough_time": "2026-08-18T02:59:59.999000+00:00"
+        },
+        "coin_attribution": {
+          "BNBUSDC": {
+            "trades": 1,
+            "losses": 1,
+            "pnl": "-134.995947201297717717717718",
+            "worst_return_pct": "-12.37527388987586045939677975"
+          },
+          "LINKUSDC": {
+            "trades": 1,
+            "losses": 1,
+            "pnl": "-83.9810496999761761761761761",
+            "worst_return_pct": "-8.779990882609681684560053737"
+          },
+          "XRPUSDC": {
+            "trades": 9,
+            "losses": 7,
+            "pnl": "-104.7156700981430530530530528",
+            "worst_return_pct": "-6.121867865354115589175533897"
+          },
+          "NEARUSDC": {
+            "trades": 13,
+            "losses": 6,
+            "pnl": "160.3827988821122122122122123",
+            "worst_return_pct": "-11.01632340941998126224342049"
+          },
+          "ADAUSDC": {
+            "trades": 1,
+            "losses": 1,
+            "pnl": "-47.0129315374623423423423423",
+            "worst_return_pct": "-10.31917093204992425007923306"
+          },
+          "DOGEUSDC": {
+            "trades": 3,
+            "losses": 3,
+            "pnl": "-154.8174114307630230230230230",
+            "worst_return_pct": "-10.26151537190548495855190612"
+          },
+          "BCHUSDC": {
+            "trades": 13,
+            "losses": 7,
+            "pnl": "-20.7432588272572572572572575",
+            "worst_return_pct": "-8.516699938426186251468748447"
+          },
+          "BTCUSDC": {
+            "trades": 5,
+            "losses": 4,
+            "pnl": "-0.7318443303344858858858859",
+            "worst_return_pct": "-5.983845910333030842201017667"
+          },
+          "SOLUSDC": {
+            "trades": 6,
+            "losses": 5,
+            "pnl": "-47.5212300568209509509509509",
+            "worst_return_pct": "-8.060400215319558565682263560"
+          },
+          "DOTUSDC": {
+            "trades": 3,
+            "losses": 2,
+            "pnl": "-49.4591998487614614614614615",
+            "worst_return_pct": "-11.00899240953609758958418862"
+          },
+          "AVAXUSDC": {
+            "trades": 1,
+            "losses": 0,
+            "pnl": "280.8536342594400900900900901",
+            "worst_return_pct": "0"
+          }
+        },
+        "open_symbols": [
+          "ADAUSDC"
+        ]
+      }
+    },
+    "exposure35": {
+      "current": {
+        "end_usdc": "1141.33244381865110000000",
+        "return_pct": "4.512096988930168027380030378",
+        "dd_pct": "14.56984535500700130010745468",
+        "trades": 56,
+        "fees_usdc": "27.93937072397490000000",
+        "modeled_slippage_usdc": "13.96960327710000000",
+        "drawdown_interval": {
+          "peak": "1111.05849351000000",
+          "trough": "949.17898920192250000000",
+          "peak_time": "2025-10-13T08:59:59.999000+00:00",
+          "trough_time": "2026-02-06T07:59:59.999000+00:00"
+        },
+        "coin_attribution": {
+          "BNBUSDC": {
+            "trades": 1,
+            "losses": 1,
+            "pnl": "-45.4736230364000600600600601",
+            "worst_return_pct": "-11.93605154462860374903278811"
+          },
+          "LINKUSDC": {
+            "trades": 1,
+            "losses": 1,
+            "pnl": "-30.4678494867444444444444444",
+            "worst_return_pct": "-8.322747041554330131071803143"
+          },
+          "XRPUSDC": {
+            "trades": 9,
+            "losses": 7,
+            "pnl": "-30.4658173575811711711711712",
+            "worst_return_pct": "-5.651300079364232474510075932"
+          },
+          "NEARUSDC": {
+            "trades": 13,
+            "losses": 4,
+            "pnl": "110.7665582537939939939939941",
+            "worst_return_pct": "-10.57028927207250646033767037"
+          },
+          "ADAUSDC": {
+            "trades": 1,
+            "losses": 1,
+            "pnl": "-18.3114869645410810810810811",
+            "worst_return_pct": "-9.869642290814122513285038569"
+          },
+          "DOGEUSDC": {
+            "trades": 3,
+            "losses": 3,
+            "pnl": "-69.6300823775423723723723723",
+            "worst_return_pct": "-9.811697729933619762556884095"
+          },
+          "BCHUSDC": {
+            "trades": 13,
+            "losses": 8,
+            "pnl": "0.8652293298075075075075074",
+            "worst_return_pct": "-8.058136341280056138247870173"
+          },
+          "BTCUSDC": {
+            "trades": 5,
+            "losses": 4,
+            "pnl": "7.6361753342143132132132133",
+            "worst_return_pct": "-5.512586283929246930958048454"
+          },
+          "SOLUSDC": {
+            "trades": 6,
+            "losses": 4,
+            "pnl": "-11.0586071582661411411411412",
+            "worst_return_pct": "-7.599549398076823657136948744"
+          },
+          "DOTUSDC": {
+            "trades": 3,
+            "losses": 2,
+            "pnl": "-20.1394749429359159159159160",
+            "worst_return_pct": "-10.56292152526677837551812330"
+          },
+          "AVAXUSDC": {
+            "trades": 1,
+            "losses": 0,
+            "pnl": "162.7347045387155405405405406",
+            "worst_return_pct": "0"
+          }
+        },
+        "open_symbols": [
+          "ADAUSDC"
+        ]
+      },
+      "stress": {
+        "end_usdc": "1064.1019985060060000000",
+        "return_pct": "-2.559914180758383655817223407",
+        "dd_pct": "19.58640497991828781780851118",
+        "trades": 56,
+        "fees_usdc": "26.9380686635167000000",
+        "modeled_slippage_usdc": "80.8114036287000000",
+        "drawdown_interval": {
+          "peak": "1110.0426297200000",
+          "trough": "892.6251848133060000000",
+          "peak_time": "2025-10-13T08:59:59.999000+00:00",
+          "trough_time": "2026-08-18T02:59:59.999000+00:00"
+        },
+        "coin_attribution": {
+          "BNBUSDC": {
+            "trades": 1,
+            "losses": 1,
+            "pnl": "-47.1029024407405705705705706",
+            "worst_return_pct": "-12.37527388987586045939677973"
+          },
+          "LINKUSDC": {
+            "trades": 1,
+            "losses": 1,
+            "pnl": "-32.0905869818144144144144144",
+            "worst_return_pct": "-8.779990882609681684560053741"
+          },
+          "XRPUSDC": {
+            "trades": 9,
+            "losses": 7,
+            "pnl": "-43.2568878980580680680680681",
+            "worst_return_pct": "-6.121867865354115589175533889"
+          },
+          "NEARUSDC": {
+            "trades": 13,
+            "losses": 6,
+            "pnl": "95.4830296544267267267267268",
+            "worst_return_pct": "-11.01632340941998126224342049"
+          },
+          "ADAUSDC": {
+            "trades": 1,
+            "losses": 1,
+            "pnl": "-19.0256206120005605605605606",
+            "worst_return_pct": "-10.31917093204992425007923309"
+          },
+          "DOGEUSDC": {
+            "trades": 3,
+            "losses": 3,
+            "pnl": "-70.5897753534818018018018018",
+            "worst_return_pct": "-10.26151537190548495855190612"
+          },
+          "BCHUSDC": {
+            "trades": 13,
+            "losses": 8,
+            "pnl": "-12.4885011250670670670670671",
+            "worst_return_pct": "-8.516699938426186251468748456"
+          },
+          "BTCUSDC": {
+            "trades": 5,
+            "losses": 4,
+            "pnl": "1.5128844451800440440440440",
+            "worst_return_pct": "-5.983845910333030842201017672"
+          },
+          "SOLUSDC": {
+            "trades": 6,
+            "losses": 5,
+            "pnl": "-19.1036708015863163163163164",
+            "worst_return_pct": "-8.060400215319558565682263537"
+          },
+          "DOTUSDC": {
+            "trades": 3,
+            "losses": 2,
+            "pnl": "-23.0201244222309509509509510",
+            "worst_return_pct": "-11.00899240953609758958418861"
+          },
+          "AVAXUSDC": {
+            "trades": 1,
+            "losses": 0,
+            "pnl": "149.8772522358459459459459459",
+            "worst_return_pct": "0"
+          }
+        },
+        "open_symbols": [
+          "ADAUSDC"
+        ]
+      }
+    }
+  },
+  "full": {
+    "baseline": {
+      "current": {
+        "end_usdc": "28452.83029393003165000000",
+        "return_pct": "2505.432777622221257704234489",
+        "dd_pct": "47.62821518106107766365810424",
+        "trades": 153,
+        "fees_usdc": "3276.86973394498360000000",
+        "modeled_slippage_usdc": "1638.43541324690000000",
+        "drawdown_interval": {
+          "peak": "34557.92928284887765000000",
+          "trough": "18098.60436189469690000000",
+          "peak_time": "2025-08-22T16:59:59.999000+00:00",
+          "trough_time": "2026-02-06T07:59:59.999000+00:00"
+        },
+        "coin_attribution": {
+          "BTCUSDC": {
+            "trades": 17,
+            "losses": 8,
+            "pnl": "3418.596554271221098948948951",
+            "worst_return_pct": "-9.107807411888367595113095451"
+          },
+          "SOLUSDC": {
+            "trades": 17,
+            "losses": 8,
+            "pnl": "3825.053516073555615615615614",
+            "worst_return_pct": "-10.64940639606542337896207702"
+          },
+          "NEARUSDC": {
+            "trades": 34,
+            "losses": 15,
+            "pnl": "3683.015130709639339339339339",
+            "worst_return_pct": "-10.57028927207250646033767036"
+          },
+          "LINKUSDC": {
+            "trades": 5,
+            "losses": 4,
+            "pnl": "3279.835186822491591591591589",
+            "worst_return_pct": "-13.75963044021481007851949445"
+          },
+          "BNBUSDC": {
+            "trades": 2,
+            "losses": 1,
+            "pnl": "-2034.857140681041126126126127",
+            "worst_return_pct": "-11.93605154462860374903278810"
+          },
+          "BCHUSDC": {
+            "trades": 30,
+            "losses": 11,
+            "pnl": "3074.663820384795045045045051",
+            "worst_return_pct": "-13.29778177736700447176195218"
+          },
+          "DOTUSDC": {
+            "trades": 6,
+            "losses": 3,
+            "pnl": "-161.209625061707042042042042",
+            "worst_return_pct": "-10.56292152526677837551812328"
+          },
+          "XRPUSDC": {
+            "trades": 25,
+            "losses": 17,
+            "pnl": "980.383344746554144144144149",
+            "worst_return_pct": "-7.592083964546350821693575020"
+          },
+          "DOGEUSDC": {
+            "trades": 8,
+            "losses": 6,
+            "pnl": "-6457.660785065396651651651654",
+            "worst_return_pct": "-17.25825454172652577105703024"
+          },
+          "ETHUSDC": {
+            "trades": 4,
+            "losses": 3,
+            "pnl": "-347.712664819624854354354355",
+            "worst_return_pct": "-9.362234345098710063697968019"
+          },
+          "ADAUSDC": {
+            "trades": 3,
+            "losses": 2,
+            "pnl": "9016.89567352837984984984986",
+            "worst_return_pct": "-10.13714411702568213677503936"
+          },
+          "AVAXUSDC": {
+            "trades": 2,
+            "losses": 0,
+            "pnl": "9675.864539926764189189189193",
+            "worst_return_pct": "0"
+          }
+        },
+        "open_symbols": [
+          "ADAUSDC"
+        ]
+      },
+      "stress": {
+        "end_usdc": "17207.4875500020670000000",
+        "return_pct": "1475.693933438533481503989661",
+        "dd_pct": "60.75992597185538846828388933",
+        "trades": 155,
+        "fees_usdc": "2504.5901179548593000000",
+        "modeled_slippage_usdc": "7513.8394212933000000",
+        "drawdown_interval": {
+          "peak": "28148.9509541966055000000",
+          "trough": "11045.6691925728670000000",
+          "peak_time": "2025-08-22T16:59:59.999000+00:00",
+          "trough_time": "2026-08-18T02:59:59.999000+00:00"
+        },
+        "coin_attribution": {
+          "BTCUSDC": {
+            "trades": 16,
+            "losses": 8,
+            "pnl": "2329.877459424245770770770775",
+            "worst_return_pct": "-9.561135734016089643599386943"
+          },
+          "SOLUSDC": {
+            "trades": 18,
+            "losses": 9,
+            "pnl": "4039.617325001492092092092095",
+            "worst_return_pct": "-11.09504593370031548414247345"
+          },
+          "NEARUSDC": {
+            "trades": 36,
+            "losses": 18,
+            "pnl": "274.430692362889589589589592",
+            "worst_return_pct": "-11.01632340941998126224342049"
+          },
+          "LINKUSDC": {
+            "trades": 5,
+            "losses": 4,
+            "pnl": "2253.993949148155355355355352",
+            "worst_return_pct": "-14.18975761526686846026011803"
+          },
+          "BNBUSDC": {
+            "trades": 2,
+            "losses": 1,
+            "pnl": "-1464.790825210270570570570572",
+            "worst_return_pct": "-12.37527388987586045939677973"
+          },
+          "BCHUSDC": {
+            "trades": 31,
+            "losses": 13,
+            "pnl": "1422.371551606131631631631625",
+            "worst_return_pct": "-13.73021244046841058622615361"
+          },
+          "DOTUSDC": {
+            "trades": 6,
+            "losses": 3,
+            "pnl": "-100.060651975805825825825815",
+            "worst_return_pct": "-11.00899240953609758958418858"
+          },
+          "XRPUSDC": {
+            "trades": 25,
+            "losses": 19,
+            "pnl": "-955.367724564800490490490512",
+            "worst_return_pct": "-8.052972015927243906213434269"
+          },
+          "DOGEUSDC": {
+            "trades": 8,
+            "losses": 7,
+            "pnl": "-5020.683096088082172172172171",
+            "worst_return_pct": "-17.67093219390392790297514769"
+          },
+          "ADAUSDC": {
+            "trades": 3,
+            "losses": 2,
+            "pnl": "8425.474092424323923923923924",
+            "worst_return_pct": "-10.58533858256839525735938419"
+          },
+          "AVAXUSDC": {
+            "trades": 2,
+            "losses": 0,
+            "pnl": "5894.408439707023523523523522",
+            "worst_return_pct": "0"
+          },
+          "ETHUSDC": {
+            "trades": 3,
+            "losses": 2,
+            "pnl": "-583.041679130824116116116107",
+            "worst_return_pct": "-9.814293703067331911692264409"
+          }
+        },
+        "open_symbols": [
+          "ADAUSDC"
+        ]
+      }
+    },
+    "exposure35": {
+      "current": {
+        "end_usdc": "5124.21914861967660000000",
+        "return_pct": "369.2260274852630369084214363",
+        "dd_pct": "23.57218686786714312820090149",
+        "trades": 154,
+        "fees_usdc": "274.92971828555665000000",
+        "modeled_slippage_usdc": "137.46548810985000000",
+        "drawdown_interval": {
+          "peak": "4517.77713611064810000000",
+          "trough": "3452.83826731286960000000",
+          "peak_time": "2024-12-03T03:59:59.999000+00:00",
+          "trough_time": "2025-04-09T03:59:59.999000+00:00"
+        },
+        "coin_attribution": {
+          "BTCUSDC": {
+            "trades": 17,
+            "losses": 8,
+            "pnl": "538.5953020131339318318318319",
+            "worst_return_pct": "-9.107807411888367595113095421"
+          },
+          "SOLUSDC": {
+            "trades": 17,
+            "losses": 8,
+            "pnl": "970.8282471085807207207207214",
+            "worst_return_pct": "-10.64940639606542337896207703"
+          },
+          "BCHUSDC": {
+            "trades": 31,
+            "losses": 13,
+            "pnl": "193.4738791683758258258258259",
+            "worst_return_pct": "-13.29778177736700447176195216"
+          },
+          "NEARUSDC": {
+            "trades": 34,
+            "losses": 15,
+            "pnl": "291.6417032970576576576576577",
+            "worst_return_pct": "-10.86472992091043394259021524"
+          },
+          "LINKUSDC": {
+            "trades": 5,
+            "losses": 4,
+            "pnl": "161.4731225524655855855855860",
+            "worst_return_pct": "-13.75963044021481007851949444"
+          },
+          "BNBUSDC": {
+            "trades": 2,
+            "losses": 1,
+            "pnl": "38.4054782079487387387387387",
+            "worst_return_pct": "-11.93605154462860374903278810"
+          },
+          "DOTUSDC": {
+            "trades": 6,
+            "losses": 3,
+            "pnl": "-8.4214910691732432432432439",
+            "worst_return_pct": "-10.56292152526677837551812331"
+          },
+          "XRPUSDC": {
+            "trades": 25,
+            "losses": 17,
+            "pnl": "295.3213445117464414414414431",
+            "worst_return_pct": "-7.592083964546350821693574982"
+          },
+          "DOGEUSDC": {
+            "trades": 8,
+            "losses": 6,
+            "pnl": "-528.2745408643579429429429430",
+            "worst_return_pct": "-17.25825454172652577105703022"
+          },
+          "ETHUSDC": {
+            "trades": 4,
+            "losses": 3,
+            "pnl": "-62.9068335258714309309309310",
+            "worst_return_pct": "-9.362234345098710063697968022"
+          },
+          "ADAUSDC": {
+            "trades": 3,
+            "losses": 2,
+            "pnl": "1391.554503453249969969969970",
+            "worst_return_pct": "-10.13714411702568213677503936"
+          },
+          "AVAXUSDC": {
+            "trades": 2,
+            "losses": 0,
+            "pnl": "787.3701174714135885885885882",
+            "worst_return_pct": "0"
+          }
+        },
+        "open_symbols": [
+          "ADAUSDC"
+        ]
+      },
+      "stress": {
+        "end_usdc": "4378.9802792938300000000",
+        "return_pct": "300.9843180580673491792821463",
+        "dd_pct": "26.57351287804792880848990171",
+        "trades": 156,
+        "fees_usdc": "255.0358707669384000000",
+        "modeled_slippage_usdc": "765.1314177984000000",
+        "drawdown_interval": {
+          "peak": "5010.6779313583455000000",
+          "trough": "3679.1647859913300000000",
+          "peak_time": "2025-08-22T16:59:59.999000+00:00",
+          "trough_time": "2026-08-18T02:59:59.999000+00:00"
+        },
+        "coin_attribution": {
+          "BTCUSDC": {
+            "trades": 16,
+            "losses": 8,
+            "pnl": "440.2507298954571691691691692",
+            "worst_return_pct": "-9.561135734016089643599386954"
+          },
+          "SOLUSDC": {
+            "trades": 18,
+            "losses": 9,
+            "pnl": "1054.171565997104604604604603",
+            "worst_return_pct": "-11.09504593370031548414247342"
+          },
+          "BCHUSDC": {
+            "trades": 32,
+            "losses": 15,
+            "pnl": "86.0444693848350350350350348",
+            "worst_return_pct": "-13.73021244046841058622615360"
+          },
+          "NEARUSDC": {
+            "trades": 36,
+            "losses": 18,
+            "pnl": "182.0994084012887887887887884",
+            "worst_return_pct": "-11.30929552414619721833282127"
+          },
+          "LINKUSDC": {
+            "trades": 5,
+            "losses": 4,
+            "pnl": "115.1776128253239039039039030",
+            "worst_return_pct": "-14.18975761526686846026011802"
+          },
+          "BNBUSDC": {
+            "trades": 2,
+            "losses": 1,
+            "pnl": "40.6181323232278178178178182",
+            "worst_return_pct": "-12.37527388987586045939677970"
+          },
+          "DOTUSDC": {
+            "trades": 6,
+            "losses": 3,
+            "pnl": "-30.4642403908801301301301308",
+            "worst_return_pct": "-11.00899240953609758958418863"
+          },
+          "XRPUSDC": {
+            "trades": 25,
+            "losses": 19,
+            "pnl": "22.0784427444307307307307330",
+            "worst_return_pct": "-8.052972015927243906213434296"
+          },
+          "DOGEUSDC": {
+            "trades": 8,
+            "losses": 7,
+            "pnl": "-517.5449605242914814814814812",
+            "worst_return_pct": "-17.67093219390392790297514764"
+          },
+          "ADAUSDC": {
+            "trades": 3,
+            "losses": 2,
+            "pnl": "1339.128681711148868868868869",
+            "worst_return_pct": "-10.58533858256839525735938418"
+          },
+          "AVAXUSDC": {
+            "trades": 2,
+            "losses": 0,
+            "pnl": "667.2405112397321321321321323",
+            "worst_return_pct": "0"
+          },
+          "ETHUSDC": {
+            "trades": 3,
+            "losses": 2,
+            "pnl": "-76.9696246322241161161161165",
+            "worst_return_pct": "-9.814293703067331911692264464"
+          }
+        },
+        "open_symbols": [
+          "ADAUSDC"
+        ]
+      }
+    },
+    "baseline_fixed": {
+      "end_usdc": "7182.22765970636580000000",
+      "return_pct": "557.6783809425099384651635412",
+      "dd_pct": "17.80608400026344525934063726",
+      "trades": 154,
+      "fees_usdc": "236.58574796695130000000",
+      "modeled_slippage_usdc": "118.29418288290000000",
+      "drawdown_interval": {
+        "peak": "2315.46452057452480000",
+        "trough": "1903.17096304472765000",
+        "peak_time": "2023-11-16T06:59:59.999000+00:00",
+        "trough_time": "2023-11-21T23:59:59.999000+00:00"
+      },
+      "coin_attribution": {
+        "BTCUSDC": {
+          "trades": 17,
+          "losses": 8,
+          "pnl": "868.0843669261059666666666672",
+          "worst_return_pct": "-9.107807411888367595113095442"
+        },
+        "SOLUSDC": {
+          "trades": 17,
+          "losses": 8,
+          "pnl": "2302.445989185029609609609608",
+          "worst_return_pct": "-10.64940639606542337896207704"
+        },
+        "BCHUSDC": {
+          "trades": 31,
+          "losses": 13,
+          "pnl": "110.5121678930181681681681680",
+          "worst_return_pct": "-13.29778177736700447176195219"
+        },
+        "NEARUSDC": {
+          "trades": 34,
+          "losses": 15,
+          "pnl": "227.9591939841728228228228227",
+          "worst_return_pct": "-10.86472992091043394259021526"
+        },
+        "LINKUSDC": {
+          "trades": 5,
+          "losses": 4,
+          "pnl": "5.0834610843528228228228234",
+          "worst_return_pct": "-13.75963044021481007851949442"
+        },
+        "BNBUSDC": {
+          "trades": 2,
+          "losses": 1,
+          "pnl": "244.323847289450120120120121",
+          "worst_return_pct": "-11.93605154462860374903278807"
+        },
+        "DOTUSDC": {
+          "trades": 6,
+          "losses": 3,
+          "pnl": "2.0986307287204204204204205",
+          "worst_return_pct": "-10.56292152526677837551812327"
+        },
+        "XRPUSDC": {
+          "trades": 25,
+          "losses": 17,
+          "pnl": "364.3459604553066816816816825",
+          "worst_return_pct": "-7.592083964546350821693574996"
+        },
+        "DOGEUSDC": {
+          "trades": 8,
+          "losses": 6,
+          "pnl": "-428.7942282033563963963963966",
+          "worst_return_pct": "-17.25825454172652577105703020"
+        },
+        "ETHUSDC": {
+          "trades": 4,
+          "losses": 3,
+          "pnl": "-69.5511222265902717717717722",
+          "worst_return_pct": "-9.362234345098710063697968059"
+        },
+        "ADAUSDC": {
+          "trades": 3,
+          "losses": 2,
+          "pnl": "1890.924012123809909909909909",
+          "worst_return_pct": "-10.13714411702568213677503940"
+        },
+        "AVAXUSDC": {
+          "trades": 2,
+          "losses": 0,
+          "pnl": "593.260448948340840840840841",
+          "worst_return_pct": "0"
+        }
+      },
+      "open_symbols": [
+        "ADAUSDC"
+      ]
+    }
+  },
+  "validation_passed": true
+}

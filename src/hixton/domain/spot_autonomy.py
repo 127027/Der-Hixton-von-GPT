@@ -122,3 +122,20 @@ def research_slot_allocations(
             allocation[symbol] += 1
             spare -= 1
     return allocation
+
+
+def reinvestment_capital(*, equity: Decimal, starting_cash: Decimal,
+                         profit_fraction: Decimal = Decimal("1")) -> Decimal:
+    """Causal research budget: keep a fraction of profits outside new exposure.
+
+    Losses always reduce the available budget. Cash reserves are still marked
+    as portfolio equity; this changes risk, never the drawdown denominator.
+    """
+    equity = _nonnegative(equity, "equity")
+    starting_cash = _nonnegative(starting_cash, "starting_cash")
+    profit_fraction = _nonnegative(profit_fraction, "profit_fraction")
+    if starting_cash <= 0 or profit_fraction > 1:
+        raise ValueError("positive seed and a profit fraction in 0..1 required")
+    if equity <= starting_cash:
+        return equity
+    return starting_cash + (equity - starting_cash) * profit_fraction

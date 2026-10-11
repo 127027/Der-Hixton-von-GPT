@@ -36,7 +36,7 @@ from hixton.domain.models import (
 from hixton.domain.risk import PortfolioRiskState, evaluate_portfolio_risk
 from hixton.domain.spot_autonomy import (
     marked_portfolio_equity, quality_filler_block_reason,
-    research_slot_allocations, size_spot_entry,
+    research_slot_allocations, size_spot_entry, reinvestment_capital,
 )
 from hixton.domain.satellite_layer import (
     satellite_handoff_symbols,
@@ -108,10 +108,23 @@ def run_shared_portfolio_backtest(
     strategy: StrategyDefinition | None = None,
     reinvest_profits: bool = False,
     autonomous_spot: bool = False,
+    profit_reinvestment_fraction: Decimal = Decimal("1"),
+    capital_exposure_fraction: Decimal = Decimal("1"),
 ) -> PortfolioBacktestResult:
     """Replay ten aligned markets against one non-compounding shared ledger."""
 
+    reinvestment_capital(equity=starting_cash, starting_cash=starting_cash,
+                         profit_fraction=profit_reinvestment_fraction)
+    if not capital_exposure_fraction.is_finite() or not Decimal("0") < capital_exposure_fraction <= Decimal("1"):
+        raise ValueError("capital exposure fraction must be in (0,1]")
+    if not reinvest_profits and (profit_reinvestment_fraction != Decimal("1") or capital_exposure_fraction != Decimal("1")):
+        raise ValueError("partial reinvestment requires reinvest_profits")
     if strategy is not None:
+        if strategy.capital_exposure_fraction != "1":
+            configured_fraction = Decimal(strategy.capital_exposure_fraction)
+            if capital_exposure_fraction not in (Decimal("1"), configured_fraction):
+                raise ValueError("strategy and research exposure fractions disagree")
+            capital_exposure_fraction = configured_fraction
         symbols = strategy.symbols
         strategy_parameters = strategy.parameters
         strategy_parameters_by_symbol = strategy.parameter_map()
@@ -127,7 +140,7 @@ def run_shared_portfolio_backtest(
     validate_market_symbols(symbols)
     if tuple(candles_by_symbol) != symbols:
         raise ValueError("portfolio input must contain all ten symbols in fixed DMS order")
-    if autonomous_spot and (strategy is None or strategy.key != 'v8' or slot_count not in (2, 3, 4)):
+    if autonomous_spot and (strategy is None or strategy.key not in ('v8', 'v8d') or slot_count not in (2, 3, 4)):
         raise ValueError('autonomous spot research requires V8 with 2, 3 or 4 capacity slots')
     if starting_cash <= ZERO or target_notional <= ZERO or slot_count <= 0:
         raise ValueError("portfolio capital and slot_count must be positive")
@@ -370,13 +383,16 @@ def run_shared_portfolio_backtest(
                         open_prices=price_marks,
                     )
                     budget = size_spot_entry(
-                        equity=equity_at_open,
+                        equity=reinvestment_capital(
+                            equity=equity_at_open, starting_cash=starting_cash,
+                            profit_fraction=profit_reinvestment_fraction),
                         free_quote=cash,
                         slots=slot_count,
                         allocated_slots=allocated_slots,
+                        reserve_fraction=Decimal("1") - capital_exposure_fraction,
                     )
                 else:
-                    budget = min(target_notional * Decimal(allocated_slots), cash)
+                    budget = min(target_notional * Decimal(allocated_slots) * capital_exposure_fraction, cash)
                 reference = _d(candles[signal.symbol].open)
                 fill_price = reference * (ONE + costs.adverse_price_rate)
                 gross_quantity = _round_down(budget / fill_price, rule.step_size)

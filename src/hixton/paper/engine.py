@@ -502,10 +502,12 @@ def process_new_closed_points(
                         free_quote=account.cash_usdc,
                         slots=settings.slot_count,
                         allocated_slots=allocated_slots,
+                        reserve_fraction=ONE - Decimal(definition.capital_exposure_fraction),
                     )
                 else:
                     budget = min(
-                        settings.target_notional_usdc * Decimal(allocated_slots),
+                        settings.target_notional_usdc * Decimal(allocated_slots)
+                        * Decimal(definition.capital_exposure_fraction),
                         account.cash_usdc,
                     )
                 reference = _d(fill_candles[signal.symbol].open)

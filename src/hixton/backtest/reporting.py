@@ -203,6 +203,8 @@ def write_report_bundle(
         data = manifest["data"]
         assert isinstance(data, dict)
         data.update(history_data)
+    if strategy.capital_exposure_fraction != "1":
+        manifest["strategy"]["capital_exposure_fraction"] = strategy.capital_exposure_fraction
     if strategy.satellite_symbols:
         stored_strategy = manifest["strategy"]
         assert isinstance(stored_strategy, dict)

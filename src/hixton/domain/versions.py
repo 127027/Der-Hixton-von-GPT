@@ -5,6 +5,7 @@ from __future__ import annotations
 import hashlib
 import json
 from dataclasses import asdict, dataclass, replace
+from decimal import Decimal
 
 from hixton.constants import (
     HIXTON_SPEC_VERSION,
@@ -46,6 +47,7 @@ class StrategyDefinition:
     satellite_symbols: tuple[str, ...] = ()
     active_shared_satellites: tuple[str, ...] = ()
     satellite_semantics: StrategySemantics | None = None
+    capital_exposure_fraction: str = "1"
 
     @property
     def symbols(self) -> tuple[str, ...]:
@@ -54,6 +56,9 @@ class StrategyDefinition:
         return symbols_for_quote(self.quote_asset)
 
     def __post_init__(self) -> None:
+        fraction = Decimal(self.capital_exposure_fraction)
+        if not fraction.is_finite() or not Decimal("0") < fraction <= Decimal("1"):
+            raise ValueError("capital exposure fraction must be in (0,1]")
         profile_symbols = tuple(profile.symbol for profile in self.coin_profiles)
         if self.key == "v6" and profile_symbols != symbols_for_quote(self.quote_asset):
             raise ValueError("coin profiles require all ten symbols in DMS order")
@@ -122,6 +127,8 @@ class StrategyDefinition:
             payload["profiles"] = self.profiles_payload()
         else:
             payload.update(asdict(self.parameters))
+        if self.capital_exposure_fraction != "1":
+            payload["capital_exposure_fraction"] = self.capital_exposure_fraction
         payload["quote_asset"] = self.quote_asset
         if self.satellite_symbols:
             payload["satellite_symbols"] = list(self.satellite_symbols)
@@ -376,6 +383,18 @@ V7_USDC_STRATEGY = StrategyDefinition(
 )
 
 
+# Historical defensive candidate, never an automatic runtime promotion.
+# Exact same 15-market V8 signals/policies; only new-entry risk budget changes.
+V8_DEFENSIVE_RESEARCH_STRATEGY = replace(
+    V8_SATELLITE_STRATEGY,
+    key="v8d",
+    backtest_version="v8d",
+    version=V8_SATELLITE_STRATEGY.version + "-DD35-RESEARCH-1",
+    reference="docs/drawdown-research-20261011.md",
+    paper_approved=False,
+    capital_exposure_fraction="0.35",
+)
+
 STRATEGY_DEFINITIONS = {
     V1_STRATEGY.key: V1_STRATEGY,
     V2_RESEARCH_STRATEGY.key: V2_RESEARCH_STRATEGY,
@@ -383,6 +402,7 @@ STRATEGY_DEFINITIONS = {
     V6_COIN_STRATEGY.key: V6_COIN_STRATEGY,
     V7_USDC_STRATEGY.key: V7_USDC_STRATEGY,
     V8_SATELLITE_STRATEGY.key: V8_SATELLITE_STRATEGY,
+    V8_DEFENSIVE_RESEARCH_STRATEGY.key: V8_DEFENSIVE_RESEARCH_STRATEGY,
 }
 
 

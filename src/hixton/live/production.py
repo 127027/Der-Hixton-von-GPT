@@ -39,6 +39,7 @@ from hixton.domain.versions import StrategyDefinition
 from hixton.live.orders import ExchangeOrder
 
 ZERO = Decimal("0")
+ONE = Decimal("1")
 MAX_LIVE_SLOTS = 2
 FINAL_ORDER = {"FILLED", "CANCELED", "REJECTED", "EXPIRED", "EXPIRED_IN_MATCH"}
 
@@ -946,6 +947,7 @@ class LivePortfolioController:
                     or (
                         not self.autonomous_spot()
                         and intent.quote_budget != plan.target_notional_usdc * intent.slot_count
+                        * Decimal(self.strategy.capital_exposure_fraction)
                     )
                 ):
                     return False
@@ -982,6 +984,7 @@ class LivePortfolioController:
                         maximum = size_spot_entry(
                             equity=equity, free_quote=free_usdc,
                             slots=plan.slot_count, allocated_slots=intent.slot_count,
+                            reserve_fraction=ONE - Decimal(self.strategy.capital_exposure_fraction),
                         )
                         if intent.quote_budget > maximum:
                             return False
@@ -1619,12 +1622,13 @@ class LivePortfolioController:
                                 free_quote=snapshot.balances.get("USDC", (ZERO, ZERO))[0],
                                 slots=plan.slot_count,
                                 allocated_slots=allocated,
+                                reserve_fraction=ONE - Decimal(self.strategy.capital_exposure_fraction),
                             )
                         except (ValueError, ArithmeticError, KeyError):
                             self.fail_closed("AUTONOMOUS_MARKS_OR_EQUITY_NOT_VERIFIED")
                             return self.report()
                     else:
-                        trade_budget = plan.target_notional_usdc * allocated
+                        trade_budget = plan.target_notional_usdc * allocated * Decimal(self.strategy.capital_exposure_fraction)
                     if trade_budget <= ZERO:
                         self._blocked(signal, "INSUFFICIENT_FREE_USDC")
                         continue

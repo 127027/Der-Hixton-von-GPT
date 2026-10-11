@@ -1,0 +1,32 @@
+{
+  "strategy": "HIXTON-V8-CORE10-SAT3-DOTFILTER-5-eeb47b53b080-DD35-RESEARCH-1",
+  "python_source_sha256": "7956f1b7c2ea1041c787313a14644da060ee3437eead077c49b163dfc42fe326",
+  "results": {
+    "full_current": {
+      "ending_usdc": "5124.21914861967660000000",
+      "dd_pct": "23.57218686786714312820090149",
+      "trades": 154,
+      "matched_prior_experiment": true
+    },
+    "full_stress": {
+      "ending_usdc": "4378.9802792938300000000",
+      "dd_pct": "26.57351287804792880848990171",
+      "trades": 156,
+      "matched_prior_experiment": true
+    },
+    "validation_current": {
+      "ending_usdc": "1141.33244381865110000000",
+      "dd_pct": "14.56984535500700130010745468",
+      "trades": 56,
+      "matched_prior_experiment": true
+    },
+    "validation_stress": {
+      "ending_usdc": "1064.1019985060060000000",
+      "dd_pct": "19.58640497991828781780851118",
+      "trades": 56,
+      "matched_prior_experiment": true
+    }
+  },
+  "paper_approved": false,
+  "installed": false
+}

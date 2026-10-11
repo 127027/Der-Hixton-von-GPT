@@ -1,0 +1,251 @@
+<!doctype html>
+<html lang="de">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Hixton Backtest f4ae2c3b-55a2-488e-bd47-24db041fc195</title>
+  <style>
+    body { font-family: system-ui, sans-serif; margin: 2rem; color: #172033; }
+    pre { white-space: pre-wrap; background: #f3f5f8; padding: 1rem; border-radius: .5rem; }
+    .warning { border-left: .3rem solid #b26a00; padding-left: 1rem; }
+  </style>
+</head>
+<body>
+  <h1>Hixton Backtest V8D</h1>
+  <p>Strategie: <code>HIXTON-V8-CORE10-SAT3-DOTFILTER-5-eeb47b53b080-DD35-RESEARCH-1</code></p>
+  <p>Run-ID: <code>f4ae2c3b-55a2-488e-bd47-24db041fc195</code></p>
+  <p class="warning">Historische Simulation der angegebenen Regeln und Einstellungen.
+  VALID bedeutet ein gültiges Rechenergebnis, keine Binance-Ausführungsabnahme oder Livefreigabe.
+  Historische Ergebnisse sind keine Gewinngarantie.</p>
+  <p class="warning">Ein durchgehender Backtest der aktiven USDC-Strategie. Vorhandene USDC-Kerzen werden verwendet; historische USDT-Kerzen ergänzen ausschließlich fehlende ältere Historie, sofern native_usdc_candle_count dokumentiert ist. Strategie, Konto, Risiko, Kosten und aktuelle USDC-Ausfuehrungsregeln bleiben unveraendert.</p>
+  <h2>Kennzahlen</h2>
+  <pre>{
+  &quot;current&quot;: {
+    &quot;portfolio&quot;: {
+      &quot;symbols&quot;: [
+        &quot;BTCUSDC&quot;,
+        &quot;ETHUSDC&quot;,
+        &quot;BNBUSDC&quot;,
+        &quot;SOLUSDC&quot;,
+        &quot;XRPUSDC&quot;,
+        &quot;ADAUSDC&quot;,
+        &quot;LINKUSDC&quot;,
+        &quot;AVAXUSDC&quot;,
+        &quot;DOTUSDC&quot;,
+        &quot;DOGEUSDC&quot;,
+        &quot;SUIUSDC&quot;,
+        &quot;NEARUSDC&quot;,
+        &quot;UNIUSDC&quot;,
+        &quot;AAVEUSDC&quot;,
+        &quot;BCHUSDC&quot;
+      ],
+      &quot;starting_cash&quot;: &quot;1092.05773944&quot;,
+      &quot;target_notional&quot;: &quot;546.02886972&quot;,
+      &quot;slot_count&quot;: 2,
+      &quot;slot_allocation&quot;: &quot;ranked_repeat&quot;,
+      &quot;max_concurrent_positions&quot;: 2,
+      &quot;risk_limits_applied&quot;: true,
+      &quot;risk_halted_at_utc&quot;: null,
+      &quot;daily_paused_bars&quot;: 24,
+      &quot;open_symbols_at_end&quot;: [
+        &quot;ADAUSDC&quot;
+      ],
+      &quot;signal_count&quot;: 8423,
+      &quot;fill_count&quot;: 309,
+      &quot;blocked_signal_count&quot;: 8114,
+      &quot;blocked_reasons&quot;: {
+        &quot;SPOT_RESEARCH_FILLER_NOT_ELIGIBLE&quot;: 367,
+        &quot;POLICY_CMO&quot;: 3502,
+        &quot;POLICY_VIDYA_SLOPE&quot;: 299,
+        &quot;SATELLITE_TREND_TOO_EXTENDED&quot;: 343,
+        &quot;CORE_ACTIVE_FILLER_IDLE_ONLY&quot;: 1545,
+        &quot;NO_FREE_SLOT&quot;: 289,
+        &quot;SPOT_RESEARCH_FILLER_WEAK_MOMENTUM&quot;: 1028,
+        &quot;SATELLITE_RESEARCH_ONLY&quot;: 618,
+        &quot;SATELLITE_TREND_TOO_WEAK&quot;: 108,
+        &quot;SATELLITE_ATR_TOO_HIGH&quot;: 15
+      },
+      &quot;metrics&quot;: {
+        &quot;starting_equity&quot;: &quot;1092.05773944&quot;,
+        &quot;ending_equity&quot;: &quot;5124.21914861967660000000&quot;,
+        &quot;net_pnl&quot;: &quot;4032.16140917967660000000&quot;,
+        &quot;return_pct&quot;: &quot;369.2260274852630369084214363&quot;,
+        &quot;annualized_return_pct&quot;: &quot;67.39342255122108&quot;,
+        &quot;max_drawdown&quot;: &quot;1128.39247841152650000000&quot;,
+        &quot;max_drawdown_pct&quot;: &quot;23.57218686786714312820090149&quot;,
+        &quot;completed_trades&quot;: 154,
+        &quot;completed_slot_trades&quot;: 210,
+        &quot;winning_trades&quot;: 74,
+        &quot;losing_trades&quot;: 80,
+        &quot;win_rate_pct&quot;: &quot;48.05194805194805194805194805&quot;,
+        &quot;profit_factor&quot;: &quot;2.011402822524275137856060603&quot;,
+        &quot;average_win&quot;: &quot;109.3546756516234610299488678&quot;,
+        &quot;average_loss&quot;: &quot;-50.28981457369457841216216214&quot;,
+        &quot;exposure_pct&quot;: &quot;79.83956812652068126520681265&quot;,
+        &quot;total_fees&quot;: &quot;274.92971828555665000000&quot;,
+        &quot;modeled_spread_slippage&quot;: &quot;137.46548810985000000&quot;,
+        &quot;average_holding_hours&quot;: &quot;165.6753246753246753246753247&quot;,
+        &quot;max_holding_hours&quot;: &quot;1716.0&quot;,
+        &quot;sharpe&quot;: &quot;1.8449182403973208&quot;,
+        &quot;sortino&quot;: &quot;3.277693863495383&quot;,
+        &quot;calmar&quot;: &quot;2.859022920910645516340054402&quot;,
+        &quot;buy_and_hold_ending_equity&quot;: &quot;2582.863813332925508205856746&quot;,
+        &quot;buy_and_hold_return_pct&quot;: &quot;136.5134845944502002187886024&quot;,
+        &quot;monthly_returns_pct&quot;: {
+          &quot;2023-10&quot;: &quot;16.21469285059984831602028210&quot;,
+          &quot;2023-11&quot;: &quot;12.95868900945245108570073070&quot;,
+          &quot;2023-12&quot;: &quot;29.23724770650938694411171960&quot;,
+          &quot;2024-01&quot;: &quot;-5.697091778696398208193211010&quot;,
+          &quot;2024-02&quot;: &quot;15.63743067618122238889653980&quot;,
+          &quot;2024-03&quot;: &quot;16.35680607366302692344869400&quot;,
+          &quot;2024-04&quot;: &quot;-4.866043107364623505397149830&quot;,
+          &quot;2024-05&quot;: &quot;0.275267952101361172573044100&quot;,
+          &quot;2024-06&quot;: &quot;-0.0572461811233090919240340100&quot;,
+          &quot;2024-07&quot;: &quot;4.347928367541296103582957700&quot;,
+          &quot;2024-08&quot;: &quot;2.297548110377825548492803500&quot;,
+          &quot;2024-09&quot;: &quot;-2.093394047454499534591800760&quot;,
+          &quot;2024-10&quot;: &quot;0.942451375629242728074321900&quot;,
+          &quot;2024-11&quot;: &quot;69.80337293152534705141494750&quot;,
+          &quot;2024-12&quot;: &quot;-7.092163939061673787351809620&quot;,
+          &quot;2025-01&quot;: &quot;3.057613645094276824915366700&quot;,
+          &quot;2025-02&quot;: &quot;-7.458165905671038083975108810&quot;,
+          &quot;2025-03&quot;: &quot;-0.4123151311447943512631663800&quot;,
+          &quot;2025-04&quot;: &quot;7.559670923085210783059688500&quot;,
+          &quot;2025-05&quot;: &quot;0.940094635989675592826752700&quot;,
+          &quot;2025-06&quot;: &quot;-0.5775804799784686745080311700&quot;,
+          &quot;2025-07&quot;: &quot;18.26283141869235757489128960&quot;,
+          &quot;2025-08&quot;: &quot;8.908180476345443899243351400&quot;,
+          &quot;2025-09&quot;: &quot;0.673897766448936262504516500&quot;,
+          &quot;2025-10&quot;: &quot;-7.897673204194378962943990070&quot;,
+          &quot;2025-11&quot;: &quot;1.851102785489492771461200400&quot;,
+          &quot;2025-12&quot;: &quot;-5.737269523464445601587347060&quot;,
+          &quot;2026-01&quot;: &quot;-0.6884536423745617931564118100&quot;,
+          &quot;2026-02&quot;: &quot;-0.2241492430168477757990712700&quot;,
+          &quot;2026-03&quot;: &quot;-0.2750889846653314289240253700&quot;,
+          &quot;2026-04&quot;: &quot;3.648646454176900393455368800&quot;,
+          &quot;2026-05&quot;: &quot;3.072111885517923677393354000&quot;,
+          &quot;2026-06&quot;: &quot;-1.403655232311600088714336250&quot;,
+          &quot;2026-07&quot;: &quot;-1.274350121967641248580213250&quot;,
+          &quot;2026-08&quot;: &quot;0.463979959180492541145540400&quot;,
+          &quot;2026-09&quot;: &quot;18.81364354365579987975064450&quot;,
+          &quot;2026-10&quot;: &quot;-4.729236195790239023351295190&quot;
+        }
+      }
+    }
+  },
+  &quot;stress&quot;: {
+    &quot;portfolio&quot;: {
+      &quot;symbols&quot;: [
+        &quot;BTCUSDC&quot;,
+        &quot;ETHUSDC&quot;,
+        &quot;BNBUSDC&quot;,
+        &quot;SOLUSDC&quot;,
+        &quot;XRPUSDC&quot;,
+        &quot;ADAUSDC&quot;,
+        &quot;LINKUSDC&quot;,
+        &quot;AVAXUSDC&quot;,
+        &quot;DOTUSDC&quot;,
+        &quot;DOGEUSDC&quot;,
+        &quot;SUIUSDC&quot;,
+        &quot;NEARUSDC&quot;,
+        &quot;UNIUSDC&quot;,
+        &quot;AAVEUSDC&quot;,
+        &quot;BCHUSDC&quot;
+      ],
+      &quot;starting_cash&quot;: &quot;1092.05773944&quot;,
+      &quot;target_notional&quot;: &quot;546.02886972&quot;,
+      &quot;slot_count&quot;: 2,
+      &quot;slot_allocation&quot;: &quot;ranked_repeat&quot;,
+      &quot;max_concurrent_positions&quot;: 2,
+      &quot;risk_limits_applied&quot;: true,
+      &quot;risk_halted_at_utc&quot;: null,
+      &quot;daily_paused_bars&quot;: 24,
+      &quot;open_symbols_at_end&quot;: [
+        &quot;ADAUSDC&quot;
+      ],
+      &quot;signal_count&quot;: 8399,
+      &quot;fill_count&quot;: 313,
+      &quot;blocked_signal_count&quot;: 8086,
+      &quot;blocked_reasons&quot;: {
+        &quot;SPOT_RESEARCH_FILLER_NOT_ELIGIBLE&quot;: 367,
+        &quot;POLICY_CMO&quot;: 3502,
+        &quot;POLICY_VIDYA_SLOPE&quot;: 299,
+        &quot;SATELLITE_TREND_TOO_EXTENDED&quot;: 343,
+        &quot;CORE_ACTIVE_FILLER_IDLE_ONLY&quot;: 1522,
+        &quot;NO_FREE_SLOT&quot;: 290,
+        &quot;SPOT_RESEARCH_FILLER_WEAK_MOMENTUM&quot;: 1022,
+        &quot;SATELLITE_RESEARCH_ONLY&quot;: 618,
+        &quot;SATELLITE_TREND_TOO_WEAK&quot;: 108,
+        &quot;SATELLITE_ATR_TOO_HIGH&quot;: 15
+      },
+      &quot;metrics&quot;: {
+        &quot;starting_equity&quot;: &quot;1092.05773944&quot;,
+        &quot;ending_equity&quot;: &quot;4378.9802792938300000000&quot;,
+        &quot;net_pnl&quot;: &quot;3286.9225398538300000000&quot;,
+        &quot;return_pct&quot;: &quot;300.9843180580673491792821463&quot;,
+        &quot;annualized_return_pct&quot;: &quot;58.85192325706365&quot;,
+        &quot;max_drawdown&quot;: &quot;1331.5131453670155000000&quot;,
+        &quot;max_drawdown_pct&quot;: &quot;26.57351287804792880848990171&quot;,
+        &quot;completed_trades&quot;: 156,
+        &quot;completed_slot_trades&quot;: 213,
+        &quot;winning_trades&quot;: 68,
+        &quot;losing_trades&quot;: 88,
+        &quot;win_rate_pct&quot;: &quot;43.58974358974358974358974359&quot;,
+        &quot;profit_factor&quot;: &quot;1.809913571384377023358375058&quot;,
+        &quot;average_win&quot;: &quot;109.1660875677859047753635989&quot;,
+        &quot;average_loss&quot;: &quot;-46.60753665493509319774319776&quot;,
+        &quot;exposure_pct&quot;: &quot;79.99923965936739659367396594&quot;,
+        &quot;total_fees&quot;: &quot;255.0358707669384000000&quot;,
+        &quot;modeled_spread_slippage&quot;: &quot;765.1314177984000000&quot;,
+        &quot;average_holding_hours&quot;: &quot;162.6794871794871794871794872&quot;,
+        &quot;max_holding_hours&quot;: &quot;1716.0&quot;,
+        &quot;sharpe&quot;: &quot;1.6639134601014371&quot;,
+        &quot;sortino&quot;: &quot;2.906259154583585&quot;,
+        &quot;calmar&quot;: &quot;2.214683603449378427102533166&quot;,
+        &quot;buy_and_hold_ending_equity&quot;: &quot;2576.425967337579233260179137&quot;,
+        &quot;buy_and_hold_return_pct&quot;: &quot;135.9239694284620392012941144&quot;,
+        &quot;monthly_returns_pct&quot;: {
+          &quot;2023-10&quot;: &quot;16.08091878642361393857913030&quot;,
+          &quot;2023-11&quot;: &quot;12.74293563460253014235345740&quot;,
+          &quot;2023-12&quot;: &quot;28.99016619449671969719096430&quot;,
+          &quot;2024-01&quot;: &quot;-6.367143689315419226786505080&quot;,
+          &quot;2024-02&quot;: &quot;15.61297881968914394876733050&quot;,
+          &quot;2024-03&quot;: &quot;16.09347036677537506604823570&quot;,
+          &quot;2024-04&quot;: &quot;-5.446895117546760897274718260&quot;,
+          &quot;2024-05&quot;: &quot;-0.1606681850590919325855058200&quot;,
+          &quot;2024-06&quot;: &quot;-1.674906078684413775970979600&quot;,
+          &quot;2024-07&quot;: &quot;6.043217538571337478113475800&quot;,
+          &quot;2024-08&quot;: &quot;2.109011644306413263444729900&quot;,
+          &quot;2024-09&quot;: &quot;-1.692454118825219941158745140&quot;,
+          &quot;2024-10&quot;: &quot;0.404412725223702025152757000&quot;,
+          &quot;2024-11&quot;: &quot;69.54227099691542009542717570&quot;,
+          &quot;2024-12&quot;: &quot;-7.459702263669620998669081810&quot;,
+          &quot;2025-01&quot;: &quot;2.160473366526455897776179700&quot;,
+          &quot;2025-02&quot;: &quot;-7.761848378322228277150583860&quot;,
+          &quot;2025-03&quot;: &quot;-1.022057922990904358853458940&quot;,
+          &quot;2025-04&quot;: &quot;7.401203824826915875621959200&quot;,
+          &quot;2025-05&quot;: &quot;0.534086817707041315109254900&quot;,
+          &quot;2025-06&quot;: &quot;-1.689922721976589493507679710&quot;,
+          &quot;2025-07&quot;: &quot;18.00536911880176277416666820&quot;,
+          &quot;2025-08&quot;: &quot;8.566426997358410981136573800&quot;,
+          &quot;2025-09&quot;: &quot;-0.3763202524540942228258530700&quot;,
+          &quot;2025-10&quot;: &quot;-8.433065907392723655240730830&quot;,
+          &quot;2025-11&quot;: &quot;1.126060901957409020476596700&quot;,
+          &quot;2025-12&quot;: &quot;-6.785787926258861071351719290&quot;,
+          &quot;2026-01&quot;: &quot;-1.382966207061074332951317700&quot;,
+          &quot;2026-02&quot;: &quot;-1.016219696733374789007716810&quot;,
+          &quot;2026-03&quot;: &quot;-0.7103949462977333844891112500&quot;,
+          &quot;2026-04&quot;: &quot;3.458292138448249797676410700&quot;,
+          &quot;2026-05&quot;: &quot;2.063743403555793973571326000&quot;,
+          &quot;2026-06&quot;: &quot;-1.853960340873281623395577970&quot;,
+          &quot;2026-07&quot;: &quot;-1.789002690080320706209653150&quot;,
+          &quot;2026-08&quot;: &quot;-0.1282304339105576992256351300&quot;,
+          &quot;2026-09&quot;: &quot;18.84771851639694514970303960&quot;,
+          &quot;2026-10&quot;: &quot;-4.912956975192415985742362140&quot;
+        }
+      }
+    }
+  }
+}</pre>
+</body>
+</html>
