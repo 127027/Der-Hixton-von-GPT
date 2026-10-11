@@ -147,6 +147,10 @@ def install_live_routes(
                     **preview,
                     "emergency_stop": settings.emergency_stop,
                     "gap_fillers_enabled": settings.gap_fillers_enabled,
+                    "auto_budget_enabled": settings.auto_budget_enabled,
+                    "auto_budget_live_available": False,
+                    "autonomous_performance_enabled": settings.autonomous_performance_enabled,
+                    "autonomous_performance_live_available": False,
                 }
         except (RuntimeError, sqlite3.DatabaseError, KeyError):
             pass
