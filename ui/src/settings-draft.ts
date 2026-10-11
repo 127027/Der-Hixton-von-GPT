@@ -72,7 +72,7 @@ export function describeSettings(value: TradingSettings): string {
   const reserveText = Number.isFinite(reserve) && reserve > 0
     ? " · Reserve " + formatBudget(reserve) + " USDC"
     : "";
-  return "Max. " + formatBudget(value.max_capital_usdc) + " USDC → automatisch "
+  return (value.auto_budget_enabled ? "Start-/Referenzbudget " : "Max. ") + formatBudget(value.max_capital_usdc) + " USDC → automatisch "
     + value.slot_count + " × " + formatBudget(value.target_notional_usdc)
     + " USDC · " + value.allocation_policy + reserveText
     + (value.auto_budget_enabled ? " · Automatikbudget vorgemerkt (Live gesperrt)" : " · festes Budget")

@@ -97,6 +97,11 @@ interface RuntimePayload {
   backtest_status: string;
 }
 interface StatusResponse {
+  binance_balance?: {
+    state: string; free_usdc: string | null; locked_usdc: string | null;
+    total_usdc: string | null; observed_at_utc: string | null;
+    refresh_seconds: number; message: string;
+  };
   activity?: Activity;
   application_version: string;
   strategy_version: string;
@@ -255,15 +260,21 @@ function renderStatus(status: StatusResponse): void {
   text("#doc-app-version", status.application_version);
   text("#doc-strategy-version", status.strategy_version);
   tradingSettings.render(status.trading_settings, status.trading_limits);
+  const balance = status.binance_balance;
+  const validBalance = balance?.state === "CURRENT" && balance.free_usdc !== null && balance.total_usdc !== null;
+  text("#metric-equity", validBalance ? formatNumber(balance!.total_usdc!) : "—");
+  text("#metric-cash", validBalance ? formatNumber(balance!.free_usdc!) : "—");
+  text("#binance-balance-detail", validBalance
+    ? `Binance Spot · frei: ${balance!.free_usdc} USDC · gebunden: ${balance!.locked_usdc} USDC · Stand: ${formatDate(balance!.observed_at_utc, true)} · automatische Abfrage alle ${balance!.refresh_seconds} s. Bestehende Coins sind nicht enthalten.`
+    : balance?.message ?? "Binance-Guthaben noch nicht verfügbar. Nach Installation der Aktualisierung den Bot neu starten; kein simuliertes Ersatzguthaben.");
+  text("#paper-balance-detail", status.paper
+    ? `Paper-Simulation: Equity ${formatNumber(status.paper.equity_usdc)} USDC · freier Cash ${formatNumber(status.paper.cash_usdc)} USDC. Slots und Drawdown beziehen sich auf dieses simulierte Konto.`
+    : "Paper-Simulation noch nicht verfügbar.");
   if (!status.paper) {
-    text("#metric-equity", "—");
-    text("#metric-cash", "—");
     text("#metric-slots", "—");
     text("#metric-drawdown", "—");
     return;
   }
-  text("#metric-equity", formatNumber(status.paper.equity_usdc));
-  text("#metric-cash", formatNumber(status.paper.cash_usdc));
   const usedSlots = status.paper.positions.reduce((sum, position) => sum + position.slot_count, 0);
   text("#metric-slots", String(Math.max(0, status.paper.settings.slot_count - usedSlots)));
   required("#metric-slots").nextElementSibling!.textContent = `von ${status.paper.settings.slot_count}`;
@@ -428,6 +439,9 @@ async function refreshCore(): Promise<void> {
     if (generation !== coreLoadGeneration) return;
     required("#connection-dot").className = "status-dot error";
     text("#connection-label", "UI-API getrennt");
+    text("#metric-equity", "—");
+    text("#metric-cash", "—");
+    text("#binance-balance-detail", "Keine aktuelle Verbindung zum Bot; Binance-Guthaben nicht bestätigt.");
     showToast(error instanceof Error ? error.message : String(error), true);
   }
 }

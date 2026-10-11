@@ -2,6 +2,16 @@
 
 Der Hixton 0.5.0 ist ein lokaler deutschsprachiger Binance-Spot-Bot fÃ¼r 15 USDC-MÃ¤rkte. Das aktuelle Produkt ist **V8**: der unverÃ¤nderte, eingefrorene V6-Zehn-Coin-Core plus ein separater Satellite-Layer. Backtest, Paper und der guarded lokale Live-Pfad verwenden dieselbe StrategyDefinition, dieselbe Kapitalquelle und dieselben point-in-time Routingregeln.
 
+## Lokale Reparatur vom 11.10.2026
+
+Der heruntergeladene Test-ZIP ließ versehentlich `src/hixton/data` aus. Die fehlenden Module sind ergänzt; der Start prüft die vollständigen Imports vor einem Instanzwechsel. Die Paket-Workflows schließen Laufzeitdaten aus, behalten aber Quellmodule.
+
+Der optionale Automatikmodus reinvestiert im **Paper-Modell und gemeinsamen Portfolio-Backtest** die Gewinne/Verluste des einen verwalteten Kontos und verwendet dieselben neuen NEAR/BCH-Filter. Der gemeinsame Backtest speichert diese Auswahl im Manifest; anders konfigurierte oder alte, nicht belegte Berichte gelten nicht als passend. Der isolierte Coin-Test bleibt eine separate Diagnose und kein gemeinsames Portfolio.
+
+**Handelswährung ist USDC.** USDT-Bestände werden nicht als USDC behandelt oder automatisch umgetauscht. Die Demo beginnt mit virtuellem Kapital von 1.100 USDC, ohne Nachweis eines tatsächlichen Binance-Guthabens. Zwei Slots bleiben erhalten; ein einzelner Core-Kandidat kann beide erhalten und damit das ganze verfügbare Kapital einsetzen. Das ist keine automatische Verteilung auf beliebig viele kleinere Positionen.
+
+**Echtgeld-Automatik bleibt gesperrt.** Vor einer Freigabe müssen der 50-USDC-Test und der echte Live-Pfad nachweisbar diesen neuen Modus prüfen. Die bestehenden alten Testpfade und historischen Zahlen zertifizieren ihn nicht. Gleiche Entscheidungsregeln garantieren keine identischen Börsenkurse, Gebühren oder Netzwerklaufzeiten.
+
 ## Produktvertrag
 
 - Core: BTC, ETH, BNB, SOL, XRP, ADA, LINK, AVAX, DOT und DOGE gegen USDC.

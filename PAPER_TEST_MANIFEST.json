@@ -1,0 +1,14 @@
+{
+  "package_kind": "AUTONOMOUS_LIVE_PATH_LOCKED_RESEARCH_AUDIT",
+  "source_commit": "07c7c9f040fcc2866dfc9192d55af3c85c71ce52",
+  "built_utc": "2026-10-11T14:12:19.543823+00:00",
+  "starting_paper_usdc": "1100.00",
+  "auto_live_enable": false,
+  "spot_only": true,
+  "leverage": false,
+  "agent_gate": "A01-A11 deterministic research/test audit only; NOT real-money approval",
+  "file_count": 166,
+  "local_modifications": true,
+  "local_patch": "20261011-startup-portfolio-parity-fresh-binance-capital-ui",
+  "live_approval": false
+}

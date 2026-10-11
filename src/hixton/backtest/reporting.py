@@ -112,6 +112,8 @@ def write_report_bundle(
     strategy: StrategyDefinition = V1_STRATEGY,
     python_source_sha256: str | None = None,
     history_data: dict[str, object] | None = None,
+    trading_settings: dict[str, object] | None = None,
+    capital_source: dict[str, object] | None = None,
 ) -> Path:
     """Create one new run directory; existing runs are never overwritten."""
 
@@ -193,6 +195,10 @@ def write_report_bundle(
         "artifacts": ["metrics.json", "trades.csv", "equity.csv", "report.html"],
         "warning": "Historical results are not a profit guarantee.",
     }
+    if capital_source is not None:
+        manifest["capital_source"] = capital_source
+    if trading_settings is not None:
+        manifest["trading_settings"] = trading_settings
     if history_data is not None:
         data = manifest["data"]
         assert isinstance(data, dict)

@@ -76,16 +76,31 @@ def compare_run(
                 except (InvalidOperation, AttributeError):
                     unknown.append(f"{symbol}: Einzeltest-Kapitalnachweis fehlt")
     if isinstance(portfolio, dict):
+        if settings is not None:
+            recorded = manifest.get("trading_settings")
+            if isinstance(recorded, dict):
+                for flag in ("auto_budget_enabled", "autonomous_performance_enabled"):
+                    if recorded.get(flag) is not getattr(settings, flag):
+                        differences.append("Andere Budget-/Filtereinstellung: " + flag)
+            elif settings.auto_budget_enabled or settings.autonomous_performance_enabled:
+                unknown.append("Automatikmodus im Backtest nicht nachgewiesen")
         if settings is None:
             unknown.append("Aktuelle Positionsgrößen nicht verfügbar")
         else:
             try:
                 if portfolio.get("slot_count") != settings.slot_count:
                     differences.append("Andere Slotanzahl")
-                if Decimal(str(portfolio.get("target_notional"))) != settings.target_notional_usdc:
-                    differences.append("Anderer Betrag je Position")
-                if Decimal(str(portfolio.get("starting_cash"))) != starting_cash:
-                    differences.append("Anderes Startkapital")
+                if settings.auto_budget_enabled:
+                    capital = manifest.get("capital_source")
+                    if not isinstance(capital, dict) or capital.get("kind") != "BINANCE_SPOT_FREE_USDC" or capital.get("read_only") is not True or capital.get("quote_asset") != "USDC" or not capital.get("observed_at_utc"):
+                        unknown.append("Frischer Binance-USDC-Startkapitalnachweis fehlt")
+                    elif Decimal(str(portfolio.get("starting_cash"))) != Decimal(str(capital.get("amount_usdc"))):
+                        differences.append("Startkapital weicht vom Binance-Snapshot ab")
+                else:
+                    if Decimal(str(portfolio.get("target_notional"))) != settings.target_notional_usdc:
+                        differences.append("Anderer Betrag je Position")
+                    if Decimal(str(portfolio.get("starting_cash"))) != starting_cash:
+                        differences.append("Anderes Startkapital")
             except InvalidOperation:
                 unknown.append("Kapitalnachweis fehlt oder ist ungültig")
         if portfolio.get("risk_limits_applied") is not True:

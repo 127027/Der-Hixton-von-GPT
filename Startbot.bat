@@ -23,6 +23,14 @@ if not exist "src\hixton\ui\static\index.html" (
   goto :error
 )
 
+rem Check the entire application import before replacing any running instance.
+"%HIXTON_PYTHON%" -B src\main.py status >nul
+if errorlevel 1 (
+  echo [Hixton] Programmpaket unvollstaendig oder Konfiguration fehlerhaft.
+  echo [Hixton] Bitte das vollstaendige Paket entpacken; eine laufende Instanz bleibt erhalten.
+  goto :error
+)
+
 echo [Hixton] Starte aktuelle Instanz. Eine bisherige Hixton-Instanz wird geordnet abgeloest.
 echo [Hixton] Konsole ODER letzte Bot-Seite schliessen = Bot AUS. Kein Hintergrundbetrieb.
 echo [Hixton] Offene Binance-Positionen werden beim Beenden NICHT automatisch verkauft.

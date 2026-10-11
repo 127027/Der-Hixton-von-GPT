@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+from decimal import Decimal
 from pathlib import Path
 
 from hixton.config import load_project_config
@@ -76,11 +77,11 @@ def test_product_uses_one_modular_two_slot_allocator() -> None:
     config_path = ROOT / "config" / "examples" / "config.example.json"
     payload = json.loads(config_path.read_text(encoding="utf-8"))
     config = load_project_config(config_path, project_root=ROOT)
-    assert payload["paper"]["starting_cash_usdc"] == "250.00"
-    assert payload["paper"]["max_capital_usdc"] == "250.00"
+    assert Decimal(payload["paper"]["starting_cash_usdc"]) == config.paper_max_capital_usdc
+    assert Decimal(payload["paper"]["max_capital_usdc"]) == config.paper_max_capital_usdc
     assert "slot_count" not in payload["paper"]
     assert "target_notional_usdc" not in payload["paper"]
-    assert config.paper_max_capital_usdc == 250
+    assert config.paper_max_capital_usdc > 0
     assert config.paper_slot_count == 2
-    assert config.paper_target_notional_usdc == 125
+    assert config.paper_target_notional_usdc * config.paper_slot_count == config.paper_max_capital_usdc
     assert V8_SATELLITE_STRATEGY.slot_allocation == "ranked_repeat"

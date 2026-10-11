@@ -5,8 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="color-scheme" content="dark" />
     <title>Der Hixton</title>
-    <script type="module" crossorigin src="/assets/index-2g6HHvvf.js"></script>
-    <link rel="stylesheet" crossorigin href="/assets/index-Z-ZZCW1w.css">
+    <script type="module" crossorigin src="/assets/index-Bfgq7Dbh.js"></script>
+    <link rel="stylesheet" crossorigin href="/assets/index-D_XezQl4.css">
   </head>
   <body>
     <div id="app-shell">
@@ -52,11 +52,13 @@
             <p id="activity-detail" role="status">Kerzenverarbeitung noch nicht bestätigt.</p>
           </div>
           <div class="metric-grid">
-            <article class="metric-card"><span>Paper Equity</span><strong id="metric-equity">—</strong><small>USDC</small></article>
-            <article class="metric-card"><span>Freier Cash</span><strong id="metric-cash">—</strong><small>USDC</small></article>
-            <article class="metric-card"><span>Freie Slots</span><strong id="metric-slots">—</strong><small>von —</small></article>
-            <article class="metric-card"><span>Drawdown</span><strong id="metric-drawdown">—</strong><small>laufender Messwert</small></article>
+            <article class="metric-card"><span>Binance-USDC-Guthaben</span><strong id="metric-equity">—</strong><small>USDC</small></article>
+            <article class="metric-card"><span>Davon frei verfügbar</span><strong id="metric-cash">—</strong><small>USDC</small></article>
+            <article class="metric-card"><span>Freie Paper-Slots</span><strong id="metric-slots">—</strong><small>von —</small></article>
+            <article class="metric-card"><span>Paper-Drawdown</span><strong id="metric-drawdown">—</strong><small>laufender Messwert</small></article>
           </div>
+          <p id="binance-balance-detail" role="status">Binance-Guthaben wird abgefragt …</p>
+          <p id="paper-balance-detail"></p>
           <div class="section-heading">
             <div><p class="eyebrow">MARKTUNIVERSUM</p><h2>Alle 15 Kryptowährungen</h2></div>
             <button id="sync-button" class="button secondary">Jetzt prüfen</button>
@@ -151,15 +153,19 @@
               <form id="trading-form" class="settings-form">
                 <div class="settings-fields">
                   <label>Maximaler USDC-Einsatz<input id="capital-input" type="number" min="100" max="1000000" step="1" value="250" required /></label>
-                  <label><input id="gap-fillers-input" type="checkbox" checked /> Zwischenfüller mit Core-Vorrang (nur wenn alle zehn Core-Coins inaktiv sind)</label>
-                  <label><input id="entry-pause-input" type="checkbox" /> Einstiegspause für neue Trades</label>
+                  <label class="settings-toggle"><input id="auto-budget-input" type="checkbox" /> Bot alleine alles entscheiden lassen (verfügbare USDC, Positionsgröße und Spot-Trades)</label>
+                  <p>Automatischer Kapitalmodus: Der gemeinsame Portfolio-Backtest liest beim Start die aktuell frei verfügbaren Binance-USDC und simuliert deren Wiederanlage einschließlich Gewinnen und Verlusten. Bestehende Coins und gebundene Guthaben werden nicht übernommen. Schlägt die Kontoabfrage fehl, startet kein Ersatztest mit einem festen Budget. Das Paper-Konto verwendet weiterhin sein simuliertes Guthaben.</p>
+                  <label hidden class="settings-toggle"><input id="performance-mode-input" type="checkbox" aria-hidden="true" tabindex="-1" /> Interner Spot-Performance-Modus (synchron mit Automatikbudget)</label>
+                  <p>Automatikmodus: ausschließlich 1× Spot ohne Margin, Futures oder Hebel. Ein Haken aktiviert im Paper-Konto Budget-Wiederanlage, selbstständige Trade-Auswahl und den zusätzlichen NEAR/BCH-Platzfüllerfilter. <strong>Für echtes Live bleibt diese Funktion bis zur separaten Qualitäts- und Kontoprüfung gesperrt.</strong> Der 50-USDC-Test und die ausdrückliche Live-Freigabe dürfen niemals automatisch erfolgen.</p>
+                  <label class="settings-toggle"><input id="gap-fillers-input" type="checkbox" checked /> Zwischenfüller mit Core-Vorrang (nur wenn alle zehn Core-Coins inaktiv sind)</label>
+                  <label class="settings-toggle"><input id="entry-pause-input" type="checkbox" /> Einstiegspause für neue Trades</label>
                 </div>
                 <p id="settings-validation" class="negative" role="alert"></p>
                 <button id="settings-button" type="submit" class="button primary">Übernehmen</button>
               </form>
               <p id="settings-saved">Einstellungen werden geladen …</p>
               <p id="settings-edit-state" role="status"></p>
-              <p>Du gibst nur das maximale Budget vor. Hixton leitet daraus automatisch die geprüfte ranked-repeat-Kapitalaufteilung ab und verteilt freie Tranchen auf die aktuell stärksten gültigen Signale der zehn Coins. Gilt gemeinsam für Portfolio-Backtest, Paper und später Live.</p>
+              <p>Der Automatik-Haken verbindet Kapital-Wiederanlage und zusätzliche Positionsfilter. Der Zwischenfüller-Haken schaltet die bedingten NEAR/BCH-Einstiege separat ein oder aus. Die Aufteilung verwendet weiterhin zwei Slots; sie erzeugt bei höherem Kapital nicht automatisch mehr Positionen. Eine Live-Freigabe ist damit nicht verbunden.</p>
             </article>
 
             <article class="settings-card">

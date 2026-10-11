@@ -4,8 +4,10 @@ from __future__ import annotations
 
 from dataclasses import replace
 from datetime import datetime
+from decimal import Decimal, ROUND_DOWN
 from pathlib import Path
 
+from hixton.backtest.account_capital import read_binance_starting_capital
 from hixton.backtest.continuity import continuity_manifest_data, load_continuity_history
 from hixton.backtest.engine import run_isolated_batch, run_single_backtest
 from hixton.backtest.models import CURRENT_COSTS, ExecutionRules
@@ -56,6 +58,15 @@ def run_product_backtest(
             settings = store.load_settings()
         except RuntimeError:
             settings = PaperSettings(max_capital_usdc=config.paper_max_capital_usdc)
+    capital_source: dict[str, object] | None = None
+    starting_cash = settings.max_capital_usdc
+    target_notional = settings.target_notional_usdc
+    if mode == "portfolio" and settings.auto_budget_enabled:
+        capital_source = read_binance_starting_capital(config)
+        starting_cash = Decimal(str(capital_source["amount_usdc"]))
+        if not starting_cash.is_finite() or starting_cash <= 0:
+            raise ValueError("Binance starting capital must be positive and finite")
+        target_notional = (starting_cash / settings.slot_count).quantize(Decimal("0.01"), rounding=ROUND_DOWN)
     if not settings.gap_fillers_enabled:
         strategy = replace(strategy, active_shared_satellites=())
     history = load_continuity_history(
@@ -71,14 +82,16 @@ def run_product_backtest(
         result = run_shared_portfolio_backtest(
             candles_by_symbol=history.candles_by_symbol,
             execution_rules=rules,
-            starting_cash=settings.max_capital_usdc,
-            target_notional=settings.target_notional_usdc,
+            starting_cash=starting_cash,
+            target_notional=target_notional,
             slot_count=settings.slot_count,
             strategy=strategy,
             report_start_utc=report_start_utc,
             report_end_utc=report_end_utc,
             costs=CURRENT_COSTS,
             strategy_version=strategy.version,
+            reinvest_profits=settings.auto_budget_enabled,
+            autonomous_spot=settings.autonomous_performance_enabled,
         )
     elif mode == "all":
         result = run_isolated_batch(
@@ -126,4 +139,10 @@ def run_product_backtest(
         strategy=strategy,
         python_source_sha256=source_sha256,
         history_data=continuity_manifest_data(history),
+        capital_source=capital_source,
+        trading_settings={
+            "auto_budget_enabled": settings.auto_budget_enabled,
+            "autonomous_performance_enabled": settings.autonomous_performance_enabled,
+            "gap_fillers_enabled": settings.gap_fillers_enabled,
+        },
     )

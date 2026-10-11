@@ -36,6 +36,7 @@ from hixton.paper.models import PaperSettings
 from hixton.paper.storage import PaperStore
 from hixton.runtime.state import RuntimeSnapshot
 from hixton.runtime.supervisor import RuntimeSupervisor
+from hixton.ui.account_balance import AccountBalanceDisplay
 from hixton.ui.chart import RANGE_LABELS, build_chart_payload
 from hixton.ui.lifecycle import VisibleSession
 from hixton.ui.live import install_live_routes
@@ -475,6 +476,9 @@ def create_app(
         return response
 
     install_live_routes(app, config, supervisor, _origin_is_local, live_vault)
+    account_balance = AccountBalanceDisplay(
+        app.state.live_preparation.credentials, base_url=config.binance_base_url
+    )
     if session is not None:
         session.install(app)
 
@@ -497,6 +501,7 @@ def create_app(
             "strategy_profiles": supervisor.strategy.profiles_payload(),
             "runtime": runtime,
             "paper": paper,
+            "binance_balance": account_balance.read(),
             "activity": _activity_payload(supervisor, config, paper),
             "trading_settings": _trading_settings_payload(config, supervisor),
             "trading_limits": {
