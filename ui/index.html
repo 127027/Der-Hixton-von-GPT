@@ -151,7 +151,7 @@
                   <label>Maximaler USDC-Einsatz<input id="capital-input" type="number" min="100" max="1000000" step="1" value="250" required /></label>
                   <label><input id="auto-budget-input" type="checkbox" /> Bot alleine alles entscheiden lassen (verfügbare USDC, Positionsgröße und Spot-Trades)</label>
                   <p>Automatischer Kapitalmodus: Gewinne und Verluste verändern später die Grundlage neuer Ordergrößen; nur eigenes verwaltetes Vermögen, kein fremder Bestand. Bis zur Abnahme als Forschungsvormerkung gespeichert.</p>
-                  <label hidden><input id="performance-mode-input" type="checkbox" aria-hidden="true" tabindex="-1" /> Interne Spot-Performance-Einstellung (zusammen mit Automatikbudget)</label>
+                  <label hidden><input id="performance-mode-input" type="checkbox" aria-hidden="true" tabindex="-1" /> Interner Spot-Performance-Modus (synchron mit Automatikbudget)</label>
                   <p>Automatikmodus: ausschließlich 1× Spot ohne Margin, Futures oder Hebel. Ein Haken aktiviert im Paper-Konto Budget-Wiederanlage, selbstständige Trade-Auswahl und den stärkeren NEAR/BCH-Platzfüllerfilter. <strong>Für echtes Live bleibt diese Funktion bis zur separaten Qualitäts- und Kontoprüfung gesperrt.</strong> Der 50-USDC-Test und die ausdrückliche Live-Freigabe dürfen niemals automatisch erfolgen.</p>
                   <label><input id="gap-fillers-input" type="checkbox" checked /> Zwischenfüller mit Core-Vorrang (nur wenn alle zehn Core-Coins inaktiv sind)</label>
                   <label><input id="entry-pause-input" type="checkbox" /> Einstiegspause für neue Trades</label>
