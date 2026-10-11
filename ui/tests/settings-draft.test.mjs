@@ -24,6 +24,8 @@ test("simple form has one max-capital field and no editable slot/notional contro
   assert.doesNotMatch(html,/id="notional-input"/);
   assert.match(html,/id="settings-button"[^>]+>Übernehmen</);
   assert.match(html,/Maximaler USDC-Einsatz/);
+  assert.match(html,/id="auto-budget-input" type="checkbox"/);
+  assert.match(html,/Bot entscheidet selbst über das Budget/);
   assert.match(html,/1 × 50 USDC · Test freigeben/);
 });
 
@@ -57,4 +59,10 @@ test("failed save preserves edit and concurrent save cannot start",()=>{
 test("successful save permits polling again",()=>{
   const draft=new SettingsDraft();draft.edit();draft.beginSave();draft.finishSave(true);
   assert.equal(draft.acceptsPolling,true);
+});
+
+test("automatic budget choice is default OFF and marked research-only",()=>{
+  assert.equal(derivedDraft("1100",false,{...limits,max_capital_usdc:"1000000"}).auto_budget_enabled,false);
+  const html=readFileSync(new URL("../index.html",import.meta.url),"utf8");
+  assert.match(html,/noch nicht im Live-Handel freigegeben/);
 });

@@ -149,6 +149,8 @@
               <form id="trading-form" class="settings-form">
                 <div class="settings-fields">
                   <label>Maximaler USDC-Einsatz<input id="capital-input" type="number" min="100" max="1000000" step="1" value="250" required /></label>
+                  <label><input id="auto-budget-input" type="checkbox" /> Bot entscheidet selbst über das Budget (dynamisch nach Kontowert)</label>
+                  <p>Forschungsvormerkung: Diese Option ist speicherbar, aber <strong>noch nicht im Live-Handel freigegeben</strong>. Bis zur unabhängigen Sicherheitsprüfung sperrt Hixton damit neue Live-Einstiege. Später berücksichtigt der Modus nur das von Hixton verwaltete und tatsächlich verfügbare Kapital; Gewinne und Verluste ändern das Budget automatisch.</p>
                   <label><input id="gap-fillers-input" type="checkbox" checked /> Zwischenfüller mit Core-Vorrang (nur wenn alle zehn Core-Coins inaktiv sind)</label>
                   <label><input id="entry-pause-input" type="checkbox" /> Einstiegspause für neue Trades</label>
                 </div>
@@ -157,7 +159,7 @@
               </form>
               <p id="settings-saved">Einstellungen werden geladen …</p>
               <p id="settings-edit-state" role="status"></p>
-              <p>Du gibst nur das maximale Budget vor. Hixton leitet daraus automatisch die geprüfte ranked-repeat-Kapitalaufteilung ab und verteilt freie Tranchen auf die aktuell stärksten gültigen Signale der zehn Coins. Gilt gemeinsam für Portfolio-Backtest, Paper und später Live.</p>
+              <p>Bei ausgeschaltetem Automatik-Haken gilt das fest gespeicherte Maximalbudget. Der automatische Modus ist derzeit eine sichere Forschungsvormerkung und aktiviert keine Live-Orders. Die spätere Freigabe der dynamischen Verwaltung erfordert getrennte Tests von Kontosaldo, offenen Bot-Positionen und Risikolimits.</p>
             </article>
 
             <article class="settings-card">

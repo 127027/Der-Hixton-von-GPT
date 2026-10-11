@@ -59,6 +59,8 @@ def _settings_payload(
         "allocator_version": ALLOCATOR_VERSION,
         "emergency_stop": settings.emergency_stop,
         "gap_fillers_enabled": settings.gap_fillers_enabled,
+        "auto_budget_enabled": settings.auto_budget_enabled,
+        "auto_budget_live_available": False,
     }
 
 
@@ -582,6 +584,7 @@ def create_app(
                 max_capital_usdc=Decimal(str(payload["max_capital_usdc"])),
                 emergency_stop=payload.get("emergency_stop", False),
                 gap_fillers_enabled=payload.get("gap_fillers_enabled", True),
+                auto_budget_enabled=payload.get("auto_budget_enabled", False),
             )
         except (KeyError, TypeError, ValueError, InvalidOperation):
             raise HTTPException(

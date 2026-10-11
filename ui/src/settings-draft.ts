@@ -8,6 +8,8 @@ export interface TradingSettings {
   allocator_version: string;
   emergency_stop: boolean;
   gap_fillers_enabled?: boolean;
+  auto_budget_enabled?: boolean;
+  auto_budget_live_available?: boolean;
 }
 
 export interface TradingLimits {
@@ -58,6 +60,7 @@ export function derivedDraft(
     allocation_policy: "ranked_repeat",
     allocator_version: limits.allocator_version,
     emergency_stop: emergencyStop,
+    auto_budget_enabled: false,
   };
 }
 
@@ -69,6 +72,7 @@ export function describeSettings(value: TradingSettings): string {
   return "Max. " + formatBudget(value.max_capital_usdc) + " USDC → automatisch "
     + value.slot_count + " × " + formatBudget(value.target_notional_usdc)
     + " USDC · " + value.allocation_policy + reserveText
+    + (value.auto_budget_enabled ? " · Automatikbudget vorgemerkt (Live gesperrt)" : " · festes Budget")
     + (value.gap_fillers_enabled === false ? " · Zwischenfüller AUS" : " · Zwischenfüller mit Core-Vorrang")
     + (value.emergency_stop ? " · Einstiegssperre aktiv" : "");
 }
@@ -88,6 +92,9 @@ export function describeLivePlan(
       + ": " + describeSettings(draft) + ". "
       + (settingsProblem(draft, limits)
         ?? "Erst Übernehmen klicken, bevor Live angefordert wird.");
+  if (saved.auto_budget_enabled && saved.auto_budget_live_available !== true)
+    return active + " Die dynamische Kapitalverwaltung ist vorgemerkt. "
+      + "Live-Aktivierung ist für diesen Modus noch gesperrt; es werden keine automatischen Budget-Orders ausgelöst.";
   const reference = Number(limits.research_reference_max_usdc ?? "NaN");
   const selected = Number(saved.max_capital_usdc);
   const scaleNote = Number.isFinite(reference) && Number.isFinite(selected) && selected > reference
