@@ -298,7 +298,7 @@ jobs:
             '2. Startbot.bat starten. Python 3.12 + Internet benoetigt.\n'
             '3. Erste Demo startet mit 1100 USDC VIRTUELLEM PAPER-KONTO.\n'
             '4. Einstellungen: Haken Budgetautomatik + Spot-Performance setzen und Uebernehmen.\n'
-            '5. Der Bot verwendet Paper-Equity fuer kuenftige Einstiege und maximal 4 Slots.\n'
+            '5. Der Bot verwendet Paper-Equity; zwei Referenz-Slots bleiben aktiv.\n'
             '6. ECHTGELD IST fuer diese Modi SERVERSEITIG GESPERRT.\n'
             '7. AAVE und schwache NEAR/BCH Filler werden NUR im Paper-Forschungsmodus blockiert.\n'
             '8. 3-Jahres-Simulation + A01-A11-Belege im evidence/-Ordner.\n'
