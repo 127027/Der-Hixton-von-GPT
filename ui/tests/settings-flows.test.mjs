@@ -364,3 +364,20 @@ test("automatic-budget gate blocks continuous live but permits exactly one expli
     assert.match(settings.liveBlocker("trial"),/Übernehmen/);
   } finally {live.dispose();ui.restore();}
 });
+
+
+test("overview distinguishes an armed real trial from an actual buy and disabled live slots",async()=>{
+  const mock=mockLive(); mock.state.live={state:"LIVE_DISABLED",used_slots:0,free_slots:2};
+  mock.state.trial={state:"WAITING_SIGNAL"};
+  const ui=harness(mock.fetcher),live=initializeLivePreparation(()=>null);
+  try {
+    await live.refresh();
+    assert.match(ui.node("real-trial-status").textContent,/Scharf.*noch kein Test-Kauf/);
+    assert.equal(ui.node("real-live-slots").textContent,"2");
+    assert.match(ui.node("real-live-slots-detail").textContent,/Dauer-Live aus.*Einmaltest separat/);
+    mock.state.trial={state:"OPEN",symbol:"ADAUSDC"};await live.refresh();
+    assert.match(ui.node("real-trial-status").textContent,/Kauf bestätigt.*ADAUSDC/);
+    mock.state.trial={state:"EXIT_PENDING"};await live.refresh();
+    assert.match(ui.node("real-trial-status").textContent,/Abschluss noch nicht bestätigt/);
+  } finally {live.dispose();ui.restore();}
+});

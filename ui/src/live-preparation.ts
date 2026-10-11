@@ -23,6 +23,7 @@ interface LiveStatus {
     open_order_count?: number;
   } | null;
   trial?: {state: string; symbol?: string};
+  live?: {state: string; used_slots: number; free_slots: number; slot_count?: number};
 }
 
 function element<T extends HTMLElement>(id: string): T {
@@ -97,6 +98,23 @@ export function initializeLivePreparation(sharedSettingsBlocker: (mode?: "live" 
         ? "Binance-Zugangsschlüssel lokal gespeichert."
         : "Noch kein Binance-Zugangsschlüssel gespeichert.",
     );
+    const trialState = status.trial?.state ?? "NOT_STARTED";
+    const trialLabels: Record<string, string> = {
+      NOT_STARTED: "Nicht freigegeben; noch kein Test-Kauf.",
+      WAITING_SIGNAL: "Scharf · wartet auf ein neues Signal; noch kein Test-Kauf.",
+      ENTRY_PENDING: "Kauf in Übermittlung oder Abgleich; Ausführung noch nicht bestätigt.",
+      OPEN: "Offen · Kauf bestätigt; wartet auf den regulären Strategie-Ausstieg.",
+      EXIT_PENDING: "Verkauf in Übermittlung oder Abgleich; Abschluss noch nicht bestätigt.",
+      COMPLETED: "Abgeschlossen; Kauf/Verkauf und Kontenabgleich im Bericht prüfen.",
+      CANCELED: "Abgebrochen; kein bestandener regulärer Testabschluss.",
+      NEEDS_REVIEW: "Ungeklärt · Bericht prüfen; keine weiteren Einstiege freigeben.",
+    };
+    message("real-trial-status", `50-USDC-Einmaltest: ${trialLabels[trialState] ?? trialState}${status.trial?.symbol ? " · " + status.trial.symbol : ""}`);
+    const live = status.live;
+    message("real-live-slots", live ? String(live.free_slots) : "—");
+    message("real-live-slots-detail", live
+      ? `von ${live.slot_count ?? live.used_slots + live.free_slots} · ${live.state === "LIVE_DISABLED" ? "Dauer-Live aus" : live.state}. Einmaltest separat.`
+      : "Dauer-Live-Slots noch nicht bestätigt.");
     const trialReason = (status.trial_blockers ?? []).join(" · ");
     const healthWait = status.trial_order_execution_blocked_by_health
       ? " Order-Ausführung derzeit blockiert: Warmup/Marktdaten sind noch nicht HEALTHY. "
@@ -156,6 +174,9 @@ export function initializeLivePreparation(sharedSettingsBlocker: (mode?: "live" 
         element("live-auth-panel").classList.remove("hidden");
         message("live-auth-result", "Verbindung zum Bot fehlt. Bitte erneut versuchen; Zugang bleibt gesperrt.");
         message("live-state", "Status unbekannt · keine Echtgeldfreigabe");
+        message("real-trial-status", "Echtgeldtest: Verbindung unterbrochen; Zustand nicht bestätigt.");
+        message("real-live-slots", "—");
+        message("real-live-slots-detail", "Live-Zustand nicht bestätigt.");
       }
       return false;
     }
