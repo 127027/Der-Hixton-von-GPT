@@ -13,6 +13,10 @@ from hixton.constants import HIXTON_SPEC_VERSION
 from hixton.domain.allocation import ONE_PER_SYMBOL, allocate_entry_slots
 from hixton.domain.models import Candle, IndicatorPoint, Signal, SignalAction
 from hixton.domain.risk import PortfolioRiskState, evaluate_portfolio_risk
+from hixton.domain.spot_autonomy import (
+    marked_portfolio_equity, quality_filler_block_reason,
+    research_slot_allocations, size_spot_entry,
+)
 from hixton.domain.satellite_layer import (
     satellite_handoff_symbols,
     shared_satellite_entry_block_reason,
@@ -353,6 +357,10 @@ def process_new_closed_points(
                         signal.symbol,
                         point,
                     )
+                    if satellite_reason is None and settings.autonomous_performance_enabled:
+                        satellite_reason = quality_filler_block_reason(
+                            signal.symbol, point.abs_cmo
+                        )
                     if satellite_reason is not None:
                         emitted.append(_blocked_event(signal, satellite_reason))
                         continue
@@ -446,15 +454,22 @@ def process_new_closed_points(
 
             used_slots = sum(position.slot_count for position in positions.values())
             free_slots = max(0, settings.slot_count - used_slots)
-            allocations = allocate_entry_slots(
-                [signal.symbol for signal, _point in candidates],
-                free_slots=free_slots,
-                policy=(
-                    ONE_PER_SYMBOL
-                    if satellite_symbols and not core_candidates
-                    else effective_allocation
-                ),
-            )
+            if settings.autonomous_performance_enabled and settings.slot_count > 2:
+                allocations = research_slot_allocations(
+                    [(signal.symbol, signal.breakout_strength) for signal, _ in candidates],
+                    free_slots=free_slots,
+                    satellite_symbols=satellite_symbols,
+                )
+            else:
+                allocations = allocate_entry_slots(
+                    [signal.symbol for signal, _point in candidates],
+                    free_slots=free_slots,
+                    policy=(
+                        ONE_PER_SYMBOL
+                        if satellite_symbols and not core_candidates
+                        else effective_allocation
+                    ),
+                )
             for signal, point in candidates:
                 if settings.emergency_stop:
                     emitted.append(_blocked_event(signal, "EMERGENCY_STOP"))
@@ -472,10 +487,27 @@ def process_new_closed_points(
                     emitted.append(_blocked_event(signal, "NO_FREE_SLOT"))
                     continue
                 rules = rules_by_symbol[signal.symbol]
-                budget = min(
-                    settings.target_notional_usdc * Decimal(allocated_slots),
-                    account.cash_usdc,
-                )
+                if settings.auto_budget_enabled:
+                    execution_marks = {
+                        symbol: _d(candle.open) for symbol, candle in fill_candles.items()
+                    }
+                    managed_equity = marked_portfolio_equity(
+                        free_quote=account.cash_usdc,
+                        base_quantities={sym: p.quantity for sym, p in positions.items()},
+                        dust_quantities=dust,
+                        open_prices=execution_marks,
+                    )
+                    budget = size_spot_entry(
+                        equity=managed_equity,
+                        free_quote=account.cash_usdc,
+                        slots=settings.slot_count,
+                        allocated_slots=allocated_slots,
+                    )
+                else:
+                    budget = min(
+                        settings.target_notional_usdc * Decimal(allocated_slots),
+                        account.cash_usdc,
+                    )
                 reference = _d(fill_candles[signal.symbol].open)
                 fill_price = reference * (ONE + BASELINE_COSTS.adverse_price_rate)
                 gross_quantity = _round_down(budget / fill_price, rules.step_size)

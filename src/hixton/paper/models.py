@@ -57,6 +57,8 @@ class PaperSettings:
 
     @property
     def slot_count(self) -> int:
+        # A02 3Y research: three/four slots regressed strongly on profit.
+        # Keep the financially stronger two-slot capital allocator in Paper.
         return self.plan.slot_count
 
     @property

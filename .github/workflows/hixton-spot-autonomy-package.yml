@@ -1,0 +1,336 @@
+name: Hixton Spot Autonomy A01-A11 Paper Package
+
+on:
+  push:
+    branches: [codex/hixton-autonomous-spot-paper-20261011]
+    paths:
+      - .github/workflows/hixton-spot-autonomy-package.yml
+      - src/**
+      - ui/**
+      - tests/**
+      - scripts/research_actual_spot_autonomy_20261011.py
+      - scripts/spot_autonomy_agent_review.py
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: hixton-autonomy-paper-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  product-tests:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install isolated project
+        run: |
+          python -m venv .venv
+          .venv/bin/pip install -e '.[dev]'
+      - name: Full Paper/core/reconciliation test suite
+        run: |
+          set -euo pipefail
+          .venv/bin/python -m pytest -q \
+            tests/test_spot_autonomy_core.py \
+            tests/test_auto_budget_preference.py \
+            tests/test_autonomous_performance_preference.py \
+            tests/test_current_v6_product_contract.py \
+            tests/test_v8_product_backtest.py \
+            tests/test_paper_engine.py \
+            tests/test_paper_slot_parity.py \
+            tests/test_live_submission_gates.py \
+            tests/test_live_production.py \
+            tests/test_ui_api.py
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Verify interactive UI, types and build
+        working-directory: ui
+        run: |
+          set -euo pipefail
+          npm ci
+          npm run check
+          npm test
+          npm run build
+      - name: Verify no leverage code accepted
+        run: |
+          set -euo pipefail
+          .venv/bin/python - <<'PY'
+          from pathlib import Path
+          p=Path('ui/index.html').read_text()
+          assert 'ausschließlich 1× Spot' in p
+          assert 'Bot entscheidet selbst' in p
+          from hixton.paper.models import PaperSettings
+          assert not PaperSettings().auto_budget_enabled
+          assert not PaperSettings().autonomous_performance_enabled
+          PY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: spot-ui-built-${{ github.run_id }}
+          path: src/hixton/ui/static/
+          retention-days: 30
+
+  historical:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 110
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: |
+          python -m venv .venv
+          .venv/bin/pip install -e '.[dev]'
+      - uses: actions/cache@v4
+        id: cache
+        with:
+          path: data/
+          key: hixton-keyfree-public-15-20261010-19-v1
+      - name: A07 public history (only when cache unavailable)
+        if: steps.cache.outputs.cache-hit != 'true'
+        run: |
+          set -euo pipefail
+          mkdir -p evidence
+          .venv/bin/python - <<'PY' | tee evidence/data-sync.log
+          from datetime import UTC,datetime,timedelta
+          from pathlib import Path
+          from hixton.domain.versions import strategy_definition
+          from hixton.data.binance import BinancePublicClient
+          from hixton.data.storage import CandleStore
+          from hixton.data.sync import synchronize_symbol
+          end=datetime(2026,10,10,19,tzinfo=UTC)
+          start=end.replace(year=end.year-3)-timedelta(hours=400)
+          api=BinancePublicClient(base_url='https://data-api.binance.vision')
+          with CandleStore(Path('data/hixton-usdc.sqlite3')) as db:
+            for s in strategy_definition('v8').symbols:
+              first=api.first_available_open(s,start=start,end_exclusive=end)
+              report=synchronize_symbol(client=api,store=db,symbol=s,start=first,end_exclusive=end)
+              print(s,first.isoformat(),report.quality.candle_count,flush=True)
+          PY
+      - name: A02 real three-year V8 Spot compounding simulation
+        run: |
+          set -euo pipefail
+          mkdir -p evidence
+          .venv/bin/python scripts/research_actual_spot_autonomy_20261011.py \
+            --end 2026-10-10T19:00:00Z \
+            --output evidence/spot-autonomy-three-year.json \
+            | tee evidence/simulation.log
+      - uses: actions/upload-artifact@v4
+        with:
+          name: spot-historical-${{ github.run_id }}
+          path: evidence/
+          retention-days: 30
+
+  specialists:
+    needs: [product-tests, historical]
+    strategy:
+      fail-fast: false
+      matrix:
+        agent: [A01, A02, A03, A04, A05, A06, A07, A08]
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: |
+          python -m venv .venv
+          .venv/bin/pip install -e '.[dev]'
+      - uses: actions/download-artifact@v4
+        with:
+          name: spot-historical-${{ github.run_id }}
+          path: evidence/agent-round/
+      - name: Execute real deterministic specialist role
+        run: |
+          set -euo pipefail
+          .venv/bin/python scripts/spot_autonomy_agent_review.py \
+            --role ${{ matrix.agent }} --evidence-dir evidence/agent-round
+        env:
+          PYTHONPATH: src
+      - uses: actions/upload-artifact@v4
+        with:
+          name: spot-role-${{ matrix.agent }}-${{ github.run_id }}
+          path: evidence/agent-round/${{ matrix.agent }}.json
+          retention-days: 30
+
+  supervisor:
+    needs: specialists
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: spot-role-*-${{ github.run_id }}
+          path: evidence/agent-round/
+          merge-multiple: true
+      - name: A10 exact-head route and completeness audit
+        run: |
+          PYTHONPATH=src python scripts/spot_autonomy_agent_review.py --role A10 --evidence-dir evidence/agent-round
+      - uses: actions/upload-artifact@v4
+        with:
+          name: spot-role-A10-${{ github.run_id }}
+          path: evidence/agent-round/A10.json
+
+  qa:
+    needs: [supervisor, historical]
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: spot-role-*-${{ github.run_id }}
+          path: evidence/agent-round/
+          merge-multiple: true
+      - uses: actions/download-artifact@v4
+        with:
+          name: spot-historical-${{ github.run_id }}
+          path: evidence/agent-round/
+      - name: A09 verify all role evidence and historical truth gate
+        run: |
+          PYTHONPATH=src python scripts/spot_autonomy_agent_review.py --role A09 --evidence-dir evidence/agent-round
+      - uses: actions/upload-artifact@v4
+        with:
+          name: spot-role-A09-${{ github.run_id }}
+          path: evidence/agent-round/A09.json
+
+  governance:
+    needs: qa
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: spot-role-*-${{ github.run_id }}
+          path: evidence/agent-round/
+          merge-multiple: true
+      - name: A11 final no-secrets and no-Live audit for Paper package only
+        run: |
+          PYTHONPATH=src python scripts/spot_autonomy_agent_review.py --role A11 --evidence-dir evidence/agent-round
+      - uses: actions/upload-artifact@v4
+        with:
+          name: spot-role-A11-${{ github.run_id }}
+          path: evidence/agent-round/A11.json
+
+  package:
+    needs: [product-tests, historical, governance]
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/download-artifact@v4
+        with:
+          name: spot-ui-built-${{ github.run_id }}
+          path: src/hixton/ui/static/
+      - uses: actions/download-artifact@v4
+        with:
+          name: spot-historical-${{ github.run_id }}
+          path: output-evidence/
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: spot-role-*-${{ github.run_id }}
+          path: output-evidence/agent-reports/
+          merge-multiple: true
+      - name: Build isolated, runnable Windows PAPER test package
+        run: |
+          set -euo pipefail
+          mkdir -p dist
+          python - <<'PY'
+          from pathlib import Path
+          from datetime import UTC,datetime
+          import hashlib,json,subprocess,zipfile
+          root=Path('.');sha=subprocess.check_output(['git','rev-parse','HEAD'],text=True).strip()
+          report=Path('output-evidence/agent-reports/A11.json')
+          a11=json.loads(report.read_text())
+          assert a11['state']=='PASS' and a11['commit']==sha
+          path=Path('dist/Hixton_V8_Spot_Autonomy_PAPER_TEST.zip')
+          include_dirs=('src','scripts','config','ui','DMS','strategy','docs')
+          include_roots=('Startbot.bat','README.md','LAPTOP_START_HIER.md','pyproject.toml','AGENTS.md')
+          exclude_names={'.git','.venv','node_modules','__pycache__','.pytest_cache','data','runtime_state','downloads'}
+          contents={}
+          for d in include_dirs:
+            for file in (root/d).rglob('*'):
+              if not file.is_file() or any(p in exclude_names for p in file.parts):
+                continue
+              if file.suffix in ('.pyc','.sqlite3','.db','.zip','.log','.env'):
+                continue
+              contents[file.as_posix()]=file.read_bytes()
+          for p in include_roots:
+            contents[p]=(root/p).read_bytes()
+          config_path='config/examples/config.example.json'
+          c=json.loads(contents[config_path])
+          # Paper demo wallet starts with a simulated 1,100 USDC; does not
+          # query Binance or modify any pre-existing local user database.
+          c['paper']['starting_cash_usdc']='1100.00'
+          c['paper']['max_capital_usdc']='1100.00'
+          contents[config_path]=(json.dumps(c,indent=2,ensure_ascii=False)+'\n').encode()
+          contents['PAPER_TEST_START_HIER.txt']=(
+            'HIXTON V8 PAPER-TEST (KEIN LIVE-RELEASE)\n'
+            '1. ZIP vollstaendig in einen NEUEN ORDNER entpacken.\n'
+            '2. Startbot.bat starten. Python 3.12 + Internet benoetigt.\n'
+            '3. Erste Demo startet mit 1100 USDC VIRTUELLEM PAPER-KONTO.\n'
+            '4. Einstellungen: Haken Budgetautomatik + Spot-Performance setzen und Uebernehmen.\n'
+            '5. Der Bot verwendet Paper-Equity; zwei Referenz-Slots bleiben aktiv.\n'
+            '6. ECHTGELD IST fuer diese Modi SERVERSEITIG GESPERRT.\n'
+            '7. AAVE und schwache NEAR/BCH Filler werden NUR im Paper-Forschungsmodus blockiert.\n'
+            '8. 3-Jahres-Simulation + A01-A11-Belege im evidence/-Ordner.\n'
+            '9. Bereits vorhandene Papierdaten nicht in diesen Ordner kopieren.\n'
+            '10. Vor Echtgeldeinsatz ist ein separater Release mit Account-Abgleich Pflicht.\n'
+            'Keine Binance-Keys in GitHub oder Chat kopieren.\n'
+          ).encode()
+          for file in Path('output-evidence').rglob('*'):
+            if file.is_file(): contents['evidence/'+file.relative_to('output-evidence').as_posix()]=file.read_bytes()
+          manifest={
+            'package_kind':'RESEARCH_PAPER_TEST_ONLY',
+            'source_commit':sha,
+            'built_utc':datetime.now(UTC).isoformat(),
+            'starting_paper_usdc':'1100.00',
+            'auto_live_enable':False,
+            'spot_only':True,'leverage':False,
+            'agent_gate':'A01-A11 deterministic research/test audit only; NOT real-money approval',
+            'file_count':len(contents)
+          }
+          contents['PAPER_TEST_MANIFEST.json']=(json.dumps(manifest,indent=2)+'\n').encode()
+          with zipfile.ZipFile(path,'w',compression=zipfile.ZIP_DEFLATED,compresslevel=6) as z:
+            for name,payload in sorted(contents.items()): z.writestr(name,payload)
+          with zipfile.ZipFile(path) as z:
+            assert z.testzip() is None
+            assert b'1100.00' in z.read(config_path)
+            assert 'src/hixton/ui/static/index.html' in z.namelist()
+            assert 'src/hixton/domain/spot_autonomy.py' in z.namelist()
+          print(path,'bytes',path.stat().st_size,'files',len(contents),'sha256',hashlib.sha256(path.read_bytes()).hexdigest())
+          PY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: hixton-v8-spot-autonomy-PAPER-TEST-${{ github.run_id }}
+          path: dist/Hixton_V8_Spot_Autonomy_PAPER_TEST.zip
+          retention-days: 30
+          if-no-files-found: error
