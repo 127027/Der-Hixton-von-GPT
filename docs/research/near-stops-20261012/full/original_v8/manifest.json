@@ -1,0 +1,706 @@
+{
+  "artifacts": [
+    "metrics.json",
+    "trades.csv",
+    "equity.csv",
+    "report.html"
+  ],
+  "backtest_version": "v8",
+  "cost_models": {
+    "current": {
+      "fee_bps_per_side": "10",
+      "name": "current",
+      "slippage_bps_per_side": "3",
+      "spread_bps_per_side": "2"
+    },
+    "stress": {
+      "fee_bps_per_side": "10",
+      "name": "stress",
+      "slippage_bps_per_side": "20",
+      "spread_bps_per_side": "10"
+    }
+  },
+  "created_at_utc": "2026-10-12T16:40:32.892923+00:00",
+  "data": {
+    "historical_usdc_liquidity_claimed": false,
+    "history_mode": "THREE_YEAR_SCHEMA_F_CONTINUITY",
+    "market_proxy_quote": "USDT",
+    "note": "Ein durchgehender Backtest der aktiven USDC-Strategie. Vorhandene USDC-Kerzen werden verwendet; historische USDT-Kerzen ergänzen ausschließlich fehlende ältere Historie, sofern native_usdc_candle_count dokumentiert ist. Strategie, Konto, Risiko, Kosten und aktuelle USDC-Ausfuehrungsregeln bleiben unveraendert.",
+    "orders_sent": false,
+    "paper_state_modified": false,
+    "provenance_by_symbol": {
+      "AAVEUSDC": {
+        "candle_count": 26704,
+        "execution_rules_from": "AAVEUSDC",
+        "first_open_utc": "2023-09-25T03:00:00+00:00",
+        "last_open_utc": "2026-10-11T18:00:00+00:00",
+        "market_proxy": "AAVEUSDT",
+        "native_usdc_candle_count": 18419,
+        "native_usdc_first_open_utc": "2024-09-04T08:00:00+00:00",
+        "proxy_candle_count": 8285,
+        "proxy_end_exclusive_utc": "2024-09-04T08:00:00+00:00",
+        "proxy_quote": "USDT",
+        "target_market": "AAVEUSDC",
+        "target_quote": "USDC"
+      },
+      "ADAUSDC": {
+        "candle_count": 26704,
+        "execution_rules_from": "ADAUSDC",
+        "first_open_utc": "2023-09-25T03:00:00+00:00",
+        "last_open_utc": "2026-10-11T18:00:00+00:00",
+        "market_proxy": "ADAUSDT",
+        "native_usdc_candle_count": 24443,
+        "native_usdc_first_open_utc": "2023-12-28T08:00:00+00:00",
+        "proxy_candle_count": 2261,
+        "proxy_end_exclusive_utc": "2023-12-28T08:00:00+00:00",
+        "proxy_quote": "USDT",
+        "target_market": "ADAUSDC",
+        "target_quote": "USDC"
+      },
+      "AVAXUSDC": {
+        "candle_count": 26704,
+        "execution_rules_from": "AVAXUSDC",
+        "first_open_utc": "2023-09-25T03:00:00+00:00",
+        "last_open_utc": "2026-10-11T18:00:00+00:00",
+        "market_proxy": "AVAXUSDT",
+        "native_usdc_candle_count": 24443,
+        "native_usdc_first_open_utc": "2023-12-28T08:00:00+00:00",
+        "proxy_candle_count": 2261,
+        "proxy_end_exclusive_utc": "2023-12-28T08:00:00+00:00",
+        "proxy_quote": "USDT",
+        "target_market": "AVAXUSDC",
+        "target_quote": "USDC"
+      },
+      "BCHUSDC": {
+        "candle_count": 26704,
+        "execution_rules_from": "BCHUSDC",
+        "first_open_utc": "2023-09-25T03:00:00+00:00",
+        "last_open_utc": "2026-10-11T18:00:00+00:00",
+        "market_proxy": "BCHUSDT",
+        "native_usdc_candle_count": 22115,
+        "native_usdc_first_open_utc": "2024-04-03T08:00:00+00:00",
+        "proxy_candle_count": 4589,
+        "proxy_end_exclusive_utc": "2024-04-03T08:00:00+00:00",
+        "proxy_quote": "USDT",
+        "target_market": "BCHUSDC",
+        "target_quote": "USDC"
+      },
+      "BNBUSDC": {
+        "candle_count": 26704,
+        "execution_rules_from": "BNBUSDC",
+        "first_open_utc": "2023-09-25T03:00:00+00:00",
+        "last_open_utc": "2026-10-11T18:00:00+00:00",
+        "market_proxy": "BNBUSDT",
+        "native_usdc_candle_count": 26704,
+        "native_usdc_first_open_utc": "2023-09-25T03:00:00+00:00",
+        "proxy_candle_count": 0,
+        "proxy_end_exclusive_utc": null,
+        "proxy_quote": "USDT",
+        "target_market": "BNBUSDC",
+        "target_quote": "USDC"
+      },
+      "BTCUSDC": {
+        "candle_count": 26704,
+        "execution_rules_from": "BTCUSDC",
+        "first_open_utc": "2023-09-25T03:00:00+00:00",
+        "last_open_utc": "2026-10-11T18:00:00+00:00",
+        "market_proxy": "BTCUSDT",
+        "native_usdc_candle_count": 26704,
+        "native_usdc_first_open_utc": "2023-09-25T03:00:00+00:00",
+        "proxy_candle_count": 0,
+        "proxy_end_exclusive_utc": null,
+        "proxy_quote": "USDT",
+        "target_market": "BTCUSDC",
+        "target_quote": "USDC"
+      },
+      "DOGEUSDC": {
+        "candle_count": 26704,
+        "execution_rules_from": "DOGEUSDC",
+        "first_open_utc": "2023-09-25T03:00:00+00:00",
+        "last_open_utc": "2026-10-11T18:00:00+00:00",
+        "market_proxy": "DOGEUSDT",
+        "native_usdc_candle_count": 22763,
+        "native_usdc_first_open_utc": "2024-03-07T08:00:00+00:00",
+        "proxy_candle_count": 3941,
+        "proxy_end_exclusive_utc": "2024-03-07T08:00:00+00:00",
+        "proxy_quote": "USDT",
+        "target_market": "DOGEUSDC",
+        "target_quote": "USDC"
+      },
+      "DOTUSDC": {
+        "candle_count": 26704,
+        "execution_rules_from": "DOTUSDC",
+        "first_open_utc": "2023-09-25T03:00:00+00:00",
+        "last_open_utc": "2026-10-11T18:00:00+00:00",
+        "market_proxy": "DOTUSDT",
+        "native_usdc_candle_count": 24443,
+        "native_usdc_first_open_utc": "2023-12-28T08:00:00+00:00",
+        "proxy_candle_count": 2261,
+        "proxy_end_exclusive_utc": "2023-12-28T08:00:00+00:00",
+        "proxy_quote": "USDT",
+        "target_market": "DOTUSDC",
+        "target_quote": "USDC"
+      },
+      "ETHUSDC": {
+        "candle_count": 26704,
+        "execution_rules_from": "ETHUSDC",
+        "first_open_utc": "2023-09-25T03:00:00+00:00",
+        "last_open_utc": "2026-10-11T18:00:00+00:00",
+        "market_proxy": "ETHUSDT",
+        "native_usdc_candle_count": 26704,
+        "native_usdc_first_open_utc": "2023-09-25T03:00:00+00:00",
+        "proxy_candle_count": 0,
+        "proxy_end_exclusive_utc": null,
+        "proxy_quote": "USDT",
+        "target_market": "ETHUSDC",
+        "target_quote": "USDC"
+      },
+      "LINKUSDC": {
+        "candle_count": 26704,
+        "execution_rules_from": "LINKUSDC",
+        "first_open_utc": "2023-09-25T03:00:00+00:00",
+        "last_open_utc": "2026-10-11T18:00:00+00:00",
+        "market_proxy": "LINKUSDT",
+        "native_usdc_candle_count": 23795,
+        "native_usdc_first_open_utc": "2024-01-24T08:00:00+00:00",
+        "proxy_candle_count": 2909,
+        "proxy_end_exclusive_utc": "2024-01-24T08:00:00+00:00",
+        "proxy_quote": "USDT",
+        "target_market": "LINKUSDC",
+        "target_quote": "USDC"
+      },
+      "NEARUSDC": {
+        "candle_count": 26704,
+        "execution_rules_from": "NEARUSDC",
+        "first_open_utc": "2023-09-25T03:00:00+00:00",
+        "last_open_utc": "2026-10-11T18:00:00+00:00",
+        "market_proxy": "NEARUSDT",
+        "native_usdc_candle_count": 22619,
+        "native_usdc_first_open_utc": "2024-03-13T08:00:00+00:00",
+        "proxy_candle_count": 4085,
+        "proxy_end_exclusive_utc": "2024-03-13T08:00:00+00:00",
+        "proxy_quote": "USDT",
+        "target_market": "NEARUSDC",
+        "target_quote": "USDC"
+      },
+      "SOLUSDC": {
+        "candle_count": 26704,
+        "execution_rules_from": "SOLUSDC",
+        "first_open_utc": "2023-09-25T03:00:00+00:00",
+        "last_open_utc": "2026-10-11T18:00:00+00:00",
+        "market_proxy": "SOLUSDT",
+        "native_usdc_candle_count": 24443,
+        "native_usdc_first_open_utc": "2023-12-28T08:00:00+00:00",
+        "proxy_candle_count": 2261,
+        "proxy_end_exclusive_utc": "2023-12-28T08:00:00+00:00",
+        "proxy_quote": "USDT",
+        "target_market": "SOLUSDC",
+        "target_quote": "USDC"
+      },
+      "SUIUSDC": {
+        "candle_count": 26704,
+        "execution_rules_from": "SUIUSDC",
+        "first_open_utc": "2023-09-25T03:00:00+00:00",
+        "last_open_utc": "2026-10-11T18:00:00+00:00",
+        "market_proxy": "SUIUSDT",
+        "native_usdc_candle_count": 23915,
+        "native_usdc_first_open_utc": "2024-01-19T08:00:00+00:00",
+        "proxy_candle_count": 2789,
+        "proxy_end_exclusive_utc": "2024-01-19T08:00:00+00:00",
+        "proxy_quote": "USDT",
+        "target_market": "SUIUSDC",
+        "target_quote": "USDC"
+      },
+      "UNIUSDC": {
+        "candle_count": 26704,
+        "execution_rules_from": "UNIUSDC",
+        "first_open_utc": "2023-09-25T03:00:00+00:00",
+        "last_open_utc": "2026-10-11T18:00:00+00:00",
+        "market_proxy": "UNIUSDT",
+        "native_usdc_candle_count": 22955,
+        "native_usdc_first_open_utc": "2024-02-28T08:00:00+00:00",
+        "proxy_candle_count": 3749,
+        "proxy_end_exclusive_utc": "2024-02-28T08:00:00+00:00",
+        "proxy_quote": "USDT",
+        "target_market": "UNIUSDC",
+        "target_quote": "USDC"
+      },
+      "XRPUSDC": {
+        "candle_count": 26704,
+        "execution_rules_from": "XRPUSDC",
+        "first_open_utc": "2023-09-25T03:00:00+00:00",
+        "last_open_utc": "2026-10-11T18:00:00+00:00",
+        "market_proxy": "XRPUSDT",
+        "native_usdc_candle_count": 24443,
+        "native_usdc_first_open_utc": "2023-12-28T08:00:00+00:00",
+        "proxy_candle_count": 2261,
+        "proxy_end_exclusive_utc": "2023-12-28T08:00:00+00:00",
+        "proxy_quote": "USDT",
+        "target_market": "XRPUSDC",
+        "target_quote": "USDC"
+      }
+    },
+    "provider": "binance_spot",
+    "proxy_scope": "HISTORICAL_MARKET_CANDLES_ONLY",
+    "purpose": "THREE_YEAR_STRATEGY_CONTINUITY",
+    "report_end_utc": "2026-10-11T19:00:00+00:00",
+    "report_start_utc": "2023-10-11T19:00:00+00:00",
+    "runtime_quote": "USDC",
+    "snapshot_sha256_by_symbol": {
+      "AAVEUSDC": "43054b755b19f938b01bf481edb3b1d1fa25a5c663327defddbe02dff772d14e",
+      "ADAUSDC": "ce376f25b665616a897d956356725a822cbdcfd2515913a0e97faf7f105c3f88",
+      "AVAXUSDC": "7a64047e15a9376a8bca141ee4135e9a9e8a917647bd01573e06603c947e1ed9",
+      "BCHUSDC": "9c88d50b66de70e37485f3599189da27965a75b144a6ff0d9c2247eb15f1bd6a",
+      "BNBUSDC": "492742f5071e9c52463ad37d9f6723a8a0cf64cb7eb43ecf884d6e381078d36f",
+      "BTCUSDC": "e26053620b96ceb2a2e6b2ecb909d64f97386294c7fe6e6aa72f96e1ee3fb153",
+      "DOGEUSDC": "ba3bc22b78e5b167dff592aba098f2489bfe3db3a9ad7b7c51ff94dea098f47d",
+      "DOTUSDC": "fb05c15917ad3b5fea6fe000c488b4d21adb41b8b53e413f6c66243387d9843c",
+      "ETHUSDC": "7c92fb5dc74b78be394685e85af330d5bc32060470fec53b79dbd05c8053711e",
+      "LINKUSDC": "7c87cb79101d38f405efd3a88765d1560b485f5b29410c7c0f9d92c64075dffb",
+      "NEARUSDC": "3f01c52b4e8e8a5cadb9040550474327ab8b11190937b85c3be7268ec14e85e8",
+      "SOLUSDC": "bc1f9ae8921d667cad1e88a6c1fa6d4c6d898f2ccd389d41d616a9bc70908286",
+      "SUIUSDC": "aecb1443c57ea969bf25a39e22a6c4bb38c09f8f357b2694ef73904cff54887f",
+      "UNIUSDC": "44aaeda86fe2334597e5beb204adef699c50bd8d17e38d49bb012c88a14b6a57",
+      "XRPUSDC": "3cd181fce45deb3578f982ab3d0e96ea7edcb9aaa112a522d9b421aabb39c1a6"
+    },
+    "timeframe": "1h"
+  },
+  "quote_asset": "USDC",
+  "run_id": "79347afe-23fe-4fb8-b89e-caea4f526eb2",
+  "run_mode": "portfolio",
+  "scenarios": [
+    "current",
+    "stress"
+  ],
+  "schema_version": 1,
+  "status": "VALID",
+  "strategy": {
+    "active_shared_satellites": [
+      "NEARUSDC",
+      "AAVEUSDC",
+      "BCHUSDC"
+    ],
+    "code_commit": "RESEARCH_NO_PROMOTION",
+    "config_sha256": "a52a4d895e015ad3d19a74c48cc4633d61da11f549fce1f6aefec566b00c2645",
+    "paper_approved": true,
+    "parameters": null,
+    "profiles": {
+      "AAVEUSDC": {
+        "parameters": {
+          "atr_length": 200,
+          "band_multiplier": 2.0,
+          "momentum_length": 12,
+          "smoothing_length": 15,
+          "vidya_length": 10,
+          "warmup_bars": 400
+        },
+        "trade_policy": {
+          "cmo_floor": 0.3,
+          "slope_bars": 0,
+          "stop_atr": 2.0,
+          "trail_atr": 0
+        }
+      },
+      "ADAUSDC": {
+        "parameters": {
+          "atr_length": 60,
+          "band_multiplier": 4.4,
+          "momentum_length": 20,
+          "smoothing_length": 8,
+          "vidya_length": 8,
+          "warmup_bars": 400
+        },
+        "trade_policy": {
+          "cmo_floor": 0,
+          "slope_bars": 0,
+          "stop_atr": 0,
+          "trail_atr": 0
+        }
+      },
+      "AVAXUSDC": {
+        "parameters": {
+          "atr_length": 90,
+          "band_multiplier": 5.5,
+          "momentum_length": 20,
+          "smoothing_length": 8,
+          "vidya_length": 6,
+          "warmup_bars": 400
+        },
+        "trade_policy": {
+          "cmo_floor": 0,
+          "slope_bars": 0,
+          "stop_atr": 0,
+          "trail_atr": 0
+        }
+      },
+      "BCHUSDC": {
+        "parameters": {
+          "atr_length": 200,
+          "band_multiplier": 3.2,
+          "momentum_length": 16,
+          "smoothing_length": 15,
+          "vidya_length": 13,
+          "warmup_bars": 400
+        },
+        "trade_policy": {
+          "cmo_floor": 0,
+          "slope_bars": 0,
+          "stop_atr": 0,
+          "trail_atr": 0
+        }
+      },
+      "BNBUSDC": {
+        "parameters": {
+          "atr_length": 120,
+          "band_multiplier": 5.0,
+          "momentum_length": 20,
+          "smoothing_length": 8,
+          "vidya_length": 10,
+          "warmup_bars": 400
+        },
+        "trade_policy": {
+          "cmo_floor": 0,
+          "slope_bars": 0,
+          "stop_atr": 0,
+          "trail_atr": 0
+        }
+      },
+      "BTCUSDC": {
+        "parameters": {
+          "atr_length": 120,
+          "band_multiplier": 4.4,
+          "momentum_length": 20,
+          "smoothing_length": 8,
+          "vidya_length": 5,
+          "warmup_bars": 400
+        },
+        "trade_policy": {
+          "cmo_floor": 0.2,
+          "slope_bars": 0,
+          "stop_atr": 0,
+          "trail_atr": 0
+        }
+      },
+      "DOGEUSDC": {
+        "parameters": {
+          "atr_length": 120,
+          "band_multiplier": 4.3,
+          "momentum_length": 16,
+          "smoothing_length": 14,
+          "vidya_length": 6,
+          "warmup_bars": 400
+        },
+        "trade_policy": {
+          "cmo_floor": 0.2,
+          "slope_bars": 0,
+          "stop_atr": 0,
+          "trail_atr": 0
+        }
+      },
+      "DOTUSDC": {
+        "parameters": {
+          "atr_length": 120,
+          "band_multiplier": 3.8,
+          "momentum_length": 20,
+          "smoothing_length": 8,
+          "vidya_length": 6,
+          "warmup_bars": 400
+        },
+        "trade_policy": {
+          "cmo_floor": 0.35,
+          "slope_bars": 24,
+          "stop_atr": 0,
+          "trail_atr": 0
+        }
+      },
+      "ETHUSDC": {
+        "parameters": {
+          "atr_length": 60,
+          "band_multiplier": 3.8,
+          "momentum_length": 20,
+          "smoothing_length": 8,
+          "vidya_length": 6,
+          "warmup_bars": 400
+        },
+        "trade_policy": {
+          "cmo_floor": 0,
+          "slope_bars": 24,
+          "stop_atr": 0,
+          "trail_atr": 0
+        }
+      },
+      "LINKUSDC": {
+        "parameters": {
+          "atr_length": 60,
+          "band_multiplier": 3.8,
+          "momentum_length": 20,
+          "smoothing_length": 8,
+          "vidya_length": 6,
+          "warmup_bars": 400
+        },
+        "trade_policy": {
+          "cmo_floor": 0,
+          "slope_bars": 24,
+          "stop_atr": 0,
+          "trail_atr": 0
+        }
+      },
+      "NEARUSDC": {
+        "parameters": {
+          "atr_length": 200,
+          "band_multiplier": 2.8,
+          "momentum_length": 20,
+          "smoothing_length": 15,
+          "vidya_length": 10,
+          "warmup_bars": 400
+        },
+        "trade_policy": {
+          "cmo_floor": 0,
+          "slope_bars": 0,
+          "stop_atr": 0,
+          "trail_atr": 0
+        }
+      },
+      "SOLUSDC": {
+        "parameters": {
+          "atr_length": 60,
+          "band_multiplier": 3.8,
+          "momentum_length": 20,
+          "smoothing_length": 15,
+          "vidya_length": 6,
+          "warmup_bars": 400
+        },
+        "trade_policy": {
+          "cmo_floor": 0,
+          "slope_bars": 0,
+          "stop_atr": 0,
+          "trail_atr": 0
+        }
+      },
+      "SUIUSDC": {
+        "parameters": {
+          "atr_length": 120,
+          "band_multiplier": 2.3,
+          "momentum_length": 20,
+          "smoothing_length": 14,
+          "vidya_length": 15,
+          "warmup_bars": 400
+        },
+        "trade_policy": {
+          "cmo_floor": 0.4,
+          "slope_bars": 0,
+          "stop_atr": 2.5,
+          "trail_atr": 0
+        }
+      },
+      "UNIUSDC": {
+        "parameters": {
+          "atr_length": 120,
+          "band_multiplier": 2.0,
+          "momentum_length": 20,
+          "smoothing_length": 10,
+          "vidya_length": 12,
+          "warmup_bars": 400
+        },
+        "trade_policy": {
+          "cmo_floor": 0.3,
+          "slope_bars": 72,
+          "stop_atr": 0,
+          "trail_atr": 0
+        }
+      },
+      "XRPUSDC": {
+        "parameters": {
+          "atr_length": 120,
+          "band_multiplier": 3.2,
+          "momentum_length": 20,
+          "smoothing_length": 8,
+          "vidya_length": 6,
+          "warmup_bars": 400
+        },
+        "trade_policy": {
+          "cmo_floor": 0.15,
+          "slope_bars": 0,
+          "stop_atr": 4,
+          "trail_atr": 0
+        }
+      }
+    },
+    "reference": "strategy/pine/Der_Hixton_Indikator_v6.pine",
+    "satellite_rules": {
+      "profiles": {
+        "AAVEUSDC": {
+          "entry_interval_hours": 12,
+          "history_proxy": "AAVEUSDT",
+          "horizon_hours": 120,
+          "max_atr_pct": 0.025,
+          "max_breakout_atr": 999.0,
+          "max_trend_atr": 2.5,
+          "min_abs_cmo": 0.0,
+          "min_atr_pct": 0.005,
+          "min_breakout_atr": 0.0,
+          "min_trend_atr": 0.5,
+          "parameters": {
+            "atr_length": 200,
+            "band_multiplier": 2.0,
+            "momentum_length": 12,
+            "smoothing_length": 15,
+            "vidya_length": 10,
+            "warmup_bars": 400
+          },
+          "reentry_atr_level": null,
+          "semantics": "DMS_V1",
+          "symbol": "AAVEUSDC",
+          "trade_policy": {
+            "cmo_floor": 0.3,
+            "slope_bars": 0,
+            "stop_atr": 2.0,
+            "trail_atr": 0
+          }
+        },
+        "BCHUSDC": {
+          "entry_interval_hours": 12,
+          "history_proxy": "BCHUSDT",
+          "horizon_hours": 0,
+          "max_atr_pct": 0.02,
+          "max_breakout_atr": 999.0,
+          "max_trend_atr": 999.0,
+          "min_abs_cmo": 0.0,
+          "min_atr_pct": 0.0,
+          "min_breakout_atr": 0.0,
+          "min_trend_atr": -999.0,
+          "parameters": {
+            "atr_length": 200,
+            "band_multiplier": 3.2,
+            "momentum_length": 16,
+            "smoothing_length": 15,
+            "vidya_length": 13,
+            "warmup_bars": 400
+          },
+          "reentry_atr_level": null,
+          "semantics": "DMS_V1",
+          "symbol": "BCHUSDC",
+          "trade_policy": {
+            "cmo_floor": 0,
+            "slope_bars": 0,
+            "stop_atr": 0,
+            "trail_atr": 0
+          }
+        },
+        "NEARUSDC": {
+          "entry_interval_hours": 12,
+          "history_proxy": "NEARUSDT",
+          "horizon_hours": 48,
+          "max_atr_pct": 1.0,
+          "max_breakout_atr": 999.0,
+          "max_trend_atr": 999.0,
+          "min_abs_cmo": 0.0,
+          "min_atr_pct": 0.0,
+          "min_breakout_atr": 0.0,
+          "min_trend_atr": -999.0,
+          "parameters": {
+            "atr_length": 200,
+            "band_multiplier": 2.8,
+            "momentum_length": 20,
+            "smoothing_length": 15,
+            "vidya_length": 10,
+            "warmup_bars": 400
+          },
+          "reentry_atr_level": null,
+          "semantics": "DMS_V1",
+          "symbol": "NEARUSDC",
+          "trade_policy": {
+            "cmo_floor": 0,
+            "slope_bars": 0,
+            "stop_atr": 0,
+            "trail_atr": 0
+          }
+        },
+        "SUIUSDC": {
+          "entry_interval_hours": 12,
+          "history_proxy": "SUIUSDT",
+          "horizon_hours": 0,
+          "max_atr_pct": 0.0175,
+          "max_breakout_atr": 999.0,
+          "max_trend_atr": 999.0,
+          "min_abs_cmo": 0.0,
+          "min_atr_pct": 0.0,
+          "min_breakout_atr": 0.0,
+          "min_trend_atr": -999.0,
+          "parameters": {
+            "atr_length": 120,
+            "band_multiplier": 2.3,
+            "momentum_length": 20,
+            "smoothing_length": 14,
+            "vidya_length": 15,
+            "warmup_bars": 400
+          },
+          "reentry_atr_level": null,
+          "semantics": "DMS_V1",
+          "symbol": "SUIUSDC",
+          "trade_policy": {
+            "cmo_floor": 0.4,
+            "slope_bars": 0,
+            "stop_atr": 2.5,
+            "trail_atr": 0
+          }
+        },
+        "UNIUSDC": {
+          "entry_interval_hours": 12,
+          "history_proxy": "UNIUSDT",
+          "horizon_hours": 0,
+          "max_atr_pct": 1.0,
+          "max_breakout_atr": 999.0,
+          "max_trend_atr": 999.0,
+          "min_abs_cmo": 0.15,
+          "min_atr_pct": 0.0,
+          "min_breakout_atr": 0.0,
+          "min_trend_atr": -999.0,
+          "parameters": {
+            "atr_length": 120,
+            "band_multiplier": 2.0,
+            "momentum_length": 20,
+            "smoothing_length": 10,
+            "vidya_length": 12,
+            "warmup_bars": 400
+          },
+          "reentry_atr_level": 0.5,
+          "semantics": "DMS_V1",
+          "symbol": "UNIUSDC",
+          "trade_policy": {
+            "cmo_floor": 0.3,
+            "slope_bars": 72,
+            "stop_atr": 0,
+            "trail_atr": 0
+          }
+        }
+      },
+      "routing": "FILLER-V3-STRICT-CORE-PRIORITY"
+    },
+    "satellite_semantics": "DMS_V1",
+    "satellite_symbols": [
+      "SUIUSDC",
+      "NEARUSDC",
+      "UNIUSDC",
+      "AAVEUSDC",
+      "BCHUSDC"
+    ],
+    "semantics": "PINE_V6",
+    "slot_allocation": "ranked_repeat",
+    "version": "HIXTON-V8-CORE10-SAT3-DOTFILTER-5-eeb47b53b080"
+  },
+  "trading_settings": {
+    "auto_budget_enabled": true,
+    "autonomous_performance_enabled": true,
+    "slot_count": 2
+  },
+  "validation_scope": {
+    "application_version": "0.5.0",
+    "binance_order_execution": "NOT_TESTED_BY_BACKTEST",
+    "future_performance_guaranteed": false,
+    "kind": "HISTORICAL_SIMULATION",
+    "live_release_granted": false,
+    "python_source_sha256": "343ee0891ea48babfa1d46a251b94f7eacf42faa890b4f1c6dc7ce708d53c3d2"
+  },
+  "warning": "Historical results are not a profit guarantee."
+}

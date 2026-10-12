@@ -152,7 +152,7 @@ def run_shared_portfolio_backtest(
     if tuple(candles_by_symbol) != symbols:
         raise ValueError("portfolio input must contain all ten symbols in fixed DMS order")
     if autonomous_spot and (
-        strategy is None or strategy.key not in ("v8", "v8d") or slot_count not in (2, 3, 4)
+        strategy is None or strategy.key not in ("v8", "v8d", "v8r") or slot_count not in (2, 3, 4)
     ):
         raise ValueError("autonomous spot research requires V8 with 2, 3 or 4 capacity slots")
     if starting_cash <= ZERO or target_notional <= ZERO or slot_count <= 0:

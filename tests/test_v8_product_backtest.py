@@ -372,3 +372,119 @@ def test_product_portfolio_records_and_compares_automation(
         autonomous_performance_enabled=not automation,
     )
     assert compare_run(manifest, metrics, settings=other, **kwargs)["status"] == "DIFFERENT"
+
+
+@pytest.mark.parametrize("mode", ["portfolio", "all", "single"])
+def test_registered_v8r_product_uses_current_profiles_and_automatic_account_seed(
+    history_fixture, monkeypatch, mode
+):
+    from hixton.domain.versions import strategy_definition
+
+    config, _candles, _rules, start, end, _requests = history_fixture
+    active = strategy_definition("v8r")
+    config = replace(
+        config,
+        strategy_key="v8r",
+        run_output_root=config.run_output_root.parents[1] / "v8r" / "runs",
+    )
+    account_reads = []
+
+    def capital(config):
+        account_reads.append(config.strategy_key)
+        return {
+            "kind": "BINANCE_AVAILABLE_USDC_AT_BACKTEST_START",
+            "amount_usdc": "300",
+            "quote_asset": "USDC",
+            "observed_at_utc": end.isoformat(),
+        }
+
+    monkeypatch.setattr("hixton.backtest.product.read_binance_starting_capital", capital)
+    with PaperStore(config.database_path) as store:
+        store.initialize(strategy_key="v8r", strategy_version=active.version)
+        store.save_settings(
+            PaperSettings(
+                max_capital_usdc=Decimal(300),
+                auto_budget_enabled=True,
+                autonomous_performance_enabled=True,
+            )
+        )
+        before = store.load_account()
+    output = run_product_backtest(
+        config,
+        mode=mode,
+        symbol="NEARUSDC" if mode == "single" else None,
+        report_start_utc=start,
+        report_end_utc=end,
+        code_commit="OFFLINE_V8R_CHECK",
+        source_sha256=source_fingerprint(),
+    )
+    manifest = json.loads((output / "manifest.json").read_text(encoding="utf-8"))
+    metrics = json.loads((output / "metrics.json").read_text(encoding="utf-8"))
+    assert manifest["strategy"]["version"] == active.version
+    assert manifest["strategy"]["entry_atr_target_fraction"] == "0.0075"
+    assert account_reads == (["v8r"] if mode == "portfolio" else [])
+    with PaperStore(config.database_path) as store:
+        assert store.load_account() == before
+    if mode == "portfolio":
+        assert Decimal(metrics["current"]["portfolio"]["starting_cash"]) == 300
+        assert manifest["capital_source"]["amount_usdc"] == "300"
+
+
+@pytest.mark.parametrize("mode", ["single", "all", "portfolio"])
+def test_cli_registered_v8r_uses_common_product_path(history_fixture, monkeypatch, mode):
+    from argparse import Namespace
+
+    from hixton import cli
+
+    config, _, _, _, end, _ = history_fixture
+    config = replace(config, strategy_key="v8r")
+    seen = []
+    monkeypatch.setattr(
+        "hixton.backtest.product.run_product_backtest",
+        lambda config, **kwargs: (
+            seen.append((config.strategy_key, kwargs["mode"])) or config.run_output_root
+        ),
+    )
+    monkeypatch.setattr(cli, "_code_commit", lambda: "OFFLINE_TEST")
+    args = Namespace(strategy=None, end=end, symbol="NEARUSDC")
+    command = {
+        "single": cli.command_backtest_single,
+        "all": cli.command_backtest_all,
+        "portfolio": cli.command_backtest_portfolio,
+    }[mode]
+    assert command(args, config) == 0
+    assert seen == [("v8r", mode)]
+
+
+def test_runtime_registered_v8r_uses_common_product_path(history_fixture, monkeypatch):
+    from hixton.runtime.supervisor import RuntimeSupervisor
+
+    config, _, _, _, _, _ = history_fixture
+    config = replace(config, strategy_key="v8r")
+    seen = []
+    monkeypatch.setattr(
+        "hixton.backtest.product.run_product_backtest",
+        lambda config, **kwargs: (
+            seen.append((config.strategy_key, kwargs["mode"])) or config.run_output_root
+        ),
+    )
+    supervisor = RuntimeSupervisor(config)
+    supervisor._synchronous_backtest("portfolio", None, "v8r")
+    assert seen == [("v8r", "portfolio")]
+
+
+def test_cli_explicit_v8r_override_uses_selected_definition(history_fixture, monkeypatch):
+    from argparse import Namespace
+
+    from hixton import cli
+
+    config, _, _, _, end, _ = history_fixture
+    assert config.strategy_key == "v8"
+    seen = []
+    monkeypatch.setattr(
+        "hixton.backtest.product.run_product_backtest",
+        lambda config, **kwargs: seen.append(config.strategy_key) or config.run_output_root,
+    )
+    monkeypatch.setattr(cli, "_code_commit", lambda: "OFFLINE_TEST")
+    assert cli.command_backtest_portfolio(Namespace(strategy="v8r", end=end), config) == 0
+    assert seen == ["v8r"]

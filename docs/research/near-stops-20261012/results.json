@@ -1,0 +1,605 @@
+{
+  "status": "RESEARCH_ONLY",
+  "installed": false,
+  "orders_sent": false,
+  "source_sha256": "343ee0891ea48babfa1d46a251b94f7eacf42faa890b4f1c6dc7ce708d53c3d2",
+  "catalogue": {
+    "baseline": null,
+    "stop2": 2.0,
+    "stop3": 3.0,
+    "stop4": 4.0,
+    "stop6": 6.0
+  },
+  "period": [
+    "2023-10-11T19:00:00+00:00",
+    "2026-10-11T19:00:00+00:00"
+  ],
+  "seed": "1092.05773944",
+  "data": {
+    "history_mode": "THREE_YEAR_SCHEMA_F_CONTINUITY",
+    "purpose": "THREE_YEAR_STRATEGY_CONTINUITY",
+    "runtime_quote": "USDC",
+    "market_proxy_quote": "USDT",
+    "proxy_scope": "HISTORICAL_MARKET_CANDLES_ONLY",
+    "paper_state_modified": false,
+    "orders_sent": false,
+    "historical_usdc_liquidity_claimed": false,
+    "provenance_by_symbol": {
+      "BTCUSDC": {
+        "target_market": "BTCUSDC",
+        "market_proxy": "BTCUSDT",
+        "proxy_quote": "USDT",
+        "target_quote": "USDC",
+        "first_open_utc": "2023-09-25T03:00:00+00:00",
+        "last_open_utc": "2026-10-11T18:00:00+00:00",
+        "candle_count": 26704,
+        "execution_rules_from": "BTCUSDC",
+        "native_usdc_candle_count": 26704,
+        "proxy_candle_count": 0,
+        "native_usdc_first_open_utc": "2023-09-25T03:00:00+00:00",
+        "proxy_end_exclusive_utc": null
+      },
+      "ETHUSDC": {
+        "target_market": "ETHUSDC",
+        "market_proxy": "ETHUSDT",
+        "proxy_quote": "USDT",
+        "target_quote": "USDC",
+        "first_open_utc": "2023-09-25T03:00:00+00:00",
+        "last_open_utc": "2026-10-11T18:00:00+00:00",
+        "candle_count": 26704,
+        "execution_rules_from": "ETHUSDC",
+        "native_usdc_candle_count": 26704,
+        "proxy_candle_count": 0,
+        "native_usdc_first_open_utc": "2023-09-25T03:00:00+00:00",
+        "proxy_end_exclusive_utc": null
+      },
+      "BNBUSDC": {
+        "target_market": "BNBUSDC",
+        "market_proxy": "BNBUSDT",
+        "proxy_quote": "USDT",
+        "target_quote": "USDC",
+        "first_open_utc": "2023-09-25T03:00:00+00:00",
+        "last_open_utc": "2026-10-11T18:00:00+00:00",
+        "candle_count": 26704,
+        "execution_rules_from": "BNBUSDC",
+        "native_usdc_candle_count": 26704,
+        "proxy_candle_count": 0,
+        "native_usdc_first_open_utc": "2023-09-25T03:00:00+00:00",
+        "proxy_end_exclusive_utc": null
+      },
+      "SOLUSDC": {
+        "target_market": "SOLUSDC",
+        "market_proxy": "SOLUSDT",
+        "proxy_quote": "USDT",
+        "target_quote": "USDC",
+        "first_open_utc": "2023-09-25T03:00:00+00:00",
+        "last_open_utc": "2026-10-11T18:00:00+00:00",
+        "candle_count": 26704,
+        "execution_rules_from": "SOLUSDC",
+        "native_usdc_candle_count": 24443,
+        "proxy_candle_count": 2261,
+        "native_usdc_first_open_utc": "2023-12-28T08:00:00+00:00",
+        "proxy_end_exclusive_utc": "2023-12-28T08:00:00+00:00"
+      },
+      "XRPUSDC": {
+        "target_market": "XRPUSDC",
+        "market_proxy": "XRPUSDT",
+        "proxy_quote": "USDT",
+        "target_quote": "USDC",
+        "first_open_utc": "2023-09-25T03:00:00+00:00",
+        "last_open_utc": "2026-10-11T18:00:00+00:00",
+        "candle_count": 26704,
+        "execution_rules_from": "XRPUSDC",
+        "native_usdc_candle_count": 24443,
+        "proxy_candle_count": 2261,
+        "native_usdc_first_open_utc": "2023-12-28T08:00:00+00:00",
+        "proxy_end_exclusive_utc": "2023-12-28T08:00:00+00:00"
+      },
+      "ADAUSDC": {
+        "target_market": "ADAUSDC",
+        "market_proxy": "ADAUSDT",
+        "proxy_quote": "USDT",
+        "target_quote": "USDC",
+        "first_open_utc": "2023-09-25T03:00:00+00:00",
+        "last_open_utc": "2026-10-11T18:00:00+00:00",
+        "candle_count": 26704,
+        "execution_rules_from": "ADAUSDC",
+        "native_usdc_candle_count": 24443,
+        "proxy_candle_count": 2261,
+        "native_usdc_first_open_utc": "2023-12-28T08:00:00+00:00",
+        "proxy_end_exclusive_utc": "2023-12-28T08:00:00+00:00"
+      },
+      "LINKUSDC": {
+        "target_market": "LINKUSDC",
+        "market_proxy": "LINKUSDT",
+        "proxy_quote": "USDT",
+        "target_quote": "USDC",
+        "first_open_utc": "2023-09-25T03:00:00+00:00",
+        "last_open_utc": "2026-10-11T18:00:00+00:00",
+        "candle_count": 26704,
+        "execution_rules_from": "LINKUSDC",
+        "native_usdc_candle_count": 23795,
+        "proxy_candle_count": 2909,
+        "native_usdc_first_open_utc": "2024-01-24T08:00:00+00:00",
+        "proxy_end_exclusive_utc": "2024-01-24T08:00:00+00:00"
+      },
+      "AVAXUSDC": {
+        "target_market": "AVAXUSDC",
+        "market_proxy": "AVAXUSDT",
+        "proxy_quote": "USDT",
+        "target_quote": "USDC",
+        "first_open_utc": "2023-09-25T03:00:00+00:00",
+        "last_open_utc": "2026-10-11T18:00:00+00:00",
+        "candle_count": 26704,
+        "execution_rules_from": "AVAXUSDC",
+        "native_usdc_candle_count": 24443,
+        "proxy_candle_count": 2261,
+        "native_usdc_first_open_utc": "2023-12-28T08:00:00+00:00",
+        "proxy_end_exclusive_utc": "2023-12-28T08:00:00+00:00"
+      },
+      "DOTUSDC": {
+        "target_market": "DOTUSDC",
+        "market_proxy": "DOTUSDT",
+        "proxy_quote": "USDT",
+        "target_quote": "USDC",
+        "first_open_utc": "2023-09-25T03:00:00+00:00",
+        "last_open_utc": "2026-10-11T18:00:00+00:00",
+        "candle_count": 26704,
+        "execution_rules_from": "DOTUSDC",
+        "native_usdc_candle_count": 24443,
+        "proxy_candle_count": 2261,
+        "native_usdc_first_open_utc": "2023-12-28T08:00:00+00:00",
+        "proxy_end_exclusive_utc": "2023-12-28T08:00:00+00:00"
+      },
+      "DOGEUSDC": {
+        "target_market": "DOGEUSDC",
+        "market_proxy": "DOGEUSDT",
+        "proxy_quote": "USDT",
+        "target_quote": "USDC",
+        "first_open_utc": "2023-09-25T03:00:00+00:00",
+        "last_open_utc": "2026-10-11T18:00:00+00:00",
+        "candle_count": 26704,
+        "execution_rules_from": "DOGEUSDC",
+        "native_usdc_candle_count": 22763,
+        "proxy_candle_count": 3941,
+        "native_usdc_first_open_utc": "2024-03-07T08:00:00+00:00",
+        "proxy_end_exclusive_utc": "2024-03-07T08:00:00+00:00"
+      },
+      "SUIUSDC": {
+        "target_market": "SUIUSDC",
+        "market_proxy": "SUIUSDT",
+        "proxy_quote": "USDT",
+        "target_quote": "USDC",
+        "first_open_utc": "2023-09-25T03:00:00+00:00",
+        "last_open_utc": "2026-10-11T18:00:00+00:00",
+        "candle_count": 26704,
+        "execution_rules_from": "SUIUSDC",
+        "native_usdc_candle_count": 23915,
+        "proxy_candle_count": 2789,
+        "native_usdc_first_open_utc": "2024-01-19T08:00:00+00:00",
+        "proxy_end_exclusive_utc": "2024-01-19T08:00:00+00:00"
+      },
+      "NEARUSDC": {
+        "target_market": "NEARUSDC",
+        "market_proxy": "NEARUSDT",
+        "proxy_quote": "USDT",
+        "target_quote": "USDC",
+        "first_open_utc": "2023-09-25T03:00:00+00:00",
+        "last_open_utc": "2026-10-11T18:00:00+00:00",
+        "candle_count": 26704,
+        "execution_rules_from": "NEARUSDC",
+        "native_usdc_candle_count": 22619,
+        "proxy_candle_count": 4085,
+        "native_usdc_first_open_utc": "2024-03-13T08:00:00+00:00",
+        "proxy_end_exclusive_utc": "2024-03-13T08:00:00+00:00"
+      },
+      "UNIUSDC": {
+        "target_market": "UNIUSDC",
+        "market_proxy": "UNIUSDT",
+        "proxy_quote": "USDT",
+        "target_quote": "USDC",
+        "first_open_utc": "2023-09-25T03:00:00+00:00",
+        "last_open_utc": "2026-10-11T18:00:00+00:00",
+        "candle_count": 26704,
+        "execution_rules_from": "UNIUSDC",
+        "native_usdc_candle_count": 22955,
+        "proxy_candle_count": 3749,
+        "native_usdc_first_open_utc": "2024-02-28T08:00:00+00:00",
+        "proxy_end_exclusive_utc": "2024-02-28T08:00:00+00:00"
+      },
+      "AAVEUSDC": {
+        "target_market": "AAVEUSDC",
+        "market_proxy": "AAVEUSDT",
+        "proxy_quote": "USDT",
+        "target_quote": "USDC",
+        "first_open_utc": "2023-09-25T03:00:00+00:00",
+        "last_open_utc": "2026-10-11T18:00:00+00:00",
+        "candle_count": 26704,
+        "execution_rules_from": "AAVEUSDC",
+        "native_usdc_candle_count": 18419,
+        "proxy_candle_count": 8285,
+        "native_usdc_first_open_utc": "2024-09-04T08:00:00+00:00",
+        "proxy_end_exclusive_utc": "2024-09-04T08:00:00+00:00"
+      },
+      "BCHUSDC": {
+        "target_market": "BCHUSDC",
+        "market_proxy": "BCHUSDT",
+        "proxy_quote": "USDT",
+        "target_quote": "USDC",
+        "first_open_utc": "2023-09-25T03:00:00+00:00",
+        "last_open_utc": "2026-10-11T18:00:00+00:00",
+        "candle_count": 26704,
+        "execution_rules_from": "BCHUSDC",
+        "native_usdc_candle_count": 22115,
+        "proxy_candle_count": 4589,
+        "native_usdc_first_open_utc": "2024-04-03T08:00:00+00:00",
+        "proxy_end_exclusive_utc": "2024-04-03T08:00:00+00:00"
+      }
+    },
+    "note": "Ein durchgehender Backtest der aktiven USDC-Strategie. Vorhandene USDC-Kerzen werden verwendet; historische USDT-Kerzen erg\u00e4nzen ausschlie\u00dflich fehlende \u00e4ltere Historie, sofern native_usdc_candle_count dokumentiert ist. Strategie, Konto, Risiko, Kosten und aktuelle USDC-Ausfuehrungsregeln bleiben unveraendert."
+  },
+  "train": {
+    "baseline": [
+      {
+        "ending_usdc": "5310.0415354684633000000",
+        "return_pct": "386.2418298680267169079310417",
+        "dd_pct": "25.35240212117609710188595119",
+        "trades": 43,
+        "fees_usdc": "200.5729373245212000000",
+        "profit_factor": "2.602778305855887394038517402",
+        "open_at_end": null
+      },
+      {
+        "ending_usdc": "2023.8823226140832000000",
+        "return_pct": "85.32740985398049513227119042",
+        "dd_pct": "44.59271044612921199305163822",
+        "trades": 46,
+        "fees_usdc": "64.4313174228278000000",
+        "profit_factor": "2.147585658375354043482636467",
+        "open_at_end": null
+      }
+    ],
+    "stop2": [
+      {
+        "ending_usdc": "5205.0877844466633000000",
+        "return_pct": "376.6311886691813526771410068",
+        "dd_pct": "26.83007916089426261503806512",
+        "trades": 47,
+        "fees_usdc": "207.0715418719234000000",
+        "profit_factor": "2.550822521114396333698745269",
+        "open_at_end": null
+      },
+      {
+        "ending_usdc": "1939.3441646987379000000",
+        "return_pct": "77.58622961577295224777478639",
+        "dd_pct": "45.40500586956001747136321409",
+        "trades": 49,
+        "fees_usdc": "65.8773737525254000000",
+        "profit_factor": "2.009473789854074025350261008",
+        "open_at_end": null
+      }
+    ],
+    "stop3": [
+      {
+        "ending_usdc": "5259.2792965548733000000",
+        "return_pct": "381.5935189701413595798324376",
+        "dd_pct": "26.06687072017163897290420876",
+        "trades": 45,
+        "fees_usdc": "204.7279011231220000000",
+        "profit_factor": "2.564192539510056012216011157",
+        "open_at_end": null
+      },
+      {
+        "ending_usdc": "1966.9319335545915000000",
+        "return_pct": "80.11244850141542988449735335",
+        "dd_pct": "44.59271044612921199305163822",
+        "trades": 47,
+        "fees_usdc": "64.9783027528706000000",
+        "profit_factor": "2.052078495823280427130809622",
+        "open_at_end": null
+      }
+    ],
+    "stop4": [
+      {
+        "ending_usdc": "5262.1469035787133000000",
+        "return_pct": "381.8561064616516976643789464",
+        "dd_pct": "26.02643565777646164004933718",
+        "trades": 45,
+        "fees_usdc": "204.8999694796511000000",
+        "profit_factor": "2.566099173810142266633939024",
+        "open_at_end": null
+      },
+      {
+        "ending_usdc": "1942.5924298127380000000",
+        "return_pct": "77.88367406368884622864882024",
+        "dd_pct": "44.59271044612921199305163822",
+        "trades": 47,
+        "fees_usdc": "65.4331749384216000000",
+        "profit_factor": "1.977907798226940945846526551",
+        "open_at_end": null
+      }
+    ],
+    "stop6": [
+      {
+        "ending_usdc": "5310.0415354684633000000",
+        "return_pct": "386.2418298680267169079310417",
+        "dd_pct": "25.35240212117609710188595119",
+        "trades": 43,
+        "fees_usdc": "200.5729373245212000000",
+        "profit_factor": "2.602778305855887394038517402",
+        "open_at_end": null
+      },
+      {
+        "ending_usdc": "2023.8823226140832000000",
+        "return_pct": "85.32740985398049513227119042",
+        "dd_pct": "44.59271044612921199305163822",
+        "trades": 46,
+        "fees_usdc": "64.4313174228278000000",
+        "profit_factor": "2.147585658375354043482636467",
+        "open_at_end": null
+      }
+    ]
+  },
+  "full": {
+    "original_v8": {
+      "current": {
+        "ending_usdc": "28922.29449189693165000000",
+        "return_pct": "2548.421731503692592886222163",
+        "dd_pct": "47.62821518106107766365810424",
+        "trades": 153,
+        "fees_usdc": "3276.86973394498360000000",
+        "profit_factor": "1.556951325931057411406362381",
+        "open_at_end": null
+      },
+      "stress": {
+        "ending_usdc": "17491.5471730217670000000",
+        "return_pct": "1501.705344077440166014817580",
+        "dd_pct": "60.75992597185538846828388933",
+        "trades": 155,
+        "fees_usdc": "2504.5901179548593000000",
+        "profit_factor": "1.390761121249883076536612363",
+        "open_at_end": null
+      },
+      "report": "C:\\Users\\andre\\AppData\\Local\\Temp\\hixton-near-stop-research-20261012\\reports\\full\\original_v8\\79347afe-23fe-4fb8-b89e-caea4f526eb2"
+    },
+    "baseline": {
+      "current": {
+        "ending_usdc": "29459.94834813359995000000",
+        "return_pct": "2597.654829426919037704979465",
+        "dd_pct": "41.80959086448445420468335077",
+        "trades": 148,
+        "fees_usdc": "2479.45101846874625000000",
+        "profit_factor": "1.816753964081586010535185765",
+        "open_at_end": null
+      },
+      "stress": {
+        "ending_usdc": "20803.1497711632304000000",
+        "return_pct": "1804.949621238062767535822007",
+        "dd_pct": "50.74961025851149513299454126",
+        "trades": 150,
+        "fees_usdc": "2011.9935927502528000000",
+        "profit_factor": "1.633438970734204872868347891",
+        "open_at_end": null
+      },
+      "report": "C:\\Users\\andre\\AppData\\Local\\Temp\\hixton-near-stop-research-20261012\\reports\\full\\baseline\\c59fc717-4f9b-456d-985f-06b4bc374978"
+    },
+    "stop2": {
+      "current": {
+        "ending_usdc": "27651.76613276970735000000",
+        "return_pct": "2432.079132276407883959311909",
+        "dd_pct": "42.13622681421034182404210441",
+        "trades": 158,
+        "fees_usdc": "2431.32927304348660000000",
+        "profit_factor": "1.801279859836036716896588758",
+        "open_at_end": null
+      },
+      "stress": {
+        "ending_usdc": "19697.2705479676595000000",
+        "return_pct": "1703.683984517914759095093511",
+        "dd_pct": "51.13678924023112118078528423",
+        "trades": 161,
+        "fees_usdc": "1996.9843477465350000000",
+        "profit_factor": "1.618817839329564370944556729",
+        "open_at_end": null
+      }
+    },
+    "stop3": {
+      "current": {
+        "ending_usdc": "28925.75390912913720000000",
+        "return_pct": "2548.738511203819027255956865",
+        "dd_pct": "42.23613683233183215055963740",
+        "trades": 153,
+        "fees_usdc": "2487.87602855121185000000",
+        "profit_factor": "1.815418569569492819060994483",
+        "open_at_end": null
+      },
+      "stress": {
+        "ending_usdc": "20372.9949751166516000000",
+        "return_pct": "1765.560239110048241498317676",
+        "dd_pct": "50.71588690653957720063033774",
+        "trades": 155,
+        "fees_usdc": "2010.2223164378814000000",
+        "profit_factor": "1.632759453557493290971715481",
+        "open_at_end": null
+      }
+    },
+    "stop4": {
+      "current": {
+        "ending_usdc": "28938.15090572620505000000",
+        "return_pct": "2549.873707279021511331673769",
+        "dd_pct": "42.46255442120472537312106707",
+        "trades": 151,
+        "fees_usdc": "2462.94940554902325000000",
+        "profit_factor": "1.805428204335656101697720903",
+        "open_at_end": null
+      },
+      "stress": {
+        "ending_usdc": "19872.9550818826423000000",
+        "return_pct": "1719.771461175062271211076140",
+        "dd_pct": "52.52477776985473633017067188",
+        "trades": 154,
+        "fees_usdc": "1982.9151274857994000000",
+        "profit_factor": "1.610181716057018175008769900",
+        "open_at_end": null
+      }
+    },
+    "stop6": {
+      "current": {
+        "ending_usdc": "29459.94834813359995000000",
+        "return_pct": "2597.654829426919037704979465",
+        "dd_pct": "41.80959086448445420468335077",
+        "trades": 148,
+        "fees_usdc": "2479.45101846874625000000",
+        "profit_factor": "1.816753964081586010535185765",
+        "open_at_end": null
+      },
+      "stress": {
+        "ending_usdc": "20803.1497711632304000000",
+        "return_pct": "1804.949621238062767535822007",
+        "dd_pct": "50.74961025851149513299454126",
+        "trades": 150,
+        "fees_usdc": "2011.9935927502528000000",
+        "profit_factor": "1.633438970734204872868347891",
+        "open_at_end": null
+      },
+      "report": "C:\\Users\\andre\\AppData\\Local\\Temp\\hixton-near-stop-research-20261012\\reports\\full\\stop6\\7941f0a7-f7b0-4b7e-8387-0c1383ee66d9"
+    }
+  },
+  "last_year": {
+    "original_v8": {
+      "current": {
+        "ending_usdc": "1147.04876986251130000000",
+        "return_pct": "5.035542392722781983967952016",
+        "dd_pct": "37.50387482450033335267347736",
+        "trades": 56,
+        "fees_usdc": "67.08886040881090000000",
+        "profit_factor": "1.051673742825662350879126881",
+        "open_at_end": null
+      },
+      "stress": {
+        "ending_usdc": "885.6868379541014000000",
+        "return_pct": "-18.89743500116800014681831758",
+        "dd_pct": "51.18185008277283201261102175",
+        "trades": 56,
+        "fees_usdc": "57.5534352559780000000",
+        "profit_factor": "0.8132585919621261942814666272",
+        "open_at_end": null
+      },
+      "report": "C:\\Users\\andre\\AppData\\Local\\Temp\\hixton-near-stop-research-20261012\\reports\\last_year\\original_v8\\02846faf-61db-4c2b-954b-ba0f5e3821e3"
+    },
+    "baseline": {
+      "current": {
+        "ending_usdc": "1137.70302862834425000000",
+        "return_pct": "4.179750533314369713323076708",
+        "dd_pct": "36.18359457058719925471449910",
+        "trades": 56,
+        "fees_usdc": "52.25863752604130000000",
+        "profit_factor": "1.056961074782644345582143797",
+        "open_at_end": null
+      },
+      "stress": {
+        "ending_usdc": "985.2029428260056000000",
+        "return_pct": "-9.784720418609810351622519334",
+        "dd_pct": "44.48374207349476079853214732",
+        "trades": 56,
+        "fees_usdc": "48.6181993367291000000",
+        "profit_factor": "0.8785218584203907204943964048",
+        "open_at_end": null
+      },
+      "report": "C:\\Users\\andre\\AppData\\Local\\Temp\\hixton-near-stop-research-20261012\\reports\\last_year\\baseline\\a0c433e7-ee75-4f49-8303-d716cdc10a25"
+    },
+    "stop2": {
+      "current": {
+        "ending_usdc": "1151.07638268805615000000",
+        "return_pct": "5.404351905268353362845336258",
+        "dd_pct": "35.45744736888510779651392748",
+        "trades": 59,
+        "fees_usdc": "54.16394761185885000000",
+        "profit_factor": "1.072867684810374886345350517",
+        "open_at_end": null
+      },
+      "stress": {
+        "ending_usdc": "994.7775040236340000000",
+        "return_pct": "-8.907975457987291273145395328",
+        "dd_pct": "43.97694217128577670515084615",
+        "trades": 59,
+        "fees_usdc": "50.3539600137075000000",
+        "profit_factor": "0.8882784672552505285029148692",
+        "open_at_end": null
+      }
+    },
+    "stop3": {
+      "current": {
+        "ending_usdc": "1145.77813634592760000000",
+        "return_pct": "4.919190164200939129786787567",
+        "dd_pct": "35.74353794897041694593922540",
+        "trades": 58,
+        "fees_usdc": "53.54857378093325000000",
+        "profit_factor": "1.066518687270237916023198681",
+        "open_at_end": null
+      },
+      "stress": {
+        "ending_usdc": "999.1082669015546000000",
+        "return_pct": "-8.511406419417830045208035269",
+        "dd_pct": "43.71677851203876736543000625",
+        "trades": 58,
+        "fees_usdc": "50.1184805172404000000",
+        "profit_factor": "0.8936521361889443165377402133",
+        "open_at_end": null
+      }
+    },
+    "stop4": {
+      "current": {
+        "ending_usdc": "1142.32084557554515000000",
+        "return_pct": "4.602605184714842919789490284",
+        "dd_pct": "35.92947259633295592458508472",
+        "trades": 57,
+        "fees_usdc": "52.90138220583400000000",
+        "profit_factor": "1.062520948575959673796884375",
+        "open_at_end": null
+      },
+      "stress": {
+        "ending_usdc": "989.5935192901434000000",
+        "return_pct": "-9.382674235008816998636846362",
+        "dd_pct": "44.24331412024286164919208147",
+        "trades": 57,
+        "fees_usdc": "49.2530425463846000000",
+        "profit_factor": "0.8832421643150321586543074785",
+        "open_at_end": null
+      }
+    },
+    "stop6": {
+      "current": {
+        "ending_usdc": "1137.70302862834425000000",
+        "return_pct": "4.179750533314369713323076708",
+        "dd_pct": "36.18359457058719925471449910",
+        "trades": 56,
+        "fees_usdc": "52.25863752604130000000",
+        "profit_factor": "1.056961074782644345582143797",
+        "open_at_end": null
+      },
+      "stress": {
+        "ending_usdc": "985.2029428260056000000",
+        "return_pct": "-9.784720418609810351622519334",
+        "dd_pct": "44.48374207349476079853214732",
+        "trades": 56,
+        "fees_usdc": "48.6181993367291000000",
+        "profit_factor": "0.8785218584203907204943964048",
+        "open_at_end": null
+      },
+      "report": "C:\\Users\\andre\\AppData\\Local\\Temp\\hixton-near-stop-research-20261012\\reports\\last_year\\stop6\\a2e36de0-d73d-4f40-ba4f-daffd3911b13"
+    }
+  },
+  "selection": "Predeclared stop family 2/3/4/6 ATR on NEAR only. Two fresh-account stress-cost training years must remain profitable, retain >=95% V8r return and not raise DD. Rank worst-fold return/DD; freeze selection before last-year/full runs. Full both costs must retain >=95% V8r return and have DD <=80% original V8 DD. Last year both costs must not worsen V8r return or DD. Previously examined history; no pristine holdout or future profitability claim. No candidate activation.",
+  "training_eligible": [
+    "stop6"
+  ],
+  "frozen_winner": "stop6",
+  "checks": {
+    "full_current": false,
+    "last_year_current": true,
+    "full_stress": false,
+    "last_year_stress": true
+  },
+  "accepted": false
+}

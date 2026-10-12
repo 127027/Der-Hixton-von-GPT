@@ -32,7 +32,7 @@ def run_product_backtest(
     source_sha256: str,
 ) -> Path:
     strategy = strategy_definition(config.strategy_key)
-    if strategy.key != "v8" or mode not in {"all", "single", "portfolio"}:
+    if strategy.key not in {"v8", "v8r"} or mode not in {"all", "single", "portfolio"}:
         raise ValueError("V8 product backtest requires a supported mode")
     if mode == "single" and symbol not in strategy.symbols:
         raise ValueError("single backtest requires an active strategy symbol")

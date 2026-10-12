@@ -66,7 +66,7 @@ def compare_run(
     baseline = metrics.get("current", metrics.get("baseline", {}))
     portfolio = baseline.get("portfolio") if isinstance(baseline, dict) else None
     is_portfolio = isinstance(portfolio, dict)
-    if active.key == "v8" and not is_portfolio and isinstance(baseline, dict):
+    if active.key in {"v8", "v8r"} and not is_portfolio and isinstance(baseline, dict):
         per_symbol = baseline.get("per_symbol", {})
         if isinstance(per_symbol, dict):
             for symbol, metric in per_symbol.items():

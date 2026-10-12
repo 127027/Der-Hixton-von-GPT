@@ -7,6 +7,7 @@ import json
 import sqlite3
 import subprocess
 import sys
+from dataclasses import replace
 from datetime import UTC, datetime, timedelta
 from pathlib import Path
 
@@ -215,6 +216,13 @@ def _command_v8_backtest(args: argparse.Namespace, config: ProjectConfig, mode: 
     from hixton.backtest.product import run_product_backtest
     from hixton.backtest.reporting import source_fingerprint
 
+    selected = strategy_definition(args.strategy or config.strategy_key)
+    if selected.key != config.strategy_key:
+        config = replace(
+            config,
+            strategy_key=selected.key,
+            run_output_root=config.run_output_root.parents[1] / selected.backtest_version / "runs",
+        )
     _, report_start, report_end = _window(args.end)
     symbol = str(args.symbol).replace("/", "").upper() if mode == "single" else None
     output = run_product_backtest(
@@ -231,7 +239,7 @@ def _command_v8_backtest(args: argparse.Namespace, config: ProjectConfig, mode: 
 
 
 def command_backtest_single(args: argparse.Namespace, config: ProjectConfig) -> int:
-    if (args.strategy or config.strategy_key) == "v8":
+    if (args.strategy or config.strategy_key) in {"v8", "v8r"}:
         return _command_v8_backtest(args, config, "single")
     warmup_start, report_start, report_end = _window(args.end)
     symbol = _symbols(args.symbol)[0]
@@ -263,7 +271,7 @@ def command_backtest_single(args: argparse.Namespace, config: ProjectConfig) -> 
 
 
 def command_backtest_all(args: argparse.Namespace, config: ProjectConfig) -> int:
-    if (args.strategy or config.strategy_key) == "v8":
+    if (args.strategy or config.strategy_key) in {"v8", "v8r"}:
         return _command_v8_backtest(args, config, "all")
     warmup_start, report_start, report_end = _window(args.end)
     strategy = strategy_definition(args.strategy or config.strategy_key)
@@ -305,7 +313,7 @@ def command_backtest_all(args: argparse.Namespace, config: ProjectConfig) -> int
 
 
 def command_backtest_portfolio(args: argparse.Namespace, config: ProjectConfig) -> int:
-    if (args.strategy or config.strategy_key) == "v8":
+    if (args.strategy or config.strategy_key) in {"v8", "v8r"}:
         return _command_v8_backtest(args, config, "portfolio")
     warmup_start, report_start, report_end = _window(args.end)
     strategy = strategy_definition(args.strategy or config.strategy_key)
@@ -447,12 +455,12 @@ def build_parser() -> argparse.ArgumentParser:
     )
     single.add_argument("--symbol", required=True)
     single.add_argument("--end", type=parse_utc)
-    single.add_argument("--strategy", choices=("v6", "v8"))
+    single.add_argument("--strategy", choices=("v6", "v8", "v8r"))
     all_ten = backtest_commands.add_parser(
         "all", help="alle Profile mit dem gespeicherten Budget je Coin testen"
     )
     all_ten.add_argument("--end", type=parse_utc)
-    all_ten.add_argument("--strategy", choices=("v6", "v8"))
+    all_ten.add_argument("--strategy", choices=("v6", "v8", "v8r"))
     portfolio = backtest_commands.add_parser(
         "portfolio",
         help=(
@@ -461,14 +469,14 @@ def build_parser() -> argparse.ArgumentParser:
         ),
     )
     portfolio.add_argument("--end", type=parse_utc)
-    portfolio.add_argument("--strategy", choices=("v6", "v8"))
+    portfolio.add_argument("--strategy", choices=("v6", "v8", "v8r"))
     paper = commands.add_parser("paper", help="24/7-Paper-Bot mit lokaler UI starten")
     paper.add_argument("--no-browser", action="store_true")
     activate = commands.add_parser(
         "paper-activate",
         help="versionierten Paper-Strategiewechsel kontrolliert ausfuehren",
     )
-    activate.add_argument("--strategy", choices=("v6", "v8"), required=True)
+    activate.add_argument("--strategy", choices=("v6", "v8", "v8r"), required=True)
     activate.add_argument("--confirmation", required=True)
     fresh = commands.add_parser(
         "paper-fresh-start",

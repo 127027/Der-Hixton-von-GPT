@@ -74,10 +74,11 @@ def test_default_profiles_and_config_identity_are_unchanged():
 
 
 @pytest.mark.parametrize("auto", [False, True])
+@pytest.mark.parametrize("registered", [False, True])
 def test_volatility_sizing_has_identical_paper_fills_and_survives_restart(
-    tmp_path, monkeypatch, auto
+    tmp_path, monkeypatch, auto, registered
 ):
-    strategy = candidate()
+    strategy = strategy_definition("v8r") if registered else candidate()
     monkeypatch.setitem(STRATEGY_DEFINITIONS, strategy.key, strategy)
     candles = {s: deterministic_candles(s, 1100) for s in strategy.symbols}
     points = {
@@ -118,7 +119,7 @@ def test_volatility_sizing_has_identical_paper_fills_and_survives_restart(
         strategy=strategy,
     )
     manifest = json.loads((bundle / "manifest.json").read_text())
-    assert manifest["strategy"]["entry_atr_target_fraction"] == "0.01"
+    assert manifest["strategy"]["entry_atr_target_fraction"] == strategy.entry_atr_target_fraction
     for name, stops in [("whole", [1100]), ("restart", [750, 1100])]:
         path = tmp_path / (name + ".sqlite3")
         initialize_paper_at_latest(

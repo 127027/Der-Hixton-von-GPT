@@ -509,7 +509,7 @@ class RuntimeSupervisor:
 
         if source_fingerprint() != self.execution_source_sha256:
             raise RuntimeError("Python-Code seit Botstart geändert: vor neuem Backtest neu starten")
-        if strategy.key == "v8":
+        if strategy.key in {"v8", "v8r"}:
             from hixton.backtest.product import run_product_backtest
 
             _, report_start, report_end = safe_closed_window()
