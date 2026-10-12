@@ -92,12 +92,23 @@ def compare_run(
                     differences.append("Andere Slotanzahl")
                 if settings.auto_budget_enabled:
                     capital = manifest.get("capital_source")
-                    if not isinstance(capital, dict) or capital.get("kind") != "BINANCE_SPOT_FREE_USDC" or capital.get("read_only") is not True or capital.get("quote_asset") != "USDC" or not capital.get("observed_at_utc"):
+                    if (
+                        not isinstance(capital, dict)
+                        or capital.get("kind") != "BINANCE_SPOT_FREE_USDC"
+                        or capital.get("read_only") is not True
+                        or capital.get("quote_asset") != "USDC"
+                        or not capital.get("observed_at_utc")
+                    ):
                         unknown.append("Frischer Binance-USDC-Startkapitalnachweis fehlt")
-                    elif Decimal(str(portfolio.get("starting_cash"))) != Decimal(str(capital.get("amount_usdc"))):
+                    elif Decimal(str(portfolio.get("starting_cash"))) != Decimal(
+                        str(capital.get("amount_usdc"))
+                    ):
                         differences.append("Startkapital weicht vom Binance-Snapshot ab")
                 else:
-                    if Decimal(str(portfolio.get("target_notional"))) != settings.target_notional_usdc:
+                    if (
+                        Decimal(str(portfolio.get("target_notional")))
+                        != settings.target_notional_usdc
+                    ):
                         differences.append("Anderer Betrag je Position")
                     if Decimal(str(portfolio.get("starting_cash"))) != starting_cash:
                         differences.append("Anderes Startkapital")

@@ -288,7 +288,9 @@ class PaperStore:
                                 "emergency_stop": previous.emergency_stop,
                                 "gap_fillers_enabled": previous.gap_fillers_enabled,
                                 "auto_budget_enabled": previous.auto_budget_enabled,
-                                "autonomous_performance_enabled": previous.autonomous_performance_enabled,
+                                "autonomous_performance_enabled": (
+                                    previous.autonomous_performance_enabled
+                                ),
                             },
                             "after": {
                                 "max_capital_usdc": str(settings.max_capital_usdc),
@@ -297,7 +299,9 @@ class PaperStore:
                                 "emergency_stop": settings.emergency_stop,
                                 "gap_fillers_enabled": settings.gap_fillers_enabled,
                                 "auto_budget_enabled": settings.auto_budget_enabled,
-                                "autonomous_performance_enabled": settings.autonomous_performance_enabled,
+                                "autonomous_performance_enabled": (
+                                    settings.autonomous_performance_enabled
+                                ),
                             },
                             "scope": "future_entries_only",
                         },

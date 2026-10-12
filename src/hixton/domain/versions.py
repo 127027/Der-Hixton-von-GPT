@@ -48,6 +48,7 @@ class StrategyDefinition:
     active_shared_satellites: tuple[str, ...] = ()
     satellite_semantics: StrategySemantics | None = None
     capital_exposure_fraction: str = "1"
+    entry_atr_target_fraction: str | None = None
 
     @property
     def symbols(self) -> tuple[str, ...]:
@@ -59,6 +60,10 @@ class StrategyDefinition:
         fraction = Decimal(self.capital_exposure_fraction)
         if not fraction.is_finite() or not Decimal("0") < fraction <= Decimal("1"):
             raise ValueError("capital exposure fraction must be in (0,1]")
+        if self.entry_atr_target_fraction is not None:
+            target = Decimal(self.entry_atr_target_fraction)
+            if not target.is_finite() or not Decimal("0") < target <= Decimal("1"):
+                raise ValueError("entry ATR target fraction must be in (0,1]")
         profile_symbols = tuple(profile.symbol for profile in self.coin_profiles)
         if self.key == "v6" and profile_symbols != symbols_for_quote(self.quote_asset):
             raise ValueError("coin profiles require all ten symbols in DMS order")
@@ -129,6 +134,8 @@ class StrategyDefinition:
             payload.update(asdict(self.parameters))
         if self.capital_exposure_fraction != "1":
             payload["capital_exposure_fraction"] = self.capital_exposure_fraction
+        if self.entry_atr_target_fraction is not None:
+            payload["entry_atr_target_fraction"] = self.entry_atr_target_fraction
         payload["quote_asset"] = self.quote_asset
         if self.satellite_symbols:
             payload["satellite_symbols"] = list(self.satellite_symbols)

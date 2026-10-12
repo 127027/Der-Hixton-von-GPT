@@ -83,5 +83,7 @@ def test_product_uses_one_modular_two_slot_allocator() -> None:
     assert "target_notional_usdc" not in payload["paper"]
     assert config.paper_max_capital_usdc > 0
     assert config.paper_slot_count == 2
-    assert config.paper_target_notional_usdc * config.paper_slot_count == config.paper_max_capital_usdc
+    assert (
+        config.paper_target_notional_usdc * config.paper_slot_count == config.paper_max_capital_usdc
+    )
     assert V8_SATELLITE_STRATEGY.slot_allocation == "ranked_repeat"

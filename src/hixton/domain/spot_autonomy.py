@@ -3,10 +3,11 @@
 These helpers never borrow funds, submit orders, request credentials or change
 the frozen V8 product strategy. The research mode is optional and OFF by default.
 """
+
 from __future__ import annotations
 
 from collections.abc import Mapping, Sequence
-from decimal import Decimal, ROUND_DOWN
+from decimal import ROUND_DOWN, Decimal
 
 MAX_RESEARCH_SPOT_SLOTS = 4
 FILLERS_WITH_POSITIVE_RESEARCH_HYPOTHESIS = frozenset(("NEARUSDC", "BCHUSDC"))
@@ -73,11 +74,36 @@ def size_spot_entry(
         raise ValueError("allocated slots out of bounds")
     exposure = equity * (Decimal("1") - reserve_fraction)
     return min(
-        (exposure * Decimal(allocated_slots) / Decimal(slots)).quantize(
-            _CENT, rounding=ROUND_DOWN
-        ),
+        (exposure * Decimal(allocated_slots) / Decimal(slots)).quantize(_CENT, rounding=ROUND_DOWN),
         free_quote.quantize(_CENT, rounding=ROUND_DOWN),
     )
+
+
+def entry_volatility_fraction(
+    *,
+    atr: Decimal,
+    reference_close: Decimal,
+    target_atr_fraction: Decimal | None = None,
+    capital_fraction: Decimal = Decimal("1"),
+) -> Decimal:
+    """Scale a new entry using its finalized signal's ATR/close, never future prices.
+
+    With a 1% target and a 2% ATR/close, half of the normal tranche is
+    assigned. Exposure never exceeds the original budget. This is sizing,
+    not an order stop or a guaranteed maximum-loss bound. Existing positions
+    are not rebalanced and their exit rules do not change.
+    """
+    capital_fraction = _nonnegative(capital_fraction, "capital fraction")
+    if not 0 < capital_fraction <= 1:
+        raise ValueError("capital fraction must be in (0,1]")
+    if target_atr_fraction is None:
+        return capital_fraction
+    target = _nonnegative(target_atr_fraction, "ATR target fraction")
+    atr = _nonnegative(atr, "signal ATR")
+    reference_close = _nonnegative(reference_close, "signal close")
+    if not 0 < target <= 1 or atr <= 0 or reference_close <= 0:
+        raise ValueError("ATR target, signal ATR and close must be positive")
+    return capital_fraction * min(Decimal("1"), target * reference_close / atr)
 
 
 def quality_filler_block_reason(symbol: str, abs_cmo: float | None) -> str | None:
@@ -124,8 +150,9 @@ def research_slot_allocations(
     return allocation
 
 
-def reinvestment_capital(*, equity: Decimal, starting_cash: Decimal,
-                         profit_fraction: Decimal = Decimal("1")) -> Decimal:
+def reinvestment_capital(
+    *, equity: Decimal, starting_cash: Decimal, profit_fraction: Decimal = Decimal("1")
+) -> Decimal:
     """Causal research budget: keep a fraction of profits outside new exposure.
 
     Losses always reduce the available budget. Cash reserves are still marked

@@ -1,0 +1,201 @@
+<!doctype html>
+<html lang="de">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Hixton Backtest 0a5fcd73-e3bb-459a-ad46-6bd0ff6fe1d0</title>
+  <style>
+    body { font-family: system-ui, sans-serif; margin: 2rem; color: #172033; }
+    pre { white-space: pre-wrap; background: #f3f5f8; padding: 1rem; border-radius: .5rem; }
+    .warning { border-left: .3rem solid #b26a00; padding-left: 1rem; }
+  </style>
+</head>
+<body>
+  <h1>Hixton Backtest V8</h1>
+  <p>Strategie: <code>HIXTON-V8-VOLATILITY-RESEARCH-atr006</code></p>
+  <p>Run-ID: <code>0a5fcd73-e3bb-459a-ad46-6bd0ff6fe1d0</code></p>
+  <p class="warning">Historische Simulation der angegebenen Regeln und Einstellungen.
+  VALID bedeutet ein gültiges Rechenergebnis, keine Binance-Ausführungsabnahme oder Livefreigabe.
+  Historische Ergebnisse sind keine Gewinngarantie.</p>
+  <p class="warning">Ein durchgehender Backtest der aktiven USDC-Strategie. Vorhandene USDC-Kerzen werden verwendet; historische USDT-Kerzen ergänzen ausschließlich fehlende ältere Historie, sofern native_usdc_candle_count dokumentiert ist. Strategie, Konto, Risiko, Kosten und aktuelle USDC-Ausfuehrungsregeln bleiben unveraendert.</p>
+  <h2>Kennzahlen</h2>
+  <pre>{
+  &quot;current&quot;: {
+    &quot;portfolio&quot;: {
+      &quot;symbols&quot;: [
+        &quot;BTCUSDC&quot;,
+        &quot;ETHUSDC&quot;,
+        &quot;BNBUSDC&quot;,
+        &quot;SOLUSDC&quot;,
+        &quot;XRPUSDC&quot;,
+        &quot;ADAUSDC&quot;,
+        &quot;LINKUSDC&quot;,
+        &quot;AVAXUSDC&quot;,
+        &quot;DOTUSDC&quot;,
+        &quot;DOGEUSDC&quot;,
+        &quot;SUIUSDC&quot;,
+        &quot;NEARUSDC&quot;,
+        &quot;UNIUSDC&quot;,
+        &quot;AAVEUSDC&quot;,
+        &quot;BCHUSDC&quot;
+      ],
+      &quot;starting_cash&quot;: &quot;1092.05773944&quot;,
+      &quot;target_notional&quot;: &quot;546.02886972&quot;,
+      &quot;slot_count&quot;: 2,
+      &quot;slot_allocation&quot;: &quot;ranked_repeat&quot;,
+      &quot;max_concurrent_positions&quot;: 2,
+      &quot;risk_limits_applied&quot;: true,
+      &quot;risk_halted_at_utc&quot;: null,
+      &quot;daily_paused_bars&quot;: 27,
+      &quot;open_symbols_at_end&quot;: [
+        &quot;ADAUSDC&quot;
+      ],
+      &quot;signal_count&quot;: 2528,
+      &quot;fill_count&quot;: 113,
+      &quot;blocked_signal_count&quot;: 2415,
+      &quot;blocked_reasons&quot;: {
+        &quot;POLICY_VIDYA_SLOPE&quot;: 93,
+        &quot;SPOT_RESEARCH_FILLER_NOT_ELIGIBLE&quot;: 123,
+        &quot;CORE_ACTIVE_FILLER_IDLE_ONLY&quot;: 459,
+        &quot;NO_FREE_SLOT&quot;: 101,
+        &quot;SATELLITE_RESEARCH_ONLY&quot;: 186,
+        &quot;SATELLITE_TREND_TOO_EXTENDED&quot;: 99,
+        &quot;POLICY_CMO&quot;: 1014,
+        &quot;SPOT_RESEARCH_FILLER_WEAK_MOMENTUM&quot;: 306,
+        &quot;SATELLITE_TREND_TOO_WEAK&quot;: 34
+      },
+      &quot;metrics&quot;: {
+        &quot;starting_equity&quot;: &quot;1092.05773944&quot;,
+        &quot;ending_equity&quot;: &quot;1122.19557851183135000000&quot;,
+        &quot;net_pnl&quot;: &quot;30.13783907183135000000&quot;,
+        &quot;return_pct&quot;: &quot;2.759729452335170018856049874&quot;,
+        &quot;annualized_return_pct&quot;: &quot;2.761588058527553&quot;,
+        &quot;max_drawdown&quot;: &quot;356.69005668599365000000&quot;,
+        &quot;max_drawdown_pct&quot;: &quot;32.07180258164810954906686117&quot;,
+        &quot;completed_trades&quot;: 56,
+        &quot;completed_slot_trades&quot;: 78,
+        &quot;winning_trades&quot;: 21,
+        &quot;losing_trades&quot;: 35,
+        &quot;win_rate_pct&quot;: &quot;37.500&quot;,
+        &quot;profit_factor&quot;: &quot;1.045189637177819269879503480&quot;,
+        &quot;average_win&quot;: &quot;35.12603420514039746889746889&quot;,
+        &quot;average_loss&quot;: &quot;-20.16439866356866666237666237&quot;,
+        &quot;exposure_pct&quot;: &quot;80.62785388127853881278538813&quot;,
+        &quot;total_fees&quot;: &quot;45.13110128517180000000&quot;,
+        &quot;modeled_spread_slippage&quot;: &quot;22.56544303450000000&quot;,
+        &quot;average_holding_hours&quot;: &quot;135.0&quot;,
+        &quot;max_holding_hours&quot;: &quot;1309.0&quot;,
+        &quot;sharpe&quot;: &quot;0.2717338562363833&quot;,
+        &quot;sortino&quot;: &quot;0.4642392951660336&quot;,
+        &quot;calmar&quot;: &quot;0.08610641860547522082122918359&quot;,
+        &quot;buy_and_hold_ending_equity&quot;: &quot;806.4105947166510877110828614&quot;,
+        &quot;buy_and_hold_return_pct&quot;: &quot;-26.15678039787776079651544790&quot;,
+        &quot;monthly_returns_pct&quot;: {
+          &quot;2025-10&quot;: &quot;-7.653464022219594224425324590&quot;,
+          &quot;2025-11&quot;: &quot;0.872982184763712441623642000&quot;,
+          &quot;2025-12&quot;: &quot;-7.603199403815252392609096850&quot;,
+          &quot;2026-01&quot;: &quot;-2.415912379860492397631382400&quot;,
+          &quot;2026-02&quot;: &quot;-3.380204761371465369922346970&quot;,
+          &quot;2026-03&quot;: &quot;-1.099198733896550761624250670&quot;,
+          &quot;2026-04&quot;: &quot;7.989995251928042699127369100&quot;,
+          &quot;2026-05&quot;: &quot;-0.0777783048615908472011546700&quot;,
+          &quot;2026-06&quot;: &quot;-4.889251460864832347082537170&quot;,
+          &quot;2026-07&quot;: &quot;-4.728165762804762848974344570&quot;,
+          &quot;2026-08&quot;: &quot;-0.4649766337881092644395775000&quot;,
+          &quot;2026-09&quot;: &quot;42.68542033634228420221419280&quot;,
+          &quot;2026-10&quot;: &quot;-7.800117269113646156802664600&quot;
+        }
+      }
+    }
+  },
+  &quot;stress&quot;: {
+    &quot;portfolio&quot;: {
+      &quot;symbols&quot;: [
+        &quot;BTCUSDC&quot;,
+        &quot;ETHUSDC&quot;,
+        &quot;BNBUSDC&quot;,
+        &quot;SOLUSDC&quot;,
+        &quot;XRPUSDC&quot;,
+        &quot;ADAUSDC&quot;,
+        &quot;LINKUSDC&quot;,
+        &quot;AVAXUSDC&quot;,
+        &quot;DOTUSDC&quot;,
+        &quot;DOGEUSDC&quot;,
+        &quot;SUIUSDC&quot;,
+        &quot;NEARUSDC&quot;,
+        &quot;UNIUSDC&quot;,
+        &quot;AAVEUSDC&quot;,
+        &quot;BCHUSDC&quot;
+      ],
+      &quot;starting_cash&quot;: &quot;1092.05773944&quot;,
+      &quot;target_notional&quot;: &quot;546.02886972&quot;,
+      &quot;slot_count&quot;: 2,
+      &quot;slot_allocation&quot;: &quot;ranked_repeat&quot;,
+      &quot;max_concurrent_positions&quot;: 2,
+      &quot;risk_limits_applied&quot;: true,
+      &quot;risk_halted_at_utc&quot;: null,
+      &quot;daily_paused_bars&quot;: 27,
+      &quot;open_symbols_at_end&quot;: [
+        &quot;ADAUSDC&quot;
+      ],
+      &quot;signal_count&quot;: 2524,
+      &quot;fill_count&quot;: 113,
+      &quot;blocked_signal_count&quot;: 2411,
+      &quot;blocked_reasons&quot;: {
+        &quot;POLICY_VIDYA_SLOPE&quot;: 93,
+        &quot;SPOT_RESEARCH_FILLER_NOT_ELIGIBLE&quot;: 123,
+        &quot;CORE_ACTIVE_FILLER_IDLE_ONLY&quot;: 458,
+        &quot;NO_FREE_SLOT&quot;: 101,
+        &quot;SATELLITE_RESEARCH_ONLY&quot;: 186,
+        &quot;SATELLITE_TREND_TOO_EXTENDED&quot;: 99,
+        &quot;POLICY_CMO&quot;: 1014,
+        &quot;SPOT_RESEARCH_FILLER_WEAK_MOMENTUM&quot;: 303,
+        &quot;SATELLITE_TREND_TOO_WEAK&quot;: 34
+      },
+      &quot;metrics&quot;: {
+        &quot;starting_equity&quot;: &quot;1092.05773944&quot;,
+        &quot;ending_equity&quot;: &quot;994.9075315237746000000&quot;,
+        &quot;net_pnl&quot;: &quot;-97.1502079162254000000&quot;,
+        &quot;return_pct&quot;: &quot;-8.896068807318135515525173503&quot;,
+        &quot;annualized_return_pct&quot;: &quot;-8.901707975687357&quot;,
+        &quot;max_drawdown&quot;: &quot;439.3849586674754000000&quot;,
+        &quot;max_drawdown_pct&quot;: &quot;39.54540848915099323076005281&quot;,
+        &quot;completed_trades&quot;: 56,
+        &quot;completed_slot_trades&quot;: 78,
+        &quot;winning_trades&quot;: 18,
+        &quot;losing_trades&quot;: 38,
+        &quot;win_rate_pct&quot;: &quot;32.14285714285714285714285714&quot;,
+        &quot;profit_factor&quot;: &quot;0.8728318405225599567536337483&quot;,
+        &quot;average_win&quot;: &quot;36.15463171319699562896229563&quot;,
+        &quot;average_loss&quot;: &quot;-19.62105114048342157947421104&quot;,
+        &quot;exposure_pct&quot;: &quot;81.10730593607305936073059361&quot;,
+        &quot;total_fees&quot;: &quot;42.4696081449134000000&quot;,
+        &quot;modeled_spread_slippage&quot;: &quot;127.4052520626000000&quot;,
+        &quot;average_holding_hours&quot;: &quot;135.75&quot;,
+        &quot;max_holding_hours&quot;: &quot;1309.0&quot;,
+        &quot;sharpe&quot;: &quot;-0.00456048139699799&quot;,
+        &quot;sortino&quot;: &quot;-0.007623630831819583&quot;,
+        &quot;calmar&quot;: &quot;-0.2251009236161886769755885882&quot;,
+        &quot;buy_and_hold_ending_equity&quot;: &quot;804.4005982193513591774061842&quot;,
+        &quot;buy_and_hold_return_pct&quot;: &quot;-26.34083627923898272872752306&quot;,
+        &quot;monthly_returns_pct&quot;: {
+          &quot;2025-10&quot;: &quot;-7.983537111166650201346793360&quot;,
+          &quot;2025-11&quot;: &quot;0.042101269395373402411441600&quot;,
+          &quot;2025-12&quot;: &quot;-9.140019227320512346270306120&quot;,
+          &quot;2026-01&quot;: &quot;-3.697882606307958052227903630&quot;,
+          &quot;2026-02&quot;: &quot;-4.413728944368726849116539830&quot;,
+          &quot;2026-03&quot;: &quot;-1.831789447409172069784015120&quot;,
+          &quot;2026-04&quot;: &quot;7.505739088331877880186939000&quot;,
+          &quot;2026-05&quot;: &quot;-2.137593161436593898794121250&quot;,
+          &quot;2026-06&quot;: &quot;-5.529092742269185598087587770&quot;,
+          &quot;2026-07&quot;: &quot;-5.685407914294051205949873970&quot;,
+          &quot;2026-08&quot;: &quot;-1.980136513047248222154510250&quot;,
+          &quot;2026-09&quot;: &quot;42.73056936679781937602185650&quot;,
+          &quot;2026-10&quot;: &quot;-8.090945932650104786641565360&quot;
+        }
+      }
+    }
+  }
+}</pre>
+</body>
+</html>

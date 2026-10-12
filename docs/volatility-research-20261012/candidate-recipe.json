@@ -1,0 +1,16 @@
+{
+  "status": "RESEARCH_ONLY_NOT_INSTALLED",
+  "default_strategy_changed": false,
+  "candidate_version": "HIXTON-V8-VOLATILITY-RESEARCH-atr0075",
+  "base_strategy": "HIXTON-V8-CORE10-SAT3-DOTFILTER-5-eeb47b53b080",
+  "indicator_overrides": {
+    "LINKUSDC": {
+      "vidya_length": 8
+    }
+  },
+  "entry_atr_target_fraction": ".0075",
+  "capital_exposure_fraction": "1",
+  "strict_performance_acceptance": false,
+  "live_release_granted": false,
+  "source_sha256": "6ec3882f47f58344004e70fb9d0e495926b3c45ad15fe4df1bbb66db319f018f"
+}

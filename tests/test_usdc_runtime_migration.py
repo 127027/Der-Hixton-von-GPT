@@ -66,21 +66,24 @@ def test_usdc_startup_preserves_each_market_history(tmp_path, monkeypatch, strat
             )
 
         def fetch_klines(self, symbol, *, start, end_exclusive):
-            if start == end:
+            result = [
+                c
+                for c in all_data[symbol]
+                if max(start, starts[symbol]) <= c.open_time_utc < end_exclusive
+            ]
+            # The runtime fetches recent final bars and the next opening price
+            # together. The provisional bar must stay outside indicator history.
+            if start <= end < end_exclusive:
                 last = all_data[symbol][-1]
-                return [
+                result.append(
                     replace(
                         last,
                         open_time_utc=end,
                         close_time_utc=end + timedelta(hours=1) - timedelta(milliseconds=1),
                         closed=False,
                     )
-                ]
-            return [
-                c
-                for c in all_data[symbol]
-                if max(start, starts[symbol]) <= c.open_time_utc < end_exclusive
-            ]
+                )
+            return result
 
     monkeypatch.setattr("hixton.runtime.supervisor.BinancePublicClient", Public)
     monkeypatch.setattr(
@@ -93,6 +96,11 @@ def test_usdc_startup_preserves_each_market_history(tmp_path, monkeypatch, strat
     assert all(q.valid for q in quality.values())
     assert all(p[-1].tradable for p in points.values())
     assert all(p[-1].strategy_version == strategy.version for p in points.values())
+    assert all(
+        point.candle.closed and point.candle.open_time_utc < end
+        for series in points.values()
+        for point in series
+    )
     supervisor.state.replace_analysis(points, quality)
     assert set(supervisor.state.points()) == set(symbols)
     before = supervisor.state.points()

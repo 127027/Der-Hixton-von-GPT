@@ -1,0 +1,528 @@
+{
+  "status": "RESEARCH_ONLY",
+  "installed": false,
+  "orders_sent": false,
+  "kind": "TEMPORAL_REJECTION_ON_PREVIOUSLY_EXAMINED_HISTORY",
+  "source_sha256": "a742880d63a354ec33aa3d049bbed80429faa2f9eed5d9a0edf736530a24ae2b",
+  "selection": "Two chronological fresh-account training years at stress costs. Both years must remain profitable, retain >=75% baseline return and have DD <=80% baseline. Rank by highest worst-fold return/DD. Freeze winner before final year; reject on either cost case if final-year return worsens negative baseline or retains <80% positive baseline, or DD increases. Full-period acceptance additionally requires >=80% baseline return and DD <=80% baseline in both cost cases. This already-examined history is not an unseen holdout.",
+  "period": [
+    "2023-10-11T19:00:00+00:00",
+    "2026-10-11T19:00:00+00:00"
+  ],
+  "seed": "1092.05773944",
+  "catalogue": {
+    "baseline": null,
+    "link_only": null,
+    "atr005": ".005",
+    "atr0075": ".0075",
+    "atr010": ".01",
+    "atr015": ".015",
+    "atr020": ".02"
+  },
+  "data": {
+    "history_mode": "THREE_YEAR_SCHEMA_F_CONTINUITY",
+    "purpose": "THREE_YEAR_STRATEGY_CONTINUITY",
+    "runtime_quote": "USDC",
+    "market_proxy_quote": "USDT",
+    "proxy_scope": "HISTORICAL_MARKET_CANDLES_ONLY",
+    "paper_state_modified": false,
+    "orders_sent": false,
+    "historical_usdc_liquidity_claimed": false,
+    "provenance_by_symbol": {
+      "BTCUSDC": {
+        "target_market": "BTCUSDC",
+        "market_proxy": "BTCUSDT",
+        "proxy_quote": "USDT",
+        "target_quote": "USDC",
+        "first_open_utc": "2023-09-25T03:00:00+00:00",
+        "last_open_utc": "2026-10-11T18:00:00+00:00",
+        "candle_count": 26704,
+        "execution_rules_from": "BTCUSDC",
+        "native_usdc_candle_count": 26704,
+        "proxy_candle_count": 0,
+        "native_usdc_first_open_utc": "2023-09-25T03:00:00+00:00",
+        "proxy_end_exclusive_utc": null
+      },
+      "ETHUSDC": {
+        "target_market": "ETHUSDC",
+        "market_proxy": "ETHUSDT",
+        "proxy_quote": "USDT",
+        "target_quote": "USDC",
+        "first_open_utc": "2023-09-25T03:00:00+00:00",
+        "last_open_utc": "2026-10-11T18:00:00+00:00",
+        "candle_count": 26704,
+        "execution_rules_from": "ETHUSDC",
+        "native_usdc_candle_count": 26704,
+        "proxy_candle_count": 0,
+        "native_usdc_first_open_utc": "2023-09-25T03:00:00+00:00",
+        "proxy_end_exclusive_utc": null
+      },
+      "BNBUSDC": {
+        "target_market": "BNBUSDC",
+        "market_proxy": "BNBUSDT",
+        "proxy_quote": "USDT",
+        "target_quote": "USDC",
+        "first_open_utc": "2023-09-25T03:00:00+00:00",
+        "last_open_utc": "2026-10-11T18:00:00+00:00",
+        "candle_count": 26704,
+        "execution_rules_from": "BNBUSDC",
+        "native_usdc_candle_count": 26704,
+        "proxy_candle_count": 0,
+        "native_usdc_first_open_utc": "2023-09-25T03:00:00+00:00",
+        "proxy_end_exclusive_utc": null
+      },
+      "SOLUSDC": {
+        "target_market": "SOLUSDC",
+        "market_proxy": "SOLUSDT",
+        "proxy_quote": "USDT",
+        "target_quote": "USDC",
+        "first_open_utc": "2023-09-25T03:00:00+00:00",
+        "last_open_utc": "2026-10-11T18:00:00+00:00",
+        "candle_count": 26704,
+        "execution_rules_from": "SOLUSDC",
+        "native_usdc_candle_count": 24443,
+        "proxy_candle_count": 2261,
+        "native_usdc_first_open_utc": "2023-12-28T08:00:00+00:00",
+        "proxy_end_exclusive_utc": "2023-12-28T08:00:00+00:00"
+      },
+      "XRPUSDC": {
+        "target_market": "XRPUSDC",
+        "market_proxy": "XRPUSDT",
+        "proxy_quote": "USDT",
+        "target_quote": "USDC",
+        "first_open_utc": "2023-09-25T03:00:00+00:00",
+        "last_open_utc": "2026-10-11T18:00:00+00:00",
+        "candle_count": 26704,
+        "execution_rules_from": "XRPUSDC",
+        "native_usdc_candle_count": 24443,
+        "proxy_candle_count": 2261,
+        "native_usdc_first_open_utc": "2023-12-28T08:00:00+00:00",
+        "proxy_end_exclusive_utc": "2023-12-28T08:00:00+00:00"
+      },
+      "ADAUSDC": {
+        "target_market": "ADAUSDC",
+        "market_proxy": "ADAUSDT",
+        "proxy_quote": "USDT",
+        "target_quote": "USDC",
+        "first_open_utc": "2023-09-25T03:00:00+00:00",
+        "last_open_utc": "2026-10-11T18:00:00+00:00",
+        "candle_count": 26704,
+        "execution_rules_from": "ADAUSDC",
+        "native_usdc_candle_count": 24443,
+        "proxy_candle_count": 2261,
+        "native_usdc_first_open_utc": "2023-12-28T08:00:00+00:00",
+        "proxy_end_exclusive_utc": "2023-12-28T08:00:00+00:00"
+      },
+      "LINKUSDC": {
+        "target_market": "LINKUSDC",
+        "market_proxy": "LINKUSDT",
+        "proxy_quote": "USDT",
+        "target_quote": "USDC",
+        "first_open_utc": "2023-09-25T03:00:00+00:00",
+        "last_open_utc": "2026-10-11T18:00:00+00:00",
+        "candle_count": 26704,
+        "execution_rules_from": "LINKUSDC",
+        "native_usdc_candle_count": 23795,
+        "proxy_candle_count": 2909,
+        "native_usdc_first_open_utc": "2024-01-24T08:00:00+00:00",
+        "proxy_end_exclusive_utc": "2024-01-24T08:00:00+00:00"
+      },
+      "AVAXUSDC": {
+        "target_market": "AVAXUSDC",
+        "market_proxy": "AVAXUSDT",
+        "proxy_quote": "USDT",
+        "target_quote": "USDC",
+        "first_open_utc": "2023-09-25T03:00:00+00:00",
+        "last_open_utc": "2026-10-11T18:00:00+00:00",
+        "candle_count": 26704,
+        "execution_rules_from": "AVAXUSDC",
+        "native_usdc_candle_count": 24443,
+        "proxy_candle_count": 2261,
+        "native_usdc_first_open_utc": "2023-12-28T08:00:00+00:00",
+        "proxy_end_exclusive_utc": "2023-12-28T08:00:00+00:00"
+      },
+      "DOTUSDC": {
+        "target_market": "DOTUSDC",
+        "market_proxy": "DOTUSDT",
+        "proxy_quote": "USDT",
+        "target_quote": "USDC",
+        "first_open_utc": "2023-09-25T03:00:00+00:00",
+        "last_open_utc": "2026-10-11T18:00:00+00:00",
+        "candle_count": 26704,
+        "execution_rules_from": "DOTUSDC",
+        "native_usdc_candle_count": 24443,
+        "proxy_candle_count": 2261,
+        "native_usdc_first_open_utc": "2023-12-28T08:00:00+00:00",
+        "proxy_end_exclusive_utc": "2023-12-28T08:00:00+00:00"
+      },
+      "DOGEUSDC": {
+        "target_market": "DOGEUSDC",
+        "market_proxy": "DOGEUSDT",
+        "proxy_quote": "USDT",
+        "target_quote": "USDC",
+        "first_open_utc": "2023-09-25T03:00:00+00:00",
+        "last_open_utc": "2026-10-11T18:00:00+00:00",
+        "candle_count": 26704,
+        "execution_rules_from": "DOGEUSDC",
+        "native_usdc_candle_count": 22763,
+        "proxy_candle_count": 3941,
+        "native_usdc_first_open_utc": "2024-03-07T08:00:00+00:00",
+        "proxy_end_exclusive_utc": "2024-03-07T08:00:00+00:00"
+      },
+      "SUIUSDC": {
+        "target_market": "SUIUSDC",
+        "market_proxy": "SUIUSDT",
+        "proxy_quote": "USDT",
+        "target_quote": "USDC",
+        "first_open_utc": "2023-09-25T03:00:00+00:00",
+        "last_open_utc": "2026-10-11T18:00:00+00:00",
+        "candle_count": 26704,
+        "execution_rules_from": "SUIUSDC",
+        "native_usdc_candle_count": 23915,
+        "proxy_candle_count": 2789,
+        "native_usdc_first_open_utc": "2024-01-19T08:00:00+00:00",
+        "proxy_end_exclusive_utc": "2024-01-19T08:00:00+00:00"
+      },
+      "NEARUSDC": {
+        "target_market": "NEARUSDC",
+        "market_proxy": "NEARUSDT",
+        "proxy_quote": "USDT",
+        "target_quote": "USDC",
+        "first_open_utc": "2023-09-25T03:00:00+00:00",
+        "last_open_utc": "2026-10-11T18:00:00+00:00",
+        "candle_count": 26704,
+        "execution_rules_from": "NEARUSDC",
+        "native_usdc_candle_count": 22619,
+        "proxy_candle_count": 4085,
+        "native_usdc_first_open_utc": "2024-03-13T08:00:00+00:00",
+        "proxy_end_exclusive_utc": "2024-03-13T08:00:00+00:00"
+      },
+      "UNIUSDC": {
+        "target_market": "UNIUSDC",
+        "market_proxy": "UNIUSDT",
+        "proxy_quote": "USDT",
+        "target_quote": "USDC",
+        "first_open_utc": "2023-09-25T03:00:00+00:00",
+        "last_open_utc": "2026-10-11T18:00:00+00:00",
+        "candle_count": 26704,
+        "execution_rules_from": "UNIUSDC",
+        "native_usdc_candle_count": 22955,
+        "proxy_candle_count": 3749,
+        "native_usdc_first_open_utc": "2024-02-28T08:00:00+00:00",
+        "proxy_end_exclusive_utc": "2024-02-28T08:00:00+00:00"
+      },
+      "AAVEUSDC": {
+        "target_market": "AAVEUSDC",
+        "market_proxy": "AAVEUSDT",
+        "proxy_quote": "USDT",
+        "target_quote": "USDC",
+        "first_open_utc": "2023-09-25T03:00:00+00:00",
+        "last_open_utc": "2026-10-11T18:00:00+00:00",
+        "candle_count": 26704,
+        "execution_rules_from": "AAVEUSDC",
+        "native_usdc_candle_count": 18419,
+        "proxy_candle_count": 8285,
+        "native_usdc_first_open_utc": "2024-09-04T08:00:00+00:00",
+        "proxy_end_exclusive_utc": "2024-09-04T08:00:00+00:00"
+      },
+      "BCHUSDC": {
+        "target_market": "BCHUSDC",
+        "market_proxy": "BCHUSDT",
+        "proxy_quote": "USDT",
+        "target_quote": "USDC",
+        "first_open_utc": "2023-09-25T03:00:00+00:00",
+        "last_open_utc": "2026-10-11T18:00:00+00:00",
+        "candle_count": 26704,
+        "execution_rules_from": "BCHUSDC",
+        "native_usdc_candle_count": 22115,
+        "proxy_candle_count": 4589,
+        "native_usdc_first_open_utc": "2024-04-03T08:00:00+00:00",
+        "proxy_end_exclusive_utc": "2024-04-03T08:00:00+00:00"
+      }
+    },
+    "note": "Ein durchgehender Backtest der aktiven USDC-Strategie. Vorhandene USDC-Kerzen werden verwendet; historische USDT-Kerzen erg\u00e4nzen ausschlie\u00dflich fehlende \u00e4ltere Historie, sofern native_usdc_candle_count dokumentiert ist. Strategie, Konto, Risiko, Kosten und aktuelle USDC-Ausfuehrungsregeln bleiben unveraendert."
+  },
+  "train": {
+    "baseline": [
+      {
+        "ending_usdc": "4867.1727017103790000000",
+        "return_pct": "345.6882201307627775004160086",
+        "dd_pct": "32.85480488448604004564261621",
+        "trades": 47,
+        "fees_usdc": "262.9033716789155000000",
+        "profit_factor": "1.962955968970186009506934231",
+        "open_at_end": null
+      },
+      {
+        "ending_usdc": "2019.5237411044137000000",
+        "return_pct": "84.92829345635260488658544624",
+        "dd_pct": "58.79711425408189680355200750",
+        "trades": 47,
+        "fees_usdc": "91.7467519691234000000",
+        "profit_factor": "1.726078502810157031217089198",
+        "open_at_end": null
+      }
+    ],
+    "link_only": [
+      {
+        "ending_usdc": "5830.7350419618040000000",
+        "return_pct": "433.9218643285076153793518872",
+        "dd_pct": "32.64847608080856455038798422",
+        "trades": 43,
+        "fees_usdc": "287.2379664149882000000",
+        "profit_factor": "2.234098475655325531707566083",
+        "open_at_end": null
+      },
+      {
+        "ending_usdc": "2115.7527617216363000000",
+        "return_pct": "93.74000891258555155796790458",
+        "dd_pct": "58.79711425408189680355200750",
+        "trades": 46,
+        "fees_usdc": "91.8548645073250000000",
+        "profit_factor": "1.793831087706601327574185548",
+        "open_at_end": null
+      }
+    ],
+    "atr005": [
+      {
+        "ending_usdc": "3681.7041669766078000000",
+        "return_pct": "237.1345702713998797828985972",
+        "dd_pct": "19.86273067848686830699097083",
+        "trades": 44,
+        "fees_usdc": "104.8326138025944000000",
+        "profit_factor": "2.919159340087941771811272835",
+        "open_at_end": null
+      },
+      {
+        "ending_usdc": "1696.5289268508389000000",
+        "return_pct": "55.35157763002602176769020674",
+        "dd_pct": "34.27710880662730603127234917",
+        "trades": 46,
+        "fees_usdc": "40.0088307801964000000",
+        "profit_factor": "2.191989985132412930250547816",
+        "open_at_end": null
+      }
+    ],
+    "atr0075": [
+      {
+        "ending_usdc": "5310.0415354684633000000",
+        "return_pct": "386.2418298680267169079310417",
+        "dd_pct": "25.35240212117609710188595119",
+        "trades": 43,
+        "fees_usdc": "200.5729373245212000000",
+        "profit_factor": "2.602778305855887394038517402",
+        "open_at_end": null
+      },
+      {
+        "ending_usdc": "2023.8823226140832000000",
+        "return_pct": "85.32740985398049513227119042",
+        "dd_pct": "44.59271044612921199305163822",
+        "trades": 46,
+        "fees_usdc": "64.4313174228278000000",
+        "profit_factor": "2.147585658375354043482636467",
+        "open_at_end": null
+      }
+    ],
+    "atr010": [
+      {
+        "ending_usdc": "5769.5511243358840000000",
+        "return_pct": "428.3192377075658775297328980",
+        "dd_pct": "29.33390915284325692046501418",
+        "trades": 43,
+        "fees_usdc": "250.5197565401076000000",
+        "profit_factor": "2.419711869061190378516758864",
+        "open_at_end": null
+      },
+      {
+        "ending_usdc": "2317.7734496948543000000",
+        "return_pct": "112.2390937757002871609995281",
+        "dd_pct": "51.95240877382994190715385269",
+        "trades": 46,
+        "fees_usdc": "85.6201718492066000000",
+        "profit_factor": "2.126761860042187098074952702",
+        "open_at_end": null
+      }
+    ],
+    "atr015": [
+      {
+        "ending_usdc": "5856.6364909581640000000",
+        "return_pct": "436.2936664833682266934770381",
+        "dd_pct": "31.88771422143788515395823854",
+        "trades": 43,
+        "fees_usdc": "279.6315788484963000000",
+        "profit_factor": "2.285849351261242936854655033",
+        "open_at_end": null
+      },
+      {
+        "ending_usdc": "2230.9217330490250000000",
+        "return_pct": "104.2860603866080321142181530",
+        "dd_pct": "54.91315823664215064733064593",
+        "trades": 46,
+        "fees_usdc": "91.8181732137930000000",
+        "profit_factor": "1.932738789366562538652017016",
+        "open_at_end": null
+      }
+    ],
+    "atr020": [
+      {
+        "ending_usdc": "5832.8812631294190000000",
+        "return_pct": "434.1183943369589604563372426",
+        "dd_pct": "32.91345117451008758942647470",
+        "trades": 43,
+        "fees_usdc": "285.7715061580329000000",
+        "profit_factor": "2.237824272953297597028299004",
+        "open_at_end": null
+      },
+      {
+        "ending_usdc": "2171.9852423808586000000",
+        "return_pct": "98.88923121360215759252547237",
+        "dd_pct": "57.63633125145753185831225213",
+        "trades": 46,
+        "fees_usdc": "92.8566969354592000000",
+        "profit_factor": "1.848722678817020700947136020",
+        "open_at_end": null
+      }
+    ]
+  },
+  "full": {
+    "baseline": {
+      "current": {
+        "ending_usdc": "28922.29449189693165000000",
+        "return_pct": "2548.421731503692592886222163",
+        "dd_pct": "47.62821518106107766365810424",
+        "trades": 153,
+        "fees_usdc": "3276.86973394498360000000",
+        "profit_factor": "1.556951325931057411406362381",
+        "open_at_end": null
+      },
+      "stress": {
+        "ending_usdc": "17491.5471730217670000000",
+        "return_pct": "1501.705344077440166014817580",
+        "dd_pct": "60.75992597185538846828388933",
+        "trades": 155,
+        "fees_usdc": "2504.5901179548593000000",
+        "profit_factor": "1.390761121249883076536612363",
+        "open_at_end": null
+      },
+      "report": "C:\\Users\\andre\\AppData\\Local\\Temp\\hixton-volatility-budget-research-20261012\\reports\\full\\baseline\\9779dfae-50f2-4bbc-b8fc-4b91abda9bab"
+    },
+    "link_only": {
+      "current": {
+        "ending_usdc": "35855.55093575210370000000",
+        "return_pct": "3183.301756016911114397184002",
+        "dd_pct": "46.54649203606093082845836525",
+        "trades": 148,
+        "fees_usdc": "3952.57915350799245000000",
+        "profit_factor": "1.576587597028160065341297171",
+        "open_at_end": null
+      },
+      "stress": {
+        "ending_usdc": "21956.5504456338837000000",
+        "return_pct": "1910.566809122478984589760090",
+        "dd_pct": "59.95283103083661166457813007",
+        "trades": 150,
+        "fees_usdc": "3041.4223047965620000000",
+        "profit_factor": "1.410236591950181730275194645",
+        "open_at_end": null
+      },
+      "report": "C:\\Users\\andre\\AppData\\Local\\Temp\\hixton-volatility-budget-research-20261012\\reports\\full\\link_only\\aa05c673-b0eb-46b2-aa24-b508c0ba9512"
+    },
+    "atr0075": {
+      "current": {
+        "ending_usdc": "29459.94834813359995000000",
+        "return_pct": "2597.654829426919037704979465",
+        "dd_pct": "41.80959086448445420468335077",
+        "trades": 148,
+        "fees_usdc": "2479.45101846874625000000",
+        "profit_factor": "1.816753964081586010535185765",
+        "open_at_end": null
+      },
+      "stress": {
+        "ending_usdc": "20803.1497711632304000000",
+        "return_pct": "1804.949621238062767535822007",
+        "dd_pct": "50.74961025851149513299454126",
+        "trades": 150,
+        "fees_usdc": "2011.9935927502528000000",
+        "profit_factor": "1.633438970734204872868347891",
+        "open_at_end": null
+      },
+      "report": "C:\\Users\\andre\\AppData\\Local\\Temp\\hixton-volatility-budget-research-20261012\\reports\\full\\atr0075\\419d6a2c-39f3-47a7-a20e-4f19b4891a13"
+    }
+  },
+  "validation": {
+    "baseline": {
+      "current": {
+        "ending_usdc": "1147.04876986251130000000",
+        "return_pct": "5.035542392722781983967952016",
+        "dd_pct": "37.50387482450033335267347736",
+        "trades": 56,
+        "fees_usdc": "67.08886040881090000000",
+        "profit_factor": "1.051673742825662350879126881",
+        "open_at_end": null
+      },
+      "stress": {
+        "ending_usdc": "885.6868379541014000000",
+        "return_pct": "-18.89743500116800014681831758",
+        "dd_pct": "51.18185008277283201261102175",
+        "trades": 56,
+        "fees_usdc": "57.5534352559780000000",
+        "profit_factor": "0.8132585919621261942814666272",
+        "open_at_end": null
+      },
+      "report": "C:\\Users\\andre\\AppData\\Local\\Temp\\hixton-volatility-budget-research-20261012\\reports\\validation\\baseline\\2e68bf4c-a067-463d-915d-4a852d8a0e26"
+    },
+    "link_only": {
+      "current": {
+        "ending_usdc": "1147.04876986251130000000",
+        "return_pct": "5.035542392722781983967952016",
+        "dd_pct": "37.50387482450033335267347736",
+        "trades": 56,
+        "fees_usdc": "67.08886040881090000000",
+        "profit_factor": "1.051673742825662350879126881",
+        "open_at_end": null
+      },
+      "stress": {
+        "ending_usdc": "885.6868379541014000000",
+        "return_pct": "-18.89743500116800014681831758",
+        "dd_pct": "51.18185008277283201261102175",
+        "trades": 56,
+        "fees_usdc": "57.5534352559780000000",
+        "profit_factor": "0.8132585919621261942814666272",
+        "open_at_end": null
+      },
+      "report": "C:\\Users\\andre\\AppData\\Local\\Temp\\hixton-volatility-budget-research-20261012\\reports\\validation\\link_only\\083caffe-cdfc-4823-87d0-cd32d6e91ae2"
+    },
+    "atr0075": {
+      "current": {
+        "ending_usdc": "1137.70302862834425000000",
+        "return_pct": "4.179750533314369713323076708",
+        "dd_pct": "36.18359457058719925471449910",
+        "trades": 56,
+        "fees_usdc": "52.25863752604130000000",
+        "profit_factor": "1.056961074782644345582143797",
+        "open_at_end": null
+      },
+      "stress": {
+        "ending_usdc": "985.2029428260056000000",
+        "return_pct": "-9.784720418609810351622519334",
+        "dd_pct": "44.48374207349476079853214732",
+        "trades": 56,
+        "fees_usdc": "48.6181993367291000000",
+        "profit_factor": "0.8785218584203907204943964048",
+        "open_at_end": null
+      },
+      "report": "C:\\Users\\andre\\AppData\\Local\\Temp\\hixton-volatility-budget-research-20261012\\reports\\validation\\atr0075\\7940ce34-13f9-4255-8e17-647a10da7834"
+    }
+  },
+  "training_eligible": [
+    "atr0075"
+  ],
+  "frozen_winner": "atr0075",
+  "checks": {
+    "full_current": false,
+    "full_stress": false,
+    "validation_current": true,
+    "validation_stress": true
+  },
+  "accepted": false
+}

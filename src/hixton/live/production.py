@@ -25,13 +25,16 @@ from hixton.backtest.models import ExecutionRules
 from hixton.domain.allocation import allocate_entry_slots
 from hixton.domain.capital import capital_plan
 from hixton.domain.models import IndicatorPoint, SignalAction
-from hixton.domain.spot_autonomy import (
-    marked_portfolio_equity, quality_filler_block_reason, size_spot_entry,
-)
 from hixton.domain.satellite_layer import (
     satellite_handoff_symbols,
     shared_satellite_entry_block_reason,
     shared_satellite_horizon_exit,
+)
+from hixton.domain.spot_autonomy import (
+    entry_volatility_fraction,
+    marked_portfolio_equity,
+    quality_filler_block_reason,
+    size_spot_entry,
 )
 from hixton.domain.strategy import entry_priority
 from hixton.domain.trade_policy import TradePolicyGate
@@ -920,6 +923,31 @@ class LivePortfolioController:
                 (reason, datetime.now(UTC).isoformat()),
             )
 
+    def _intent_entry_fraction(self, intent: LiveIntent) -> Decimal:
+        """Recheck the frozen signal's risk budget, including after a restart."""
+        if self.strategy.entry_atr_target_fraction is None:
+            return Decimal(self.strategy.capital_exposure_fraction)
+        with self.journal._connect() as connection:
+            row = connection.execute(
+                "SELECT symbol,action,payload_json FROM live_events WHERE intent_id=?",
+                (intent.intent_id,),
+            ).fetchone()
+        if row is None or row["symbol"] != intent.symbol or row["action"] != "ENTER_LONG":
+            raise ValueError("risk-sized intent requires its persisted entry signal")
+        payload = json.loads(str(row["payload_json"]))
+        if (
+            Decimal(payload["reference_price"]) != intent.reference_price
+            or int(payload["slot_count"]) != intent.slot_count
+            or Decimal(payload["quote_budget"]) != intent.quote_budget
+        ):
+            raise ValueError("intent differs from its persisted signal")
+        return entry_volatility_fraction(
+            atr=Decimal(payload["atr"]),
+            reference_close=intent.reference_price,
+            target_atr_fraction=Decimal(self.strategy.entry_atr_target_fraction),
+            capital_fraction=Decimal(self.strategy.capital_exposure_fraction),
+        )
+
     def pre_submit(self, intent: LiveIntent) -> bool:
         try:
             control = self._control()
@@ -938,6 +966,7 @@ class LivePortfolioController:
             if control["capital_json"] != self._capital_json(plan):
                 return False
             if intent.side == "BUY":
+                entry_fraction = self._intent_entry_fraction(intent)
                 if (
                     control["state"] != "LIVE_ENABLED"
                     or not bool(control["entries_enabled"])
@@ -946,8 +975,8 @@ class LivePortfolioController:
                     or emergency
                     or (
                         not self.autonomous_spot()
-                        and intent.quote_budget != plan.target_notional_usdc * intent.slot_count
-                        * Decimal(self.strategy.capital_exposure_fraction)
+                        and intent.quote_budget
+                        != plan.target_notional_usdc * intent.slot_count * entry_fraction
                     )
                 ):
                     return False
@@ -982,9 +1011,11 @@ class LivePortfolioController:
                             open_prices=marks,
                         )
                         maximum = size_spot_entry(
-                            equity=equity, free_quote=free_usdc,
-                            slots=plan.slot_count, allocated_slots=intent.slot_count,
-                            reserve_fraction=ONE - Decimal(self.strategy.capital_exposure_fraction),
+                            equity=equity,
+                            free_quote=free_usdc,
+                            slots=plan.slot_count,
+                            allocated_slots=intent.slot_count,
+                            reserve_fraction=ONE - entry_fraction,
                         )
                         if intent.quote_budget > maximum:
                             return False
@@ -1607,6 +1638,16 @@ class LivePortfolioController:
                     if allocated <= 0:
                         self._blocked(signal, "NO_FREE_SLOT")
                         continue
+                    entry_fraction = entry_volatility_fraction(
+                        atr=Decimal(str(signal.atr)),
+                        reference_close=Decimal(str(signal.close)),
+                        target_atr_fraction=(
+                            Decimal(self.strategy.entry_atr_target_fraction)
+                            if self.strategy.entry_atr_target_fraction
+                            else None
+                        ),
+                        capital_fraction=Decimal(self.strategy.capital_exposure_fraction),
+                    )
                     if self.autonomous_spot():
                         try:
                             marks = self._live_marks(now=datetime.now(UTC))
@@ -1622,13 +1663,13 @@ class LivePortfolioController:
                                 free_quote=snapshot.balances.get("USDC", (ZERO, ZERO))[0],
                                 slots=plan.slot_count,
                                 allocated_slots=allocated,
-                                reserve_fraction=ONE - Decimal(self.strategy.capital_exposure_fraction),
+                                reserve_fraction=ONE - entry_fraction,
                             )
                         except (ValueError, ArithmeticError, KeyError):
                             self.fail_closed("AUTONOMOUS_MARKS_OR_EQUITY_NOT_VERIFIED")
                             return self.report()
                     else:
-                        trade_budget = plan.target_notional_usdc * allocated * Decimal(self.strategy.capital_exposure_fraction)
+                        trade_budget = plan.target_notional_usdc * allocated * entry_fraction
                     if trade_budget <= ZERO:
                         self._blocked(signal, "INSUFFICIENT_FREE_USDC")
                         continue

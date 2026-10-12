@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from dataclasses import replace
 from datetime import datetime
-from decimal import Decimal, ROUND_DOWN
+from decimal import ROUND_DOWN, Decimal
 from pathlib import Path
 
 from hixton.backtest.account_capital import read_binance_starting_capital
@@ -66,7 +66,9 @@ def run_product_backtest(
         starting_cash = Decimal(str(capital_source["amount_usdc"]))
         if not starting_cash.is_finite() or starting_cash <= 0:
             raise ValueError("Binance starting capital must be positive and finite")
-        target_notional = (starting_cash / settings.slot_count).quantize(Decimal("0.01"), rounding=ROUND_DOWN)
+        target_notional = (starting_cash / settings.slot_count).quantize(
+            Decimal("0.01"), rounding=ROUND_DOWN
+        )
     if not settings.gap_fillers_enabled:
         strategy = replace(strategy, active_shared_satellites=())
     history = load_continuity_history(

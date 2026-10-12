@@ -1,7 +1,7 @@
 """Research-only auto-budget checkbox preference must never silently arm Live."""
+
 from __future__ import annotations
 
-from dataclasses import replace
 from decimal import Decimal
 from pathlib import Path
 
@@ -76,7 +76,8 @@ def test_local_ui_preference_is_saved_but_live_remains_locked(tmp_path: Path) ->
     blocked = client.post("/api/trading/settings", json=payload)
     assert blocked.status_code == 403
     saved = client.post(
-        "/api/trading/settings", json=payload,
+        "/api/trading/settings",
+        json=payload,
         headers={"X-Hixton-Action": "local-ui-v1", "Origin": "http://127.0.0.1:8765"},
     )
     assert saved.status_code == 200
@@ -98,8 +99,7 @@ def test_legacy_fixed_mode_can_stay_disabled(tmp_path: Path) -> None:
     )
     saved = client.post(
         "/api/trading/settings",
-        json={"confirmation": "ANWENDEN", "max_capital_usdc": "1100",
-              "auto_budget_enabled": False},
+        json={"confirmation": "ANWENDEN", "max_capital_usdc": "1100", "auto_budget_enabled": False},
         headers={"X-Hixton-Action": "local-ui-v1", "Origin": "http://127.0.0.1:8765"},
     )
     assert saved.status_code == 200

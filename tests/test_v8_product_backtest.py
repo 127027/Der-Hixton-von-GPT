@@ -197,7 +197,13 @@ def test_v8_shared_execution_matches_paper_with_filler_capacity_handoffs(
         starting_cash_usdc=Decimal("250"),
     )
     with PaperStore(config.database_path) as store:
-        store.save_settings(PaperSettings(gap_fillers_enabled=fillers_enabled, auto_budget_enabled=automation, autonomous_performance_enabled=automation))
+        store.save_settings(
+            PaperSettings(
+                gap_fillers_enabled=fillers_enabled,
+                auto_budget_enabled=automation,
+                autonomous_performance_enabled=automation,
+            )
+        )
     events = process_new_closed_points(
         str(config.database_path),
         points,
@@ -288,8 +294,13 @@ def test_saved_filler_switch_disables_entries_and_invalidates_comparison(history
         assert store.load_settings().gap_fillers_enabled is False
         account = store.load_account()
     output = run_product_backtest(
-        config, mode="portfolio", symbol=None, report_start_utc=start, report_end_utc=end,
-        code_commit="TEST", source_sha256=source_fingerprint(),
+        config,
+        mode="portfolio",
+        symbol=None,
+        report_start_utc=start,
+        report_end_utc=end,
+        code_commit="TEST",
+        source_sha256=source_fingerprint(),
     )
     manifest = json.loads((output / "manifest.json").read_text(encoding="utf-8"))
     metrics = json.loads((output / "metrics.json").read_text(encoding="utf-8"))
@@ -300,7 +311,9 @@ def test_saved_filler_switch_disables_entries_and_invalidates_comparison(history
         assert store.load_account() == account
         settings = store.load_settings()
     kwargs = {
-        "active": STRATEGY, "starting_cash": Decimal("300"), "source_hash": source_fingerprint(),
+        "active": STRATEGY,
+        "starting_cash": Decimal("300"),
+        "source_hash": source_fingerprint(),
     }
     assert compare_run(manifest, metrics, settings=settings, **kwargs)["status"] == "MATCHING"
     enabled = PaperSettings(max_capital_usdc=Decimal("300"), gap_fillers_enabled=True)
@@ -308,26 +321,54 @@ def test_saved_filler_switch_disables_entries_and_invalidates_comparison(history
 
 
 @pytest.mark.parametrize("automation", [False, True])
-def test_product_portfolio_records_and_compares_automation(history_fixture, automation, monkeypatch):
+def test_product_portfolio_records_and_compares_automation(
+    history_fixture, automation, monkeypatch
+):
     config, _candles, _rules, start, end, _requests = history_fixture
     from datetime import UTC, datetime
-    monkeypatch.setattr("hixton.backtest.product.read_binance_starting_capital", lambda config: {
-        "kind": "BINANCE_SPOT_FREE_USDC", "quote_asset": "USDC", "amount_usdc": "700.25",
-        "observed_at_utc": datetime.now(UTC).isoformat(), "read_only": True})
-    settings = PaperSettings(max_capital_usdc=Decimal("300"), auto_budget_enabled=automation,
-                             autonomous_performance_enabled=automation)
+
+    monkeypatch.setattr(
+        "hixton.backtest.product.read_binance_starting_capital",
+        lambda config: {
+            "kind": "BINANCE_SPOT_FREE_USDC",
+            "quote_asset": "USDC",
+            "amount_usdc": "700.25",
+            "observed_at_utc": datetime.now(UTC).isoformat(),
+            "read_only": True,
+        },
+    )
+    settings = PaperSettings(
+        max_capital_usdc=Decimal("300"),
+        auto_budget_enabled=automation,
+        autonomous_performance_enabled=automation,
+    )
     with PaperStore(config.database_path) as store:
         store.initialize(strategy_key="v8", strategy_version=STRATEGY.version)
         store.save_settings(settings)
-    output = run_product_backtest(config, mode="portfolio", symbol=None,
-        report_start_utc=start, report_end_utc=end, code_commit="TEST",
-        source_sha256=source_fingerprint())
+    output = run_product_backtest(
+        config,
+        mode="portfolio",
+        symbol=None,
+        report_start_utc=start,
+        report_end_utc=end,
+        code_commit="TEST",
+        source_sha256=source_fingerprint(),
+    )
     manifest = json.loads((output / "manifest.json").read_text())
     metrics = json.loads((output / "metrics.json").read_text())
     assert manifest["trading_settings"]["auto_budget_enabled"] is automation
-    assert Decimal(metrics["current"]["portfolio"]["starting_cash"]) == (Decimal("700.25") if automation else Decimal("300"))
-    kwargs = dict(active=STRATEGY, starting_cash=Decimal("300"), source_hash=source_fingerprint())
+    assert Decimal(metrics["current"]["portfolio"]["starting_cash"]) == (
+        Decimal("700.25") if automation else Decimal("300")
+    )
+    kwargs = {
+        "active": STRATEGY,
+        "starting_cash": Decimal("300"),
+        "source_hash": source_fingerprint(),
+    }
     assert compare_run(manifest, metrics, settings=settings, **kwargs)["status"] == "MATCHING"
-    other = PaperSettings(max_capital_usdc=Decimal("300"), auto_budget_enabled=not automation,
-                          autonomous_performance_enabled=not automation)
+    other = PaperSettings(
+        max_capital_usdc=Decimal("300"),
+        auto_budget_enabled=not automation,
+        autonomous_performance_enabled=not automation,
+    )
     assert compare_run(manifest, metrics, settings=other, **kwargs)["status"] == "DIFFERENT"

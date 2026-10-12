@@ -18,7 +18,7 @@ from uuid import UUID
 
 from hixton.backtest.models import ExecutionRules
 from hixton.domain.markets import split_market
-from hixton.domain.models import IndicatorPoint, SignalAction
+from hixton.domain.models import IndicatorPoint, Signal, SignalAction
 from hixton.domain.satellite_layer import (
     satellite_handoff_symbols,
     shared_satellite_entry_block_reason,
@@ -638,7 +638,7 @@ class SignalTrial:
         # The one-shot position follows the same Core-capacity handoff as Paper
         # and the normal portfolio; it never opens a second real position.
         if row["symbol"] in self.strategy.active_shared_satellites:
-            core_signals = []
+            core_signals: list[Signal] = []
             for symbol in self.strategy.symbols:
                 if symbol in self.strategy.satellite_symbols:
                     continue

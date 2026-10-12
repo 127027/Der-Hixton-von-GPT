@@ -91,7 +91,8 @@ class RuntimeSupervisor:
         # It never enters the indicator or the closed-bar quality audit.
         with CandleStore(self.config.database_path) as store:
             execution = {
-                symbol: [point.candle for point in values] + store.load_candles(
+                symbol: [point.candle for point in values]
+                + store.load_candles(
                     symbol,
                     start=values[-1].candle.open_time_utc + TIMEFRAME_DELTA,
                     closed_only=False,
@@ -114,9 +115,7 @@ class RuntimeSupervisor:
             self._task = asyncio.create_task(self._run(), name="hixton-runtime")
             execution_ready = (
                 self.trial_runtime is not None and not self.trial_runtime.stopped.is_set()
-            ) or (
-                self.live_runtime is not None and not self.live_runtime.stopped.is_set()
-            )
+            ) or (self.live_runtime is not None and not self.live_runtime.stopped.is_set())
             if execution_ready and (self._trial_task is None or self._trial_task.done()):
                 self._trial_task = asyncio.create_task(
                     self._trial_loop(), name="hixton-private-execution"
@@ -326,8 +325,13 @@ class RuntimeSupervisor:
                 sync_started = time.monotonic()
                 points, quality, rules = await asyncio.to_thread(self._synchronous_sync)
                 self.state.log(
-                    level="INFO", component="runtime", event_code="MARKETS_VALIDATED",
-                    message=f"{len(points)} Maerkte vollstaendig geprueft in {time.monotonic() - sync_started:.1f} Sekunden.",
+                    level="INFO",
+                    component="runtime",
+                    event_code="MARKETS_VALIDATED",
+                    message=(
+                        f"{len(points)} Maerkte vollstaendig geprueft in "
+                        f"{time.monotonic() - sync_started:.1f} Sekunden."
+                    ),
                 )
                 if self._stop.is_set():
                     return
@@ -345,12 +349,18 @@ class RuntimeSupervisor:
                     self.state.log(
                         level="WARNING" if delay > 90 else "INFO",
                         component="runtime",
-                        event_code=("CLOSED_BAR_PROCESSING_LATE" if delay > 90
-                                    else "CLOSED_BAR_SIGNALS_READY"),
+                        event_code=(
+                            "CLOSED_BAR_PROCESSING_LATE"
+                            if delay > 90
+                            else "CLOSED_BAR_SIGNALS_READY"
+                        ),
                         message=(
                             f"Geprüfte Stundenkerzen nach {delay:.1f} Sekunden bereit. "
-                            + ("90-Sekunden-Fenster für neue Live-Einstiege abgelaufen."
-                               if delay > 90 else "Signalprüfung innerhalb des Einstiegsfensters.")
+                            + (
+                                "90-Sekunden-Fenster für neue Live-Einstiege abgelaufen."
+                                if delay > 90
+                                else "Signalprüfung innerhalb des Einstiegsfensters."
+                            )
                         ),
                     )
                 if initial:
@@ -429,9 +439,12 @@ class RuntimeSupervisor:
         incremental = (
             self.state.snapshot().health == "HEALTHY"
             and set(previous) == set(self.strategy.symbols)
-            and all(values and values[-1].strategy_version == self.strategy.version
+            and all(
+                values
+                and values[-1].strategy_version == self.strategy.version
                 and values[-1].candle.close_time_utc >= report_end - timedelta(hours=48)
-                for values in previous.values())
+                for values in previous.values()
+            )
         )
 
         def synchronize_market(symbol: str) -> None:
@@ -450,12 +463,14 @@ class RuntimeSupervisor:
                     store=store,
                     symbol=symbol,
                     start=max(
-                        warmup_start, self._available_starts[symbol],
+                        warmup_start,
+                        self._available_starts[symbol],
                         report_end - timedelta(hours=48) if incremental else warmup_start,
                     ),
                     end_exclusive=report_end,
                     include_next_open=True,
                 )
+
         with ThreadPoolExecutor(max_workers=8, thread_name_prefix="hixton-public-sync") as pool:
             # Exhaust map so every failure is propagated before state can be published.
             list(pool.map(synchronize_market, self.strategy.symbols))
@@ -499,21 +514,25 @@ class RuntimeSupervisor:
 
             _, report_start, report_end = safe_closed_window()
             completed = subprocess.run(
-                ["git", "rev-parse", "HEAD"], cwd=self.config.run_output_root.parents[2],
-                capture_output=True, check=False, text=True,
+                ["git", "rev-parse", "HEAD"],
+                cwd=self.config.run_output_root.parents[2],
+                capture_output=True,
+                check=False,
+                text=True,
             )
             run_product_backtest(
-                self.config, mode=mode, symbol=symbol,
-                report_start_utc=report_start, report_end_utc=report_end,
+                self.config,
+                mode=mode,
+                symbol=symbol,
+                report_start_utc=report_start,
+                report_end_utc=report_end,
                 code_commit=completed.stdout.strip() if completed.returncode == 0 else "UNKNOWN",
                 source_sha256=self.execution_source_sha256,
             )
             return
         points = self.state.points()
         if set(points) != set(self.strategy.symbols):
-            raise RuntimeError(
-                "backtest requires synchronized data for the full strategy universe"
-            )
+            raise RuntimeError("backtest requires synchronized data for the full strategy universe")
         report_end = (
             min(values[-1].candle.open_time_utc for values in points.values()) + TIMEFRAME_DELTA
         )

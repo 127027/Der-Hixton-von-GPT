@@ -533,12 +533,23 @@ def test_late_entry_is_visible_and_never_backfills(tmp_path):
 
 def test_v8_trial_satellite_yields_to_core_without_a_second_buy(tmp_path):
     from hixton.domain.versions import strategy_definition
+
     controller, exchange = trial(tmp_path)
     controller.strategy = strategy_definition("v8")
     at = NOW.replace(hour=12)
-    controller.arm(str(uuid4()), "fake-account", now=at-timedelta(seconds=5), notional=D("50"))
+    controller.arm(str(uuid4()), "fake-account", now=at - timedelta(seconds=5), notional=D("50"))
+
     def mapping(moment, buy):
-        return {symbol: (replace(_point(symbol, moment, flip_up=symbol==buy, strength=1.0), strategy_version=controller.strategy.version),) for symbol in controller.strategy.symbols}
+        return {
+            symbol: (
+                replace(
+                    _point(symbol, moment, flip_up=symbol == buy, strength=1.0),
+                    strategy_version=controller.strategy.version,
+                ),
+            )
+            for symbol in controller.strategy.symbols
+        }
+
     entry = mapping(at, "NEARUSDC")
     assert controller.advance(entry, now=at, healthy=True)["state"] == "ENTRY_PENDING"
     assert controller.advance(entry, now=at, healthy=True)["state"] == "OPEN"

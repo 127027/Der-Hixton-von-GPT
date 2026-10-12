@@ -34,14 +34,18 @@ from hixton.domain.models import (
     StrategySemantics,
 )
 from hixton.domain.risk import PortfolioRiskState, evaluate_portfolio_risk
-from hixton.domain.spot_autonomy import (
-    marked_portfolio_equity, quality_filler_block_reason,
-    research_slot_allocations, size_spot_entry, reinvestment_capital,
-)
 from hixton.domain.satellite_layer import (
     satellite_handoff_symbols,
     shared_satellite_entry_block_reason,
     shared_satellite_horizon_exit,
+)
+from hixton.domain.spot_autonomy import (
+    entry_volatility_fraction,
+    marked_portfolio_equity,
+    quality_filler_block_reason,
+    reinvestment_capital,
+    research_slot_allocations,
+    size_spot_entry,
 )
 from hixton.domain.strategy import HixtonStrategy, entry_priority
 from hixton.domain.trade_policy import TradePolicy, TradePolicyGate
@@ -113,11 +117,18 @@ def run_shared_portfolio_backtest(
 ) -> PortfolioBacktestResult:
     """Replay ten aligned markets against one non-compounding shared ledger."""
 
-    reinvestment_capital(equity=starting_cash, starting_cash=starting_cash,
-                         profit_fraction=profit_reinvestment_fraction)
-    if not capital_exposure_fraction.is_finite() or not Decimal("0") < capital_exposure_fraction <= Decimal("1"):
+    reinvestment_capital(
+        equity=starting_cash,
+        starting_cash=starting_cash,
+        profit_fraction=profit_reinvestment_fraction,
+    )
+    if not capital_exposure_fraction.is_finite() or not Decimal(
+        "0"
+    ) < capital_exposure_fraction <= Decimal("1"):
         raise ValueError("capital exposure fraction must be in (0,1]")
-    if not reinvest_profits and (profit_reinvestment_fraction != Decimal("1") or capital_exposure_fraction != Decimal("1")):
+    if not reinvest_profits and (
+        profit_reinvestment_fraction != Decimal("1") or capital_exposure_fraction != Decimal("1")
+    ):
         raise ValueError("partial reinvestment requires reinvest_profits")
     if strategy is not None:
         if strategy.capital_exposure_fraction != "1":
@@ -140,8 +151,10 @@ def run_shared_portfolio_backtest(
     validate_market_symbols(symbols)
     if tuple(candles_by_symbol) != symbols:
         raise ValueError("portfolio input must contain all ten symbols in fixed DMS order")
-    if autonomous_spot and (strategy is None or strategy.key not in ('v8', 'v8d') or slot_count not in (2, 3, 4)):
-        raise ValueError('autonomous spot research requires V8 with 2, 3 or 4 capacity slots')
+    if autonomous_spot and (
+        strategy is None or strategy.key not in ("v8", "v8d") or slot_count not in (2, 3, 4)
+    ):
+        raise ValueError("autonomous spot research requires V8 with 2, 3 or 4 capacity slots")
     if starting_cash <= ZERO or target_notional <= ZERO or slot_count <= 0:
         raise ValueError("portfolio capital and slot_count must be positive")
     if report_start_utc >= report_end_utc:
@@ -339,8 +352,11 @@ def run_shared_portfolio_backtest(
             used_slots = sum(position.slots for position in positions.values())
             if autonomous_spot and slot_count > 2:
                 allocations = research_slot_allocations(
-                    [(signal.symbol, signal.breakout_strength) for signal in entries
-                     if signal.symbol not in positions],
+                    [
+                        (signal.symbol, signal.breakout_strength)
+                        for signal in entries
+                        if signal.symbol not in positions
+                    ],
                     free_slots=max(0, slot_count - used_slots),
                     satellite_symbols=satellite_symbols,
                 )
@@ -370,29 +386,37 @@ def run_shared_portfolio_backtest(
                     blocked.append(f"{signal.signal_id}:NO_FREE_SLOT")
                     continue
                 rule = rules.get(signal.symbol, ExecutionRules())
+                entry_fraction = entry_volatility_fraction(
+                    atr=_d(signal.atr),
+                    reference_close=_d(signal.close),
+                    target_atr_fraction=(
+                        Decimal(strategy.entry_atr_target_fraction)
+                        if strategy and strategy.entry_atr_target_fraction
+                        else None
+                    ),
+                    capital_fraction=capital_exposure_fraction,
+                )
                 if reinvest_profits:
-                    price_marks = {
-                        symbol: _d(candles[symbol].open) for symbol in symbols
-                    }
+                    price_marks = {symbol: _d(candles[symbol].open) for symbol in symbols}
                     equity_at_open = marked_portfolio_equity(
                         free_quote=cash,
-                        base_quantities={
-                            symbol: p.quantity for symbol, p in positions.items()
-                        },
+                        base_quantities={symbol: p.quantity for symbol, p in positions.items()},
                         dust_quantities=dust,
                         open_prices=price_marks,
                     )
                     budget = size_spot_entry(
                         equity=reinvestment_capital(
-                            equity=equity_at_open, starting_cash=starting_cash,
-                            profit_fraction=profit_reinvestment_fraction),
+                            equity=equity_at_open,
+                            starting_cash=starting_cash,
+                            profit_fraction=profit_reinvestment_fraction,
+                        ),
                         free_quote=cash,
                         slots=slot_count,
                         allocated_slots=allocated_slots,
-                        reserve_fraction=Decimal("1") - capital_exposure_fraction,
+                        reserve_fraction=Decimal("1") - entry_fraction,
                     )
                 else:
-                    budget = min(target_notional * Decimal(allocated_slots) * capital_exposure_fraction, cash)
+                    budget = min(target_notional * Decimal(allocated_slots) * entry_fraction, cash)
                 reference = _d(candles[signal.symbol].open)
                 fill_price = reference * (ONE + costs.adverse_price_rate)
                 gross_quantity = _round_down(budget / fill_price, rule.step_size)
@@ -489,9 +513,7 @@ def run_shared_portfolio_backtest(
                 if new_signal.action is SignalAction.ENTER_LONG and symbol in satellite_symbols:
                     reason = shared_satellite_entry_block_reason(symbol, points[symbol])
                     if reason is None and autonomous_spot:
-                        reason = quality_filler_block_reason(
-                            symbol, points[symbol].abs_cmo
-                        )
+                        reason = quality_filler_block_reason(symbol, points[symbol].abs_cmo)
                     if reason is not None:
                         blocked.append(f"{new_signal.signal_id}:{reason}")
                         continue

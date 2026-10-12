@@ -13,14 +13,17 @@ from hixton.constants import HIXTON_SPEC_VERSION
 from hixton.domain.allocation import ONE_PER_SYMBOL, allocate_entry_slots
 from hixton.domain.models import Candle, IndicatorPoint, Signal, SignalAction
 from hixton.domain.risk import PortfolioRiskState, evaluate_portfolio_risk
-from hixton.domain.spot_autonomy import (
-    marked_portfolio_equity, quality_filler_block_reason,
-    research_slot_allocations, size_spot_entry,
-)
 from hixton.domain.satellite_layer import (
     satellite_handoff_symbols,
     shared_satellite_entry_block_reason,
     shared_satellite_horizon_exit,
+)
+from hixton.domain.spot_autonomy import (
+    entry_volatility_fraction,
+    marked_portfolio_equity,
+    quality_filler_block_reason,
+    research_slot_allocations,
+    size_spot_entry,
 )
 from hixton.domain.strategy import entry_priority
 from hixton.domain.trade_policy import TradePolicy, TradePolicyGate
@@ -358,9 +361,7 @@ def process_new_closed_points(
                         point,
                     )
                     if satellite_reason is None and settings.autonomous_performance_enabled:
-                        satellite_reason = quality_filler_block_reason(
-                            signal.symbol, point.abs_cmo
-                        )
+                        satellite_reason = quality_filler_block_reason(signal.symbol, point.abs_cmo)
                     if satellite_reason is not None:
                         emitted.append(_blocked_event(signal, satellite_reason))
                         continue
@@ -487,6 +488,16 @@ def process_new_closed_points(
                     emitted.append(_blocked_event(signal, "NO_FREE_SLOT"))
                     continue
                 rules = rules_by_symbol[signal.symbol]
+                entry_fraction = entry_volatility_fraction(
+                    atr=_d(signal.atr),
+                    reference_close=_d(signal.close),
+                    target_atr_fraction=(
+                        Decimal(definition.entry_atr_target_fraction)
+                        if definition.entry_atr_target_fraction
+                        else None
+                    ),
+                    capital_fraction=Decimal(definition.capital_exposure_fraction),
+                )
                 if settings.auto_budget_enabled:
                     execution_marks = {
                         symbol: _d(candle.open) for symbol, candle in fill_candles.items()
@@ -502,12 +513,11 @@ def process_new_closed_points(
                         free_quote=account.cash_usdc,
                         slots=settings.slot_count,
                         allocated_slots=allocated_slots,
-                        reserve_fraction=ONE - Decimal(definition.capital_exposure_fraction),
+                        reserve_fraction=ONE - entry_fraction,
                     )
                 else:
                     budget = min(
-                        settings.target_notional_usdc * Decimal(allocated_slots)
-                        * Decimal(definition.capital_exposure_fraction),
+                        settings.target_notional_usdc * Decimal(allocated_slots) * entry_fraction,
                         account.cash_usdc,
                     )
                 reference = _d(fill_candles[signal.symbol].open)

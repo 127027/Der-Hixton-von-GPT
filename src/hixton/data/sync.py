@@ -8,7 +8,7 @@ from datetime import UTC, datetime, timedelta
 from hixton.constants import TIMEFRAME_DELTA
 from hixton.data.binance import BinancePublicClient
 from hixton.data.quality import DataQualityReport, audit_candles
-from hixton.data.storage import CandleStore, StoredSymbolRules, StoreResult
+from hixton.data.storage import CandleStore, StoredSymbolRules
 
 
 @dataclass(frozen=True, slots=True)
@@ -112,7 +112,9 @@ def synchronize_symbol(
             merged[candle.open_time_utc] = candle
     final = [merged[key] for key in sorted(merged)]
     quality = audit_candles(
-        final, expected_symbol=normalized, expected_start=start,
+        final,
+        expected_symbol=normalized,
+        expected_start=start,
         expected_end_exclusive=end_exclusive,
     )
     quality.require_valid()
@@ -132,6 +134,10 @@ def synchronize_symbol(
     )
     result = store.put_candles(fetched_candles)
     return DataSyncResult(
-        symbol=normalized, fetched=len(fetched_candles), inserted=result.inserted,
-        unchanged=result.unchanged, revised=result.revised, quality=quality,
+        symbol=normalized,
+        fetched=len(fetched_candles),
+        inserted=result.inserted,
+        unchanged=result.unchanged,
+        revised=result.revised,
+        quality=quality,
     )
