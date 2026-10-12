@@ -105,7 +105,7 @@ class PaperStore:
         # Only INSERT a new seed; never top up or reset an existing ledger.
         seed = starting_cash_usdc
         if seed is None:
-            seed = Decimal("250.00" if strategy_key in {"v6", "v8", "v8d"} else "240.00")
+            seed = Decimal("250.00" if strategy_key in {"v6", "v8", "v8d", "v8r"} else "240.00")
         if not seed.is_finite() or seed <= 0:
             raise ValueError("initial paper cash must be finite and positive")
         initial_cash = str(seed)
@@ -128,7 +128,7 @@ class PaperStore:
                     _time(moment),
                 ),
             )
-            settings_max = seed if strategy_key in {"v6", "v8", "v8d"} else Decimal("250.00")
+            settings_max = seed if strategy_key in {"v6", "v8", "v8d", "v8r"} else Decimal("250.00")
             plan = capital_plan(settings_max)
             self._connection.execute(
                 """
@@ -729,7 +729,9 @@ class PaperStore:
                             "starting_equity_usdc": str(starting_equity_usdc),
                             "forced_paper_exits": len(events),
                             "decision": (
-                                "DEC-043" if strategy_key in {"v6", "v8", "v8d"} else "DEC-037"
+                                "DEC-043"
+                                if strategy_key in {"v6", "v8", "v8d", "v8r"}
+                                else "DEC-037"
                             ),
                         },
                         separators=(",", ":"),

@@ -239,7 +239,11 @@ function setPage(target: string, title: string): void {
 
 function renderStatus(status: StatusResponse): void {
   if (!lastStatus) {
-    required<HTMLSelectElement>("#backtest-strategy").value = status.strategy_key;
+    const strategySelect = required<HTMLSelectElement>("#backtest-strategy");
+    if (!Array.from(strategySelect.options).some(option => option.value === status.strategy_key)) {
+      strategySelect.add(new Option(`Aktiv: ${status.strategy_version}`, status.strategy_key));
+    }
+    strategySelect.value = status.strategy_key;
     void refreshBacktests();
   }
   lastStatus = status;

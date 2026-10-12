@@ -1,0 +1,45 @@
+{
+  "schema_version": 1,
+  "strategy": {
+    "key": "v8r"
+  },
+  "markets": [
+    "BTCUSDC",
+    "ETHUSDC",
+    "BNBUSDC",
+    "SOLUSDC",
+    "XRPUSDC",
+    "ADAUSDC",
+    "LINKUSDC",
+    "AVAXUSDC",
+    "DOTUSDC",
+    "DOGEUSDC",
+    "SUIUSDC",
+    "NEARUSDC",
+    "UNIUSDC",
+    "AAVEUSDC",
+    "BCHUSDC"
+  ],
+  "backtest": {
+    "starting_usdc_per_symbol": "250.00",
+    "target_notional_usdc": "250.00",
+    "primary_window_years": 3
+  },
+  "paper": {
+    "starting_cash_usdc": "250.00",
+    "max_capital_usdc": "250.00",
+    "poll_seconds": 30,
+    "daily_audit_utc": "00:05"
+  },
+  "ui": {
+    "bind": "127.0.0.1",
+    "port": 8765,
+    "timezone": "Europe/Berlin",
+    "default_range": "1m"
+  },
+  "runtime": {
+    "database_path": "data/hixton-usdc.sqlite3",
+    "run_output_root": "backtests/v8r/runs",
+    "binance_base_url": "https://api.binance.com"
+  }
+}

@@ -402,6 +402,23 @@ V8_DEFENSIVE_RESEARCH_STRATEGY = replace(
     capital_exposure_fraction="0.35",
 )
 
+# Explicit owner-selected Paper candidate; this is not a Live acceptance certificate.
+V8_VOLATILITY_PAPER_STRATEGY = replace(
+    V8_SATELLITE_STRATEGY,
+    key="v8r",
+    backtest_version="v8r",
+    version="HIXTON-V8-LINK8-ATR075-PAPER-1",
+    reference="docs/volatility-research-20261012.md",
+    paper_approved=True,
+    entry_atr_target_fraction="0.0075",
+    coin_profiles=tuple(
+        replace(profile, parameters=replace(profile.parameters, vidya_length=8))
+        if profile.symbol == "LINKUSDC"
+        else profile
+        for profile in V8_SATELLITE_STRATEGY.coin_profiles
+    ),
+)
+
 STRATEGY_DEFINITIONS = {
     V1_STRATEGY.key: V1_STRATEGY,
     V2_RESEARCH_STRATEGY.key: V2_RESEARCH_STRATEGY,
@@ -410,6 +427,7 @@ STRATEGY_DEFINITIONS = {
     V7_USDC_STRATEGY.key: V7_USDC_STRATEGY,
     V8_SATELLITE_STRATEGY.key: V8_SATELLITE_STRATEGY,
     V8_DEFENSIVE_RESEARCH_STRATEGY.key: V8_DEFENSIVE_RESEARCH_STRATEGY,
+    V8_VOLATILITY_PAPER_STRATEGY.key: V8_VOLATILITY_PAPER_STRATEGY,
 }
 
 

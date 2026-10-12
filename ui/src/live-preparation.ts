@@ -23,6 +23,7 @@ interface LiveStatus {
     open_order_count?: number;
   } | null;
   trial?: {state: string; symbol?: string; reason?: string | null};
+  trial_continuation?: {exit_only: boolean; frozen_strategy_version: string | null};
   live?: {state: string; used_slots: number; free_slots: number; slot_count?: number};
 }
 
@@ -111,7 +112,9 @@ export function initializeLivePreparation(sharedSettingsBlocker: (mode?: "live" 
       CANCELED: "Abgebrochen; kein bestandener regulärer Testabschluss.",
       NEEDS_REVIEW: "Ungeklärt · Bericht prüfen; keine weiteren Einstiege freigeben.",
     };
-    message("real-trial-status", `50-USDC-Einmaltest: ${trialLabels[trialState] ?? trialState}${status.trial?.symbol ? " · " + status.trial.symbol : ""}`);
+    const continuation = status.trial_continuation?.exit_only
+      ? ` · Bestehender Test läuft mit seiner eingefrorenen Strategie weiter (${status.trial_continuation.frozen_strategy_version}). Keine neuen Test-Käufe.` : "";
+    message("real-trial-status", `50-USDC-Einmaltest: ${trialLabels[trialState] ?? trialState}${status.trial?.symbol ? " · " + status.trial.symbol : ""}${continuation}`);
     message("position-real-status", `50-USDC-Einmaltest: ${trialLabels[trialState] ?? trialState}${status.trial?.symbol ? " · " + status.trial.symbol : ""}`);
     const live = status.live;
     message("real-live-slots", live ? String(live.free_slots) : "—");

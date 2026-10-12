@@ -18,6 +18,7 @@ from fastapi.testclient import TestClient
 
 from hixton.config import ProjectConfig
 from hixton.constants import SYMBOLS
+from hixton.domain.versions import strategy_definition
 from hixton.live.binance import BinanceCheckError, BinanceReadOnlyClient, assess_account
 from hixton.live.credentials import (
     BinanceCredentials,
@@ -223,6 +224,7 @@ def test_controlled_trial_auto_checks_account_and_arms_without_sending_order(
     client, config, service = client_for(tmp_path)
     unlock(client)
     save_key(client)
+
     class FakeReadOnlyClient:
         def __init__(self, credentials: BinanceCredentials) -> None:
             assert credentials.api_key == KEY
@@ -717,7 +719,8 @@ def test_first_enrollment_does_not_take_over_existing_key() -> None:
 
 @pytest.mark.parametrize("method", ["get", "post"])
 def test_execution_report_is_authenticated_downloadable_and_secret_free(
-    tmp_path: Path, method: str,
+    tmp_path: Path,
+    method: str,
 ) -> None:
     client, _, _service = client_for(tmp_path)
     denied = client.request(method, "/api/live/report", headers=HEADERS)
@@ -726,9 +729,14 @@ def test_execution_report_is_authenticated_downloadable_and_secret_free(
     save_key(client)
     for path in ("/api/live/report", "/api/live/report/download"):
         assert client.request(method, path).status_code == 403
-        assert client.request(
-            method, path, headers={**HEADERS, "Origin": "https://foreign.example"},
-        ).status_code == 403
+        assert (
+            client.request(
+                method,
+                path,
+                headers={**HEADERS, "Origin": "https://foreign.example"},
+            ).status_code
+            == 403
+        )
     report = client.request(method, "/api/live/report", headers=HEADERS)
     assert report.status_code == 200
     payload = report.json()
@@ -756,7 +764,16 @@ def test_completed_trial_unlocks_live_action_without_paper_soak_or_manual_check(
 
     class CompletedTrial:
         def report(self):
-            return {"state": "COMPLETED", "has_unsettled": False}
+            return {
+                "state": "COMPLETED",
+                "has_unsettled": False,
+                "strategy": service.live.strategy.config_payload(),
+                "execution_identity": {
+                    "source_matches_current": True,
+                    "allocator_matches_current": True,
+                    "frozen_application_version": service.application_version,
+                },
+            }
 
     service.trial = CompletedTrial()
     status = service.status(
@@ -803,11 +820,21 @@ def test_live_enable_auto_preflights_full_configured_budget(tmp_path: Path) -> N
 
     class CompletedTrial:
         def report(self):
-            return {"state": "COMPLETED", "has_unsettled": False}
+            return {
+                "state": "COMPLETED",
+                "has_unsettled": False,
+                "strategy": service.live.strategy.config_payload(),
+                "execution_identity": {
+                    "source_matches_current": True,
+                    "allocator_matches_current": True,
+                    "frozen_application_version": service.application_version,
+                },
+            }
 
     class Live:
         def __init__(self) -> None:
             self.enabled = False
+            self.strategy = strategy_definition("v6")
 
         def report(self):
             return {"state": "LIVE_DISABLED", "initialized": False}

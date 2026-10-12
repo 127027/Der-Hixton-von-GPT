@@ -23,6 +23,7 @@ from hixton.domain.versions import StrategyDefinition
 from hixton.live.binance import BinanceCheckError, BinanceReadOnlyClient
 from hixton.live.credentials import CredentialService, LocalAccess, Vault
 from hixton.live.exchange import BinanceSpotExchange, BinanceSpotTransport
+from hixton.live.frozen_trial import FrozenTrialPoints, continuation_strategy
 from hixton.live.monitoring import build_execution_report, write_execution_report
 from hixton.live.orders import ExchangeOrder, OrderJournal, TrialIntent, TrialOrderExecutor
 from hixton.live.production import (
@@ -203,13 +204,16 @@ class LivePreparation:
 
         trial_journal = OrderJournal(self.database)
         self.trial_reconciler = TrialReconciler(trial_journal)
+        frozen_strategy = continuation_strategy(self.database, strategy)
         self.trial = SignalTrial(
             trial_journal,
             TrialOrderExecutor(trial_journal, DeferredExchange(), self._trial_pre_submit),
-            strategy,
-            lambda: self._trial_authorized
-            and bool(self.credentials.status()["configured"])
-            and not settings_provider()[1],
+            frozen_strategy,
+            lambda: (
+                self._trial_authorized
+                and bool(self.credentials.status()["configured"])
+                and not settings_provider()[1]
+            ),
             rules_provider,
             application_version=self.application_version,
             execution_source_sha256=self.execution_source_sha256,
@@ -218,7 +222,12 @@ class LivePreparation:
             gap_fillers_enabled=gap_fillers_enabled,
             autonomous_spot=autonomous_spot_enabled,
         )
-        self.runtime = TrialRuntime(self.trial, self.trial_reconciler, self._account_snapshot)
+        self.runtime = TrialRuntime(
+            self.trial,
+            self.trial_reconciler,
+            self._account_snapshot,
+            points_transform=FrozenTrialPoints(strategy, frozen_strategy),
+        )
         self._trial_authorized = bool(self.trial.report().get("has_unsettled"))
 
         live_journal = LiveOrderJournal(self.database)
@@ -251,7 +260,13 @@ class LivePreparation:
         return self.runtime
 
     def diagnostic_report(self, paper_database: Path) -> dict[str, object]:
-        strategy_version = self.trial.strategy.version if self.trial is not None else "unknown"
+        strategy_version = (
+            self.live.strategy.version
+            if self.live is not None
+            else self.trial.strategy.version
+            if self.trial is not None
+            else "unknown"
+        )
         return build_execution_report(
             self.database,
             paper_database,
@@ -452,6 +467,19 @@ class LivePreparation:
             )
             return self.trial.report()
 
+    def _trial_covers_current_runtime(self, report: Mapping[str, object]) -> bool:
+        if self.live is None or report.get("state") != "COMPLETED":
+            return False
+        identity = report.get("execution_identity")
+        return bool(
+            isinstance(identity, dict)
+            and identity.get("source_matches_current") is True
+            and identity.get("allocator_matches_current") is True
+            and identity.get("frozen_application_version") == self.application_version
+            and report.get("strategy") == self.live.strategy.config_payload()
+            and self.source_is_current()
+        )
+
     def enable_live(
         self,
         points: Mapping[str, tuple[IndicatorPoint, ...]],
@@ -475,6 +503,11 @@ class LivePreparation:
             if self.trial is None or self.trial.report()["state"] != "COMPLETED":
                 raise BinanceCheckError(
                     "Zuerst muss der kontrollierte 50-USDC-Roundtrip fertig sein"
+                )
+            if not self._trial_covers_current_runtime(self.trial.report()):
+                raise BinanceCheckError(
+                    "Der abgeschlossene Test gehört zu einer anderen Strategie/Quellversion; "
+                    "keine Freigabe für die aktuelle Version."
                 )
             # Live performs its own fresh/sufficient preflight. A separate manual
             # connection-check click is diagnostic only, never a required ritual.
@@ -537,22 +570,22 @@ class LivePreparation:
             credential_status = self.credentials.status()
             fresh = self._fresh_check()
             trial = self.trial.report() if self.trial is not None else {"state": "NOT_STARTED"}
-            live = self.live.report() if self.live is not None else {
-                "initialized": False,
-                "state": "LIVE_DISABLED",
-                "positions": [],
-                "unresolved_intents": [],
-            }
+            live = (
+                self.live.report()
+                if self.live is not None
+                else {
+                    "initialized": False,
+                    "state": "LIVE_DISABLED",
+                    "positions": [],
+                    "unresolved_intents": [],
+                }
+            )
             trial_settings_ok = emergency_stop is False
             try:
-                production_plan = (
-                    capital_plan(max_capital) if max_capital is not None else None
-                )
+                production_plan = capital_plan(max_capital) if max_capital is not None else None
             except ValueError:
                 production_plan = None
-            production_settings_ok = (
-                production_plan is not None and emergency_stop is False
-            )
+            production_settings_ok = production_plan is not None and emergency_stop is False
             trial_state = str(trial.get("state", "NOT_STARTED"))
             trial_retryable = bool(
                 self.trial is not None
@@ -575,10 +608,12 @@ class LivePreparation:
                 trial_blockers.append("Einmaltest-Runtime ist nicht verbunden.")
             trial_available = not trial_blockers
             trial_completed = trial_state == "COMPLETED"
+            trial_current = self._trial_covers_current_runtime(trial)
             production_ready = bool(
                 credential_status["configured"]
                 and healthy
                 and trial_completed
+                and trial_current
                 and production_settings_ok
                 and production_plan is not None
                 and self.live is not None
@@ -601,12 +636,15 @@ class LivePreparation:
                 blockers.append(
                     "Vor dauerhaftem Livebetrieb ist ein kontrollierter 1x50-Roundtrip nötig."
                 )
+            if trial_completed and not trial_current:
+                blockers.append("50-USDC-Test gehört zu einer anderen Strategie/Quellversion.")
             if not production_settings_ok:
                 blockers.append("Maximalbudget oder Einstiegspause verhindert die Live-Freigabe.")
             if live.get("state") == "NEEDS_REVIEW":
                 blockers.append(
                     "Live-Ledger benötigt manuellen Abgleich; neue Orders sind gesperrt."
                 )
+            trial_strategy = trial.get("strategy")
             return {
                 "state": self.execution_state(),
                 "order_dispatch_available": production_ready,
@@ -636,11 +674,26 @@ class LivePreparation:
                     "account_reconciliation_accepted": True,
                     "binance_testnet_accepted": False,
                 },
-                "trial": trial if authenticated else {
+                "trial_continuation": {
+                    "frozen_strategy_version": (
+                        trial_strategy.get("version") if isinstance(trial_strategy, dict) else None
+                    ),
+                    "active_strategy_version": self.live.strategy.version if self.live else None,
+                    "exit_only": bool(
+                        self.live
+                        and trial.get("has_unsettled")
+                        and trial.get("strategy") != self.live.strategy.config_payload()
+                    ),
+                },
+                "trial": trial
+                if authenticated
+                else {
                     "state": trial.get("state", "NOT_STARTED"),
                     "has_unsettled": trial.get("has_unsettled", False),
                 },
-                "live": live if authenticated else {
+                "live": live
+                if authenticated
+                else {
                     "state": live.get("state", "LIVE_DISABLED"),
                     "used_slots": live.get("used_slots", 0),
                     "free_slots": live.get("free_slots", 2),
@@ -655,17 +708,11 @@ class LivePreparation:
                     {
                         "max_capital_usdc": str(production_plan.max_capital_usdc),
                         "slot_count": production_plan.slot_count,
-                        "target_notional_usdc": str(
-                            production_plan.target_notional_usdc
-                        ),
-                        "max_committed_usdc": str(
-                            production_plan.max_commitment_usdc
-                        ),
+                        "target_notional_usdc": str(production_plan.target_notional_usdc),
+                        "max_committed_usdc": str(production_plan.max_commitment_usdc),
                         "reserve_usdc": str(production_plan.reserve_usdc),
                         "allocator_version": production_plan.version,
-                        "minimum_free_usdc_at_enable": str(
-                            production_plan.max_capital_usdc
-                        ),
+                        "minimum_free_usdc_at_enable": str(production_plan.max_capital_usdc),
                         "spot_only": True,
                         "quote_asset": "USDC",
                         "automatic_preflight_on_enable": True,

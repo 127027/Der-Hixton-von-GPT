@@ -23,11 +23,16 @@ class TrialRuntime:
         snapshot: Callable[[], AccountSnapshot],
         *,
         clock: Callable[[], datetime] = lambda: datetime.now(UTC),
+        points_transform: Callable[
+            [Mapping[str, Sequence[IndicatorPoint]]], Mapping[str, Sequence[IndicatorPoint]]
+        ]
+        | None = None,
     ) -> None:
         self.trial = trial
         self.reconciler = reconciler
         self.snapshot = snapshot
         self.clock = clock
+        self.points_transform = points_transform
         self.stopped = Event()
         self.lock = RLock()
         self.last_error: str | None = None
@@ -62,6 +67,8 @@ class TrialRuntime:
                     self.trial.disable_entries()
                 # A separate 2-second lifecycle tick is crucial: selection and send
                 # must not be separated by the next one-hour strategy candle.
+                if healthy and self.points_transform is not None:
+                    points = self.points_transform(points)
                 report = self.trial.advance(points, now=now, healthy=healthy)
                 if report["state"] == "AWAITING_RECONCILIATION" and not self.stopped.is_set():
                     snapshot = self.snapshot()
