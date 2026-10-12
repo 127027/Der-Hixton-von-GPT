@@ -9,6 +9,7 @@ interface LiveStatus {
   order_dispatch_available: boolean;
   trial_dispatch_available: boolean;
   trial_retryable_before_submit?: boolean;
+  trial_retest_available?: boolean;
   trial_blockers?: string[];
   runtime_health?: string;
   trial_order_execution_blocked_by_health?: boolean;
@@ -133,7 +134,9 @@ export function initializeLivePreparation(sharedSettingsBlocker: (mode?: "live" 
     message(
       "live-trial-status",
       status.trial?.state && status.trial.state !== "NOT_STARTED"
-        ? status.trial_retryable_before_submit
+        ? status.trial_retest_available
+          ? "Alter Test abgeschlossen und abgeglichen. Für die aktuelle Version kann ein neuer 1×50-USDC-Test ausdrücklich freigegeben werden; der alte Bericht bleibt gespeichert."
+          : status.trial_retryable_before_submit
           ? `Vor einer Binance-Order beendet (${status.trial.state}) · sicher erneut startbar.`
           : `Test: ${status.trial.state}${status.trial.symbol ? " · " + status.trial.symbol : ""}.${healthWait}${signalWait}`
         : status.trial_dispatch_available

@@ -6,6 +6,7 @@ import os
 import secrets
 import threading
 import webbrowser
+from contextlib import suppress
 
 import uvicorn
 
@@ -14,6 +15,8 @@ from hixton.runtime.continuity_supervisor import RuntimeSupervisor
 from hixton.ui.api import create_app
 from hixton.ui.instance import installation_id, remove_control, reserve_instance, write_control
 from hixton.ui.lifecycle import ConsoleParent, VisibleSession
+from hixton.ui.power import SleepGuard
+from hixton.ui.session_audit import record_session_event
 
 
 def run_local_dashboard(config: ProjectConfig, *, open_browser: bool = True) -> int:
@@ -24,6 +27,7 @@ def run_local_dashboard(config: ProjectConfig, *, open_browser: bool = True) -> 
     session = None
     timer = None
     shutdown_timer: threading.Timer | None = None
+    sleep_guard: SleepGuard | None = None
     try:
         if not parent.alive():
             raise RuntimeError(
@@ -52,6 +56,22 @@ def run_local_dashboard(config: ProjectConfig, *, open_browser: bool = True) -> 
             token=secrets.token_hex(32),
             terminal_alive=parent.alive,
             request_exit=request_exit,
+        )
+        session.on_stop = lambda reason: record_session_event(
+            config.database_path, session.instance, "STOP_REQUESTED", reason
+        )
+        sleep_guard = SleepGuard()
+        session.sleep_inhibition = sleep_guard.start()
+        print(
+            "[Hixton] Leerlauf-Standby-Schutz: "
+            + ("aktiv" if session.sleep_inhibition else "nicht verfügbar"),
+            flush=True,
+        )
+        record_session_event(
+            config.database_path,
+            session.instance,
+            "STARTED",
+            "Leerlauf-Schutz aktiv" if session.sleep_inhibition else "Leerlauf-Schutz fehlt",
         )
         app = create_app(config, supervisor, session=session)
         server = uvicorn.Server(
@@ -87,7 +107,16 @@ def run_local_dashboard(config: ProjectConfig, *, open_browser: bool = True) -> 
             shutdown_timer.cancel()
         if timer is not None:
             timer.cancel()
+        if sleep_guard is not None:
+            sleep_guard.close()
         if session is not None:
+            with suppress(OSError):
+                record_session_event(
+                    config.database_path,
+                    session.instance,
+                    "PROCESS_ENDED",
+                    session.stop_reason or "Serverlauf beendet",
+                )
             remove_control(config.database_path, session.instance)
         if listener is not None:
             listener.close()

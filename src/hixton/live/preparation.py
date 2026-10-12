@@ -401,7 +401,11 @@ class LivePreparation:
             # execution tick before a future signal can reach the order adapter.
             if emergency_stop:
                 raise BinanceCheckError("Einstiegspause ist aktiv; 50-USDC-Test bleibt gesperrt")
-            state = str(self.trial.report()["state"])
+            current_report = self.trial.report()
+            state = str(current_report["state"])
+            retest = state == "COMPLETED" and not self._trial_covers_current_runtime(current_report)
+            if retest and not self.source_is_current():
+                raise BinanceCheckError("Code seit Botstart geändert; vor neuem Test neu starten")
             if state in {"CANCELED", "FAILED"}:
                 try:
                     reset = self.trial.prepare_retry()
@@ -416,7 +420,7 @@ class LivePreparation:
                         "kann nicht sicher automatisch zurückgesetzt werden."
                     )
                 state = str(self.trial.report()["state"])
-            if state != "NOT_STARTED":
+            if state != "NOT_STARTED" and not retest:
                 raise BinanceCheckError(
                     f"Der kontrollierte 50-USDC-Test ist bereits im Zustand {state}."
                 )
@@ -437,6 +441,35 @@ class LivePreparation:
                 raise BinanceCheckError(
                     "Kontobaseline konnte nicht stabil gelesen werden; bitte erneut versuchen."
                 ) from error
+            if retest:
+                if snapshot.open_orders or any(
+                    locked != 0 for _, locked in snapshot.balances.values()
+                ):
+                    raise BinanceCheckError("Neuer Test benötigt ein Konto ohne offene Orders")
+                if (
+                    self.live is None
+                    or self.live.report().get("positions")
+                    or self.live.report().get("unresolved_intents")
+                ):
+                    raise BinanceCheckError(
+                        "Vor einem neuen Test müssen Live-Positionen beendet sein"
+                    )
+                try:
+                    old_id = self.trial.archive_completed()
+                except (RuntimeError, ValueError, sqlite3.DatabaseError) as error:
+                    raise BinanceCheckError("Alter Test ist nicht sicher archivierbar") from error
+                try:
+                    write_execution_report(
+                        self.database.parent / "trial-reports" / f"{old_id}.json", current_report
+                    )
+                except OSError:
+                    self.audit("ARCHIVED_TRIAL_REPORT_FILE_UNAVAILABLE")
+                self.trial.strategy = self.live.strategy
+                if self.runtime is not None:
+                    self.runtime.points_transform = FrozenTrialPoints(
+                        self.live.strategy, self.live.strategy
+                    )
+                self.audit("EXPLICIT_VERSION_RETEST_REQUESTED", {"previous_trial_id": old_id})
             try:
                 self.trial_reconciler.capture(snapshot, now=datetime.now(UTC))
             except (RuntimeError, ValueError, sqlite3.DatabaseError) as error:
@@ -592,6 +625,12 @@ class LivePreparation:
                 and trial_state in {"CANCELED", "FAILED"}
                 and self.trial.retryable_before_submit()
             )
+            retest_available = bool(
+                trial_state == "COMPLETED"
+                and not self._trial_covers_current_runtime(trial)
+                and self.source_is_current()
+                and live.get("state") == "LIVE_DISABLED"
+            )
             trial_blockers: list[str] = []
             if not credential_status["configured"]:
                 trial_blockers.append("Binance API-Schlüssel fehlt.")
@@ -600,7 +639,7 @@ class LivePreparation:
                     "Gemeinsame Einstiegspause ist aktiv. "
                     "In Einstellungen deaktivieren und übernehmen."
                 )
-            if trial_state != "NOT_STARTED" and not trial_retryable:
+            if trial_state != "NOT_STARTED" and not trial_retryable and not retest_available:
                 trial_blockers.append(f"50-USDC-Test ist bereits im Zustand {trial_state}.")
             if live.get("state") != "LIVE_DISABLED":
                 trial_blockers.append("Normaler Livebetrieb ist nicht vollständig deaktiviert.")
@@ -660,6 +699,7 @@ class LivePreparation:
                 "account_check": fresh if authenticated else None,
                 "trial_dispatch_available": trial_available,
                 "trial_retryable_before_submit": trial_retryable,
+                "trial_retest_available": retest_available,
                 "trial_blockers": trial_blockers,
                 "runtime_health": "HEALTHY" if healthy else "DEGRADED",
                 "trial_order_execution_blocked_by_health": not healthy,

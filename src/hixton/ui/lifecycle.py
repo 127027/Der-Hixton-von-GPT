@@ -148,6 +148,7 @@ class VisibleSession:
         terminal_alive: Callable[[], bool],
         request_exit: Callable[[], None],
         clock: Callable[[], float] = time.monotonic,
+        on_stop: Callable[[str], None] | None = None,
     ) -> None:
         self.installation = installation
         self.token = token
@@ -155,6 +156,9 @@ class VisibleSession:
         self.terminal_alive = terminal_alive
         self.request_exit = request_exit
         self.clock = clock
+        self.on_stop = on_stop
+        self.stop_reason: str | None = None
+        self.sleep_inhibition = False
         self.lease = BrowserLease(now=clock())
         self.stopping = False
         self.started_trading = False
@@ -171,6 +175,8 @@ class VisibleSession:
             "stopping": self.stopping,
             "ui_connections": len(self.lease.clients),
             "trading_started": self.started_trading,
+            "sleep_inhibition": self.sleep_inhibition,
+            "stop_reason": self.stop_reason,
         }
 
     def start(self, supervisor: RuntimeSupervisor) -> None:
@@ -184,10 +190,16 @@ class VisibleSession:
         if self.stopping:
             return
         self.stopping = True
-        print(f"[Hixton] STOPP: {reason}. Keine automatische Liquidation.", flush=True)
+        self.stop_reason = reason
         if self.supervisor is not None:
             # Block subsequent cycles immediately, before Uvicorn finishes its shutdown.
             self.supervisor._stop.set()
+        if self.on_stop is not None:
+            try:
+                self.on_stop(reason)
+            except Exception:
+                print("[Hixton] Abschaltprotokoll konnte nicht gespeichert werden.", flush=True)
+        print(f"[Hixton] STOPP: {reason}. Keine automatische Liquidation.", flush=True)
         self.request_exit()
 
     async def close(self) -> None:

@@ -118,6 +118,58 @@ class SignalTrial:
                         "DEFAULT 'legacy'"
                     )
 
+    def archive_completed(self) -> str:
+        """Archive a settled roundtrip only in response to an explicit new test action."""
+        with self.lock, self.journal._connect() as connection:
+            connection.execute("BEGIN IMMEDIATE")
+            row = connection.execute("SELECT * FROM signal_trial WHERE singleton=1").fetchone()
+            if row is None or row["state"] != "COMPLETED" or not row["completed_at"]:
+                raise RuntimeError("Only a reconciled completed trial may be archived")
+            if Decimal(row["residual_quantity"]) != 0:
+                raise RuntimeError("Trial residual requires review before a new test")
+            intents = connection.execute("SELECT * FROM trial_intents").fetchall()
+            if (
+                len(intents) != 2
+                or {r["intent_id"] for r in intents} != {row["buy_id"], row["sell_id"]}
+                or any(
+                    r["state"] != "FILLED" or r["exchange_state"] != "FILLED" or not r["order_id"]
+                    for r in intents
+                )
+            ):
+                raise RuntimeError("Roundtrip orders are not fully confirmed")
+            fills = connection.execute("SELECT * FROM trial_fills").fetchall()
+            if {r["intent_id"] for r in fills} != {row["buy_id"], row["sell_id"]}:
+                raise RuntimeError("Roundtrip fills are incomplete")
+            baseline = connection.execute("SELECT * FROM trial_account_baseline").fetchall()
+            if len(baseline) != 1:
+                raise RuntimeError("Completed trial baseline missing")
+            payload = {
+                "report": self.report(),
+                "trial": dict(row),
+                "intents": [dict(r) for r in intents],
+                "fills": [dict(r) for r in fills],
+                "baseline": [dict(r) for r in baseline],
+            }
+            connection.execute(
+                "CREATE TABLE IF NOT EXISTS trial_archives (trial_id TEXT PRIMARY KEY, "
+                "archived_at TEXT NOT NULL, payload_json TEXT NOT NULL)"
+            )
+            old_id = str(row["trial_id"])
+            connection.execute(
+                "INSERT INTO trial_archives VALUES(?,?,?)",
+                (
+                    old_id,
+                    datetime.now(UTC).isoformat(),
+                    json.dumps(payload, sort_keys=True, allow_nan=False),
+                ),
+            )
+            connection.execute("DELETE FROM trial_fills")
+            connection.execute("DELETE FROM trial_intents")
+            connection.execute("DELETE FROM signal_trial WHERE singleton=1")
+            connection.execute("DELETE FROM trial_account_baseline WHERE singleton=1")
+            self.journal._audit(connection, old_id, "COMPLETED_TRIAL_ARCHIVED_FOR_EXPLICIT_RETEST")
+            return old_id
+
     def _row(self) -> dict[str, Any] | None:
         with self.journal._connect() as connection:
             row = connection.execute("SELECT * FROM signal_trial WHERE singleton=1").fetchone()
@@ -550,14 +602,13 @@ class SignalTrial:
                 and point.atr
                 and point.atr > 0
             ):
-                if (
-                    symbol in self.strategy.satellite_symbols
-                    and (
-                        symbol not in self.strategy.active_shared_satellites
-                        or not self.gap_fillers_enabled()
-                        or shared_satellite_entry_block_reason(symbol, point) is not None
-                        or (self.autonomous_spot()
-                            and quality_filler_block_reason(symbol, point.abs_cmo) is not None)
+                if symbol in self.strategy.satellite_symbols and (
+                    symbol not in self.strategy.active_shared_satellites
+                    or not self.gap_fillers_enabled()
+                    or shared_satellite_entry_block_reason(symbol, point) is not None
+                    or (
+                        self.autonomous_spot()
+                        and quality_filler_block_reason(symbol, point.abs_cmo) is not None
                     )
                 ):
                     continue
@@ -643,9 +694,11 @@ class SignalTrial:
                 if symbol in self.strategy.satellite_symbols:
                     continue
                 core_series = points.get(symbol, ())
-                if (not core_series
+                if (
+                    not core_series
                     or core_series[-1].strategy_version != self.strategy.version
-                    or core_series[-1].candle.close_time_utc != latest.candle.close_time_utc):
+                    or core_series[-1].candle.close_time_utc != latest.candle.close_time_utc
+                ):
                     core_signals = []
                     break  # Own regular exits remain obligations with missing Core data.
                 gate_core = TradePolicyGate(self.strategy.policy_for(symbol))
@@ -655,19 +708,31 @@ class SignalTrial:
                         core_decision = None
                         break
                     core_decision = gate_core.decide(prior)
-                if (core_decision and core_decision.signal
+                if (
+                    core_decision
+                    and core_decision.signal
                     and core_decision.signal.action is SignalAction.ENTER_LONG
-                    and not core_decision.block_reason):
+                    and not core_decision.block_reason
+                ):
                     core_signals.append(core_decision.signal)
             if core_signals and row["symbol"] in satellite_handoff_symbols(
-                core_entry_count=len(core_signals), position_slots={row["symbol"]: 1},
-                active_satellites=frozenset(self.strategy.active_shared_satellites), slot_count=2,
+                core_entry_count=len(core_signals),
+                position_slots={row["symbol"]: 1},
+                active_satellites=frozenset(self.strategy.active_shared_satellites),
+                slot_count=2,
             ):
-                core_signals.sort(key=lambda signal: entry_priority(
-                    signal.breakout_strength, signal.symbol, self.strategy.symbols))
-                self._reserve(row, replace(latest, flip_down=True, flip_up=False),
-                    side="SELL", reason=f"CORE_CAPACITY_HANDOFF::{core_signals[0].signal_id}",
-                    reference=Decimal(str(latest.candle.close)))
+                core_signals.sort(
+                    key=lambda signal: entry_priority(
+                        signal.breakout_strength, signal.symbol, self.strategy.symbols
+                    )
+                )
+                self._reserve(
+                    row,
+                    replace(latest, flip_down=True, flip_up=False),
+                    side="SELL",
+                    reason=f"CORE_CAPACITY_HANDOFF::{core_signals[0].signal_id}",
+                    reference=Decimal(str(latest.candle.close)),
+                )
                 return
         self._set(
             highest_close=str(highest), last_exit_bar=_utc(latest.candle.close_time_utc).isoformat()
