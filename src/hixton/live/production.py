@@ -1483,7 +1483,14 @@ class LivePortfolioController:
                 ),
             )
 
-    def _drive_pending(self, pending: sqlite3.Row, *, now: datetime) -> None:
+    def _drive_pending(
+        self,
+        pending: sqlite3.Row,
+        *,
+        now: datetime,
+        allow_new_buy: bool,
+        current_points: Mapping[str, Sequence[IndicatorPoint]],
+    ) -> None:
         started = time.monotonic()
         payload = json.loads(str(pending["payload_json"]))
         action = str(pending["action"])
@@ -1522,6 +1529,27 @@ class LivePortfolioController:
                         (pending["signal_id"],),
                     )
                 return False
+            # Reconciliation of an accepted/uncertain order must continue during
+            # degraded market health. A CREATED BUY is a new risk obligation and
+            # must still pass the current tick's health/universe gate.
+            if not allow_new_buy:
+                return False
+            boundary = datetime.fromisoformat(str(payload["bar_close"]))
+            for symbol in self.strategy.symbols:
+                series = current_points.get(symbol, ())
+                if not series:
+                    return False
+                point = series[-1]
+                if (
+                    point.symbol != symbol
+                    or point.candle.symbol != symbol
+                    or point.strategy_version != self.strategy.version
+                    or not point.candle.closed
+                    or not point.candle.ohlc_is_valid
+                    or not point.tradable
+                    or _utc(point.candle.close_time_utc) != boundary
+                ):
+                    return False
             fresh = self._control()
             plan, emergency = self._current_plan()
             return bool(
@@ -1794,7 +1822,12 @@ class LivePortfolioController:
                     return self.report()
             pending = self._pending()
             if pending is not None:
-                self._drive_pending(pending, now=now)
+                self._drive_pending(
+                    pending,
+                    now=now,
+                    allow_new_buy=healthy and set(points) == set(self.strategy.symbols),
+                    current_points=points,
+                )
                 return self.report()
             if not healthy or set(points) != set(self.strategy.symbols):
                 return self.report()

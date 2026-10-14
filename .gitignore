@@ -29,7 +29,7 @@ build/
 Thumbs.db
 desktop.ini
 
-# Runtime data – never commit account state or large market datasets
+# Runtime data â€“ never commit account state or large market datasets
 /data/
 /runtime/
 /logs/
@@ -58,3 +58,6 @@ research/
 research-base-src/
 verification*/
 installation/
+
+# Current account-derived backtest reports stay local.
+/docs/current-portfolio-*

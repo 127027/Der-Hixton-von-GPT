@@ -1,5 +1,12 @@
 # Der Hixton
 
+**Abschlussstand 14.10.2026:** Die technische Kaufprüfung nach Reservierung ist installiert.
+Ein neuer Portfolio-Backtest wurde mit rollierenden drei Kalenderjahren, den gespeicherten
+Automatik-Einstellungen und frisch gelesenen freien Binance-USDC geprüft. Er passt zur laufenden Quelle.
+Aktuelle kontobezogene Beträge und Laufberichte bleiben lokal und werden nicht im Repository veröffentlicht.
+[Technische Korrektur und lokale Abnahme](docs/technical-entry-guard-20261014.md).
+Die aktive Stufenregel bleibt zwei Grundtranchen/DD10 und ab 32k höchstens drei verschiedene Coins; keine Vierer-Stufe.
+
 ## Aktueller lokaler Produktstand: 14.10.2026
 
 Die aktuelle lokale Strategie ist **HIXTON-V8-LINK8-ATR075-DOGE50-DD10-ETH8-DIV32-PAPER-5**.
