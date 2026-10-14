@@ -7,6 +7,7 @@ import sqlite3
 import time
 from collections.abc import Callable, Mapping, Sequence
 from contextlib import suppress
+from dataclasses import replace
 from datetime import UTC, datetime
 from decimal import Decimal
 from functools import partial
@@ -189,11 +190,15 @@ class LivePreparation:
         settings_provider: Callable[[], tuple[Decimal, bool]],
         gap_fillers_enabled: Callable[[], bool] | None = None,
         autonomous_spot_enabled: Callable[[], bool] | None = None,
+        reinvest_profits_enabled: Callable[[], bool] | None = None,
         market_points: Callable[[], Mapping[str, Sequence[IndicatorPoint]]] | None = None,
+        allocation_reference: Callable[[datetime], Mapping[str, str] | None] | None = None,
         rules_provider: Callable[[], Mapping[str, ExecutionRules]],
     ) -> TrialRuntime:
         """Wire both durable execution runtimes without enabling either one."""
         service = self
+        if strategy.second_tranche_split_dd_pct is not None:
+            self.allocator_version = strategy.allocator_version
 
         class DeferredExchange:
             def submit(self, intent: Any) -> ExchangeOrder:
@@ -253,7 +258,9 @@ class LivePreparation:
             source_is_current=self.source_is_current,
             gap_fillers_enabled=gap_fillers_enabled,
             autonomous_spot=autonomous_spot_enabled,
+            reinvest_profits=reinvest_profits_enabled,
             market_points=market_points,
+            allocation_reference=allocation_reference,
         )
         holder["controller"] = self.live
         self.live_runtime = LivePortfolioRuntime(self.live)
@@ -528,7 +535,14 @@ class LivePreparation:
             if not healthy:
                 raise BinanceCheckError("Marktdaten/Bot sind nicht gesund")
             try:
-                plan = capital_plan(max_capital)
+                plan = replace(
+                    capital_plan(max_capital), version=self.live.strategy.allocator_version
+                )
+                if (
+                    isinstance(self.live, LivePortfolioController)
+                    and plan.max_capital_usdc != self.live._current_plan()[0].max_capital_usdc
+                ):
+                    raise ValueError("Live-Freigabe passt nicht zum gespeicherten Budget")
             except ValueError as error:
                 raise BinanceCheckError(str(error)) from error
             if emergency_stop:
@@ -544,6 +558,17 @@ class LivePreparation:
                 )
             # Live performs its own fresh/sufficient preflight. A separate manual
             # connection-check click is diagnostic only, never a required ritual.
+            if isinstance(self.live, LivePortfolioController):
+                if (
+                    self.live.reinvest_profits() or self.live.autonomous_spot()
+                ) and not self.live.strategy.autonomous_live_supported:
+                    raise BinanceCheckError(
+                        "Dieser Strategie fehlt der implementierte autonome Livevertrag"
+                    )
+                if autonomous_spot != self.live.reinvest_profits():
+                    raise BinanceCheckError(
+                        "Live-Budgetmodus stimmt nicht mit den gespeicherten Einstellungen überein"
+                    )
             if autonomous_spot:
                 # Always use a signed account snapshot to find *actual* free USDC.
                 initial = self._live_snapshot()
@@ -616,6 +641,10 @@ class LivePreparation:
             trial_settings_ok = emergency_stop is False
             try:
                 production_plan = capital_plan(max_capital) if max_capital is not None else None
+                if production_plan is not None and self.live is not None:
+                    production_plan = replace(
+                        production_plan, version=self.live.strategy.allocator_version
+                    )
             except ValueError:
                 production_plan = None
             production_settings_ok = production_plan is not None and emergency_stop is False
@@ -737,6 +766,8 @@ class LivePreparation:
                     "state": live.get("state", "LIVE_DISABLED"),
                     "used_slots": live.get("used_slots", 0),
                     "free_slots": live.get("free_slots", 2),
+                    "slot_count": live.get("slot_count", 2),
+                    "diversification_count": live.get("diversification_count", 2),
                 },
                 "first_live_trial": {
                     "slot_count": 1,

@@ -10,7 +10,11 @@ from pathlib import Path
 
 from hixton.domain.models import IndicatorPoint
 from hixton.domain.strategy import evaluate_batch
-from hixton.domain.versions import STRATEGY_DEFINITIONS, StrategyDefinition
+from hixton.domain.versions import (
+    FROZEN_STRATEGY_DEFINITIONS,
+    STRATEGY_DEFINITIONS,
+    StrategyDefinition,
+)
 
 
 def continuation_strategy(database: Path, active: StrategyDefinition) -> StrategyDefinition:
@@ -36,7 +40,7 @@ def continuation_strategy(database: Path, active: StrategyDefinition) -> Strateg
         if not owned:
             return active  # An unsubmitted stale entitlement must still be canceled.
         frozen = json.loads(row["strategy_json"])
-        for definition in (active, *STRATEGY_DEFINITIONS.values()):
+        for definition in (active, *STRATEGY_DEFINITIONS.values(), *FROZEN_STRATEGY_DEFINITIONS):
             if definition.config_payload() == frozen:
                 return definition
     raise RuntimeError("Owned trial uses an unknown frozen strategy; manual review required")

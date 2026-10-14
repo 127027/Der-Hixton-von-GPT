@@ -8,7 +8,7 @@ import hashlib
 import html
 import json
 from collections import Counter
-from datetime import UTC, datetime
+from datetime import UTC, datetime, timedelta
 from decimal import Decimal
 from enum import Enum
 from pathlib import Path
@@ -18,6 +18,7 @@ from uuid import uuid4
 from hixton import __version__
 from hixton.backtest.models import BacktestResult, BatchResult, PortfolioBacktestResult
 from hixton.constants import TIMEFRAME
+from hixton.domain.diversification import trim_signal_id
 from hixton.domain.versions import V1_STRATEGY, StrategyDefinition
 
 RunResult: TypeAlias = BacktestResult | BatchResult | PortfolioBacktestResult
@@ -64,7 +65,9 @@ def _single_results(result: RunResult) -> tuple[BacktestResult, ...]:
     return ()
 
 
-def _metrics_payload(result: RunResult) -> dict[str, object]:
+def _metrics_payload(
+    result: RunResult, strategy: StrategyDefinition | None = None
+) -> dict[str, object]:
     if isinstance(result, BatchResult):
         return {
             "batch": {
@@ -77,6 +80,18 @@ def _metrics_payload(result: RunResult) -> dict[str, object]:
             },
         }
     if isinstance(result, PortfolioBacktestResult):
+        partial_count = (
+            sum(
+                any(
+                    t.exit_signal_id
+                    == trim_signal_id(t.symbol, n, t.exit_time_utc - timedelta(milliseconds=1))
+                    for _, n in strategy.diversification_stages
+                )
+                for t in result.trades
+            )
+            if strategy is not None and strategy.diversification_stages
+            else 0
+        )
         return {
             "portfolio": {
                 "symbols": _primitive(result.symbols),
@@ -85,6 +100,15 @@ def _metrics_payload(result: RunResult) -> dict[str, object]:
                 "slot_count": result.slot_count,
                 "slot_allocation": result.slot_allocation,
                 "max_concurrent_positions": result.max_concurrent_positions,
+                **(
+                    {
+                        "partial_exit_count": partial_count,
+                        "completed_position_cycles": result.metrics.completed_trades
+                        - partial_count,
+                    }
+                    if strategy is not None and strategy.diversification_stages
+                    else {}
+                ),
                 "risk_limits_applied": result.risk_limits_applied,
                 "risk_halted_at_utc": _primitive(result.risk_halted_at_utc),
                 "daily_paused_bars": result.daily_paused_bars,
@@ -140,7 +164,9 @@ def write_report_bundle(
         for single in _single_results(result):
             data_hashes[single.symbol] = single.data_snapshot_sha256
 
-    metrics_payload = {scenario: _metrics_payload(result) for scenario, result in scenarios.items()}
+    metrics_payload = {
+        scenario: _metrics_payload(result, strategy) for scenario, result in scenarios.items()
+    }
     (run_directory / "metrics.json").write_text(
         json.dumps(metrics_payload, ensure_ascii=False, indent=2, sort_keys=True) + "\n",
         encoding="utf-8",

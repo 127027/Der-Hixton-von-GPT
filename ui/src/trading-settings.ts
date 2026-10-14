@@ -45,7 +45,8 @@ export function initializeTradingSettings(
       limits,
     ), gap_fillers_enabled: item<HTMLInputElement>("gap-fillers-input").checked,
        auto_budget_enabled: item<HTMLInputElement>("auto-budget-input").checked,
-       autonomous_performance_enabled: item<HTMLInputElement>("performance-mode-input").checked };
+       autonomous_performance_enabled: item<HTMLInputElement>("performance-mode-input").checked,
+       diversification_stages: saved?.diversification_stages };
   };
 
   const draw = (): void => {

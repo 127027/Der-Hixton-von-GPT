@@ -24,6 +24,14 @@ from hixton.constants import SYMBOLS, TIMEFRAME_DELTA
 from hixton.data.quality import audit_candles
 from hixton.domain.allocation import ONE_PER_SYMBOL, RANKED_REPEAT, allocate_entry_slots
 from hixton.domain.capital import DEFAULT_MAX_CAPITAL_USDC, capital_plan
+from hixton.domain.diversification import (
+    capacity_units,
+    distinct_allocations,
+    entry_budget,
+    next_count,
+    trim_quantity,
+    trim_signal_id,
+)
 from hixton.domain.markets import validate_market_symbols
 from hixton.domain.models import (
     Candle,
@@ -49,6 +57,7 @@ from hixton.domain.spot_autonomy import (
 )
 from hixton.domain.strategy import HixtonStrategy, entry_priority
 from hixton.domain.trade_policy import TradePolicy, TradePolicyGate
+from hixton.domain.tranche import allocate_tranches, position_units, size_tranche
 from hixton.domain.versions import StrategyDefinition
 
 _HUNDRED = Decimal("100")
@@ -63,6 +72,7 @@ class _OpenTrade:
     cost_basis: Decimal
     slots: int
     highest_close: float = 0.0
+    allocation_units: int = 0
 
 
 def _d(value: float) -> Decimal:
@@ -233,11 +243,106 @@ def run_shared_portfolio_backtest(
     daily_paused_bars = 0
     daily_paused = False
     previous_points: dict[str, IndicatorPoint] = {}
+    weighted = strategy is not None and strategy.second_tranche_split_dd_pct is not None
+    if weighted and slot_count != 2:
+        raise ValueError("conditional second tranche requires two primary tranches")
+    closed_equity = starting_cash
+    closed_high_water = starting_cash
+    diversification_count = 2
 
     for row in rows:
         open_time = row[0].open_time_utc
         in_report = report_start_utc <= open_time < report_end_utc
         candles = {candle.symbol: candle for candle in row}
+
+        if (
+            in_report
+            and strategy is not None
+            and strategy.diversification_stages
+            and previous_points
+        ):
+            stage_equity = closed_equity if reinvest_profits else min(closed_equity, starting_cash)
+            next_slots = next_count(
+                strategy.diversification_stages,
+                current=diversification_count,
+                closed_equity=stage_equity,
+            )
+            if next_slots > diversification_count:
+                diversification_count = next_slots
+                regular_exits = {
+                    sig.symbol for sig in pending if sig.action is SignalAction.EXIT_LONG
+                }
+                for sym, trim_position in positions.items():
+                    if sym in regular_exits:
+                        continue
+                    point = previous_points[sym]
+                    assert point.candle.closed and point.candle.close_time_utc < open_time
+                    trim_position.allocation_units = capacity_units(next_slots)
+                    trim_position.slots = 1
+                    rule = rules.get(sym, ExecutionRules())
+                    quantity = trim_quantity(
+                        owned=trim_position.quantity,
+                        closed_equity=stage_equity,
+                        close=_d(point.candle.close),
+                        count=next_slots,
+                        step=rule.step_size,
+                    )
+                    reference = _d(candles[sym].open)
+                    price = reference * (ONE - costs.adverse_price_rate)
+                    gross = quantity * price
+                    if quantity <= ZERO or quantity < rule.min_qty or gross < rule.min_notional:
+                        continue
+                    forced = HixtonStrategy.signal_for(
+                        replace(point, flip_down=True, flip_up=False), is_long=True
+                    )
+                    if forced is None:
+                        raise RuntimeError("closed diversification decision unavailable")
+                    forced = replace(
+                        forced,
+                        signal_id=trim_signal_id(sym, next_slots, point.candle.close_time_utc),
+                    )
+                    basis = trim_position.cost_basis * quantity / trim_position.quantity
+                    fee = gross * costs.fee_rate
+                    net = gross - fee
+                    signals.append(forced)
+                    fills.append(
+                        Fill(
+                            forced.signal_id,
+                            SignalAction.EXIT_LONG,
+                            open_time,
+                            reference,
+                            price,
+                            quantity,
+                            gross,
+                            fee,
+                            quantity * (reference - price),
+                        )
+                    )
+                    trades.append(
+                        Trade(
+                            sym,
+                            trim_position.signal.signal_id,
+                            forced.signal_id,
+                            trim_position.fill.fill_time_utc,
+                            open_time,
+                            basis,
+                            net,
+                            net - basis,
+                            (net - basis) / basis * 100,
+                            trim_position.fill.fill_price,
+                            price,
+                            quantity,
+                            ZERO,
+                            _d(
+                                (open_time - trim_position.fill.fill_time_utc).total_seconds()
+                                / 3600
+                            ),
+                            1,
+                        )
+                    )
+                    cash += net
+                    trim_position.quantity -= quantity
+                    trim_position.cost_basis -= basis
 
         if in_report and pending:
             exits = [signal for signal in pending if signal.action is SignalAction.EXIT_LONG]
@@ -350,7 +455,21 @@ def run_shared_portfolio_backtest(
                     entries = satellites
                     allocation_policy = ONE_PER_SYMBOL
             used_slots = sum(position.slots for position in positions.values())
-            if autonomous_spot and slot_count > 2:
+            split = False
+            if weighted:
+                assert strategy is not None and strategy.second_tranche_split_dd_pct is not None
+                occupied = sum(
+                    position_units(p.slots, p.allocation_units) for p in positions.values()
+                )
+                allocations, split = allocate_tranches(
+                    [s.symbol for s in entries if s.symbol not in positions],
+                    free_units=max(0, 20 - occupied),
+                    policy=allocation_policy,
+                    drawdown_pct=(closed_high_water - closed_equity) / closed_high_water * 100,
+                    trigger_pct=Decimal(strategy.second_tranche_split_dd_pct),
+                    existing_half=len(positions) == 1 and occupied == 10,
+                )
+            elif autonomous_spot and slot_count > 2:
                 allocations = research_slot_allocations(
                     [
                         (signal.symbol, signal.breakout_strength)
@@ -366,6 +485,17 @@ def run_shared_portfolio_backtest(
                     free_slots=max(0, slot_count - used_slots),
                     policy=allocation_policy,
                 )
+            if diversification_count > 2:
+                occupied = sum(
+                    position_units(p.slots, p.allocation_units) for p in positions.values()
+                )
+                allocations = distinct_allocations(
+                    [sig.symbol for sig in entries],
+                    owned=tuple(positions),
+                    occupied_units=occupied,
+                    count=diversification_count,
+                )
+                split = True
             for signal in entries:
                 if satellite_symbols and apply_risk_limits and daily_paused:
                     blocked.append(f"{signal.signal_id}:DAILY_LOSS_5_PERCENT")
@@ -382,6 +512,15 @@ def run_shared_portfolio_backtest(
                         else allocations.get(signal.symbol, 0)
                     )
                 )
+                allocation_units = 0
+                if weighted:
+                    allocation_units = allocations.get(signal.symbol, 0)
+                    if not split and allocation_policy == ONE_PER_SYMBOL:
+                        remaining = 20 - sum(
+                            position_units(p.slots, p.allocation_units) for p in positions.values()
+                        )
+                        allocation_units = min(10, max(0, remaining))
+                    allocated_slots = (allocation_units + 9) // 10
                 if allocated_slots == 0:
                     blocked.append(f"{signal.signal_id}:NO_FREE_SLOT")
                     continue
@@ -417,6 +556,31 @@ def run_shared_portfolio_backtest(
                     )
                 else:
                     budget = min(target_notional * Decimal(allocated_slots) * entry_fraction, cash)
+                if weighted:
+                    budget = (
+                        size_tranche(
+                            equity=reinvestment_capital(
+                                equity=equity_at_open,
+                                starting_cash=starting_cash,
+                                profit_fraction=profit_reinvestment_fraction,
+                            ),
+                            free_quote=cash,
+                            units=allocation_units,
+                            entry_fraction=entry_fraction,
+                        )
+                        if reinvest_profits
+                        else min(
+                            target_notional * Decimal(allocation_units) / 10 * entry_fraction,
+                            cash,
+                        )
+                    )
+                if diversification_count > 2:
+                    budget = entry_budget(
+                        equity=equity_at_open if reinvest_profits else starting_cash,
+                        free_quote=cash,
+                        count=diversification_count,
+                        entry_fraction=entry_fraction,
+                    )
                 reference = _d(candles[signal.symbol].open)
                 fill_price = reference * (ONE + costs.adverse_price_rate)
                 gross_quantity = _round_down(budget / fill_price, rule.step_size)
@@ -450,6 +614,7 @@ def run_shared_portfolio_backtest(
                     quote_spend,
                     allocated_slots,
                     float(fill_price),
+                    allocation_units,
                 )
                 fills.append(fill)
             pending = []
@@ -477,7 +642,11 @@ def run_shared_portfolio_backtest(
         if in_report:
             max_concurrent = max(
                 max_concurrent,
-                sum(position.slots for position in positions.values()),
+                (
+                    len(positions)
+                    if weighted
+                    else sum(position.slots for position in positions.values())
+                ),
             )
             position_value = sum(
                 (
@@ -488,6 +657,8 @@ def run_shared_portfolio_backtest(
                 ZERO,
             )
             equity = cash + position_value
+            closed_equity = equity
+            closed_high_water = max(closed_high_water, equity)
             daily_paused = False
             if apply_risk_limits:
                 decision = evaluate_portfolio_risk(
@@ -583,3 +754,4 @@ def run_shared_portfolio_backtest(
             symbol: candle_snapshot_sha256(selected_by_symbol[symbol]) for symbol in symbols
         },
     )
+

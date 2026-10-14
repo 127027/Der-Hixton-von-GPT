@@ -17,6 +17,8 @@ from hixton.domain.versions import strategy_definition
 
 # Never enumerate and delete arbitrary tables. Unknown future Paper state blocks reset.
 PAPER_TABLES = (
+    "paper_diversification",
+    "paper_allocation_reference",
     "paper_execution_audit",
     "paper_events",
     "paper_positions",

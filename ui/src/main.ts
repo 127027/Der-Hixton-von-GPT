@@ -19,7 +19,7 @@ import { initializeTradingSettings } from "./trading-settings";
 import { initializeLivePreparation } from "./live-preparation";
 import { marketSignalText } from "./market-signal";
 import { initializeSessionLifetime } from "./session-lifetime";
-import { portfolioBlocksText } from "./backtest-context";
+import { portfolioBlocksText, savedRunNotice, type RunComparison } from "./backtest-context";
 import { activityText, type Activity } from "./activity";
 
 const symbols = [
@@ -51,8 +51,11 @@ interface PaperPosition {
   market_value_usdc: string;
   strategy_version: string;
   slot_count: number;
+  allocation_units?: number;
+  allocation_fraction_pct?: string;
 }
 interface PaperPayload {
+  diversification_count?: number;
   cash_usdc: string;
   equity_usdc: string;
   unrealized_pnl_usdc: string;
@@ -160,6 +163,7 @@ interface BacktestScenario {
   per_symbol?: Record<string, Record<string, unknown>>;
 }
 interface BacktestRun {
+  comparison?: RunComparison;
   manifest: Record<string, unknown>;
   metrics: Record<string, BacktestScenario>;
 
@@ -286,9 +290,16 @@ function renderStatus(status: StatusResponse): void {
     text("#metric-drawdown", "—");
     return;
   }
+  const distinctCount = status.paper.diversification_count ?? 2;
   const usedSlots = status.paper.positions.reduce((sum, position) => sum + position.slot_count, 0);
-  text("#metric-slots", String(Math.max(0, status.paper.settings.slot_count - usedSlots)));
-  required("#metric-slots").nextElementSibling!.textContent = `von ${status.paper.settings.slot_count}`;
+  const weighted = Boolean(status.paper.settings.second_tranche_split_dd_pct);
+  const usedUnits = status.paper.positions.reduce((sum, p) => sum + (p.allocation_units || p.slot_count * 10), 0);
+  text("#metric-slots", distinctCount > 2 ? String(Math.max(0, distinctCount-status.paper.positions.length)) : weighted ? `${Math.max(0, 20 - usedUnits) * 5} %`
+    : String(Math.max(0, status.paper.settings.slot_count - usedSlots)));
+  required("#metric-slots").previousElementSibling!.textContent = weighted && distinctCount <= 2 ? "Freie Paper-Kapazität" : "Freie Paper-Slots";
+  required("#metric-slots").nextElementSibling!.textContent = weighted
+    ? (distinctCount > 2 ? `von ${distinctCount} · verschiedene Coins` : `${status.paper.positions.length} Positionen · maximal 50/25/25 % bei gültigen Signalen`)
+    : `von ${status.paper.settings.slot_count}`;
   text("#metric-drawdown", `${formatNumber(status.paper.drawdown_pct)} %`);
   renderPositions(status.paper.positions);
   renderSystem(status);
@@ -335,7 +346,7 @@ function renderMarkets(markets: Market[]): void {
 
 function renderPositions(positions: PaperPosition[]): void {
   const container = required("#position-cards");
-  container.innerHTML = positions.length ? positions.map((position) => `<article class="position-card"><strong>${position.symbol.replace("USDC", "/USDC")} · ${position.slot_count} Slot${position.slot_count === 1 ? "" : "s"}</strong><span>Menge ${formatNumber(position.quantity, 6)}</span><br><span>Einstieg ${formatPrice(Number(position.average_price))}</span><br><span>Marktwert ${formatNumber(position.market_value_usdc)} USDC</span><br><span>${position.strategy_version}</span></article>`).join("") : `<article class="position-card"><strong>Keine offene Position</strong><span>Paper startet in Cash. Alte Signale werden nicht nachgehandelt.</span></article>`;
+  container.innerHTML = positions.length ? positions.map((position) => `<article class="position-card"><strong>${position.symbol.replace("USDC", "/USDC")} · ${position.allocation_units ? `${formatNumber(position.allocation_fraction_pct ?? String(position.allocation_units * 5))} % Budgetanteil vor ATR-Anpassung` : `${position.slot_count} Slot${position.slot_count === 1 ? "" : "s"}`}</strong><span>Menge ${formatNumber(position.quantity, 6)}</span><br><span>Einstieg ${formatPrice(Number(position.average_price))}</span><br><span>Marktwert ${formatNumber(position.market_value_usdc)} USDC</span><br><span>${position.strategy_version}</span></article>`).join("") : `<article class="position-card"><strong>Keine offene Position</strong><span>Paper startet in Cash. Alte Signale werden nicht nachgehandelt.</span></article>`;
 }
 
 function renderQuality(markets: Market[]): void {
@@ -479,6 +490,7 @@ async function refreshBacktests(): Promise<void> {
       text("#backtest-detail-title", "Ausgewählter Test · Ergebnis");
 
       text("#backtest-blocks", "");
+      text("#backtest-run-note", "Läufe und Versionsnachweis werden geladen …");
       history.open = false;
       history.classList.add("hidden");
     }
@@ -515,12 +527,13 @@ async function refreshBacktests(): Promise<void> {
     text("#backtest-history-label", "Frühere Läufe sind im aktuellen Produkt ausgeblendet");
     history.classList.add("hidden");
     const latestRun = response.runs[0];
+    text("#backtest-run-note", savedRunNotice(Boolean(latestRun), response.status, latestRun?.comparison));
 
     const latestScenario = latestRun?.metrics.current ?? latestRun?.metrics.baseline;
     text("#backtest-blocks", portfolioBlocksText(latestScenario?.portfolio));
     const perSymbol = latestScenario?.per_symbol ?? {};
     const portfolioMetric = latestScenario?.portfolio?.metrics;
-    text("#backtest-detail-title", portfolioMetric ? "Aktueller V8-Lauf · Portfolio" : "Aktueller V8-Lauf · isolierte Coin-Diagnose");
+    text("#backtest-detail-title", portfolioMetric ? "Letzter gespeicherter Lauf · Portfolio" : "Letzter gespeicherter Lauf · isolierte Coin-Diagnose");
     const metricRow = (label: string, metric: Record<string, unknown>, halted = false) =>
       `<tr><td class="mono">${label}${halted ? " · HALTED" : ""}</td><td>${formatNumber(metric.starting_equity as string)}</td><td>${formatNumber(metric.ending_equity as string)}</td><td class="${Number(metric.return_pct) >= 0 ? "good" : "negative"}">${formatNumber(metric.return_pct as string)} %</td><td>${String(metric.completed_trades ?? "—")}</td><td>${formatNumber(metric.max_drawdown_pct as string)} %</td></tr>`;
     required("#backtest-detail-body").innerHTML = portfolioMetric
@@ -531,6 +544,7 @@ async function refreshBacktests(): Promise<void> {
   } catch {
     if (generation === backtestLoadGeneration) {
       required("#backtest-runs").textContent = "Backtestliste derzeit nicht erreichbar. Anzeige wird erneut geladen.";
+      text("#backtest-run-note", "Kein aktueller Versionsnachweis verfügbar.");
 
       text("#backtest-blocks", "");
       required("#backtest-history").classList.add("hidden");

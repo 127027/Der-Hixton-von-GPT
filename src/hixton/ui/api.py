@@ -30,6 +30,7 @@ from hixton.domain.capital import (
     MIN_CONFIGURABLE_CAPITAL_USDC,
 )
 from hixton.domain.satellite_layer import SATELLITE_PROFILE_BY_SYMBOL, satellite_entry_point
+from hixton.domain.versions import strategy_definition
 from hixton.live.credentials import Vault
 from hixton.paper.engine import load_paper_portfolio
 from hixton.paper.models import PaperSettings
@@ -49,21 +50,29 @@ def _iso(value: datetime | None) -> str | None:
 
 
 def _settings_payload(
-    settings: PaperSettings, *, allocation_policy: str | None = None
+    settings: PaperSettings,
+    *,
+    allocation_policy: str | None = None,
+    strategy_key: str | None = None,
 ) -> dict[str, object]:
+    strategy = strategy_definition(strategy_key) if strategy_key else None
     return {
         "max_capital_usdc": str(settings.max_capital_usdc),
         "slot_count": settings.slot_count,
         "target_notional_usdc": str(settings.target_notional_usdc),
         "reserve_usdc": str(settings.reserve_usdc),
         "allocation_policy": allocation_policy or settings.allocation_policy,
-        "allocator_version": ALLOCATOR_VERSION,
+        "allocator_version": strategy.allocator_version if strategy else ALLOCATOR_VERSION,
         "emergency_stop": settings.emergency_stop,
         "gap_fillers_enabled": settings.gap_fillers_enabled,
         "auto_budget_enabled": settings.auto_budget_enabled,
-        "auto_budget_live_available": False,
+        "auto_budget_live_available": bool(strategy and strategy.autonomous_live_supported),
         "autonomous_performance_enabled": settings.autonomous_performance_enabled,
-        "autonomous_performance_live_available": False,
+        "autonomous_performance_live_available": bool(
+            strategy and strategy.autonomous_live_supported
+        ),
+        "second_tranche_split_dd_pct": strategy.second_tranche_split_dd_pct if strategy else None,
+        "diversification_stages": list(strategy.diversification_stages) if strategy else [],
     }
 
 
@@ -81,7 +90,9 @@ def _trading_settings_payload(
             )
             store.require_strategy(supervisor.strategy.key, supervisor.strategy.version)
             return _settings_payload(
-                store.load_settings(), allocation_policy=supervisor.strategy.slot_allocation
+                store.load_settings(),
+                allocation_policy=supervisor.strategy.slot_allocation,
+                strategy_key=supervisor.strategy.key,
             )
     except (OSError, RuntimeError, sqlite3.DatabaseError):
         return None
@@ -206,9 +217,11 @@ def _paper_payload(
         with PaperStore(config.database_path) as store:
             soak = store.load_soak_progress()
             session = store.load_strategy_session()
+            diversification_count = store.diversification_count(supervisor.strategy.version)
     except (OSError, RuntimeError, sqlite3.DatabaseError):
         return None
     return {
+        "diversification_count": diversification_count,
         "cash_usdc": str(portfolio.account.cash_usdc),
         "starting_cash_usdc": str(portfolio.account.starting_cash_usdc),
         "equity_usdc": str(portfolio.equity_usdc),
@@ -226,7 +239,9 @@ def _paper_payload(
         "halted": portfolio.account.halted,
         "halt_reason": portfolio.account.halt_reason,
         "settings": _settings_payload(
-            portfolio.settings, allocation_policy=supervisor.strategy.slot_allocation
+            portfolio.settings,
+            allocation_policy=supervisor.strategy.slot_allocation,
+            strategy_key=supervisor.strategy.key,
         ),
         "soak": {
             "started_at_utc": _iso(soak.started_at_utc),
@@ -252,6 +267,10 @@ def _paper_payload(
                 "entry_signal_id": position.entry_signal_id,
                 "strategy_version": position.strategy_version,
                 "slot_count": position.slot_count,
+                "allocation_units": position.allocation_units,
+                "allocation_fraction_pct": str(Decimal(100) / diversification_count)
+                if diversification_count > 2
+                else str(Decimal(position.allocation_units) * 5),
                 "market_value_usdc": str(
                     position.quantity
                     * _latest_prices(supervisor).get(position.symbol, position.average_price)
@@ -508,7 +527,7 @@ def create_app(
                 "min_capital_usdc": str(MIN_CONFIGURABLE_CAPITAL_USDC),
                 "max_capital_usdc": str(MAX_CONFIGURABLE_CAPITAL_USDC),
                 "research_reference_max_usdc": str(MAX_RESEARCH_REFERENCE_USDC),
-                "allocator_version": ALLOCATOR_VERSION,
+                "allocator_version": supervisor.strategy.allocator_version,
             },
             "server_time_utc": _iso(datetime.now(UTC)),
             "ui_timezone": config.ui_timezone,
@@ -617,7 +636,9 @@ def create_app(
         return {
             "saved": True,
             "settings": _settings_payload(
-                settings, allocation_policy=supervisor.strategy.slot_allocation
+                settings,
+                allocation_policy=supervisor.strategy.slot_allocation,
+                strategy_key=supervisor.strategy.key,
             ),
         }
 

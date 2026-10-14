@@ -1,0 +1,12 @@
+{
+  "reviewed_head": "62cf81750b27a8d7e2861256ab301415c930611c",
+  "source_sha256": "f34ced870a598442e722a556917035923c461263d45d0305865a97c11cadec58",
+  "A09": {"status": "LOCAL_QA_PASS", "independent_targeted_tests": 51, "blocking_findings": []},
+  "A11": {"status": "LOCAL_GOVERNANCE_PASS", "blocking_findings": []},
+  "scope": "Independent local review; not formal GitHub swarm cloud certification",
+  "full_regression": {"tests": 621, "passed": 619, "skipped": 2, "failures": 0, "errors": 0},
+  "ui": {"typecheck": "PASS", "tests_passed": 38, "production_build": "PASS"},
+  "source_checks": {"ruff": "PASS", "mypy_files": 71},
+  "parity": {"matching_fills": 363, "matching_hourly_references": 26303, "stage_survives_restart": true},
+  "orders_sent_in_validation": false
+}

@@ -8,7 +8,7 @@ from decimal import Decimal
 import pytest
 
 from hixton.domain.strategy import evaluate_batch
-from hixton.domain.versions import strategy_definition
+from hixton.domain.versions import V8_VOLATILITY_INITIAL_PAPER_STRATEGY, strategy_definition
 from hixton.live.frozen_trial import FrozenTrialPoints, continuation_strategy
 from hixton.live.preparation import LivePreparation
 from hixton.live.trial import SignalTrial
@@ -26,7 +26,12 @@ def test_registered_candidate_has_exact_researched_parameters():
     for symbol in old.symbols:
         if symbol != "LINKUSDC":
             assert old.parameters_for(symbol) == new.parameters_for(symbol)
-        assert old.policy_for(symbol) == new.policy_for(symbol)
+        if symbol == "DOGEUSDC":
+            assert new.policy_for(symbol) == replace(old.policy_for(symbol), cmo_floor=0.5)
+        elif symbol == "ETHUSDC":
+            assert new.policy_for(symbol) == replace(old.policy_for(symbol), stop_atr=8)
+        else:
+            assert old.policy_for(symbol) == new.policy_for(symbol)
 
 
 def test_owned_trial_restores_original_contract_and_exits_once_after_patch(tmp_path):
@@ -148,3 +153,70 @@ def test_service_keeps_owned_trial_separate_from_current_product(tmp_path):
     assert service.live.strategy.key == "v8r"
     assert service.trial.report()["state"] == "OPEN"
     assert service.trial.report()["execution_identity"]["source_matches_current"] is False
+
+
+def test_prior_v8r_owned_trial_keeps_its_frozen_doge_policy_after_upgrade(tmp_path):
+    controller, exchange = trial(tmp_path)
+    previous = V8_VOLATILITY_INITIAL_PAPER_STRATEGY
+    controller.strategy = previous
+    arm(controller)
+    with controller.journal._connect() as connection:
+        connection.execute("UPDATE signal_trial SET state='OPEN'")
+    before = controller.report()
+    active = strategy_definition("v8r")
+    frozen = continuation_strategy(controller.journal.path, active)
+    assert frozen.config_payload() == before["strategy"]
+    assert frozen.policy_for("DOGEUSDC").cmo_floor == 0.2
+    assert active.policy_for("DOGEUSDC").cmo_floor == 0.5
+    assert not exchange.submits
+
+
+def test_owner_selected_doge_filter_matches_research_except_release_metadata():
+    old = V8_VOLATILITY_INITIAL_PAPER_STRATEGY
+    active = strategy_definition("v8r")
+    assert active.version != old.version
+    assert active.entry_atr_target_fraction == old.entry_atr_target_fraction == "0.0075"
+    assert active.slot_allocation == old.slot_allocation
+    for original, current in zip(old.coin_profiles, active.coin_profiles, strict=True):
+        assert current.parameters == original.parameters
+        expected = (
+            replace(original.trade_policy, cmo_floor=0.5)
+            if original.symbol == "DOGEUSDC"
+            else replace(original.trade_policy, stop_atr=8)
+            if original.symbol == "ETHUSDC"
+            else original.trade_policy
+        )
+        assert current.trade_policy == expected
+
+
+def test_prior_dd10_trial_preserves_eth_exit_policy_after_owner_upgrade(tmp_path):
+    from hixton.domain.versions import V8_DD10_PAPER_STRATEGY
+
+    controller, exchange = trial(tmp_path)
+    controller.strategy = V8_DD10_PAPER_STRATEGY
+    arm(controller)
+    with controller.journal._connect() as connection:
+        connection.execute("UPDATE signal_trial SET state='OPEN'")
+    before = controller.report()
+    active = strategy_definition("v8r")
+    frozen = continuation_strategy(controller.journal.path, active)
+    assert frozen.config_payload() == before["strategy"]
+    assert frozen.policy_for("ETHUSDC").stop_atr == 0
+    assert active.policy_for("ETHUSDC").stop_atr == 8
+    assert not exchange.submits
+
+
+def test_owned_eth8_trial_keeps_frozen_contract_during_div32_upgrade(tmp_path):
+    from hixton.domain.versions import V8_ETH8_PAPER_STRATEGY
+
+    controller, exchange = trial(tmp_path)
+    controller.strategy = V8_ETH8_PAPER_STRATEGY
+    arm(controller)
+    with controller.journal._connect() as connection:
+        connection.execute("UPDATE signal_trial SET state='OPEN'")
+    before = controller.report()
+    frozen = continuation_strategy(controller.journal.path, strategy_definition("v8r"))
+    assert frozen.config_payload() == before["strategy"]
+    assert frozen.diversification_stages == ()
+    assert frozen.policy_for("ETHUSDC").stop_atr == 8
+    assert not exchange.submits

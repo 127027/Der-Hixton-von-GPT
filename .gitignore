@@ -53,3 +53,8 @@ backtests/**/runs/*/
 coverage.xml
 htmlcov/
 
+
+research/
+research-base-src/
+verification*/
+installation/

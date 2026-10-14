@@ -1,16 +1,43 @@
 # Der Hixton
 
+## Aktueller lokaler Produktstand: 14.10.2026
+
+Die aktuelle lokale Strategie ist **HIXTON-V8-LINK8-ATR075-DOGE50-DD10-ETH8-DIV32-PAPER-5**.
+Backtest, Paper und der geschützte Live-Controller verwenden diesen gemeinsamen Vertrag.
+Bis 32.000 USDC bleibt die ETH8/DD10-Aufteilung erhalten; ab der letzten geschlossenen
+Portfolio-Bewertung von 32.000 USDC gilt dauerhaft höchstens eine Position je Coin und
+höchstens drei verschiedene Coins. Das Kaufbudget beträgt maximal ein Drittel vor ATR-Anpassung.
+Eine bestehende zu große Position wird beim Wechsel einmal teilweise reduziert.
+
+Automatikbudget nutzt das verwaltete USDC-Kapital und reinvestiert dessen Gewinne/Verluste;
+fremde Coin-Bestände und USDT werden nicht übernommen. Der vorgemerkte 50-USDC-Test bleibt
+ein eigener einmaliger Modus. Normales Echtgeld bleibt separat freizugeben und verlangt
+einen passenden vollständig abgeglichenen Test sowie frische Konto-/Versionsprüfungen.
+Ein neuer Download enthält keine API-Schlüssel, Kontodaten oder Testfreigabe eines anderen Rechners.
+
+[Ergebnisse, Kostenstress und Grenzen](docs/diversification-20261013.md) ·
+[Quellidentität](docs/diversification-20261013/Product-Identity.json) ·
+[Lokaler Paper-/Backtest-Abgleich](docs/diversification-20261013/Full-Parity.json)
+
+Der historische Vergleich ergibt 32.727,15 USDC / 30,50 % DD statt 31.825,37 / 38,22 %.
+Kostenstress: 22.399,56 USDC / 47,75 %; die Schwelle wird dabei nicht erreicht.
+Es gibt keine garantierte zukünftige Rendite oder Drawdown-Grenze. Andere Startbudgets
+und Zeiträume können schlechter abschneiden. Die Abnahme ist lokal, keine formale Cloud-Swarm-Zertifizierung.
+Die folgenden älteren V6/V8- und Reparaturabschnitte dokumentieren historische Grundlagen;
+bei abweichenden Kapital-/Strategieangaben gilt der hier genannte aktuelle V8r-Vertrag.
+
+
 Der Hixton 0.5.0 ist ein lokaler deutschsprachiger Binance-Spot-Bot für 15 USDC-Märkte. Das aktuelle Produkt ist **V8**: der unveränderte, eingefrorene V6-Zehn-Coin-Core plus ein separater Satellite-Layer. Backtest, Paper und der guarded lokale Live-Pfad verwenden dieselbe StrategyDefinition, dieselbe Kapitalquelle und dieselben point-in-time Routingregeln.
 
 ## Lokale Reparatur vom 11.10.2026
 
-Der heruntergeladene Test-ZIP lie� versehentlich `src/hixton/data` aus. Die fehlenden Module sind erg�nzt; der Start pr�ft die vollst�ndigen Imports vor einem Instanzwechsel. Die Paket-Workflows schlie�en Laufzeitdaten aus, behalten aber Quellmodule.
+Der heruntergeladene Test-ZIP ließ versehentlich `src/hixton/data` aus. Die fehlenden Module sind ergänzt; der Start prüft die vollständigen Imports vor einem Instanzwechsel. Die Paket-Workflows schließen Laufzeitdaten aus, behalten aber Quellmodule.
 
 Der optionale Automatikmodus reinvestiert im **Paper-Modell und gemeinsamen Portfolio-Backtest** die Gewinne/Verluste des einen verwalteten Kontos und verwendet dieselben neuen NEAR/BCH-Filter. Der gemeinsame Backtest speichert diese Auswahl im Manifest; anders konfigurierte oder alte, nicht belegte Berichte gelten nicht als passend. Der isolierte Coin-Test bleibt eine separate Diagnose und kein gemeinsames Portfolio.
 
-**Handelsw�hrung ist USDC.** USDT-Best�nde werden nicht als USDC behandelt oder automatisch umgetauscht. Die Demo beginnt mit virtuellem Kapital von 1.100 USDC, ohne Nachweis eines tats�chlichen Binance-Guthabens. Zwei Slots bleiben erhalten; ein einzelner Core-Kandidat kann beide erhalten und damit das ganze verf�gbare Kapital einsetzen. Das ist keine automatische Verteilung auf beliebig viele kleinere Positionen.
+**Handelswährung ist USDC.** USDT-Bestände werden nicht als USDC behandelt oder automatisch umgetauscht. Die Demo beginnt mit virtuellem Kapital von 1.100 USDC, ohne Nachweis eines tatsächlichen Binance-Guthabens. Zwei Slots bleiben erhalten; ein einzelner Core-Kandidat kann beide erhalten und damit das ganze verfügbare Kapital einsetzen. Das ist keine automatische Verteilung auf beliebig viele kleinere Positionen.
 
-**Echtgeld-Automatik bleibt gesperrt.** Vor einer Freigabe m�ssen der 50-USDC-Test und der echte Live-Pfad nachweisbar diesen neuen Modus pr�fen. Die bestehenden alten Testpfade und historischen Zahlen zertifizieren ihn nicht. Gleiche Entscheidungsregeln garantieren keine identischen B�rsenkurse, Geb�hren oder Netzwerklaufzeiten.
+**Echtgeld-Automatik bleibt gesperrt.** Vor einer Freigabe müssen der 50-USDC-Test und der echte Live-Pfad nachweisbar diesen neuen Modus prüfen. Die bestehenden alten Testpfade und historischen Zahlen zertifizieren ihn nicht. Gleiche Entscheidungsregeln garantieren keine identischen Börsenkurse, Gebühren oder Netzwerklaufzeiten.
 
 ## Produktvertrag
 

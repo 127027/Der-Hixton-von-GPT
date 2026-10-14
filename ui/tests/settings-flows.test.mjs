@@ -416,3 +416,39 @@ test("expired test signal is explained without dispatching any order",async()=>{
   try {await live.refresh();assert.match(ui.node("live-trial-status").textContent,/90-Sekunden-Fenster/);assert.equal(mock.calls.filter(c=>c.url.endsWith("trial/start")).length,0);}
   finally {live.dispose();ui.restore();}
 });
+
+
+test("weighted live capacity shows three actual positions without inventing three of two slots", async()=>{
+  const mock=mockLive();
+  mock.state.live={state:"LIVE_ENABLED",used_slots:3,free_slots:0,slot_count:2,
+    allocation_capacity_units:20,used_allocation_units:20,open_position_count:3};
+  const ui=harness(mock.fetcher), live=initializeLivePreparation(()=>null);
+  ui.node("real-live-slots").previousElementSibling={textContent:""};
+  try {
+    await live.refresh();
+    assert.equal(ui.node("real-live-slots").textContent,"0 %");
+    assert.match(ui.node("real-live-slots-detail").textContent,/3 normale Live-Positionen/);
+    assert.equal(ui.node("real-live-slots").previousElementSibling.textContent,"Freie Dauer-Live-Kapazität");
+    mock.state.live.used_allocation_units=15; mock.state.live.open_position_count=2;
+    await live.refresh();
+    assert.equal(ui.node("real-live-slots").textContent,"25 %");
+  } finally {live.dispose();ui.restore();}
+});
+
+
+test("locked weighted status never infers free fractional capacity from legacy slot summary", async()=>{
+  const mock=mockLive();
+  mock.state.trading_settings={second_tranche_split_dd_pct:"10"};
+  mock.state.live={state:"LIVE_ENABLED",used_slots:2,free_slots:0,slot_count:2};
+  const ui=harness(mock.fetcher), live=initializeLivePreparation(()=>null);
+  try {
+    await live.refresh();
+    assert.equal(ui.node("real-live-slots").textContent,"—");
+    assert.match(ui.node("real-live-slots-detail").textContent,/entsperren/);
+    mock.state.live.allocation_capacity_units=20;
+    mock.state.live.used_allocation_units=10;
+    mock.state.live.open_position_count=2;
+    await live.refresh();
+    assert.equal(ui.node("real-live-slots").textContent,"50 %");
+  } finally {live.dispose();ui.restore();}
+});

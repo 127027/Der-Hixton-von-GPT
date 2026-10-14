@@ -14,16 +14,25 @@ import sqlite3
 import time
 from collections.abc import Callable, Iterator, Mapping, Sequence
 from contextlib import contextmanager
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
 from datetime import UTC, datetime, timedelta
 from decimal import ROUND_DOWN, Decimal
 from pathlib import Path
 from threading import Event, RLock
+from types import SimpleNamespace
 from typing import Any, Protocol, cast
 
 from hixton.backtest.models import ExecutionRules
 from hixton.domain.allocation import allocate_entry_slots
 from hixton.domain.capital import capital_plan
+from hixton.domain.diversification import (
+    capacity_units,
+    distinct_allocations,
+    entry_budget,
+    next_count,
+    trim_quantity,
+    trim_signal_id,
+)
 from hixton.domain.models import IndicatorPoint, SignalAction
 from hixton.domain.satellite_layer import (
     satellite_handoff_symbols,
@@ -38,6 +47,11 @@ from hixton.domain.spot_autonomy import (
 )
 from hixton.domain.strategy import entry_priority
 from hixton.domain.trade_policy import TradePolicyGate
+from hixton.domain.tranche import (
+    allocate_tranches,
+    position_units,
+    size_tranche,
+)
 from hixton.domain.versions import StrategyDefinition
 from hixton.live.orders import ExchangeOrder
 
@@ -70,6 +84,7 @@ class LiveIntent:
     slot_count: int
     quote_budget: Decimal = ZERO
     base_quantity: Decimal = ZERO
+    allocation_units: int = 0
 
     def __post_init__(self) -> None:
         if (
@@ -83,6 +98,17 @@ class LiveIntent:
             or not 1 <= self.slot_count <= MAX_LIVE_SLOTS
         ):
             raise ValueError("invalid Live order identity")
+        if type(self.allocation_units) is not int or self.allocation_units not in {
+            0,
+            3,
+            5,
+            6,
+            10,
+            20,
+        }:
+            raise ValueError("invalid Live allocation capacity")
+        if self.allocation_units and self.slot_count != (self.allocation_units + 9) // 10:
+            raise ValueError("inconsistent Live allocation capacity")
         for amount, positive in (
             (self.reference_price, True),
             (self.quote_budget, False),
@@ -155,6 +181,13 @@ class LiveOrderJournal:
                 """
             )
 
+            columns = {row["name"] for row in connection.execute("PRAGMA table_info(live_intents)")}
+            if "allocation_units" not in columns:
+                connection.execute(
+                    "ALTER TABLE live_intents ADD COLUMN allocation_units INTEGER NOT "
+                    "NULL DEFAULT 0 CHECK(allocation_units BETWEEN 0 AND 20)"
+                )
+
     @contextmanager
     def _connect(self) -> Iterator[sqlite3.Connection]:
         connection = sqlite3.connect(self.path, timeout=10)
@@ -186,6 +219,7 @@ class LiveOrderJournal:
             intent.slot_count,
             str(intent.quote_budget),
             str(intent.base_quantity),
+            intent.allocation_units,
         )
         with self._connect() as connection:
             connection.execute("BEGIN IMMEDIATE")
@@ -204,6 +238,7 @@ class LiveOrderJournal:
                     int(existing["slot_count"]),
                     existing["quote_budget"],
                     existing["base_quantity"],
+                    int(existing["allocation_units"]),
                 )
                 if expected != values:
                     raise RuntimeError("Live intent identity cannot change")
@@ -211,8 +246,8 @@ class LiveOrderJournal:
             connection.execute(
                 "INSERT INTO live_intents("
                 "intent_id,client_id,account,symbol,side,strategy,reference,slot_count,"
-                "quote_budget,base_quantity,state,updated_at"
-                ") VALUES(?,?,?,?,?,?,?,?,?,?,'CREATED',?)",
+                "quote_budget,base_quantity,allocation_units,state,updated_at"
+                ") VALUES(?,?,?,?,?,?,?,?,?,?,?,'CREATED',?)",
                 (*values, datetime.now(UTC).isoformat()),
             )
             self._audit(connection, intent.intent_id, "INTENT_CREATED")
@@ -236,6 +271,7 @@ class LiveOrderJournal:
                 int(row["slot_count"]),
                 Decimal(row["quote_budget"]),
                 Decimal(row["base_quantity"]),
+                int(row["allocation_units"]),
             ),
             str(row["state"]),
         )
@@ -310,6 +346,7 @@ class LiveOrderJournal:
                 or old["side"] != intent.side
                 or old["strategy"] != intent.strategy_version
                 or Decimal(old["reference"]) != intent.reference_price
+                or int(old["allocation_units"]) != intent.allocation_units
                 or int(old["slot_count"]) != intent.slot_count
                 or Decimal(old["quote_budget"]) != intent.quote_budget
                 or Decimal(old["base_quantity"]) != intent.base_quantity
@@ -401,6 +438,7 @@ class LiveOrderJournal:
             "exchange_order_id": order["order_id"],
             "recorded_at_utc": order["updated_at"],
             "slot_count": intent.slot_count,
+            "allocation_units": intent.allocation_units,
             "gross_quantity": str(quantity),
             "gross_quote": str(quote),
             "net_received_base": str(net_received),
@@ -611,10 +649,14 @@ class LivePortfolioController:
         source_is_current: Callable[[], bool] | None = None,
         gap_fillers_enabled: Callable[[], bool] | None = None,
         autonomous_spot: Callable[[], bool] | None = None,
+        reinvest_profits: Callable[[], bool] | None = None,
         market_points: Callable[[], Mapping[str, Sequence[IndicatorPoint]]] | None = None,
+        allocation_reference: Callable[[datetime], Mapping[str, str] | None] | None = None,
     ) -> None:
         self.autonomous_spot = autonomous_spot or (lambda: False)
+        self.reinvest_profits = reinvest_profits or (lambda: self.autonomous_spot())
         self.market_points = market_points or (lambda: {})
+        self.allocation_reference = allocation_reference or (lambda _at: None)
         self.database = database
         self.gap_fillers_enabled = gap_fillers_enabled or (lambda: True)
         self.journal = journal
@@ -678,6 +720,14 @@ class LivePortfolioController:
                 );
                 """
             )
+            position_columns = {
+                row["name"] for row in connection.execute("PRAGMA table_info(live_positions)")
+            }
+            if "allocation_units" not in position_columns:
+                connection.execute(
+                    "ALTER TABLE live_positions ADD COLUMN allocation_units INTEGER "
+                    "NOT NULL DEFAULT 0 CHECK(allocation_units BETWEEN 0 AND 20)"
+                )
             columns = {
                 str(row["name"])
                 for row in connection.execute("PRAGMA table_info(live_control)").fetchall()
@@ -690,6 +740,15 @@ class LivePortfolioController:
                     "UPDATE live_control SET state='NEEDS_REVIEW',entries_enabled=0,"
                     "reason='CAPITAL_PLAN_MIGRATION_REQUIRES_REVIEW' WHERE capital_json=''"
                 )
+            if "diversification_count" not in columns:
+                connection.execute(
+                    "ALTER TABLE live_control ADD COLUMN diversification_count "
+                    "INTEGER NOT NULL DEFAULT 2 CHECK(diversification_count IN (2,3,4,6))"
+                )
+            connection.execute(
+                "CREATE TABLE IF NOT EXISTS live_diversification_decisions("
+                "bar_close_utc TEXT PRIMARY KEY,payload_json TEXT NOT NULL)"
+            )
             for column in ("application_version", "execution_source_sha256"):
                 if column not in columns:
                     connection.execute(
@@ -700,24 +759,26 @@ class LivePortfolioController:
     def _strategy_json(self) -> str:
         return json.dumps(self.strategy.config_payload(), sort_keys=True, allow_nan=False)
 
-    @staticmethod
-    def _capital_json(plan: Any) -> str:
-        return json.dumps(
-            {
-                "max_capital_usdc": str(plan.max_capital_usdc),
-                "slot_count": plan.slot_count,
-                "target_notional_usdc": str(plan.target_notional_usdc),
-                "reserve_usdc": str(plan.reserve_usdc),
-                "allocation_policy": plan.allocation_policy,
-                "allocator_version": plan.version,
-            },
-            sort_keys=True,
-            allow_nan=False,
-        )
+    def _capital_json(self, plan: Any) -> str:
+        payload = {
+            "max_capital_usdc": str(plan.max_capital_usdc),
+            "slot_count": plan.slot_count,
+            "target_notional_usdc": str(plan.target_notional_usdc),
+            "reserve_usdc": str(plan.reserve_usdc),
+            "allocation_policy": plan.allocation_policy,
+            "allocator_version": plan.version,
+        }
+        if self.strategy.second_tranche_split_dd_pct is not None:
+            payload["reinvest_profits"] = self.reinvest_profits()
+            payload["autonomous_performance"] = self.autonomous_spot()
+        return json.dumps(payload, sort_keys=True, allow_nan=False)
 
     def _current_plan(self) -> tuple[Any, bool]:
         max_capital, emergency = self.settings()
-        return capital_plan(max_capital), emergency
+        plan = capital_plan(max_capital)
+        if self.strategy.second_tranche_split_dd_pct is not None:
+            plan = replace(plan, version=self.strategy.allocator_version)
+        return plan, emergency
 
     def _control(self) -> sqlite3.Row | None:
         with self.journal._connect() as connection:
@@ -784,7 +845,7 @@ class LivePortfolioController:
         if emergency:
             raise RuntimeError("Live enable refused while entry pause is active")
         free_usdc = snapshot.balances.get("USDC", (ZERO, ZERO))[0]
-        if self.autonomous_spot():
+        if self.reinvest_profits():
             if free_usdc < Decimal("100"):
                 raise RuntimeError("Autonomous Spot needs at least 100 free USDC on enable")
         elif free_usdc < plan.max_capital_usdc:
@@ -937,6 +998,7 @@ class LivePortfolioController:
         payload = json.loads(str(row["payload_json"]))
         if (
             Decimal(payload["reference_price"]) != intent.reference_price
+            or int(payload.get("allocation_units", 0)) != intent.allocation_units
             or int(payload["slot_count"]) != intent.slot_count
             or Decimal(payload["quote_budget"]) != intent.quote_budget
         ):
@@ -956,6 +1018,7 @@ class LivePortfolioController:
                 or control["account"] != intent.account_fingerprint
                 or control["strategy_json"] != self._strategy_json()
                 or intent.symbol not in self.strategy.symbols
+                or intent.strategy_version != self.strategy.version
                 or not self.release_check()
             ):
                 return False
@@ -965,8 +1028,25 @@ class LivePortfolioController:
                 return False
             if control["capital_json"] != self._capital_json(plan):
                 return False
+            count = int(control["diversification_count"])
             if intent.side == "BUY":
                 entry_fraction = self._intent_entry_fraction(intent)
+                if self.strategy.second_tranche_split_dd_pct is not None:
+                    with self.journal._connect() as connection:
+                        event = connection.execute(
+                            "SELECT payload_json FROM live_events WHERE intent_id=?",
+                            (intent.intent_id,),
+                        ).fetchone()
+                    if event is None:
+                        return False
+                    frozen = json.loads(event[0])
+                    reference = self.allocation_reference(
+                        datetime.fromisoformat(frozen["bar_close"])
+                    )
+                    if int(frozen.get("diversification_count", 2)) != count:
+                        return False
+                    if reference is None or dict(reference) != frozen.get("allocation_reference"):
+                        return False
                 if (
                     control["state"] != "LIVE_ENABLED"
                     or not bool(control["entries_enabled"])
@@ -974,9 +1054,24 @@ class LivePortfolioController:
                     or not self.source_is_current()
                     or emergency
                     or (
-                        not self.autonomous_spot()
+                        not self.reinvest_profits()
                         and intent.quote_budget
-                        != plan.target_notional_usdc * intent.slot_count * entry_fraction
+                        != (
+                            entry_budget(
+                                equity=plan.max_capital_usdc,
+                                free_quote=plan.max_capital_usdc,
+                                count=count,
+                                entry_fraction=entry_fraction,
+                            )
+                            if count > 2
+                            else plan.target_notional_usdc
+                            * (
+                                Decimal(intent.allocation_units) / 10
+                                if intent.allocation_units
+                                else Decimal(intent.slot_count)
+                            )
+                            * entry_fraction
+                        )
                     )
                 ):
                     return False
@@ -990,15 +1085,43 @@ class LivePortfolioController:
                 return False
             positions = self._positions()
             if intent.side == "BUY":
-                used = sum(int(row["slot_count"]) for row in positions.values())
+                weighted = self.strategy.second_tranche_split_dd_pct is not None
+                used = sum(
+                    position_units(int(row["slot_count"]), int(row["allocation_units"]))
+                    if weighted
+                    else int(row["slot_count"])
+                    for row in positions.values()
+                )
+                if weighted and not intent.allocation_units:
+                    return False
+                if weighted and (
+                    (
+                        count > 2
+                        and (
+                            intent.allocation_units != capacity_units(count)
+                            or len(positions) >= count
+                        )
+                    )
+                    or (count == 2 and intent.allocation_units not in (5, 10, 20))
+                ):
+                    return False
+                if not weighted and intent.allocation_units:
+                    return False
                 free_usdc = snapshot.balances.get("USDC", (ZERO, ZERO))[0]
                 if (
                     intent.symbol in positions
-                    or used + intent.slot_count > plan.slot_count
+                    or used + (intent.allocation_units if weighted else intent.slot_count)
+                    > (
+                        count * capacity_units(count)
+                        if weighted and count > 2
+                        else 20
+                        if weighted
+                        else plan.slot_count
+                    )
                     or free_usdc < intent.quote_budget
                 ):
                     return False
-                if self.autonomous_spot():
+                if self.reinvest_profits():
                     # Fresh signed Binance snapshot + fresh local closed-bar market marks
                     # on EVERY attempt, including after a pending-intent restart.
                     try:
@@ -1017,6 +1140,20 @@ class LivePortfolioController:
                             allocated_slots=intent.slot_count,
                             reserve_fraction=ONE - entry_fraction,
                         )
+                        if weighted:
+                            maximum = size_tranche(
+                                equity=equity,
+                                free_quote=free_usdc,
+                                units=intent.allocation_units,
+                                entry_fraction=entry_fraction,
+                            )
+                        if count > 2:
+                            maximum = entry_budget(
+                                equity=equity,
+                                free_quote=free_usdc,
+                                count=count,
+                                entry_fraction=entry_fraction,
+                            )
                         if intent.quote_budget > maximum:
                             return False
                     except (ValueError, KeyError, ArithmeticError):
@@ -1082,6 +1219,161 @@ class LivePortfolioController:
         boundary = boundaries.pop()
         return boundary, candidates
 
+    def _freeze_diversification(
+        self,
+        boundary: datetime,
+        group: Mapping[str, IndicatorPoint],
+        positions: Mapping[str, sqlite3.Row],
+        decisions: Mapping[str, Any],
+        plan: Any,
+    ) -> dict[str, Any] | None:
+        """Persist a closed-bar quantity decision before regular/partial SELLs."""
+        with self.journal._connect() as connection:
+            old = connection.execute(
+                "SELECT payload_json FROM live_diversification_decisions WHERE bar_close_utc=?",
+                (boundary.isoformat(),),
+            ).fetchone()
+        if old is not None:
+            decision = json.loads(old[0])
+            if decision["strategy_version"] != self.strategy.version:
+                self.fail_closed("DIVERSIFICATION_FROZEN_STRATEGY_MISMATCH")
+                return None
+            return cast(dict[str, Any], decision)
+        snapshot = self.snapshot()
+        if self.reconciler.check(snapshot, now=datetime.now(UTC))["passed"] is not True:
+            self.fail_closed("ACCOUNT_RECONCILIATION_MISMATCH")
+            return None
+        if any(
+            not point.candle.closed or _utc(point.candle.close_time_utc) != boundary
+            for point in group.values()
+        ):
+            self.fail_closed("DIVERSIFICATION_REQUIRES_FINALIZED_BARS")
+            return None
+        control = self._control()
+        if control is None:
+            return None
+        equity = self._equity(snapshot, positions, group)
+        if not self.reinvest_profits():
+            equity = min(equity, plan.max_capital_usdc)
+        current = int(control["diversification_count"])
+        count = next_count(
+            self.strategy.diversification_stages, current=current, closed_equity=equity
+        )
+        trims = {}
+        if count > current:
+            for symbol, position in positions.items():
+                point = group[symbol]
+                signal = decisions[symbol].signal
+                if signal is not None and signal.action is SignalAction.EXIT_LONG:
+                    continue
+                if (
+                    symbol in self.strategy.active_shared_satellites
+                    and shared_satellite_horizon_exit(
+                        symbol,
+                        point,
+                        entry_time_utc=datetime.fromisoformat(position["entry_time_utc"]),
+                    )
+                    is not None
+                ):
+                    continue
+                rules = self.rules()[symbol]
+                quantity = trim_quantity(
+                    owned=Decimal(position["quantity"]),
+                    closed_equity=equity,
+                    close=Decimal(str(point.candle.close)),
+                    count=count,
+                    step=rules.step_size,
+                )
+                if (
+                    quantity <= ZERO
+                    or quantity < rules.min_qty
+                    or quantity * Decimal(str(point.candle.close)) < rules.min_notional
+                ):
+                    continue
+                trims[symbol] = {
+                    "quantity": str(quantity),
+                    "entry_signal_id": position["entry_signal_id"],
+                }
+        decision = {
+            "strategy_version": self.strategy.version,
+            "bar_close": boundary.isoformat(),
+            "equity": str(equity),
+            "count": count,
+            "trims": trims,
+        }
+        with self.journal._connect() as connection:
+            connection.execute(
+                "INSERT INTO live_diversification_decisions(bar_close_utc,payload_json) "
+                "VALUES(?,?)",
+                (boundary.isoformat(), json.dumps(decision, sort_keys=True)),
+            )
+        return decision
+
+    def _complete_diversification(
+        self, boundary: datetime, group: Mapping[str, IndicatorPoint], decision: Mapping[str, Any]
+    ) -> bool:
+        """One persisted partial exit at a time; no new entry until every trim reconciles."""
+        count = int(decision["count"])
+        control = self._control()
+        if control is None:
+            return False
+        current = int(control["diversification_count"])
+        if (
+            next_count(
+                self.strategy.diversification_stages,
+                current=current,
+                closed_equity=Decimal(decision["equity"]),
+            )
+            != count
+        ):
+            self.fail_closed("DIVERSIFICATION_STAGE_MISMATCH")
+            return False
+        if count <= current:
+            return True
+        positions = self._positions()
+        for symbol, trim in decision["trims"].items():
+            identity = trim_signal_id(symbol, count, boundary)
+            existing = self._event(identity)
+            if existing is not None:
+                if existing["status"] != "FILLED":
+                    self.fail_closed("DIVERSIFICATION_TRIM_NOT_CONFIRMED")
+                    return False
+                continue
+            position = positions.get(symbol)
+            if position is None:
+                continue
+            quantity = Decimal(trim["quantity"])
+            if position["entry_signal_id"] != trim["entry_signal_id"] or quantity >= Decimal(
+                position["quantity"]
+            ):
+                self.fail_closed("DIVERSIFICATION_OWNERSHIP_MISMATCH")
+                return False
+            point = group[symbol]
+            # Build an owned risk-reduction signal without changing the indicator trend.
+            signal = SimpleNamespace(signal_id=identity, atr=point.atr or 0.0)
+            self._reserve(
+                signal,
+                point,
+                action="EXIT_LONG",
+                slot_count=1,
+                quantity=quantity,
+                reason=f"DIVERSIFICATION_TRIM::{count}",
+                allocation_units=capacity_units(count),
+                trim_count=count,
+                owned_entry_signal_id=position["entry_signal_id"],
+            )
+            return False
+        with self.journal._connect() as connection:
+            connection.execute("BEGIN IMMEDIATE")
+            connection.execute(
+                "UPDATE live_positions SET slot_count=1,allocation_units=?",
+                (capacity_units(count),),
+            )
+            connection.execute(
+                "UPDATE live_control SET diversification_count=? WHERE singleton=1", (count,)
+            )
+        return True
+
     def _reserve(
         self,
         signal: Any,
@@ -1092,7 +1384,14 @@ class LivePortfolioController:
         quantity: Decimal = ZERO,
         quote_budget: Decimal = ZERO,
         reason: str | None = None,
+        allocation_units: int = 0,
+        allocation_reference: Mapping[str, str] | None = None,
+        trim_count: int = 0,
+        owned_entry_signal_id: str | None = None,
     ) -> None:
+        control = self._control()
+        if control is None:
+            raise RuntimeError("owned order requires initialized Live control")
         identity = "live-" + hashlib.sha256(f"{signal.signal_id}|{action}".encode()).hexdigest()
         payload = {
             "reference_price": str(point.candle.close),
@@ -1101,6 +1400,12 @@ class LivePortfolioController:
             "slot_count": slot_count,
             "base_quantity": str(quantity),
             "quote_budget": str(quote_budget),
+            "allocation_units": allocation_units,
+            "allocation_reference": dict(allocation_reference) if allocation_reference else None,
+            "diversification_count": int(control["diversification_count"]),
+            "partial_exit": bool(trim_count),
+            "trim_count": trim_count,
+            "owned_entry_signal_id": owned_entry_signal_id,
         }
         with self.journal._connect() as connection:
             connection.execute("BEGIN IMMEDIATE")
@@ -1198,6 +1503,7 @@ class LivePortfolioController:
             slot_count,
             quote_budget=Decimal(payload["quote_budget"]) if buy else ZERO,
             base_quantity=ZERO if buy else Decimal(payload["base_quantity"]),
+            allocation_units=int(payload.get("allocation_units", 0)),
         )
         self.journal.create(intent)
         _loaded, state = self.journal.load(intent.intent_id)
@@ -1283,7 +1589,10 @@ class LivePortfolioController:
             ).fetchone():
                 raise RuntimeError("Live BUY would overwrite an existing position")
             connection.execute(
-                "INSERT INTO live_positions VALUES(?,?,?,?,?,?,?,?,?)",
+                "INSERT INTO "
+                "live_positions(symbol,quantity,average_price,cost_basis_quote,"
+                "entry_time_utc,entry_signal_id,entry_atr,highest_close,slot_count,"
+                "allocation_units) VALUES(?,?,?,?,?,?,?,?,?,?)",
                 (
                     pending["symbol"],
                     str(quantity),
@@ -1294,6 +1603,7 @@ class LivePortfolioController:
                     str(payload["atr"]),
                     str(average),
                     int(payload["slot_count"]),
+                    int(payload.get("allocation_units", 0)),
                 ),
             )
             connection.execute(
@@ -1315,6 +1625,38 @@ class LivePortfolioController:
         consumed = Decimal(str(summary["gross_quantity"])) + Decimal(str(fees.get(base, "0")))
         owned = Decimal(position["quantity"])
         remaining = owned - consumed
+        payload = json.loads(str(pending["payload_json"]))
+        if payload.get("partial_exit") is True:
+            count = int(payload["trim_count"])
+            if (
+                remaining <= ZERO
+                or consumed <= ZERO
+                or position["entry_signal_id"] != payload.get("owned_entry_signal_id")
+                or count not in tuple(n for _, n in self.strategy.diversification_stages)
+            ):
+                self.fail_closed("DIVERSIFICATION_FILL_OWNERSHIP_INVALID")
+                return
+            requested = Decimal(payload["base_quantity"])
+            complete = Decimal(str(summary["gross_quantity"])) == requested
+            with self.journal._connect() as connection:
+                connection.execute("BEGIN IMMEDIATE")
+                connection.execute(
+                    "UPDATE live_positions SET quantity=?,cost_basis_quote=?,"
+                    "slot_count=1,allocation_units=? WHERE symbol=?",
+                    (
+                        str(remaining),
+                        str(Decimal(position["cost_basis_quote"]) * remaining / owned),
+                        capacity_units(count),
+                        pending["symbol"],
+                    ),
+                )
+                connection.execute(
+                    "UPDATE live_events SET status=? WHERE signal_id=?",
+                    ("FILLED" if complete else "PARTIAL_REQUIRES_REVIEW", pending["signal_id"]),
+                )
+            if not complete:
+                self.fail_closed("DIVERSIFICATION_TRIM_NOT_FULLY_FILLED")
+            return
         rules = self.rules()[str(pending["symbol"])]
         if remaining < ZERO or remaining >= max(rules.step_size, rules.min_qty):
             self.fail_closed("EXIT_RESIDUAL_REQUIRES_REVIEW")
@@ -1480,6 +1822,14 @@ class LivePortfolioController:
             satellite_symbols = frozenset(self.strategy.satellite_symbols)
             core_symbols = frozenset(self.strategy.symbols) - satellite_symbols
 
+            diversification_decision = None
+            if self.strategy.diversification_stages and control["state"] == "LIVE_ENABLED":
+                diversification_decision = self._freeze_diversification(
+                    boundary, group, positions, decisions, plan
+                )
+                if diversification_decision is None:
+                    return self.report()
+
             for symbol in self.strategy.symbols:
                 position = positions.get(symbol)
                 decision = decisions[symbol]
@@ -1515,6 +1865,14 @@ class LivePortfolioController:
                         reason=exit_reason,
                     )
                     return self.report()
+
+            if diversification_decision is not None:
+                if not self._complete_diversification(boundary, group, diversification_decision):
+                    return self.report()
+                control = self._control()
+                if control is None:
+                    return self.report()
+                positions = self._positions()
 
             if control["state"] == "LIVE_ENABLED" and bool(control["entries_enabled"]):
                 core_candidates: list[tuple[Any, IndicatorPoint]] = []
@@ -1623,6 +1981,45 @@ class LivePortfolioController:
                         else self.strategy.slot_allocation
                     ),
                 )
+                reference = None
+                weighted = self.strategy.second_tranche_split_dd_pct is not None
+                if weighted and candidates:
+                    assert self.strategy.second_tranche_split_dd_pct is not None
+                    reference = self.allocation_reference(boundary)
+                    if (
+                        reference is None
+                        or reference.get("strategy_version") != self.strategy.version
+                        or reference.get("bar_close_utc") != boundary.isoformat()
+                    ):
+                        # Paper can complete this boundary just after the Live tick.
+                        # Retry without consuming signals; exits above stay independent.
+                        return self.report()
+                    occupied = sum(
+                        position_units(int(p["slot_count"]), int(p["allocation_units"]))
+                        for p in positions.values()
+                    )
+                    allocations, _split = allocate_tranches(
+                        [s.symbol for s, _ in candidates],
+                        free_units=max(0, 20 - occupied),
+                        policy="one_per_symbol"
+                        if satellite_symbols and not core_candidates
+                        else self.strategy.slot_allocation,
+                        drawdown_pct=Decimal(reference["drawdown_pct"]),
+                        trigger_pct=Decimal(self.strategy.second_tranche_split_dd_pct),
+                        existing_half=len(positions) == 1 and occupied == 10,
+                    )
+                diversification_count = int(control["diversification_count"])
+                if diversification_count > 2:
+                    occupied = sum(
+                        position_units(int(p["slot_count"]), int(p["allocation_units"]))
+                        for p in positions.values()
+                    )
+                    allocations = distinct_allocations(
+                        [sig.symbol for sig, _ in candidates],
+                        owned=tuple(positions),
+                        occupied_units=occupied,
+                        count=diversification_count,
+                    )
                 for signal, point in candidates:
                     if self._event(signal.signal_id) is not None:
                         continue
@@ -1633,7 +2030,10 @@ class LivePortfolioController:
                         self._blocked(signal, "DAILY_LOSS_5_PERCENT")
                         continue
                     allocated = allocations.get(signal.symbol, 0)
-                    if signal.symbol in active_satellites:
+                    allocation_units = allocated if weighted else 0
+                    if weighted:
+                        allocated = (allocation_units + 9) // 10
+                    elif signal.symbol in active_satellites:
                         allocated = min(allocated, 1)
                     if allocated <= 0:
                         self._blocked(signal, "NO_FREE_SLOT")
@@ -1648,7 +2048,7 @@ class LivePortfolioController:
                         ),
                         capital_fraction=Decimal(self.strategy.capital_exposure_fraction),
                     )
-                    if self.autonomous_spot():
+                    if self.reinvest_profits():
                         try:
                             marks = self._live_marks(now=datetime.now(UTC))
                             portfolio_equity = marked_portfolio_equity(
@@ -1670,15 +2070,40 @@ class LivePortfolioController:
                             return self.report()
                     else:
                         trade_budget = plan.target_notional_usdc * allocated * entry_fraction
+                    if weighted:
+                        trade_budget = (
+                            size_tranche(
+                                equity=portfolio_equity,
+                                free_quote=snapshot.balances.get("USDC", (ZERO, ZERO))[0],
+                                units=allocation_units,
+                                entry_fraction=entry_fraction,
+                            )
+                            if self.reinvest_profits()
+                            else plan.target_notional_usdc
+                            * Decimal(allocation_units)
+                            / 10
+                            * entry_fraction
+                        )
                     if trade_budget <= ZERO:
                         self._blocked(signal, "INSUFFICIENT_FREE_USDC")
                         continue
+                    if diversification_count > 2:
+                        trade_budget = entry_budget(
+                            equity=portfolio_equity
+                            if self.reinvest_profits()
+                            else plan.max_capital_usdc,
+                            free_quote=snapshot.balances.get("USDC", (ZERO, ZERO))[0],
+                            count=diversification_count,
+                            entry_fraction=entry_fraction,
+                        )
                     self._reserve(
                         signal,
                         point,
                         action="ENTER_LONG",
                         slot_count=allocated,
                         quote_budget=trade_budget,
+                        allocation_units=allocation_units,
+                        allocation_reference=reference,
                     )
                     return self.report()
 
@@ -1689,6 +2114,7 @@ class LivePortfolioController:
         control = self._control()
         positions = self._positions()
         used = sum(int(row["slot_count"]) for row in positions.values())
+        count = int(control["diversification_count"]) if control is not None else 2
         try:
             plan, _emergency = self._current_plan()
         except Exception:
@@ -1699,9 +2125,13 @@ class LivePortfolioController:
             "entries_enabled": bool(control["entries_enabled"]) if control is not None else False,
             "reason": control["reason"] if control is not None else None,
             "max_capital_usdc": str(plan.max_capital_usdc),
-            "slot_count": plan.slot_count,
-            "target_notional_usdc": str(plan.target_notional_usdc),
+            "slot_count": count if count > 2 else plan.slot_count,
+            "target_notional_usdc": str(plan.max_capital_usdc / count)
+            if count > 2
+            else str(plan.target_notional_usdc),
             "allocator_version": plan.version,
+            "diversification_count": count,
+            "diversification_stages": list(self.strategy.diversification_stages),
             "execution_identity": {
                 "frozen_application_version": (
                     control["application_version"] if control is not None else None
@@ -1719,13 +2149,29 @@ class LivePortfolioController:
                     control is None or control["strategy_json"] == self._strategy_json()
                 ),
             },
+            "allocation_capacity_units": count * capacity_units(count)
+            if count > 2
+            else 20
+            if self.strategy.second_tranche_split_dd_pct
+            else None,
+            "used_allocation_units": sum(
+                position_units(int(r["slot_count"]), int(r["allocation_units"]))
+                for r in positions.values()
+            ),
+            "open_position_count": len(positions),
             "used_slots": used,
-            "free_slots": max(0, plan.slot_count - used),
+            "free_slots": max(0, count - len(positions))
+            if count > 2
+            else max(0, plan.slot_count - used),
             "positions": [
                 {
                     "symbol": symbol,
                     "quantity": row["quantity"],
                     "slot_count": int(row["slot_count"]),
+                    "allocation_units": int(row["allocation_units"]),
+                    "allocation_fraction_pct": str(Decimal(100) / count)
+                    if count > 2
+                    else str(Decimal(int(row["allocation_units"])) * 5),
                     "entry_time_utc": row["entry_time_utc"],
                 }
                 for symbol, row in sorted(positions.items())

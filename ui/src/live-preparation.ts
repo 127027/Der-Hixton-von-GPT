@@ -1,6 +1,7 @@
 /** Private forms: inline feedback, verified sessions, no browser secret storage. */
 interface LiveStatus {
   state: string;
+  trading_settings?: {second_tranche_split_dd_pct?: string | null};
   authenticated: boolean;
   password_configured: boolean;
   credentials: { configured: boolean };
@@ -25,7 +26,7 @@ interface LiveStatus {
   } | null;
   trial?: {state: string; symbol?: string; reason?: string | null};
   trial_continuation?: {exit_only: boolean; frozen_strategy_version: string | null};
-  live?: {state: string; used_slots: number; free_slots: number; slot_count?: number};
+  live?: {state: string; used_slots: number; free_slots: number; slot_count?: number; allocation_capacity_units?: number | null; used_allocation_units?: number; open_position_count?: number; diversification_count?: number};
 }
 
 function element<T extends HTMLElement>(id: string): T {
@@ -118,10 +119,20 @@ export function initializeLivePreparation(sharedSettingsBlocker: (mode?: "live" 
     message("real-trial-status", `50-USDC-Einmaltest: ${trialLabels[trialState] ?? trialState}${status.trial?.symbol ? " · " + status.trial.symbol : ""}${continuation}`);
     message("position-real-status", `50-USDC-Einmaltest: ${trialLabels[trialState] ?? trialState}${status.trial?.symbol ? " · " + status.trial.symbol : ""}`);
     const live = status.live;
-    message("real-live-slots", live ? String(live.free_slots) : "—");
+    const weighted = Boolean(live?.allocation_capacity_units || status.trading_settings?.second_tranche_split_dd_pct);
+    const distinct = (live?.diversification_count ?? 2) > 2;
+    const capacityHidden = weighted && !live?.allocation_capacity_units && !distinct;
+    message("real-live-slots", capacityHidden ? "—" : distinct && live ? String(live.free_slots) : live?.allocation_capacity_units
+      ? `${Math.max(0, live.allocation_capacity_units - (live.used_allocation_units ?? 0)) * 5} %`
+      : live ? String(live.free_slots) : "—");
+    const capacityTitle = element("real-live-slots").previousElementSibling;
+    if (capacityTitle) capacityTitle.textContent = weighted && !distinct
+      ? "Freie Dauer-Live-Kapazität" : "Slots für Dauer-Live";
     message("real-live-slots-detail", live
-      ? `von ${live.slot_count ?? live.used_slots + live.free_slots} · ${live.state === "LIVE_DISABLED" ? "Dauer-Live aus" : live.state}. Einmaltest separat.`
-      : "Dauer-Live-Slots noch nicht bestätigt.");
+      ? `${capacityHidden ? "Für genaue Kapazität entsperren" : distinct ? `von ${live.slot_count} · verschiedene Coins` : live.allocation_capacity_units
+          ? `${live.open_position_count ?? 0} normale Live-Positionen`
+          : `von ${live.slot_count ?? live.used_slots + live.free_slots}`} · ${live.state === "LIVE_DISABLED" ? "Dauer-Live aus" : live.state}. Einmaltest separat.`
+      : "Dauer-Live-Kapazität noch nicht bestätigt.");
     if (!status.credentials.configured) element<HTMLDetailsElement>("key-editor").open = true;
     const trialReason = (status.trial_blockers ?? []).join(" · ");
     const signalWait = status.trial?.reason === "ENTRY_WINDOW_EXPIRED"

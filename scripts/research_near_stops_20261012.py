@@ -16,13 +16,13 @@ from hixton.backtest.models import CURRENT_COSTS, STRESS_COSTS, ExecutionRules
 from hixton.backtest.portfolio import run_shared_portfolio_backtest
 from hixton.backtest.reporting import source_fingerprint, write_report_bundle
 from hixton.data.storage import CandleStore
-from hixton.domain.versions import strategy_definition
+from hixton.domain.versions import V8_VOLATILITY_INITIAL_PAPER_STRATEGY, strategy_definition
 
 CATALOGUE = {"baseline": None, "stop2": 2.0, "stop3": 3.0, "stop4": 4.0, "stop6": 6.0}
 
 
 def definition(name):
-    base = strategy_definition("v8r")
+    base = V8_VOLATILITY_INITIAL_PAPER_STRATEGY
     if name == "original_v8":
         return strategy_definition("v8")
     if name == "baseline":

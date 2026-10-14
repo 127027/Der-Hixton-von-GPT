@@ -4,7 +4,8 @@ from __future__ import annotations
 
 import json
 import sqlite3
-from collections.abc import Callable
+from collections.abc import Callable, Mapping
+from datetime import datetime
 from decimal import Decimal, InvalidOperation
 from functools import partial
 from typing import Any
@@ -55,7 +56,11 @@ def install_live_routes(
     def autonomous_spot_enabled() -> bool:
         with PaperStore(config.database_path) as store:
             settings = store.load_settings()
-        return settings.auto_budget_enabled and settings.autonomous_performance_enabled
+        return settings.autonomous_performance_enabled
+
+    def reinvest_profits_enabled() -> bool:
+        with PaperStore(config.database_path) as store:
+            return store.load_settings().auto_budget_enabled
 
     def gap_fillers_enabled() -> bool:
         with PaperStore(config.database_path) as store:
@@ -76,12 +81,18 @@ def install_live_routes(
                 )
         return result
 
+    def allocation_reference(at: datetime) -> Mapping[str, str] | None:
+        with PaperStore(config.database_path) as store:
+            return store.allocation_reference(supervisor.strategy.version, at)
+
     supervisor.trial_runtime = service.connect_runtime(
         supervisor.strategy,
         settings_provider=trading_settings,
         gap_fillers_enabled=gap_fillers_enabled,
         autonomous_spot_enabled=autonomous_spot_enabled,
+        reinvest_profits_enabled=reinvest_profits_enabled,
         market_points=supervisor.state.points,
+        allocation_reference=allocation_reference,
         rules_provider=execution_rules,
     )
     supervisor.live_runtime = service.live_runtime
@@ -137,16 +148,20 @@ def install_live_routes(
                     "target_notional_usdc": str(settings.target_notional_usdc),
                     "reserve_usdc": str(settings.reserve_usdc),
                     "allocation_policy": settings.allocation_policy,
-                    "allocator_version": settings.plan.version,
+                    "allocator_version": supervisor.strategy.allocator_version,
                 }
                 shared = {
                     **preview,
                     "emergency_stop": settings.emergency_stop,
                     "gap_fillers_enabled": settings.gap_fillers_enabled,
                     "auto_budget_enabled": settings.auto_budget_enabled,
-                    "auto_budget_live_available": False,
+                    "second_tranche_split_dd_pct": supervisor.strategy.second_tranche_split_dd_pct,
+                    "diversification_stages": list(supervisor.strategy.diversification_stages),
+                    "auto_budget_live_available": supervisor.strategy.autonomous_live_supported,
                     "autonomous_performance_enabled": settings.autonomous_performance_enabled,
-                    "autonomous_performance_live_available": False,
+                    "autonomous_performance_live_available": (
+                        supervisor.strategy.autonomous_live_supported
+                    ),
                 }
         except (RuntimeError, sqlite3.DatabaseError, KeyError):
             pass
@@ -291,7 +306,9 @@ def install_live_routes(
         try:
             with PaperStore(config.database_path) as store:
                 settings = store.load_settings()
-            if settings.auto_budget_enabled or settings.autonomous_performance_enabled:
+            if (
+                settings.auto_budget_enabled or settings.autonomous_performance_enabled
+            ) and not supervisor.strategy.autonomous_live_supported:
                 raise HTTPException(
                     409,
                     "Autonome Budget- oder Performance-Verwaltung ist als "
@@ -304,6 +321,7 @@ def install_live_routes(
                 healthy=supervisor.state.snapshot().health == "HEALTHY",
                 max_capital=settings.max_capital_usdc,
                 emergency_stop=settings.emergency_stop,
+                autonomous_spot=settings.auto_budget_enabled,
             )
         except BinanceCheckError:
             await run_in_threadpool(service.write_diagnostic_report, config.database_path)

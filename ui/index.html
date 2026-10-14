@@ -131,7 +131,8 @@
             <select id="backtest-symbol" aria-label="Backtestart"><option value="PORTFOLIO">Gemeinsames Portfolio</option><option value="ALL">Alle 15 einzeln · Budget je Coin</option></select>
             <button id="backtest-button" class="button primary">Backtest starten</button>
           </article>
-          <details class="compact-details"><summary>Testmethode & Grenzen</summary><p>Bis zu drei Jahre Preishistorie, 400 Warm-up-Bars und modellierte Kosten. Fehlende ältere USDC-Historie wird durch USDT-Preise ergänzt. VALID bestätigt die Berechnung, keinen künftigen Gewinn und keine echte Binance-Ausführung. Paper und Echtgeld werden durch den Backtest nicht verändert.</p></details>
+          <details class="compact-details"><summary>Testmethode & Grenzen</summary><p>Drei Kalenderjahre bis zur letzten abgeschlossenen UTC-Stunde. Zusätzlich 400 Stundenkerzen zum Aufwärmen, außerhalb des Ergebniszeitraums, und modellierte Kosten. Fehlende ältere USDC-Historie wird durch USDT-Preise ergänzt. VALID bestätigt die Berechnung, keinen künftigen Gewinn und keine echte Binance-Ausführung. Paper und Echtgeld werden durch den Backtest nicht verändert.</p></details>
+          <p id="backtest-run-note" class="backtest-note" aria-live="polite">Versionsnachweis wird geladen …</p>
           <div id="backtest-runs" class="run-list"></div>
           <details id="backtest-history" class="backtest-history hidden">
             <summary id="backtest-history-label">Frühere Läufe dieser Auswahl</summary>

@@ -49,6 +49,33 @@ class StrategyDefinition:
     satellite_semantics: StrategySemantics | None = None
     capital_exposure_fraction: str = "1"
     entry_atr_target_fraction: str | None = None
+    second_tranche_split_dd_pct: str | None = None
+    diversification_stages: tuple[tuple[str, int], ...] = ()
+
+    @property
+    def allocator_version(self) -> str:
+        from hixton.domain.capital import ALLOCATOR_VERSION
+        from hixton.domain.diversification import DIVERSIFICATION_ALLOCATOR_VERSION
+        from hixton.domain.tranche import TRANCHE_ALLOCATOR_VERSION
+
+        if self.diversification_stages:
+            return DIVERSIFICATION_ALLOCATOR_VERSION
+        return TRANCHE_ALLOCATOR_VERSION if self.second_tranche_split_dd_pct else ALLOCATOR_VERSION
+
+    @property
+    def autonomous_live_supported(self) -> bool:
+        # Capability only: owner auth, matched completed trial and account gates
+        # remain mandatory. Old research-only profiles stay unavailable.
+        return self.second_tranche_split_dd_pct == "10" and (
+            (
+                self.version == "HIXTON-V8-LINK8-ATR075-DOGE50-DD10-ETH8-PAPER-4"
+                and not self.diversification_stages
+            )
+            or (
+                self.version == "HIXTON-V8-LINK8-ATR075-DOGE50-DD10-ETH8-DIV32-PAPER-5"
+                and self.diversification_stages == (("32000", 3),)
+            )
+        )
 
     @property
     def symbols(self) -> tuple[str, ...]:
@@ -57,6 +84,11 @@ class StrategyDefinition:
         return symbols_for_quote(self.quote_asset)
 
     def __post_init__(self) -> None:
+        from hixton.domain.diversification import validate_schedule
+
+        validate_schedule(self.diversification_stages)
+        if self.diversification_stages and self.second_tranche_split_dd_pct is None:
+            raise ValueError("diversification requires the shared weighted allocator")
         fraction = Decimal(self.capital_exposure_fraction)
         if not fraction.is_finite() or not Decimal("0") < fraction <= Decimal("1"):
             raise ValueError("capital exposure fraction must be in (0,1]")
@@ -64,6 +96,10 @@ class StrategyDefinition:
             target = Decimal(self.entry_atr_target_fraction)
             if not target.is_finite() or not Decimal("0") < target <= Decimal("1"):
                 raise ValueError("entry ATR target fraction must be in (0,1]")
+        if self.second_tranche_split_dd_pct is not None:
+            trigger = Decimal(self.second_tranche_split_dd_pct)
+            if not trigger.is_finite() or not 0 < trigger < 100:
+                raise ValueError("split trigger must be in (0,100)")
         profile_symbols = tuple(profile.symbol for profile in self.coin_profiles)
         if self.key == "v6" and profile_symbols != symbols_for_quote(self.quote_asset):
             raise ValueError("coin profiles require all ten symbols in DMS order")
@@ -136,6 +172,24 @@ class StrategyDefinition:
             payload["capital_exposure_fraction"] = self.capital_exposure_fraction
         if self.entry_atr_target_fraction is not None:
             payload["entry_atr_target_fraction"] = self.entry_atr_target_fraction
+        if self.second_tranche_split_dd_pct is not None:
+            payload["second_tranche_split"] = {
+                "trigger_dd_pct": self.second_tranche_split_dd_pct,
+                "weights": [50, 25, 25],
+                "decision_basis": "FINALIZED_SHARED_STRATEGY_REFERENCE",
+                "allocator_version": "CAPITAL-V2-HALVES-REST-DD10",
+            }
+        if self.diversification_stages:
+            payload["diversification"] = {
+                "stages": [
+                    {"equity_usdc": threshold, "distinct_coins": slots}
+                    for threshold, slots in self.diversification_stages
+                ],
+                "latching": "MONOTONIC_PERSISTED_NO_RECONCENTRATION_AFTER_LOSS",
+                "trim": "ONE_PARTIAL_EXIT_PER_STAGE_PREVIOUS_CLOSED_QUANTITY",
+                "entries": "FRESH_VALID_DISTINCT_SIGNALS_ONLY",
+                "allocator_version": self.allocator_version,
+            }
         payload["quote_asset"] = self.quote_asset
         if self.satellite_symbols:
             payload["satellite_symbols"] = list(self.satellite_symbols)
@@ -417,6 +471,57 @@ V8_VOLATILITY_PAPER_STRATEGY = replace(
         else profile
         for profile in V8_SATELLITE_STRATEGY.coin_profiles
     ),
+)
+
+# Preserve the prior owned-trial contract byte-for-byte for exit-only continuation.
+V8_VOLATILITY_INITIAL_PAPER_STRATEGY = V8_VOLATILITY_PAPER_STRATEGY
+
+# Explicit local owner choice on 2026-10-12; no research acceptance or Live release.
+V8_VOLATILITY_PAPER_STRATEGY = replace(
+    V8_VOLATILITY_INITIAL_PAPER_STRATEGY,
+    version="HIXTON-V8-LINK8-ATR075-DOGE50-PAPER-2",
+    reference="docs/core-doge-research-20261012.md",
+    coin_profiles=tuple(
+        replace(profile, trade_policy=replace(profile.trade_policy, cmo_floor=0.5))
+        if profile.symbol == "DOGEUSDC"
+        else profile
+        for profile in V8_VOLATILITY_INITIAL_PAPER_STRATEGY.coin_profiles
+    ),
+)
+V8_DOGE50_PAPER_STRATEGY = V8_VOLATILITY_PAPER_STRATEGY
+V8_VOLATILITY_PAPER_STRATEGY = replace(
+    V8_DOGE50_PAPER_STRATEGY,
+    version="HIXTON-V8-LINK8-ATR075-DOGE50-DD10-PAPER-3",
+    reference="docs/weighted-tranche-20261013.md",
+    second_tranche_split_dd_pct="10",
+)
+# Preserve the prior DD10 contract for any owned trial during this upgrade.
+V8_DD10_PAPER_STRATEGY = V8_VOLATILITY_PAPER_STRATEGY
+# Explicit local owner selection on 2026-10-13: the small ETH stop8 refinement.
+# Historical improvement is marginal; this does not grant Live release.
+V8_VOLATILITY_PAPER_STRATEGY = replace(
+    V8_DD10_PAPER_STRATEGY,
+    version="HIXTON-V8-LINK8-ATR075-DOGE50-DD10-ETH8-PAPER-4",
+    reference="docs/eth-stop8-20261013.md",
+    coin_profiles=tuple(
+        replace(profile, trade_policy=replace(profile.trade_policy, stop_atr=8))
+        if profile.symbol == "ETHUSDC"
+        else profile
+        for profile in V8_DD10_PAPER_STRATEGY.coin_profiles
+    ),
+)
+V8_ETH8_PAPER_STRATEGY = V8_VOLATILITY_PAPER_STRATEGY
+V8_VOLATILITY_PAPER_STRATEGY = replace(
+    V8_ETH8_PAPER_STRATEGY,
+    version="HIXTON-V8-LINK8-ATR075-DOGE50-DD10-ETH8-DIV32-PAPER-5",
+    reference="docs/diversification-20261013.md",
+    diversification_stages=(("32000", 3),),
+)
+FROZEN_STRATEGY_DEFINITIONS = (
+    V8_VOLATILITY_INITIAL_PAPER_STRATEGY,
+    V8_DOGE50_PAPER_STRATEGY,
+    V8_DD10_PAPER_STRATEGY,
+    V8_ETH8_PAPER_STRATEGY,
 )
 
 STRATEGY_DEFINITIONS = {

@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import ctypes
 import os
-from typing import Protocol
+from typing import ClassVar, Protocol
 
 from hixton.ui.lifecycle import _windows_library
 
@@ -26,7 +26,10 @@ class _Detailed(ctypes.Structure):
 
 
 class _Reason(ctypes.Union):
-    _fields_ = [("detailed", _Detailed), ("simple", ctypes.c_wchar_p)]
+    _fields_: ClassVar[list[tuple[str, type]]] = [
+        ("detailed", _Detailed),
+        ("simple", ctypes.c_wchar_p),
+    ]
 
 
 class _Context(ctypes.Structure):
@@ -46,7 +49,7 @@ class WindowsPowerBackend:
 
     def create(self) -> int:
         context = _Context(
-            0, 1, _Reason(simple="Hixton überwacht sichtbare Bot-Sitzung und Positionen")
+            0, 1, _Reason(simple="Hixton Ã¼berwacht sichtbare Bot-Sitzung und Positionen")
         )
         handle = self.dll.PowerCreateRequest(ctypes.byref(context))
         if not handle or handle == ctypes.c_void_p(-1).value:

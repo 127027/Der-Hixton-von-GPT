@@ -101,6 +101,7 @@ class PaperPosition:
     slot_count: int = 1
     entry_atr: Decimal = Decimal("0")
     highest_close: Decimal = Decimal("0")
+    allocation_units: int = 0
 
 
 @dataclass(frozen=True, slots=True)

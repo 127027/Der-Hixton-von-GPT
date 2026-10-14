@@ -6,6 +6,8 @@ export interface TradingSettings {
   reserve_usdc: string;
   allocation_policy: string;
   allocator_version: string;
+  second_tranche_split_dd_pct?: string | null;
+  diversification_stages?: Array<[string, number]>;
   emergency_stop: boolean;
   gap_fillers_enabled?: boolean;
   auto_budget_enabled?: boolean;
@@ -68,19 +70,23 @@ export function derivedDraft(
 }
 
 export function describeSettings(value: TradingSettings): string {
+  const diversification = (value.diversification_stages ?? []).map(([threshold, count]) => `ab ${formatBudget(threshold)} USDC: ${count} verschiedene Coins`).join(" · ");
+  const diversificationText = diversification ? ` · ${diversification} (bleibt nach Verlusten erhalten)` : "";
   const reserve = Number(value.reserve_usdc);
   const reserveText = Number.isFinite(reserve) && reserve > 0
     ? " · Reserve " + formatBudget(reserve) + " USDC"
     : "";
   if (value.auto_budget_enabled) {
-    return "Automatik · alle verfügbaren Binance-USDC · " + value.slot_count + " Slots · dynamische Wiederanlage"
-      + " · Dauer-Live weiterhin separat gesperrt"
+    return "Automatik · alle verfügbaren Binance-USDC · " + value.slot_count + " Haupttranchen · dynamische Wiederanlage" + diversificationText
+      + (value.second_tranche_split_dd_pct ? ` · ab ${value.second_tranche_split_dd_pct} % Referenz-DD bei drei Signalen: 50/25/25 %` : "")
+      + (value.auto_budget_live_available ? " · Live erst nach bestandenem aktuellem Test separat freigeben" : " · Dauer-Live weiterhin separat gesperrt")
       + (value.gap_fillers_enabled === false ? " · Zwischenfüller AUS" : " · Zwischenfüller mit Core-Vorrang")
       + (value.emergency_stop ? " · Einstiegssperre aktiv" : "");
   }
   return (value.auto_budget_enabled ? "Start-/Referenzbudget " : "Max. ") + formatBudget(value.max_capital_usdc) + " USDC → automatisch "
     + value.slot_count + " × " + formatBudget(value.target_notional_usdc)
-    + " USDC · " + value.allocation_policy + reserveText
+    + " USDC · " + value.allocation_policy + reserveText + diversificationText
+    + (value.second_tranche_split_dd_pct ? ` · ab ${value.second_tranche_split_dd_pct} % Referenz-DD bei drei Signalen: 50/25/25 %` : "")
     + (value.auto_budget_enabled ? " · Automatikbudget vorgemerkt (Live gesperrt)" : " · festes Budget")
     + (value.autonomous_performance_enabled ? " · Performance-Modus vorgemerkt" : " · konservativer Modus")
     + (value.gap_fillers_enabled === false ? " · Zwischenfüller AUS" : " · Zwischenfüller mit Core-Vorrang")

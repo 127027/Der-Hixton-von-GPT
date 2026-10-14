@@ -324,11 +324,22 @@ class PaperStore:
                 updated_at_utc=_parse_time(row["updated_at_utc"]),
                 strategy_version=str(row["strategy_version"]),
                 slot_count=int(row["slot_count"]),
+                allocation_units=int(row["allocation_units"]),
                 entry_atr=Decimal(str(row["entry_atr_text"])),
                 highest_close=Decimal(str(row["highest_close_text"])),
             )
             for row in rows
         )
+
+    def allocation_reference(
+        self, strategy_version: str, bar_close: datetime
+    ) -> dict[str, str] | None:
+        row = self._connection.execute(
+            "SELECT payload_json FROM paper_allocation_reference WHERE "
+            "strategy_version=? AND bar_close_utc=?",
+            (strategy_version, _time(bar_close)),
+        ).fetchone()
+        return json.loads(row[0]) if row else None
 
     def upsert_position(self, position: PaperPosition) -> None:
         with self._connection:
@@ -337,8 +348,9 @@ class PaperStore:
                 INSERT INTO paper_positions (
                     symbol, quantity_text, average_price_text, cost_basis_text,
                     entry_time_utc, entry_signal_id, entry_fee_text, updated_at_utc,
-                    strategy_version, slot_count, entry_atr_text, highest_close_text
-                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                    strategy_version, slot_count, entry_atr_text, highest_close_text,
+                    allocation_units
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
                 ON CONFLICT(symbol) DO UPDATE SET
                     quantity_text=excluded.quantity_text,
                     average_price_text=excluded.average_price_text,
@@ -350,7 +362,8 @@ class PaperStore:
                     strategy_version=excluded.strategy_version,
                     slot_count=excluded.slot_count,
                     entry_atr_text=excluded.entry_atr_text,
-                    highest_close_text=excluded.highest_close_text
+                    highest_close_text=excluded.highest_close_text,
+                    allocation_units=excluded.allocation_units
                 """,
                 (
                     position.symbol,
@@ -365,6 +378,7 @@ class PaperStore:
                     position.slot_count,
                     str(position.entry_atr),
                     str(position.highest_close),
+                    position.allocation_units,
                 ),
             )
 
@@ -415,6 +429,8 @@ class PaperStore:
         checkpoints: Mapping[str, datetime],
         processed_bars: Mapping[str, int],
         dust: Mapping[str, Decimal] | None = None,
+        allocation_references: Mapping[datetime, Mapping[str, str]] | None = None,
+        diversification_state: tuple[str, int] | None = None,
     ) -> None:
         """Atomically persist one deterministic bar-close processing cycle."""
 
@@ -426,6 +442,28 @@ class PaperStore:
             )
 
         with self._connection:
+            if diversification_state is not None:
+                version, count = diversification_state
+                if count not in (2, 3, 4, 6):
+                    raise ValueError("invalid persisted diversification state")
+                self._connection.execute(
+                    "INSERT INTO paper_diversification(strategy_version,distinct_coins) "
+                    "VALUES(?,?) "
+                    "ON CONFLICT(strategy_version) DO UPDATE SET "
+                    "distinct_coins=excluded.distinct_coins",
+                    (version, count),
+                )
+            for at, reference in (allocation_references or {}).items():
+                self._connection.execute(
+                    "INSERT OR IGNORE INTO "
+                    "paper_allocation_reference(strategy_version,bar_close_utc,"
+                    "payload_json) VALUES(?,?,?)",
+                    (
+                        reference["strategy_version"],
+                        _time(at),
+                        json.dumps(dict(reference), sort_keys=True),
+                    ),
+                )
             if dust is not None:
                 self._connection.executemany(
                     "INSERT INTO paper_dust(symbol, quantity_text) VALUES (?, ?) "
@@ -462,8 +500,9 @@ class PaperStore:
                 INSERT INTO paper_positions (
                     symbol, quantity_text, average_price_text, cost_basis_text,
                     entry_time_utc, entry_signal_id, entry_fee_text, updated_at_utc,
-                    strategy_version, slot_count, entry_atr_text, highest_close_text
-                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                    strategy_version, slot_count, entry_atr_text, highest_close_text,
+                    allocation_units
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
                 """,
                 [
                     (
@@ -479,6 +518,7 @@ class PaperStore:
                         position.slot_count,
                         str(position.entry_atr),
                         str(position.highest_close),
+                        position.allocation_units,
                     )
                     for position in positions.values()
                 ],
@@ -576,6 +616,13 @@ class PaperStore:
             str(row["symbol"]): Decimal(row["quantity_text"])
             for row in self._connection.execute("SELECT * FROM paper_dust")
         }
+
+    def diversification_count(self, strategy_version: str) -> int:
+        row = self._connection.execute(
+            "SELECT distinct_coins FROM paper_diversification WHERE strategy_version=?",
+            (strategy_version,),
+        ).fetchone()
+        return int(row[0]) if row is not None else 2
 
     def checkpoint(self, symbol: str) -> datetime | None:
         row = self._connection.execute(
@@ -838,6 +885,7 @@ class PaperStore:
             SELECT COUNT(*) AS count
             FROM paper_events AS exits
             WHERE action='EXIT_LONG' AND status='FILLED' AND occurred_at_utc>=?
+                AND COALESCE(reason,'') NOT LIKE 'DIVERSIFICATION_TRIM::%'
                 AND strategy_version=?
                 AND EXISTS (
                     SELECT 1 FROM paper_events AS entries
@@ -1064,6 +1112,16 @@ class PaperStore:
                     "ALTER TABLE paper_positions ADD COLUMN strategy_version TEXT "
                     f"NOT NULL DEFAULT '{HIXTON_SPEC_VERSION}'"
                 )
+            if "allocation_units" not in position_columns:
+                self._connection.execute(
+                    "ALTER TABLE paper_positions ADD COLUMN allocation_units INTEGER "
+                    "NOT NULL DEFAULT 0 CHECK(allocation_units BETWEEN 0 AND 20)"
+                )
+            self._connection.execute(
+                "CREATE TABLE IF NOT EXISTS paper_allocation_reference("
+                "strategy_version TEXT NOT NULL,bar_close_utc TEXT NOT NULL,"
+                "payload_json TEXT NOT NULL,PRIMARY KEY(strategy_version,bar_close_utc))"
+            )
             if "slot_count" not in position_columns:
                 self._connection.execute(
                     "ALTER TABLE paper_positions ADD COLUMN slot_count INTEGER NOT NULL DEFAULT 1"
@@ -1073,6 +1131,11 @@ class PaperStore:
                     self._connection.execute(
                         f"ALTER TABLE paper_positions ADD COLUMN {column} TEXT NOT NULL DEFAULT '0'"
                     )
+            self._connection.execute(
+                "CREATE TABLE IF NOT EXISTS paper_diversification("
+                "strategy_version TEXT PRIMARY KEY,distinct_coins INTEGER NOT NULL "
+                "CHECK(distinct_coins IN (2,3,4,6)))"
+            )
             self._connection.execute("PRAGMA optimize")
 
     @staticmethod

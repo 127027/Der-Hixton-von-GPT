@@ -250,9 +250,7 @@ def build_execution_report(
         with sqlite3.connect(live_database) as live:
             live.row_factory = sqlite3.Row
             if _table_exists(live, "signal_trial"):
-                trial = live.execute(
-                    "SELECT * FROM signal_trial WHERE singleton=1"
-                ).fetchone()
+                trial = live.execute("SELECT * FROM signal_trial WHERE singleton=1").fetchone()
                 if trial is not None:
                     trial_columns = set(trial.keys())
                     strategy = _json(str(trial["strategy_json"]))
@@ -339,8 +337,7 @@ def build_execution_report(
                             severity="ERROR",
                             code="TRIAL_STRATEGY_VERSION_STALE",
                             detail=(
-                                "50-USDC-Test und aktuelle Strategieversion stimmen nicht "
-                                "überein."
+                                "50-USDC-Test und aktuelle Strategieversion stimmen nicht überein."
                             ),
                             symbol=trial["symbol"],
                         )
@@ -387,16 +384,13 @@ def build_execution_report(
                             severity="ERROR",
                             code="TRIAL_REQUIRES_REVIEW",
                             detail=(
-                                f"50-USDC-Test ist im Zustand {trial['state']}: "
-                                f"{trial['reason']}"
+                                f"50-USDC-Test ist im Zustand {trial['state']}: {trial['reason']}"
                             ),
                             symbol=trial["symbol"],
                         )
 
             if _table_exists(live, "live_control"):
-                control = live.execute(
-                    "SELECT * FROM live_control WHERE singleton=1"
-                ).fetchone()
+                control = live.execute("SELECT * FROM live_control WHERE singleton=1").fetchone()
                 if control is not None:
                     control_columns = set(control.keys())
                     strategy = _json(str(control["strategy_json"]))
@@ -472,6 +466,8 @@ def build_execution_report(
                             "action": action,
                             "status": event["status"],
                             "reason": event["reason"],
+                            "partial_exit": _json(event["payload_json"]).get("partial_exit")
+                            is True,
                             "order": intent,
                             "paper_parity": parity,
                         }
@@ -485,8 +481,7 @@ def build_execution_report(
                                     severity="ERROR",
                                     code="LIVE_ORDER_BEFORE_SIGNAL_CLOSE",
                                     detail=(
-                                        "Live-Order liegt zeitlich vor dem geschlossenen "
-                                        "Signal."
+                                        "Live-Order liegt zeitlich vor dem geschlossenen Signal."
                                     ),
                                     symbol=str(event["symbol"]),
                                     signal_id=str(event["signal_id"]),
@@ -554,6 +549,7 @@ def build_execution_report(
 
                     chronological.sort(key=lambda item: str(item["occurred_at_utc"]))
                     opened: dict[str, dict[str, object]] = {}
+                    partials: dict[str, list[dict[str, object]]] = {}
                     for item in chronological:
                         if item["status"] != "FILLED":
                             continue
@@ -561,6 +557,15 @@ def build_execution_report(
                         if item["action"] == "ENTER_LONG":
                             opened[symbol] = item
                         elif item["action"] == "EXIT_LONG":
+                            if item.get("partial_exit") is True:
+                                partials.setdefault(symbol, []).append(item)
+                                continue
+                            partial_orders = partials.pop(symbol, [])
+                            partial_reports = [p.get("order") for p in partial_orders]
+                            partials_filled = all(
+                                isinstance(order, dict) and order.get("binance_filled") is True
+                                for order in partial_reports
+                            )
                             entry = opened.pop(symbol, None)
                             entry_order = entry.get("order") if entry is not None else None
                             exit_order = item.get("order")
@@ -581,7 +586,18 @@ def build_execution_report(
                                     "exit_signal_id": item["signal_id"],
                                     "binance_entry_filled": entry_filled,
                                     "binance_exit_filled": exit_filled,
-                                    "complete": entry is not None and entry_filled and exit_filled,
+                                    "complete": entry is not None
+                                    and entry_filled
+                                    and exit_filled
+                                    and partials_filled,
+                                    **(
+                                        {
+                                            "partial_exit_count": len(partial_orders),
+                                            "binance_partial_exits_filled": partials_filled,
+                                        }
+                                        if partial_orders
+                                        else {}
+                                    ),
                                 }
                             )
 
@@ -627,8 +643,7 @@ def build_execution_report(
                             severity="ERROR",
                             code="LIVE_STRATEGY_VERSION_STALE",
                             detail=(
-                                "Live-Ledger und aktuelle Strategieversion stimmen nicht "
-                                "überein."
+                                "Live-Ledger und aktuelle Strategieversion stimmen nicht überein."
                             ),
                         )
                     if not allocator_matches:
@@ -637,8 +652,7 @@ def build_execution_report(
                             severity="ERROR",
                             code="LIVE_ALLOCATOR_VERSION_STALE",
                             detail=(
-                                "Live-Ledger und aktueller Kapital-Allocator stimmen nicht "
-                                "überein."
+                                "Live-Ledger und aktueller Kapital-Allocator stimmen nicht überein."
                             ),
                         )
                     if unresolved:

@@ -11,6 +11,14 @@ from decimal import ROUND_DOWN, Decimal
 from hixton.backtest.models import BASELINE_COSTS, ONE, ZERO, ExecutionRules
 from hixton.constants import HIXTON_SPEC_VERSION
 from hixton.domain.allocation import ONE_PER_SYMBOL, allocate_entry_slots
+from hixton.domain.diversification import (
+    capacity_units,
+    distinct_allocations,
+    entry_budget,
+    next_count,
+    trim_quantity,
+    trim_signal_id,
+)
 from hixton.domain.models import Candle, IndicatorPoint, Signal, SignalAction
 from hixton.domain.risk import PortfolioRiskState, evaluate_portfolio_risk
 from hixton.domain.satellite_layer import (
@@ -27,6 +35,7 @@ from hixton.domain.spot_autonomy import (
 )
 from hixton.domain.strategy import entry_priority
 from hixton.domain.trade_policy import TradePolicy, TradePolicyGate
+from hixton.domain.tranche import allocate_tranches, position_units, size_tranche
 from hixton.domain.versions import StrategyDefinition, strategy_definition
 from hixton.paper.models import (
     PaperAccount,
@@ -180,6 +189,7 @@ def process_new_closed_points(
 
     definition = strategy_definition(strategy_key)
     symbols = definition.symbols
+    weighted = definition.second_tranche_split_dd_pct is not None
     satellite_symbols = frozenset(definition.satellite_symbols)
     active_satellites = frozenset(definition.active_shared_satellites)
     core_symbols = frozenset(symbols) - satellite_symbols
@@ -210,6 +220,7 @@ def process_new_closed_points(
         account = store.load_account()
         settings = store.load_settings()
         positions = {position.symbol: position for position in store.load_positions()}
+        diversification_count = store.diversification_count(strategy_version)
         dust = store.load_dust()
         checkpoints = store.all_checkpoints()
         if set(checkpoints) != set(symbols):
@@ -250,6 +261,7 @@ def process_new_closed_points(
                     pending.setdefault(boundary, []).append(point)
 
         emitted: list[PaperEvent] = []
+        allocation_references: dict[datetime, dict[str, str]] = {}
         processed_time: datetime | None = None
         for boundary, group in sorted(pending.items()):
             group_by_symbol = {point.symbol: point for point in group}
@@ -270,7 +282,17 @@ def process_new_closed_points(
                 processed_bars[symbol] += 1
 
             equity, _ = _equity(account.cash_usdc, positions, latest_prices, dust)
-            account, daily_paused, _ = _risk_account(account, equity=equity, at=close_time)
+            account, daily_paused, drawdown_pct = _risk_account(
+                account, equity=equity, at=close_time
+            )
+            if weighted:
+                allocation_references[close_time] = {
+                    "strategy_version": strategy_version,
+                    "bar_close_utc": close_time.astimezone(UTC).isoformat(),
+                    "equity_usdc": str(equity),
+                    "high_water_usdc": str(account.high_water_equity_usdc),
+                    "drawdown_pct": str(drawdown_pct),
+                }
 
             decisions = {}
             for point in group:
@@ -288,6 +310,94 @@ def process_new_closed_points(
                     entry_atr=float(position.entry_atr) if position else 0.0,
                     highest_close=float(position.highest_close) if position else 0.0,
                 )
+
+            if definition.diversification_stages:
+                stage_equity = (
+                    equity
+                    if settings.auto_budget_enabled
+                    else min(equity, settings.max_capital_usdc)
+                )
+                next_slots = next_count(
+                    definition.diversification_stages,
+                    current=diversification_count,
+                    closed_equity=stage_equity,
+                )
+                if next_slots > diversification_count:
+                    diversification_count = next_slots
+                    for sym, position in tuple(positions.items()):
+                        decision = decisions[sym]
+                        if (
+                            decision.signal is not None
+                            and decision.signal.action is SignalAction.EXIT_LONG
+                        ):
+                            continue
+                        if (
+                            sym in active_satellites
+                            and shared_satellite_horizon_exit(
+                                sym, group_by_symbol[sym], entry_time_utc=position.entry_time_utc
+                            )
+                            is not None
+                        ):
+                            continue
+                        rules = rules_by_symbol[sym]
+                        quantity = trim_quantity(
+                            owned=position.quantity,
+                            closed_equity=stage_equity,
+                            close=latest_prices[sym],
+                            count=next_slots,
+                            step=rules.step_size,
+                        )
+                        reference = _d(fill_candles[sym].open)
+                        price = reference * (ONE - BASELINE_COSTS.adverse_price_rate)
+                        gross = quantity * price
+                        position = replace(
+                            position, slot_count=1, allocation_units=capacity_units(next_slots)
+                        )
+                        if (
+                            quantity > ZERO
+                            and quantity >= rules.min_qty
+                            and gross >= rules.min_notional
+                        ):
+                            basis = position.cost_basis_usdc * quantity / position.quantity
+                            fee = gross * BASELINE_COSTS.fee_rate
+                            net = gross - fee
+                            identity = trim_signal_id(sym, next_slots, close_time)
+                            account = replace(account, cash_usdc=account.cash_usdc + net)
+                            position = replace(
+                                position,
+                                quantity=position.quantity - quantity,
+                                cost_basis_usdc=position.cost_basis_usdc - basis,
+                                entry_fee_usdc=position.entry_fee_usdc
+                                * (position.quantity - quantity)
+                                / position.quantity,
+                                updated_at_utc=boundary,
+                            )
+                            emitted.append(
+                                PaperEvent(
+                                    event_id=hashlib.sha256(
+                                        f"PAPER|{identity}".encode()
+                                    ).hexdigest(),
+                                    signal_id=identity,
+                                    occurred_at_utc=boundary,
+                                    symbol=sym,
+                                    action="EXIT_LONG",
+                                    status=PaperEventStatus.FILLED,
+                                    reason=f"DIVERSIFICATION_TRIM::{next_slots}",
+                                    reference_price=reference,
+                                    execution_price=price,
+                                    base_quantity=quantity,
+                                    quote_amount_usdc=net,
+                                    fee_usdc=fee,
+                                    realized_pnl_usdc=net - basis,
+                                    breakout_strength=None,
+                                    strategy_version=strategy_version,
+                                )
+                            )
+                        positions[sym] = position
+                if weighted:
+                    allocation_references[close_time]["diversification_count"] = str(
+                        diversification_count
+                    )
 
             for point in group:
                 decision = decisions[point.symbol]
@@ -455,7 +565,26 @@ def process_new_closed_points(
 
             used_slots = sum(position.slot_count for position in positions.values())
             free_slots = max(0, settings.slot_count - used_slots)
-            if settings.autonomous_performance_enabled and settings.slot_count > 2:
+            allocation_policy = (
+                ONE_PER_SYMBOL
+                if satellite_symbols and not core_candidates
+                else effective_allocation
+            )
+            split = False
+            if weighted:
+                assert definition.second_tranche_split_dd_pct is not None
+                occupied = sum(
+                    position_units(p.slot_count, p.allocation_units) for p in positions.values()
+                )
+                allocations, split = allocate_tranches(
+                    [s.symbol for s, _ in candidates],
+                    free_units=max(0, 20 - occupied),
+                    policy=allocation_policy,
+                    drawdown_pct=drawdown_pct,
+                    trigger_pct=Decimal(definition.second_tranche_split_dd_pct),
+                    existing_half=len(positions) == 1 and occupied == 10,
+                )
+            elif settings.autonomous_performance_enabled and settings.slot_count > 2:
                 allocations = research_slot_allocations(
                     [(signal.symbol, signal.breakout_strength) for signal, _ in candidates],
                     free_slots=free_slots,
@@ -471,6 +600,17 @@ def process_new_closed_points(
                         else effective_allocation
                     ),
                 )
+            if diversification_count > 2:
+                occupied = sum(
+                    position_units(p.slot_count, p.allocation_units) for p in positions.values()
+                )
+                allocations = distinct_allocations(
+                    [sig.symbol for sig, _ in candidates],
+                    owned=tuple(positions),
+                    occupied_units=occupied,
+                    count=diversification_count,
+                )
+                split = True
             for signal, point in candidates:
                 if settings.emergency_stop:
                     emitted.append(_blocked_event(signal, "EMERGENCY_STOP"))
@@ -482,7 +622,17 @@ def process_new_closed_points(
                     emitted.append(_blocked_event(signal, "DAILY_LOSS_5_PERCENT"))
                     continue
                 allocated_slots = allocations.get(signal.symbol, 0)
-                if signal.symbol in active_satellites:
+                allocation_units = 0
+                if weighted:
+                    allocation_units = allocated_slots
+                    if not split and allocation_policy == ONE_PER_SYMBOL:
+                        remaining = 20 - sum(
+                            position_units(p.slot_count, p.allocation_units)
+                            for p in positions.values()
+                        )
+                        allocation_units = min(10, max(0, remaining))
+                    allocated_slots = (allocation_units + 9) // 10
+                elif signal.symbol in active_satellites:
                     allocated_slots = min(allocated_slots, 1)
                 if allocated_slots <= 0:
                     emitted.append(_blocked_event(signal, "NO_FREE_SLOT"))
@@ -520,6 +670,32 @@ def process_new_closed_points(
                         settings.target_notional_usdc * Decimal(allocated_slots) * entry_fraction,
                         account.cash_usdc,
                     )
+                if weighted:
+                    budget = (
+                        size_tranche(
+                            equity=managed_equity,
+                            free_quote=account.cash_usdc,
+                            units=allocation_units,
+                            entry_fraction=entry_fraction,
+                        )
+                        if settings.auto_budget_enabled
+                        else min(
+                            settings.target_notional_usdc
+                            * Decimal(allocation_units)
+                            / 10
+                            * entry_fraction,
+                            account.cash_usdc,
+                        )
+                    )
+                if diversification_count > 2:
+                    budget = entry_budget(
+                        equity=managed_equity
+                        if settings.auto_budget_enabled
+                        else settings.max_capital_usdc,
+                        free_quote=account.cash_usdc,
+                        count=diversification_count,
+                        entry_fraction=entry_fraction,
+                    )
                 reference = _d(fill_candles[signal.symbol].open)
                 fill_price = reference * (ONE + BASELINE_COSTS.adverse_price_rate)
                 gross_quantity = _round_down(budget / fill_price, rules.step_size)
@@ -545,6 +721,7 @@ def process_new_closed_points(
                     updated_at_utc=boundary,
                     strategy_version=signal.strategy_version,
                     slot_count=allocated_slots,
+                    allocation_units=allocation_units,
                     entry_atr=_d(signal.atr) if trade_policies_by_symbol else ZERO,
                     highest_close=fill_price if trade_policies_by_symbol else ZERO,
                 )
@@ -583,6 +760,8 @@ def process_new_closed_points(
                 checkpoints=checkpoints,
                 processed_bars=processed_bars,
                 dust=dust,
+                allocation_references=allocation_references,
+                diversification_state=(strategy_version, diversification_count),
             )
         return tuple(emitted)
 

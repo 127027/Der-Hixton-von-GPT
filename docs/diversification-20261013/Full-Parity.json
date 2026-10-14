@@ -1,0 +1,35 @@
+{
+  "source_sha256": "f34ced870a598442e722a556917035923c461263d45d0305865a97c11cadec58",
+  "strategy": "HIXTON-V8-LINK8-ATR075-DOGE50-DD10-ETH8-DIV32-PAPER-5",
+  "stages": [
+    [
+      "32000",
+      3
+    ]
+  ],
+  "costs": [
+    {
+      "cost": "current",
+      "end": "32727.15125453727240000000",
+      "dd": "30.49891737208593899409242801",
+      "fills": 363,
+      "all_hourly_values_match_research": true
+    },
+    {
+      "cost": "stress",
+      "end": "22399.5587092068570000000",
+      "dd": "47.74745429220453486535683848",
+      "fills": 310,
+      "all_hourly_values_match_research": true
+    }
+  ],
+  "old_eth8_frozen_regression_matches": true,
+  "paper": {
+    "ending": "32727.15125453727240000000",
+    "matching_fills": 363,
+    "matching_hourly_references": 26303,
+    "stage_survives_restart": true,
+    "partial_exits": 1,
+    "no_orders_sent": true
+  }
+}
