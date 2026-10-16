@@ -123,7 +123,8 @@ def test_default_usdc_database_keeps_original_credential_namespace(tmp_path):
     assert new.prefix != WindowsVault(tmp_path / "other" / "hixton-usdc.sqlite3").prefix
 
 
-def test_old_usdt_paper_database_is_rejected_before_mutation(tmp_path):
+@pytest.mark.parametrize("read_only", [False, True])
+def test_old_usdt_paper_database_is_rejected_before_mutation(tmp_path, read_only):
     import sqlite3
 
     from hixton.paper.storage import PaperStore
@@ -138,7 +139,7 @@ def test_old_usdt_paper_database_is_rejected_before_mutation(tmp_path):
         )
     before = path.read_bytes()
     with pytest.raises(RuntimeError, match="Legacy USDT"):
-        PaperStore(path)
+        PaperStore(path, read_only=read_only)
     assert path.read_bytes() == before
 
 

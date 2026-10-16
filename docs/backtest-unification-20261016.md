@@ -40,3 +40,11 @@ Die Binance-Assetprüfung akzeptiert jetzt auch unveränderte alphanumerische
 Unicode-Namen (z.B. chinesische Assetnamen). Mengen, doppelte Namen, gesperrte
 Guthaben und die vollständige unveränderliche Kontobaseline bleiben strikt geprüft;
 es findet keine Normalisierung oder Zusammenfassung verschiedener Namen statt.
+
+Backtests und ihre Ergebnisanzeige öffnen die aktive Candle-/Paper-Datenbank
+ausschließlich lesend (`mode=ro`, `query_only`). Dabei werden weder Migrationen
+noch Journal-Modi oder Metadaten geschrieben. Historische Ergänzungen bleiben in
+der separaten Backtest-Datenbank. Ein Regressionstest hält gleichzeitig eine echte
+Runtime-Schreibtransaktion offen: Der Backtest muss den letzten bestätigten Stand
+lesen können, ohne die offene Änderung zu sehen oder die Runtime zu sperren.
+Nicht initialisierte Einstellungen werden nicht durch angenommene Werte ersetzt.

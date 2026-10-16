@@ -686,7 +686,7 @@ def create_app(
         definition = supervisor.strategy
         output_root = config.run_output_root.parents[1] / definition.backtest_version / "runs"
         try:
-            with PaperStore(config.database_path) as store:
+            with PaperStore(config.database_path, read_only=True) as store:
                 settings = store.load_settings()
         except (OSError, sqlite3.Error, RuntimeError):
             settings = None

@@ -45,10 +45,16 @@ def _parse_time(value: object) -> datetime:
 class PaperStore:
     """Short-lived SQLite connection; instantiate per worker or API request."""
 
-    def __init__(self, path: Path | str) -> None:
+    def __init__(self, path: Path | str, *, read_only: bool = False) -> None:
         self.path = Path(path)
-        self.path.parent.mkdir(parents=True, exist_ok=True)
-        self._connection = sqlite3.connect(self.path, timeout=30)
+        if read_only:
+            self._connection = sqlite3.connect(
+                self.path.resolve().as_uri() + "?mode=ro", uri=True, timeout=30
+            )
+            self._connection.execute("PRAGMA query_only=ON")
+        else:
+            self.path.parent.mkdir(parents=True, exist_ok=True)
+            self._connection = sqlite3.connect(self.path, timeout=30)
         self._connection.row_factory = sqlite3.Row
         # Fail before any schema migration when pointed at the old USDT ledger.
         # A new quote requires a separate account, never relabelling old cash.
@@ -70,6 +76,8 @@ class PaperStore:
             if any(symbol.endswith("USDT") for symbol in markers):
                 self._connection.close()
                 raise RuntimeError("Legacy USDT Paper ledger: use a separate USDC database")
+        if read_only:
+            return  # Identity checks apply; migrations/writer transactions do not.
         self._connection.execute("PRAGMA journal_mode=WAL")
         self._connection.execute("PRAGMA foreign_keys=ON")
         self._connection.execute("PRAGMA synchronous=FULL")

@@ -86,7 +86,7 @@ def load_continuity_history(
         market_proxy = proxy_symbol(target_symbol)
         native: list[Candle] = []
         if native_database_path is not None:
-            with CandleStore(native_database_path) as store:
+            with CandleStore(native_database_path, read_only=True) as store:
                 native = store.load_candles(
                     target_symbol, start=warmup_start, end_exclusive=report_end_utc
                 )

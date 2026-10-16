@@ -22,7 +22,6 @@ from hixton.backtest.reporting import RunResult, write_report_bundle
 from hixton.config import ProjectConfig
 from hixton.data.storage import CandleStore
 from hixton.domain.versions import strategy_definition
-from hixton.paper.models import PaperSettings
 from hixton.paper.storage import PaperStore
 
 
@@ -42,7 +41,7 @@ def run_product_backtest(
     if mode == "single" and symbol not in strategy.symbols:
         raise ValueError("single backtest requires an active strategy symbol")
     rules = {}
-    with CandleStore(config.database_path) as store:
+    with CandleStore(config.database_path, read_only=True) as store:
         for item in strategy.symbols:
             saved = store.load_symbol_rules(item)
             if (
@@ -58,11 +57,8 @@ def run_product_backtest(
                 min_qty=saved.min_qty,
                 min_notional=saved.min_notional,
             )
-    with PaperStore(config.database_path) as store:
-        try:
-            settings = store.load_settings()
-        except RuntimeError:
-            settings = PaperSettings(max_capital_usdc=config.paper_max_capital_usdc)
+    with PaperStore(config.database_path, read_only=True) as store:
+        settings = store.load_settings()
     capital_source: dict[str, object] | None = None
     starting_cash = settings.max_capital_usdc
     target_notional = settings.target_notional_usdc

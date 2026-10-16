@@ -1,6 +1,8 @@
 """Exercise V8's actual product reports, historical fallback and Paper routing."""
 
 import json
+import sqlite3
+from contextlib import closing
 from dataclasses import replace
 from datetime import timedelta
 from decimal import Decimal
@@ -198,6 +200,37 @@ def test_diagnostic_restriction_cannot_admit_unknown_symbols(history_fixture):
             report_end_utc=end,
             allowed_entry_symbols=frozenset({"NOT_A_MARKET"}),
         )
+
+
+def test_backtest_reads_live_database_while_runtime_holds_writer_transaction(history_fixture):
+    config, _candles, _rules, start, end, _requests = history_fixture
+    settings = PaperSettings(max_capital_usdc=Decimal(300))
+    with PaperStore(config.database_path) as store:
+        store.initialize(strategy_key="v8", strategy_version=STRATEGY.version)
+        store.save_settings(settings)
+        original = store.load_account()
+    with closing(sqlite3.connect(config.database_path)) as writer:
+        writer.execute("BEGIN IMMEDIATE")
+        writer.execute("UPDATE paper_settings SET max_capital_text='9000'")
+        with PaperStore(config.database_path, read_only=True) as reader:
+            assert reader.load_settings() == settings  # Committed snapshot, no dirty read.
+            with pytest.raises(sqlite3.OperationalError, match="readonly"):
+                reader.save_settings(PaperSettings(max_capital_usdc=Decimal(500)))
+        output = run_product_backtest(
+            config,
+            mode="portfolio",
+            symbol=None,
+            report_start_utc=start,
+            report_end_utc=end,
+            code_commit="CONCURRENT_READ_ONLY",
+            source_sha256=source_fingerprint(),
+        )
+        metrics = json.loads((output / "metrics.json").read_text())
+        assert Decimal(metrics["current"]["portfolio"]["starting_cash"]) == 300
+        writer.rollback()
+    with PaperStore(config.database_path) as store:
+        assert store.load_account() == original
+        assert store.load_settings() == settings
 
 
 def test_historical_proxy_fills_only_missing_prefix_and_is_cached(history_fixture):
