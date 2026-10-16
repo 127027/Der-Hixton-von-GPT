@@ -53,7 +53,7 @@ from hixton.domain.tranche import (
     size_tranche,
 )
 from hixton.domain.versions import StrategyDefinition
-from hixton.live.orders import ExchangeOrder
+from hixton.live.orders import ExchangeOrder, OrderLookupNotFound, request_error_metadata
 
 ZERO = Decimal("0")
 ONE = Decimal("1")
@@ -178,6 +178,11 @@ class LiveOrderJournal:
                     action TEXT NOT NULL,
                     at_utc TEXT NOT NULL
                 );
+                CREATE TABLE IF NOT EXISTS live_request_diagnostics (
+                    intent_id TEXT PRIMARY KEY,
+                    metadata_json TEXT NOT NULL,
+                    at_utc TEXT NOT NULL
+                );
                 """
             )
 
@@ -285,7 +290,68 @@ class LiveOrderJournal:
                 (datetime.now(UTC).isoformat(), intent_id),
             ).rowcount
             if changed:
+                connection.execute(
+                    "DELETE FROM live_request_diagnostics WHERE intent_id=?", (intent_id,)
+                )
                 self._audit(connection, intent_id, "SUBMITTING")
+            return changed == 1
+
+    def record_ack(self, intent: LiveIntent, order_id: str) -> None:
+        """An ACK preserves identity; it proves neither a fill nor final status."""
+        if not isinstance(order_id, str) or not order_id.isascii() or not order_id.isdigit():
+            raise ValueError("Invalid acknowledged exchange identity")
+        if self.load(intent.intent_id)[0] != intent:
+            raise RuntimeError("Acknowledgement differs from persisted Live intent")
+        with self._connect() as connection:
+            connection.execute("BEGIN IMMEDIATE")
+            row = connection.execute(
+                "SELECT state,order_id FROM live_intents WHERE intent_id=?", (intent.intent_id,)
+            ).fetchone()
+            if row is None or row["state"] != "SUBMITTING":
+                raise RuntimeError("Acknowledgement requires claimed submission")
+            if row["order_id"] and row["order_id"] != order_id:
+                raise RuntimeError("Acknowledged identity changed")
+            connection.execute(
+                "UPDATE live_intents SET order_id=?,updated_at=? WHERE intent_id=?",
+                (order_id, datetime.now(UTC).isoformat(), intent.intent_id),
+            )
+            self._audit(connection, intent.intent_id, "EXCHANGE_ACKNOWLEDGED")
+
+    def record_request_error(self, intent_id: str, error: Exception, stage: str) -> None:
+        metadata = request_error_metadata(error, stage)
+        with self._connect() as connection:
+            connection.execute(
+                "INSERT INTO live_request_diagnostics VALUES(?,?,?) "
+                "ON CONFLICT(intent_id) DO UPDATE SET metadata_json=excluded.metadata_json, "
+                "at_utc=excluded.at_utc",
+                (intent_id, json.dumps(metadata, sort_keys=True), datetime.now(UTC).isoformat()),
+            )
+            self._audit(connection, intent_id, "REQUEST_ERROR_" + str(metadata["stage"]))
+
+    def release_not_submitted(self, intent_id: str) -> bool:
+        """Release only a current, proven pre-POST failure; never UNKNOWN."""
+        with self._connect() as connection:
+            connection.execute("BEGIN IMMEDIATE")
+            diagnostic = connection.execute(
+                "SELECT metadata_json FROM live_request_diagnostics WHERE intent_id=?", (intent_id,)
+            ).fetchone()
+            if diagnostic is None:
+                return False
+            proof = json.loads(diagnostic["metadata_json"])
+            if (
+                proof.get("stage") != "CLOCK_SYNC"
+                or proof.get("definitely_not_submitted") is not True
+            ):
+                return False
+            changed = connection.execute(
+                "UPDATE live_intents SET state='CREATED',updated_at=? WHERE intent_id=? "
+                "AND state='SUBMITTING' AND order_id IS NULL AND exchange_state IS NULL "
+                "AND executed_quantity='0' AND cumulative_quote='0' "
+                "AND NOT EXISTS (SELECT 1 FROM live_fills WHERE intent_id=?)",
+                (datetime.now(UTC).isoformat(), intent_id, intent_id),
+            ).rowcount
+            if changed:
+                self._audit(connection, intent_id, "PRE_DISPATCH_CLOCK_FAILURE")
             return changed == 1
 
     def abandon_created(self, intent_id: str, reason: str) -> bool:
@@ -423,6 +489,10 @@ class LiveOrderJournal:
                 "SELECT * FROM live_fills WHERE intent_id=? ORDER BY CAST(trade_id AS INTEGER)",
                 (intent_id,),
             ).fetchall()
+            diagnostic = connection.execute(
+                "SELECT metadata_json,at_utc FROM live_request_diagnostics WHERE intent_id=?",
+                (intent_id,),
+            ).fetchone()
         quantity = sum((Decimal(row["quantity"]) for row in fills), ZERO)
         quote = sum((Decimal(row["quote_quantity"]) for row in fills), ZERO)
         fees: dict[str, Decimal] = {}
@@ -434,6 +504,11 @@ class LiveOrderJournal:
         return {
             "intent_id": intent_id,
             "state": state,
+            "last_request_error": (
+                {**json.loads(diagnostic["metadata_json"]), "at_utc": diagnostic["at_utc"]}
+                if diagnostic is not None
+                else None
+            ),
             "exchange_state": order["exchange_state"],
             "exchange_order_id": order["order_id"],
             "recorded_at_utc": order["updated_at"],
@@ -484,9 +559,20 @@ class LiveOrderExecutor:
         if not self.journal.claim_submit(intent_id):
             return self.reconcile(intent_id)
         try:
-            self.journal.record(intent, self.exchange.submit(intent))
+            submit_with_ack = getattr(self.exchange, "submit_with_ack", None)
+            if callable(submit_with_ack):
+                order = submit_with_ack(
+                    intent, lambda order_id: self.journal.record_ack(intent, order_id)
+                )
+            else:
+                order = self.exchange.submit(intent)
+            self.journal.record(intent, order)
         except Exception as error:
-            if getattr(error, "definitely_rejected", False):
+            self.journal.record_request_error(intent_id, error, "ORDER_SUBMIT")
+            if request_error_metadata(error, "ORDER_SUBMIT")["definitely_not_submitted"]:
+                if not self.journal.release_not_submitted(intent_id):
+                    self.journal.unknown(intent_id)
+            elif getattr(error, "definitely_rejected", False):
                 self.journal.reject(intent_id)
             else:
                 self.journal.unknown(intent_id)
@@ -499,10 +585,12 @@ class LiveOrderExecutor:
         try:
             order = self.exchange.query(intent)
             if order is None:
+                self.journal.record_request_error(intent_id, OrderLookupNotFound(), "ORDER_QUERY")
                 self.journal.unknown(intent_id)
             else:
                 self.journal.record(intent, order)
-        except Exception:
+        except Exception as error:
+            self.journal.record_request_error(intent_id, error, "RECONCILE")
             self.journal.unknown(intent_id)
         return self.journal.load(intent_id)[1]
 

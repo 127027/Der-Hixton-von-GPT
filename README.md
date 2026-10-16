@@ -1,5 +1,11 @@
 # Der Hixton
 
+Technischer Stand 16.10.2026: bestätigte Orderkennungen werden vor Folgeabfragen
+gespeichert; ungeklärte Testorders erscheinen als Fehler. Eine eng begrenzte,
+ausdrücklich autorisierte Orderklärung prüft Börsenhistorie und unveränderliche
+Kontobaseline. Die Strategie und normale Live-Freigabe bleiben separat.
+[Details und Grenzen](docs/execution-recovery-20261016.md).
+
 **Abschlussstand 14.10.2026:** Die technische Kaufprüfung nach Reservierung ist installiert.
 Ein neuer Portfolio-Backtest wurde mit rollierenden drei Kalenderjahren, den gespeicherten
 Automatik-Einstellungen und frisch gelesenen freien Binance-USDC geprüft. Er passt zur laufenden Quelle.

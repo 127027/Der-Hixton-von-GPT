@@ -234,7 +234,7 @@ def build_execution_report(
             detail="Paper und Echtgeld-Runtime verwenden unterschiedliche Strategieversionen.",
         )
 
-    trial_payload: dict[str, object] = {"state": "NOT_STARTED"}
+    trial_payload: dict[str, object] = {"state": "NOT_STARTED", "unresolved_intents": []}
     live_payload: dict[str, object] = {
         "state": "LIVE_DISABLED",
         "events": [],
@@ -245,6 +245,7 @@ def build_execution_report(
     cycles: list[dict[str, object]] = []
     live_open_positions_count = 0
     live_unresolved_count = 0
+    trial_unresolved_count = 0
 
     if live_database.exists():
         with sqlite3.connect(live_database) as live:
@@ -388,6 +389,31 @@ def build_execution_report(
                             ),
                             symbol=trial["symbol"],
                         )
+
+            # Trial orders belong to their own ledger. An ambiguous trial BUY
+            # must never disappear behind an empty normal-Live order list.
+            trial_unresolved: list[str] = []
+            if _table_exists(live, "trial_intents"):
+                for row in live.execute(
+                    "SELECT intent_id,symbol,state FROM trial_intents WHERE state NOT IN "
+                    "('FILLED','CANCELED','REJECTED','EXPIRED','EXPIRED_IN_MATCH') "
+                    "ORDER BY intent_id"
+                ).fetchall():
+                    trial_unresolved.append(str(row["intent_id"]))
+                    if row["state"] != "CREATED":
+                        _incident(
+                            incidents,
+                            severity="ERROR",
+                            code="TRIAL_ORDER_UNRESOLVED",
+                            detail=(
+                                "50-USDC-Testorder ist noch nicht terminal abgeglichen "
+                                f"(Zustand: {row['state']}). Keine Live-Freigabe."
+                            ),
+                            symbol=row["symbol"],
+                            intent_id=str(row["intent_id"]),
+                        )
+            trial_unresolved_count = len(trial_unresolved)
+            trial_payload["unresolved_intents"] = trial_unresolved
 
             if _table_exists(live, "live_control"):
                 control = live.execute("SELECT * FROM live_control WHERE singleton=1").fetchone()
@@ -694,6 +720,7 @@ def build_execution_report(
         ),
         "live_open_positions": live_open_positions_count,
         "live_unresolved_intents": live_unresolved_count,
+        "trial_unresolved_intents": trial_unresolved_count,
     }
     return report
 

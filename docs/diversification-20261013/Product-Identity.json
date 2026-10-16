@@ -1,7 +1,7 @@
 {
   "application_version": "0.5.0",
   "strategy_version": "HIXTON-V8-LINK8-ATR075-DOGE50-DD10-ETH8-DIV32-PAPER-5",
-  "python_source_sha256": "449504f99f7fc867a89630b4366cd581a11d537c697525e2d0752638308a88a5",
+  "python_source_sha256": "6e453f2a09b09b846ac621c483f8d2c09f222983e8ca4f1f65dd74fb084fe1e7",
   "allocator_version": "CAPITAL-V3-LATCHED-DISTINCT",
   "diversification_stages": [
     [
@@ -9,7 +9,7 @@
       3
     ]
   ],
-  "origin": "Matches installed product after technical entry-guard update, 2026-10-14",
+  "origin": "Canonical DIV32 source after execution-recovery correction, 2026-10-16",
   "python_file_hash_method": "UTF-8 text with universal newlines (LF), same as source_fingerprint",
   "python_files": {
     "src/hixton/__init__.py": "f645dd7fe965fc5368b87b14d1859f5f5a3e4a431d3d3a61ae47c99313e6053e",
@@ -53,13 +53,14 @@
     "src/hixton/live/__init__.py": "81b752ab308f1601e73693f2343171485947a9e66d7f3c459b1ae2546bfd4988",
     "src/hixton/live/binance.py": "ff9f31acfbbf6014f955237a7a4898a12a85d18805c93c987481a150e5bff169",
     "src/hixton/live/credentials.py": "e481697899198167838fcbabd844a1232d8484164a2d8d795cfb8814a3568311",
-    "src/hixton/live/exchange.py": "aef79745651c925c2c8eccfc145e46dd9260eaa822994cfa06ce71e0b2f31c02",
+    "src/hixton/live/exchange.py": "e4f4f7b717c5ba4d955cf0bdd2ff4e790954452c2f0eb23ae945b79efcb8333f",
     "src/hixton/live/frozen_trial.py": "ae6510d00bb93b1a2b9baef6b58526de3523582dc9d2edf2344f939937cc564b",
-    "src/hixton/live/monitoring.py": "08ad7e28009e65d5b8e7e13cfbb5271dff79017d7d8b70d053a7c3d05789013a",
-    "src/hixton/live/orders.py": "5a343b82f5d3a90f13abe9e99f910406fc0cf2b8a1aa534abda127701b62197e",
-    "src/hixton/live/preparation.py": "fc9403ddcb1ae550be6113bc42e4218711bb03e7f730ad572df7f1dd515a7089",
-    "src/hixton/live/production.py": "254be470987f71e7bfbc5405318a028e2d3bb945b1150592876d8ffbfbd08f9e",
+    "src/hixton/live/monitoring.py": "e9b18cc4313f64f4af3f977c2b0d334de8bb254fb0cd1c28dc3a6969a14b3b53",
+    "src/hixton/live/orders.py": "a8fc8e9ec03bc1a0a0cae04177e4f6c093f87530edfefec685cf81cee824c65d",
+    "src/hixton/live/preparation.py": "cd469e5aac889eb31dd0fe3da9f0cd26ff77da5415ea41839f81ddb56b3d95eb",
+    "src/hixton/live/production.py": "3e26152d805e71e0d537f1b12ab7572c470b92f1fbc073176e5fdf1468ae424e",
     "src/hixton/live/reconciliation.py": "0458a10bd29b0fad66f67fbd9243b61a815ce614c31599f9a05baa6513c9835c",
+    "src/hixton/live/recovery.py": "8c5a00786dcf3127f4fb21615be83fc7aa6ac199602632b469387886f0d97cdd",
     "src/hixton/live/runtime.py": "5efc5c600b3387095bc86a3f628e3043d314623a8051608fed34e04f39498a4c",
     "src/hixton/live/trial.py": "fab47028d3a27c7801781f42678f50fea18b61c4d86aa1019b52265a85ee7f81",
     "src/hixton/paper/__init__.py": "0562fe91af83628aa47798cde552b97dd8dede0572a98e1c5ddeba7aa92c8a5c",
@@ -81,7 +82,8 @@
     "src/hixton/ui/live.py": "1cb3e869aa174e786dd20dbf5ebe8a3b888ea0350bee2eb7448954b44e419cea",
     "src/hixton/ui/power.py": "536d15ea52724828cc5368d489ed5915f62241ed3a24975d3e0fc7487c1d1fd5",
     "src/hixton/ui/server.py": "f7a1fcc05742c883b0b681887fcec6d8ce1c7465526fb0212f36ee0bc54596bc",
-    "src/hixton/ui/session_audit.py": "2d8803714cf0ecdedfde3c8c7bee92ac516e6172075a502fc115fddf416bc213"
+    "src/hixton/ui/session_audit.py": "2d8803714cf0ecdedfde3c8c7bee92ac516e6172075a502fc115fddf416bc213",
+    "src/main.py": "f80a1f12e314691922fa807c57250944c05f81aecc55b363a07e1b51ce67e6b8"
   },
   "validation_scope": "Local technical review; not formal GitHub swarm cloud certification",
   "runtime_data_included": false,

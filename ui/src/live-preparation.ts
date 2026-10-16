@@ -24,7 +24,7 @@ interface LiveStatus {
     free_bnb?: string;
     open_order_count?: number;
   } | null;
-  trial?: {state: string; symbol?: string; reason?: string | null};
+  trial?: {state: string; symbol?: string; reason?: string | null; has_unresolved_orders?: boolean; buy?: {state: string} | null; sell?: {state: string} | null};
   trial_continuation?: {exit_only: boolean; frozen_strategy_version: string | null};
   live?: {state: string; used_slots: number; free_slots: number; slot_count?: number; allocation_capacity_units?: number | null; used_allocation_units?: number; open_position_count?: number; diversification_count?: number};
 }
@@ -104,6 +104,11 @@ export function initializeLivePreparation(sharedSettingsBlocker: (mode?: "live" 
     element("binance-key-missing").classList.toggle("hidden", status.credentials.configured);
     element("binance-account-content").classList.toggle("hidden", !status.credentials.configured);
     const trialState = status.trial?.state ?? "NOT_STARTED";
+    const unresolvedTrial = status.trial?.has_unresolved_orders
+      || status.trial?.reason === "ORDER_UNKNOWN"
+      || [status.trial?.buy?.state, status.trial?.sell?.state].some(state =>
+        ["UNKNOWN", "SUBMITTING", "FILL_DETAILS_PENDING"].includes(state ?? ""));
+    const unresolvedNotice = "Order ungeklärt · Binance-Abgleich nötig. Kauf/Verkauf nicht bestätigt; keinen weiteren Test starten und Live nicht freigeben.";
     const trialLabels: Record<string, string> = {
       NOT_STARTED: "Nicht freigegeben; noch kein Test-Kauf.",
       WAITING_SIGNAL: "Scharf · wartet auf ein neues Signal; noch kein Test-Kauf.",
@@ -116,8 +121,9 @@ export function initializeLivePreparation(sharedSettingsBlocker: (mode?: "live" 
     };
     const continuation = status.trial_continuation?.exit_only
       ? ` · Bestehender Test läuft mit seiner eingefrorenen Strategie weiter (${status.trial_continuation.frozen_strategy_version}). Keine neuen Test-Käufe.` : "";
-    message("real-trial-status", `50-USDC-Einmaltest: ${trialLabels[trialState] ?? trialState}${status.trial?.symbol ? " · " + status.trial.symbol : ""}${continuation}`);
-    message("position-real-status", `50-USDC-Einmaltest: ${trialLabels[trialState] ?? trialState}${status.trial?.symbol ? " · " + status.trial.symbol : ""}`);
+    const trialDescription = unresolvedTrial ? unresolvedNotice : trialLabels[trialState] ?? trialState;
+    message("real-trial-status", `50-USDC-Einmaltest: ${trialDescription}${status.trial?.symbol ? " · " + status.trial.symbol : ""}${continuation}`);
+    message("position-real-status", `50-USDC-Einmaltest: ${trialDescription}${status.trial?.symbol ? " · " + status.trial.symbol : ""}`);
     const live = status.live;
     const weighted = Boolean(live?.allocation_capacity_units || status.trading_settings?.second_tranche_split_dd_pct);
     const distinct = (live?.diversification_count ?? 2) > 2;
@@ -144,7 +150,7 @@ export function initializeLivePreparation(sharedSettingsBlocker: (mode?: "live" 
       : "";
     message(
       "live-trial-status",
-      status.trial?.state && status.trial.state !== "NOT_STARTED"
+      unresolvedTrial ? unresolvedNotice : status.trial?.state && status.trial.state !== "NOT_STARTED"
         ? status.trial_retest_available
           ? "Alter Test abgeschlossen und abgeglichen. Für die aktuelle Version kann ein neuer 1×50-USDC-Test ausdrücklich freigegeben werden; der alte Bericht bleibt gespeichert."
           : status.trial_retryable_before_submit

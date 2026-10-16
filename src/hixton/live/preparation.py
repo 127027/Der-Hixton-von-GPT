@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import json
+import re
 import sqlite3
 import time
 from collections.abc import Callable, Mapping, Sequence
@@ -201,6 +202,11 @@ class LivePreparation:
             self.allocator_version = strategy.allocator_version
 
         class DeferredExchange:
+            def submit_with_ack(
+                self, intent: Any, on_ack: Callable[[str], None]
+            ) -> ExchangeOrder:
+                return service._bound_exchange().submit_with_ack(intent, on_ack)
+
             def submit(self, intent: Any) -> ExchangeOrder:
                 return service._bound_exchange().submit(intent)
 
@@ -649,6 +655,43 @@ class LivePreparation:
                 production_plan = None
             production_settings_ok = production_plan is not None and emergency_stop is False
             trial_state = str(trial.get("state", "NOT_STARTED"))
+            terminal_orders = {"FILLED", "CANCELED", "REJECTED", "EXPIRED", "EXPIRED_IN_MATCH"}
+            public_order_states = terminal_orders | {
+                "CREATED", "SUBMITTING", "UNKNOWN", "NEW", "PARTIALLY_FILLED",
+                "PENDING_CANCEL", "FILL_DETAILS_PENDING",
+            }
+            public_trial: dict[str, object] = {
+                "state": trial_state,
+                "has_unsettled": trial.get("has_unsettled", False),
+            }
+            reason = trial.get("reason")
+            # Emit codes, never transport messages, credentials or signed URLs.
+            public_trial["reason"] = (
+                reason if isinstance(reason, str) and re.fullmatch(r"[A-Z][A-Z0-9_]{0,95}", reason)
+                else None
+            )
+            symbol = trial.get("symbol")
+            public_trial["symbol"] = (
+                symbol if self.live is not None and symbol in self.live.strategy.symbols else None
+            )
+            trial_order_unresolved = reason in {"ORDER_UNKNOWN", "ORDER_SUBMITTING"}
+            for side in ("buy", "sell"):
+                order = trial.get(side)
+                if isinstance(order, dict):
+                    state = order.get("state")
+                    trial_order_unresolved = trial_order_unresolved or (
+                        state not in terminal_orders | {"CREATED"}
+                    )
+                    public_trial[side] = {
+                        "state": state if state in public_order_states else "UNKNOWN",
+                        "exchange_state": (
+                            order.get("exchange_state")
+                            if order.get("exchange_state") in public_order_states else None
+                        ),
+                    }
+                else:
+                    public_trial[side] = None
+            public_trial["has_unresolved_orders"] = trial_order_unresolved
             trial_retryable = bool(
                 self.trial is not None
                 and trial_state in {"CANCELED", "FAILED"}
@@ -686,6 +729,7 @@ class LivePreparation:
                 and production_plan is not None
                 and self.live is not None
                 and live.get("state") != "NEEDS_REVIEW"
+                and not trial_order_unresolved
             )
             blockers: list[str] = []
             if not credential_status["configured"]:
@@ -703,6 +747,11 @@ class LivePreparation:
             if not trial_completed:
                 blockers.append(
                     "Vor dauerhaftem Livebetrieb ist ein kontrollierter 1x50-Roundtrip nötig."
+                )
+            if trial_order_unresolved:
+                blockers.append(
+                    "50-USDC-Testorder ungeklärt; Binance-Abgleich nötig. "
+                    "Keinen weiteren Test starten und Live nicht freigeben."
                 )
             if trial_completed and not trial_current:
                 blockers.append("50-USDC-Test gehört zu einer anderen Strategie/Quellversion.")
@@ -756,10 +805,7 @@ class LivePreparation:
                 },
                 "trial": trial
                 if authenticated
-                else {
-                    "state": trial.get("state", "NOT_STARTED"),
-                    "has_unsettled": trial.get("has_unsettled", False),
-                },
+                else public_trial,
                 "live": live
                 if authenticated
                 else {

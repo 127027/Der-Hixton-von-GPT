@@ -42,6 +42,7 @@ _BASES = {"https://api.binance.com", "https://testnet.binance.vision"}
 _ALLOWLIST = {
     ("GET", "/api/v3/time"),
     ("GET", "/api/v3/order"),
+    ("GET", "/api/v3/allOrders"),
     ("GET", "/api/v3/myTrades"),
     ("GET", "/api/v3/account"),
     ("GET", "/api/v3/openOrders"),
@@ -58,12 +59,16 @@ class ExchangeRequestError(RuntimeError):
         http_status: int | None = None,
         *,
         definitely_rejected: bool = False,
+        definitely_not_submitted: bool = False,
+        stage: str = "ORDER_SUBMIT",
     ) -> None:
         state = "rejected" if definitely_rejected else "unresolved"
         super().__init__(f"Binance order request {state} (HTTP {http_status}, code {code})")
         self.code = code
         self.http_status = http_status
         self.definitely_rejected = definitely_rejected
+        self.definitely_not_submitted = definitely_not_submitted
+        self.stage = stage
 
 
 class SpotTransport(Protocol):
@@ -112,7 +117,17 @@ class BinanceSpotTransport:
         if not public and (
             self._clock_checked_at is None or not 0 <= self._clock() - self._clock_checked_at <= 30
         ):
-            self._synchronize()
+            try:
+                self._synchronize()
+            except ExchangeRequestError as error:
+                # The POST has not been constructed or dispatched. This is the
+                # sole proof that permits returning this attempt to CREATED.
+                raise ExchangeRequestError(
+                    error.code,
+                    error.http_status,
+                    definitely_not_submitted=method == "POST",
+                    stage="CLOCK_SYNC",
+                ) from None
         query = dict(params)
         headers = {"Accept": "application/json", "User-Agent": "DerHixton-Trial"}
         if not public:
@@ -139,7 +154,7 @@ class BinanceSpotTransport:
             with self._opener.open(request, timeout=10) as response:
                 raw = response.read(2_000_001)
                 if len(raw) > 2_000_000:
-                    raise ExchangeRequestError()
+                    raise ExchangeRequestError(stage=_request_stage(method, path))
                 return json.loads(raw)
         except HTTPError as error:
             code = None
@@ -157,9 +172,18 @@ class BinanceSpotTransport:
                 code,
                 error.code,
                 definitely_rejected=definitely_rejected,
+                stage=_request_stage(method, path),
             ) from None
         except (URLError, OSError, ValueError):
-            raise ExchangeRequestError() from None
+            raise ExchangeRequestError(stage=_request_stage(method, path)) from None
+
+
+def _request_stage(method: str, path: str) -> str:
+    if path == "/api/v3/time":
+        return "CLOCK_SYNC"
+    if path == "/api/v3/myTrades":
+        return "FILL_QUERY"
+    return "ORDER_SUBMIT" if method == "POST" else "ORDER_QUERY"
 
 
 def _decimal(value: Any) -> Decimal:
@@ -218,6 +242,11 @@ class BinanceSpotExchange:
         return _id(data.get("orderId"))
 
     def submit(self, intent: SpotOrderIntent) -> ExchangeOrder:
+        return self.submit_with_ack(intent, lambda _order_id: None)
+
+    def submit_with_ack(
+        self, intent: SpotOrderIntent, on_ack: Callable[[str], None]
+    ) -> ExchangeOrder:
         self._check(intent)
         params = {
             "symbol": intent.symbol,
@@ -234,6 +263,9 @@ class BinanceSpotExchange:
             params["quantity"] = format(intent.base_quantity, "f")
         ack = self.transport.request("POST", "/api/v3/order", params)
         order_id = self._identity(intent, ack)
+        # Acknowledgement is evidence of acceptance, not evidence of a fill.
+        # Persist it before a separate lookup can fail or the process can stop.
+        on_ack(order_id)
         # ACK is not a fill. Lookup actual status and trade rows, including BNB
         # fees, rather than inventing a fill from the submitted 50-unit budget.
         order = self.query(intent)

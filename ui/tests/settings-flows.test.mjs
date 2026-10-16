@@ -7,6 +7,25 @@ async function unlockUI(ui) {
   await ui.node("live-auth-panel").fire("submit");
 }
 
+test("ambiguous trial is explicit on locked overview and settings, without another order",async()=>{
+  const mock=mockLive();
+  mock.state.credentials.configured=true;
+  mock.state.state="TRIAL_ENTRY_PENDING";
+  mock.state.trial={state:"ENTRY_PENDING",symbol:"SOLUSDC",reason:"ORDER_UNKNOWN",
+    has_unresolved_orders:true,buy:{state:"UNKNOWN",exchange_state:null}};
+  const ui=harness(mock.fetcher),live=initializeLivePreparation(()=>null);
+  try {
+    await live.refresh();
+    for(const id of ["real-trial-status","position-real-status","live-trial-status"]){
+      assert.match(ui.node(id).textContent,/Order ungeklärt/);
+      assert.match(ui.node(id).textContent,/Binance-Abgleich nötig/);
+    }
+    assert.equal(ui.node("live-trial-start").disabled,true);
+    assert.equal(ui.node("live-request").disabled,true);
+    assert.equal(mock.calls.some(c=>c.url.endsWith("/trial/start")||c.url.endsWith("/enable")),false);
+  } finally {live.dispose();ui.restore();}
+});
+
 test("password failure is beside the input; successful submit unlocks actual key controls", async()=>{
   const mock=mockLive(), ui=harness(mock.fetcher);
   const live=initializeLivePreparation(()=>null);

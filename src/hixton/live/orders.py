@@ -8,6 +8,7 @@ This is not a complete live ledger, reconciliation engine or release approval.
 from __future__ import annotations
 
 import hashlib
+import json
 import sqlite3
 from collections.abc import Callable, Iterator
 from contextlib import contextmanager
@@ -22,6 +23,43 @@ from hixton.domain.markets import split_market
 _ZERO = Decimal("0")
 _TERMINAL = {"FILLED", "CANCELED", "REJECTED", "EXPIRED", "EXPIRED_IN_MATCH"}
 _EXCHANGE_STATES = _TERMINAL | {"NEW", "PARTIALLY_FILLED", "PENDING_CANCEL"}
+_REQUEST_STAGES = {
+    "CLOCK_SYNC", "ORDER_SUBMIT", "ORDER_QUERY", "FILL_QUERY", "ORDER_JOURNAL", "RECONCILE"
+}
+
+
+class OrderLookupNotFound(RuntimeError):
+    """Read-only lookup absence is diagnostic evidence, never retry permission."""
+
+    stage = "ORDER_QUERY"
+    code = -2013
+    http_status = 400
+
+
+def request_error_metadata(error: Exception, stage: str) -> dict[str, object]:
+    """Fixed fields only; never persist raw exception names, messages or URLs."""
+    reported_stage = getattr(error, "stage", None)
+    selected_stage = (
+        reported_stage
+        if isinstance(reported_stage, str) and reported_stage in _REQUEST_STAGES
+        else stage
+    )
+    if selected_stage not in _REQUEST_STAGES:
+        selected_stage = "RECONCILE"
+    code = getattr(error, "code", None)
+    http_status = getattr(error, "http_status", None)
+    return {
+        "stage": selected_stage,
+        "code": code if type(code) is int and -1_000_000_000 <= code <= 0 else None,
+        "http_status": (
+            http_status if type(http_status) is int and 100 <= http_status <= 599 else None
+        ),
+        "definitely_rejected": getattr(error, "definitely_rejected", False) is True,
+        "definitely_not_submitted": (
+            selected_stage == "CLOCK_SYNC"
+            and getattr(error, "definitely_not_submitted", False) is True
+        ),
+    }
 
 
 def _amount(value: Decimal, *, positive: bool = False) -> None:
@@ -150,6 +188,10 @@ class OrderJournal:
                     id INTEGER PRIMARY KEY, intent_id TEXT NOT NULL,
                     action TEXT NOT NULL, at_utc TEXT NOT NULL
                 );
+                CREATE TABLE IF NOT EXISTS trial_request_diagnostics (
+                    intent_id TEXT PRIMARY KEY REFERENCES trial_intents(intent_id),
+                    metadata_json TEXT NOT NULL, at_utc TEXT NOT NULL
+                );
             """)
             columns = {row["name"] for row in connection.execute("PRAGMA table_info(trial_fills)")}
             if "quote_quantity" not in columns:
@@ -234,6 +276,9 @@ class OrderJournal:
                 (datetime.now(UTC).isoformat(), intent_id),
             ).rowcount
             if changed:
+                connection.execute(
+                    "DELETE FROM trial_request_diagnostics WHERE intent_id=?", (intent_id,)
+                )
                 self._audit(connection, intent_id, "SUBMITTING")
             return changed == 1
 
@@ -247,6 +292,65 @@ class OrderJournal:
             ).rowcount
             if changed:
                 self._audit(connection, intent_id, "DEFINITIVE_EXCHANGE_REJECTION")
+
+    def record_ack(self, intent: TrialIntent, order_id: str) -> None:
+        """Preserve acceptance identity without inventing status or executions."""
+        if not isinstance(order_id, str) or not order_id.isascii() or not order_id.isdigit():
+            raise ValueError("Invalid acknowledged exchange identity")
+        if self.load(intent.intent_id)[0] != intent:
+            raise RuntimeError("Acknowledgement intent differs from journal")
+        with self._connect() as connection:
+            connection.execute("BEGIN IMMEDIATE")
+            old = connection.execute(
+                "SELECT state,order_id FROM trial_intents WHERE intent_id=?", (intent.intent_id,)
+            ).fetchone()
+            if old is None or old["state"] != "SUBMITTING":
+                raise RuntimeError("Acknowledgement requires the claimed submission")
+            if old["order_id"] and old["order_id"] != order_id:
+                raise RuntimeError("Acknowledged exchange identity changed")
+            connection.execute(
+                "UPDATE trial_intents SET order_id=?,updated_at=? WHERE intent_id=?",
+                (order_id, datetime.now(UTC).isoformat(), intent.intent_id),
+            )
+            self._audit(connection, intent.intent_id, "EXCHANGE_ACKNOWLEDGED")
+
+    def record_request_error(self, intent_id: str, error: Exception, stage: str) -> None:
+        metadata = request_error_metadata(error, stage)
+        with self._connect() as connection:
+            connection.execute(
+                "INSERT INTO trial_request_diagnostics VALUES(?,?,?) "
+                "ON CONFLICT(intent_id) DO UPDATE SET metadata_json=excluded.metadata_json, "
+                "at_utc=excluded.at_utc",
+                (intent_id, json.dumps(metadata, sort_keys=True), datetime.now(UTC).isoformat()),
+            )
+            self._audit(connection, intent_id, "REQUEST_ERROR_" + str(metadata["stage"]))
+
+    def release_not_submitted(self, intent_id: str) -> bool:
+        """Only current pre-POST proof may release a claim, never UNKNOWN recovery."""
+        with self._connect() as connection:
+            connection.execute("BEGIN IMMEDIATE")
+            diagnostic = connection.execute(
+                "SELECT metadata_json FROM trial_request_diagnostics WHERE intent_id=?",
+                (intent_id,),
+            ).fetchone()
+            if diagnostic is None:
+                return False
+            proof = json.loads(diagnostic["metadata_json"])
+            if (
+                proof.get("stage") != "CLOCK_SYNC"
+                or proof.get("definitely_not_submitted") is not True
+            ):
+                return False
+            changed = connection.execute(
+                "UPDATE trial_intents SET state='CREATED',updated_at=? WHERE intent_id=? "
+                "AND state='SUBMITTING' AND order_id IS NULL AND exchange_state IS NULL "
+                "AND executed_quantity='0' AND cumulative_quote='0' "
+                "AND NOT EXISTS (SELECT 1 FROM trial_fills WHERE intent_id=?)",
+                (datetime.now(UTC).isoformat(), intent_id, intent_id),
+            ).rowcount
+            if changed:
+                self._audit(connection, intent_id, "PRE_DISPATCH_CLOCK_FAILURE")
+            return changed == 1
 
     def unknown(self, intent_id: str) -> None:
         with self._connect() as connection:
@@ -379,6 +483,10 @@ class OrderJournal:
             rows = connection.execute(
                 "SELECT * FROM trial_fills WHERE intent_id=?", (intent_id,)
             ).fetchall()
+            diagnostic = connection.execute(
+                "SELECT metadata_json,at_utc FROM trial_request_diagnostics WHERE intent_id=?",
+                (intent_id,),
+            ).fetchone()
         quantity = sum((Decimal(row["quantity"]) for row in rows), _ZERO)
         quote = sum((self._fill_quote(row) for row in rows), _ZERO)
         fees: dict[str, Decimal] = {}
@@ -395,6 +503,10 @@ class OrderJournal:
             "exchange_state": order["exchange_state"],
             "recorded_at_utc": order["updated_at"],
             "state": state,
+            "last_request_error": (
+                {**json.loads(diagnostic["metadata_json"]), "at_utc": diagnostic["at_utc"]}
+                if diagnostic is not None else None
+            ),
             "fill_count": len(rows),
             "gross_quantity": str(quantity),
             "base_asset": base,
@@ -454,11 +566,21 @@ class TrialOrderExecutor:
         if not self.journal.claim_submit(intent_id):
             return self.reconcile(intent_id)
         try:
-            response = self.exchange.submit(intent)
+            submit_with_ack = getattr(self.exchange, "submit_with_ack", None)
+            if callable(submit_with_ack):
+                response = submit_with_ack(
+                    intent, lambda order_id: self.journal.record_ack(intent, order_id)
+                )
+            else:
+                response = self.exchange.submit(intent)
             self.journal.record(intent, response)
         except Exception as error:
             # Never log a raw adapter exception (it could contain signed URLs or secrets).
-            if getattr(error, "definitely_rejected", False):
+            self.journal.record_request_error(intent_id, error, "ORDER_SUBMIT")
+            if request_error_metadata(error, "ORDER_SUBMIT")["definitely_not_submitted"]:
+                if not self.journal.release_not_submitted(intent_id):
+                    self.journal.unknown(intent_id)
+            elif getattr(error, "definitely_rejected", False):
                 self.journal.reject(intent_id)
             else:
                 self.journal.unknown(intent_id)
@@ -471,9 +593,11 @@ class TrialOrderExecutor:
         try:
             response = self.exchange.query(intent)
             if response is None:
+                self.journal.record_request_error(intent_id, OrderLookupNotFound(), "ORDER_QUERY")
                 self.journal.unknown(intent_id)
             else:
                 self.journal.record(intent, response)
-        except Exception:
+        except Exception as error:
+            self.journal.record_request_error(intent_id, error, "RECONCILE")
             self.journal.unknown(intent_id)
         return self.journal.load(intent_id)[1]
