@@ -34,7 +34,7 @@ class AccountSnapshot:
         if not 0 <= (now - self.observed_at).total_seconds() <= 15:
             raise ValueError("Account snapshot expired or from the future")
         for asset, (free, locked) in self.balances.items():
-            if not asset or not asset.isascii() or not asset.isalnum():
+            if not asset or not asset.isalnum():
                 raise ValueError("Invalid account asset")
             if any(not amount.is_finite() or amount < 0 for amount in (free, locked)):
                 raise ValueError("Invalid account balance")

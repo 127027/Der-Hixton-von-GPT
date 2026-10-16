@@ -42,13 +42,15 @@ def test_uses_only_free_usdc_and_never_sends_orders(monkeypatch):
     assert len(calls) == 3 and all(method == "GET" for method, path in calls)
 
 
-def test_missing_credentials_does_not_fall_back_to_1100(monkeypatch):
+def test_missing_credentials_uses_only_explicit_simulated_1000(monkeypatch):
     import hixton.backtest.account_capital as m
 
     monkeypatch.setattr(m, "WindowsVault", lambda path: object())
     monkeypatch.setattr(m.CredentialService, "load", lambda self: None)
-    with pytest.raises(RuntimeError, match="kein Ersatzbudget"):
-        read_binance_starting_capital(SimpleNamespace(database_path=Path("unused")))
+    result = read_binance_starting_capital(SimpleNamespace(database_path=Path("unused")))
+    assert result["kind"] == "SIMULATED_NO_API_KEY"
+    assert result["amount_usdc"] == "1000.00"
+    assert result["binance_balance_verified"] is False
 
 
 def test_failed_account_read_does_not_use_cached_or_fixed_capital(monkeypatch):

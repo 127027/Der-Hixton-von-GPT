@@ -7,6 +7,7 @@ from decimal import Decimal, InvalidOperation
 from typing import Any
 
 from hixton.backtest.continuity import HISTORY_MODE
+from hixton.backtest.diagnostics import DIAGNOSTIC_MODEL, ISOLATED_STARTING_USDC
 from hixton.backtest.models import BASELINE_COSTS, CURRENT_COSTS, STRESS_COSTS
 from hixton.domain.versions import StrategyDefinition
 from hixton.paper.models import PaperSettings
@@ -66,15 +67,34 @@ def compare_run(
     baseline = metrics.get("current", metrics.get("baseline", {}))
     portfolio = baseline.get("portfolio") if isinstance(baseline, dict) else None
     is_portfolio = isinstance(portfolio, dict)
+    isolated_cash = ISOLATED_STARTING_USDC if active.key in {"v8", "v8r"} else starting_cash
     if active.key in {"v8", "v8r"} and not is_portfolio and isinstance(baseline, dict):
         per_symbol = baseline.get("per_symbol", {})
         if isinstance(per_symbol, dict):
             for symbol, metric in per_symbol.items():
                 try:
-                    if Decimal(str(metric.get("starting_equity"))) != starting_cash:
+                    if Decimal(str(metric.get("starting_equity"))) != isolated_cash:
                         differences.append(f"{symbol}: anderes Einzeltest-Startkapital")
                 except (InvalidOperation, AttributeError):
                     unknown.append(f"{symbol}: Einzeltest-Kapitalnachweis fehlt")
+        recorded = manifest.get("trading_settings")
+        if not isinstance(recorded, dict) or recorded.get("diagnostic_model") != DIAGNOSTIC_MODEL:
+            differences.append("Einzeltest verwendet nicht die aktuelle gemeinsame Handelsengine")
+        elif settings is not None:
+            context = recorded.get("market_context_sha256")
+            if not isinstance(context, dict) or set(context) != set(active.symbols):
+                unknown.append("Vollständiger Marktkontext der Coin-Diagnose fehlt")
+            if recorded.get("diagnostic_starting_cash_usdc") != str(ISOLATED_STARTING_USDC):
+                differences.append("Anderes Diagnose-Startkapital")
+            for flag in (
+                "auto_budget_enabled",
+                "autonomous_performance_enabled",
+                "gap_fillers_enabled",
+            ):
+                if recorded.get(flag) is not getattr(settings, flag):
+                    differences.append("Andere Diagnoseeinstellung: " + flag)
+            if recorded.get("risk_limits_applied") is not True:
+                differences.append("Einzeltest-Risikoschutz fehlt")
     if isinstance(portfolio, dict):
         if settings is not None:
             recorded = manifest.get("trading_settings")
@@ -94,7 +114,8 @@ def compare_run(
                     capital = manifest.get("capital_source")
                     if (
                         not isinstance(capital, dict)
-                        or capital.get("kind") != "BINANCE_SPOT_FREE_USDC"
+                        or capital.get("kind")
+                        not in {"BINANCE_SPOT_FREE_USDC", "SIMULATED_NO_API_KEY"}
                         or capital.get("read_only") is not True
                         or capital.get("quote_asset") != "USDC"
                         or not capital.get("observed_at_utc")
@@ -104,6 +125,13 @@ def compare_run(
                         str(capital.get("amount_usdc"))
                     ):
                         differences.append("Startkapital weicht vom Binance-Snapshot ab")
+                    elif capital.get("kind") == "SIMULATED_NO_API_KEY" and (
+                        Decimal(str(capital.get("amount_usdc"))) != Decimal("1000")
+                        or capital.get("binance_balance_verified") is not False
+                    ):
+                        differences.append(
+                            "Simuliertes Ersatzbudget ist nicht eindeutig nachgewiesen"
+                        )
                 else:
                     if (
                         Decimal(str(portfolio.get("target_notional")))
@@ -128,10 +156,16 @@ def compare_run(
         "Gemeinsames Konto mit Slotkonkurrenz und 5-%-UTC-Tagespause; "
         "kein permanenter Portfolio-Drawdown-Halt."
         if is_portfolio
-        else f"Isolierte Coin-Diagnose: je {starting_cash} USDC, keine Slotkonkurrenz und "
+        else f"Isolierte Coin-Diagnose: je {isolated_cash} USDC, keine Slotkonkurrenz und "
         "kein permanenter Portfolio-Drawdown-Halt. "
         "Kein vollständiger Spiegel des gemeinsamen Portfolio-Modells."
     )
+    capital = manifest.get("capital_source")
+    if isinstance(capital, dict) and capital.get("kind") == "SIMULATED_NO_API_KEY":
+        base_scope = (
+            "Simulation ohne API-Schlüssel: 1.000 USDC Startkapital; kein Binance-Guthaben. "
+            + base_scope
+        )
     continuity_note = (
         " Drei-Jahres-Strategie-Kontinuität: dieselbe aktive USDC-Strategie, dasselbe Konto-, "
         "Risiko- und Kostenmodell sowie aktuelle USDC-Ausführungsregeln. Der reale Binance-"

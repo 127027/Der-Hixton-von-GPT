@@ -110,10 +110,18 @@ Es gibt zwei getrennte Sichtweisen:
 1. **15×250 isoliert**: Laborvergleich mit einem separaten 250-USDC-Konto je Coin. Das ist kein 3.750-USDC-Hauptkonto.
 2. **Shared-Maximalbudget**: das Produktmodell mit einem gemeinsamen Kapital X und zwei 50-%-Slots. Core hat absolute Priorität; die drei aktiven Satellites füllen vollständig freie Core-Phasen.
 
-UI und CLI verwenden für V8 denselben Backtest-Pfad. Beide lesen das gespeicherte
-Maximalbudget X. `all` simuliert alle 15 Profile isoliert mit je X USDC
-(standardmäßig 15×250); `portfolio` verwendet X einmal gemeinsam und wendet
-die aktuellen Core-/Zwischenfüller-Regeln mit ursprünglicher Core-Kapitalverteilung an.
+UI und CLI verwenden für V8 denselben Backtest-Pfad und dieselbe aktuelle
+Portfolio-Handelsengine. `all` und `single` starten unabhängige Konten mit jeweils
+250 USDC, unabhängig vom gespeicherten Maximalbudget. Alle 15 echten Preiswege
+bleiben als Marktkontext erhalten; nur der ausgewählte Coin darf gekauft werden.
+Reinvestition, Größenberechnung, Core-Vorrang und Risikoprüfungen folgen den
+aktuellen Einstellungen. Research-only-Coins können deshalb null Trades haben.
+`portfolio` verwendet das gespeicherte Budget einmal gemeinsam; im Automatikmodus
+stammt sein Startkapital aus einer frischen Abfrage des freien Binance-USDC.
+Nur ohne API-Schlüssel wird dafür ein ausdrücklich simuliertes 1.000-USDC-Budget
+verwendet. Ein vorhandener, fehlerhafter Schlüssel führt zu einem Fehler und niemals
+zu einem stillen Ersatzbudget. Einzelkonten bilden keine gemeinsame Slotkonkurrenz
+ab und haben deshalb trotz gleicher Handelsregeln nicht dieselben Trades.
 Beide Berichte umfassen exakt drei Kalenderjahre plus 400 Warm-up-Stunden.
 Vorhandene echte USDC-Kerzen haben Vorrang. Nur der fehlende ältere Anfang wird mit
 öffentlichen Kerzen des entsprechenden USDT-Basismarktes ergänzt. Der Bericht und

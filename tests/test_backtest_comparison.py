@@ -111,3 +111,26 @@ def test_supervisor_refuses_new_backtest_after_source_change(tmp_path, monkeypat
     monkeypatch.setattr("hixton.backtest.reporting.source_fingerprint", lambda: "changed")
     with pytest.raises(RuntimeError, match="neu starten"):
         supervisor._synchronous_backtest("portfolio", None, "v2")
+
+
+def test_no_key_fallback_is_explicit_simulation_and_never_a_binance_balance():
+    manifest, metrics = evidence()
+    settings = PaperSettings(auto_budget_enabled=True)
+    manifest["trading_settings"] = {
+        "auto_budget_enabled": True,
+        "autonomous_performance_enabled": False,
+    }
+    manifest["capital_source"] = {
+        "kind": "SIMULATED_NO_API_KEY",
+        "amount_usdc": "1000.00",
+        "quote_asset": "USDC",
+        "observed_at_utc": "2026-10-16T00:00:00+00:00",
+        "read_only": True,
+        "binance_balance_verified": False,
+    }
+    metrics["baseline"]["portfolio"]["starting_cash"] = "1000.00"
+    result = compare(manifest, metrics, settings)
+    assert result["status"] == "MATCHING"
+    assert "kein Binance-Guthaben" in result["scope"]
+    manifest["capital_source"]["binance_balance_verified"] = True
+    assert compare(manifest, metrics, settings)["status"] == "DIFFERENT"

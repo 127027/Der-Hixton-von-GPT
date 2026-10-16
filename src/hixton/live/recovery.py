@@ -265,7 +265,6 @@ def _balances(transport: ReadOnlyRecoveryTransport) -> dict[str, str]:
         if (
             not isinstance(row, dict)
             or not isinstance(row.get("asset"), str)
-            or not row["asset"].isascii()
             or not row["asset"].isalnum()
             or row["asset"] in seen
         ):

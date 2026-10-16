@@ -520,7 +520,13 @@ async function refreshBacktests(): Promise<void> {
       const riskLabel = riskHalt ? `<strong class="negative">RISIKOHALT im Test · ${formatDate(String(riskHalt), true)}</strong>` : "";
       const window = manifest.data as Record<string, unknown> | undefined;
       const runId = String(manifest.run_id ?? "—");
-      return `<article class="run-card"><div><strong title="${escapeHtml(runId)}">${escapeHtml(runMode)} · Run ${escapeHtml(runId.slice(0, 8))}</strong><small>${escapeHtml(version)}</small><small>Testfenster: ${formatDate(window?.report_start_utc ? String(window.report_start_utc) : null)} – ${formatDate(window?.report_end_utc ? String(window.report_end_utc) : null)} (Ende exklusiv)</small><small>Erstellt: ${formatDate(manifest.created_at_utc ? String(manifest.created_at_utc) : null, true)} · ${escapeHtml(manifest.status)}</small></div><span>Ergebnis: ${result}${riskLabel}</span></article>`;
+      const capital = manifest.capital_source as Record<string, unknown> | undefined;
+      const capitalNote = capital?.kind === "SIMULATED_NO_API_KEY"
+        ? "Ohne API-Schlüssel: simulierte 1.000 USDC, kein Binance-Guthaben."
+        : capital?.kind === "BINANCE_SPOT_FREE_USDC"
+          ? `Startkapital: ${formatNumber(String(capital.amount_usdc))} USDC · Binance-Abfrage ${formatDate(String(capital.observed_at_utc), true)}`
+          : current?.portfolio ? "Kapital gemäß gespeicherten Einstellungen." : "Unabhängige Coin-Konten; aktuelle Handelsengine, keine gemeinsame Kapitalverteilung.";
+      return `<article class="run-card"><div><strong title="${escapeHtml(runId)}">${escapeHtml(runMode)} · Run ${escapeHtml(runId.slice(0, 8))}</strong><small>${escapeHtml(version)}</small><small>${escapeHtml(capitalNote)}</small><small>Testfenster: ${formatDate(window?.report_start_utc ? String(window.report_start_utc) : null)} – ${formatDate(window?.report_end_utc ? String(window.report_end_utc) : null)} (Ende exklusiv)</small><small>Erstellt: ${formatDate(manifest.created_at_utc ? String(manifest.created_at_utc) : null, true)} · ${escapeHtml(manifest.status)}</small></div><span>Ergebnis: ${result}${riskLabel}</span></article>`;
     });
     required("#backtest-runs").innerHTML = cards[0] ?? `<article class="run-card"><div><strong>Noch kein Backtest für diese Auswahl</strong><small>Version und Testart sind getrennt. Einen passenden Lauf hier starten.</small></div></article>`;
     required("#backtest-history-runs").innerHTML = "";

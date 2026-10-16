@@ -124,6 +124,7 @@ def run_shared_portfolio_backtest(
     autonomous_spot: bool = False,
     profit_reinvestment_fraction: Decimal = Decimal("1"),
     capital_exposure_fraction: Decimal = Decimal("1"),
+    allowed_entry_symbols: frozenset[str] | None = None,
 ) -> PortfolioBacktestResult:
     """Replay ten aligned markets against one non-compounding shared ledger."""
 
@@ -159,6 +160,10 @@ def run_shared_portfolio_backtest(
     if (strategy_version or "").startswith("HIXTON-V8-") and strategy is None:
         raise ValueError("V8 portfolio requires its complete StrategyDefinition")
     validate_market_symbols(symbols)
+    if allowed_entry_symbols is not None and (
+        not allowed_entry_symbols or not allowed_entry_symbols.issubset(symbols)
+    ):
+        raise ValueError("Diagnostic entry restriction requires active strategy symbols")
     if tuple(candles_by_symbol) != symbols:
         raise ValueError("portfolio input must contain all ten symbols in fixed DMS order")
     if autonomous_spot and (
@@ -454,6 +459,11 @@ def run_shared_portfolio_backtest(
                 else:
                     entries = satellites
                     allocation_policy = ONE_PER_SYMBOL
+            # Diagnostic perspective only. All fifteen real histories still drive
+            # indicators, Core priority and quality gates; allocation may open
+            # only the selected coin. Production calls leave this restriction unset.
+            if allowed_entry_symbols is not None:
+                entries = [s for s in entries if s.symbol in allowed_entry_symbols]
             used_slots = sum(position.slots for position in positions.values())
             split = False
             if weighted:

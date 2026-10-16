@@ -124,8 +124,8 @@ def test_product_reports_cover_v8_window_and_saved_budget(history_fixture, mode)
     current = metrics["current"]
     if mode == "all":
         assert set(current["per_symbol"]) == set(STRATEGY.symbols)
-        assert Decimal(current["batch"]["starting_equity"]) == 4500
-        assert all(Decimal(m["starting_equity"]) == 300 for m in current["per_symbol"].values())
+        assert Decimal(current["batch"]["starting_equity"]) == 3750
+        assert all(Decimal(m["starting_equity"]) == 250 for m in current["per_symbol"].values())
     elif mode == "portfolio":
         assert current["portfolio"]["symbols"] == list(STRATEGY.symbols)
         assert Decimal(current["portfolio"]["starting_cash"]) == 300
@@ -133,6 +133,71 @@ def test_product_reports_cover_v8_window_and_saved_budget(history_fixture, mode)
         assert current["portfolio"]["slot_count"] == 2
     else:
         assert list(current["per_symbol"]) == ["NEARUSDC"]
+        assert Decimal(current["per_symbol"]["NEARUSDC"]["starting_equity"]) == 250
+
+
+@pytest.mark.parametrize("symbol", ["ETHUSDC", "NEARUSDC", "SUIUSDC"])
+def test_coin_diagnostic_preserves_shared_engine_fills_risk_and_reinvestment(
+    history_fixture, symbol
+):
+    from hixton.backtest.diagnostics import run_coin_diagnostic
+    from hixton.domain.versions import strategy_definition
+
+    _config, candles, rules, start, end, _requests = history_fixture
+    active = strategy_definition("v8r")
+    settings = PaperSettings(
+        max_capital_usdc=Decimal("9000"),
+        auto_budget_enabled=True,
+        autonomous_performance_enabled=True,
+    )
+    diagnostic = run_coin_diagnostic(
+        symbol=symbol,
+        candles_by_symbol=candles,
+        execution_rules=rules,
+        strategy=active,
+        settings=settings,
+        report_start_utc=start,
+        report_end_utc=end,
+        costs=CURRENT_COSTS,
+    )
+    shared = run_shared_portfolio_backtest(
+        candles_by_symbol=candles,
+        execution_rules=rules,
+        strategy=active,
+        starting_cash=Decimal(250),
+        target_notional=Decimal(125),
+        slot_count=2,
+        report_start_utc=start,
+        report_end_utc=end,
+        costs=CURRENT_COSTS,
+        reinvest_profits=True,
+        autonomous_spot=True,
+        allowed_entry_symbols=frozenset({symbol}),
+    )
+    assert diagnostic.starting_cash == 250
+    assert diagnostic.fills == shared.fills
+    assert diagnostic.trades == shared.trades
+    assert diagnostic.equity_curve == shared.equity_curve
+    assert diagnostic.metrics.ending_equity == shared.metrics.ending_equity
+    assert diagnostic.metrics.max_drawdown_pct == shared.metrics.max_drawdown_pct
+    assert all(t.symbol == symbol for t in diagnostic.trades)
+    if symbol == "ETHUSDC":
+        assert diagnostic.fills  # No vacuous parity on an empty run.
+    if symbol == "SUIUSDC":
+        assert not diagnostic.fills  # Research-only never bypasses current product gating.
+
+
+def test_diagnostic_restriction_cannot_admit_unknown_symbols(history_fixture):
+    _config, candles, rules, start, end, _requests = history_fixture
+    with pytest.raises(ValueError, match="active strategy symbols"):
+        run_shared_portfolio_backtest(
+            candles_by_symbol=candles,
+            execution_rules=rules,
+            strategy=STRATEGY,
+            report_start_utc=start,
+            report_end_utc=end,
+            allowed_entry_symbols=frozenset({"NOT_A_MARKET"}),
+        )
 
 
 def test_historical_proxy_fills_only_missing_prefix_and_is_cached(history_fixture):

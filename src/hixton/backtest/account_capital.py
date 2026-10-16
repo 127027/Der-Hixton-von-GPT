@@ -12,9 +12,16 @@ from hixton.live.reconciliation import read_account_snapshot
 def read_binance_starting_capital(config: ProjectConfig) -> dict[str, object]:
     credentials = CredentialService(WindowsVault(config.database_path)).load()
     if credentials is None:
-        raise RuntimeError(
-            "Automatik-Portfolio: Binance-Schlüssel fehlt; kein Ersatzbudget verwendet."
-        )
+        return {
+            "kind": "SIMULATED_NO_API_KEY",
+            "quote_asset": "USDC",
+            "amount_usdc": "1000.00",
+            "observed_at_utc": datetime.now(UTC).isoformat(),
+            "read_only": True,
+            "binance_balance_verified": False,
+            "existing_coins_included": False,
+            "existing_positions_imported": False,
+        }
     try:
         transport = BinanceSpotTransport(credentials, base_url=config.binance_base_url)
         snapshot = read_account_snapshot(transport, account=credentials.fingerprint)

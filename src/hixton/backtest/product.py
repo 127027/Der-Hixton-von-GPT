@@ -9,13 +9,18 @@ from pathlib import Path
 
 from hixton.backtest.account_capital import read_binance_starting_capital
 from hixton.backtest.continuity import continuity_manifest_data, load_continuity_history
-from hixton.backtest.engine import run_isolated_batch, run_single_backtest
+from hixton.backtest.diagnostics import (
+    DIAGNOSTIC_MODEL,
+    ISOLATED_STARTING_USDC,
+    combine_coin_diagnostics,
+    run_coin_diagnostic,
+)
+from hixton.backtest.engine import candle_snapshot_sha256
 from hixton.backtest.models import CURRENT_COSTS, ExecutionRules
 from hixton.backtest.portfolio import run_shared_portfolio_backtest
 from hixton.backtest.reporting import RunResult, write_report_bundle
 from hixton.config import ProjectConfig
 from hixton.data.storage import CandleStore
-from hixton.domain.satellite_layer import SATELLITE_PROFILE_BY_SYMBOL
 from hixton.domain.versions import strategy_definition
 from hixton.paper.models import PaperSettings
 from hixton.paper.storage import PaperStore
@@ -95,42 +100,23 @@ def run_product_backtest(
             reinvest_profits=settings.auto_budget_enabled,
             autonomous_spot=settings.autonomous_performance_enabled,
         )
-    elif mode == "all":
-        result = run_isolated_batch(
-            candles_by_symbol=history.candles_by_symbol,
-            execution_rules=rules,
-            symbols=strategy.symbols,
-            strategy_parameters=strategy.parameters,
-            strategy_parameters_by_symbol=strategy.parameter_map(),
-            trade_policies_by_symbol=strategy.policy_map(),
-            strategy_semantics_by_symbol={s: strategy.semantics_for(s) for s in strategy.symbols},
-            starting_cash_per_symbol=settings.max_capital_usdc,
-            target_notional_per_symbol=settings.max_capital_usdc,
-            apply_risk_limits=True,
-            satellite_profiles_by_symbol=SATELLITE_PROFILE_BY_SYMBOL,
-            report_start_utc=report_start_utc,
-            report_end_utc=report_end_utc,
-            costs=CURRENT_COSTS,
-            strategy_version=strategy.version,
-        )
     else:
-        assert symbol is not None
-        result = run_single_backtest(
-            symbol=symbol,
-            candles=history.candles_by_symbol[symbol],
-            execution_rules=rules[symbol],
-            starting_cash=settings.max_capital_usdc,
-            target_notional=settings.max_capital_usdc,
-            apply_risk_limits=True,
-            strategy_parameters=strategy.parameters_for(symbol),
-            trade_policy=strategy.policy_for(symbol),
-            strategy_semantics=strategy.semantics_for(symbol),
-            report_start_utc=report_start_utc,
-            report_end_utc=report_end_utc,
-            costs=CURRENT_COSTS,
-            strategy_version=strategy.version,
-            satellite_profile=SATELLITE_PROFILE_BY_SYMBOL.get(symbol),
+        selected_symbols = strategy.symbols if mode == "all" else (symbol,)
+        diagnostics = tuple(
+            run_coin_diagnostic(
+                symbol=item,
+                candles_by_symbol=history.candles_by_symbol,
+                execution_rules=rules,
+                strategy=strategy,
+                settings=settings,
+                report_start_utc=report_start_utc,
+                report_end_utc=report_end_utc,
+                costs=CURRENT_COSTS,
+            )
+            for item in selected_symbols
+            if item is not None
         )
+        result = combine_coin_diagnostics(diagnostics) if mode == "all" else diagnostics[0]
     return write_report_bundle(
         scenarios={"current": result},
         output_root=config.run_output_root,
@@ -146,5 +132,18 @@ def run_product_backtest(
             "auto_budget_enabled": settings.auto_budget_enabled,
             "autonomous_performance_enabled": settings.autonomous_performance_enabled,
             "gap_fillers_enabled": settings.gap_fillers_enabled,
+            **(
+                {
+                    "diagnostic_model": DIAGNOSTIC_MODEL,
+                    "diagnostic_starting_cash_usdc": str(ISOLATED_STARTING_USDC),
+                    "risk_limits_applied": True,
+                    "market_context_sha256": {
+                        s: candle_snapshot_sha256(history.candles_by_symbol[s])
+                        for s in strategy.symbols
+                    },
+                }
+                if mode != "portfolio"
+                else {}
+            ),
         },
     )

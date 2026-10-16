@@ -319,6 +319,45 @@ def test_account_movement_between_reads_and_stale_observations_block(tmp_path):
     assert controller._row()["state"] == "ENTRY_PENDING"
 
 
+@pytest.mark.parametrize("holding", ["0", "1.23456789"])
+def test_unicode_assets_preserve_exact_identity_and_baseline(tmp_path, holding):
+    controller, _, _, transport, kwargs = setup(tmp_path)
+    account = transport.request("GET", "/api/v3/account", {})
+    account["balances"].append({"asset": "币安人生", "free": holding, "locked": "0"})
+    account["balances"].append({"asset": "牛来", "free": "0", "locked": "0"})
+    transport.overrides["/api/v3/account"] = account
+    if Decimal(holding):
+        with controller.journal._connect() as connection:
+            saved = json.loads(
+                connection.execute("SELECT balances_json FROM trial_account_baseline").fetchone()[0]
+            )
+            saved["币安人生"] = holding
+            connection.execute(
+                "UPDATE trial_account_baseline SET balances_json=?", (json.dumps(saved),)
+            )
+    result = recover_missing_trial_order(controller.journal, transport, **kwargs)
+    assert result["resolution"] == "MANUAL_NO_ORDER_CONFIRMED"
+
+
+def test_nonzero_unrecorded_unicode_foreign_holding_blocks_recovery(tmp_path):
+    controller, _, _, transport, kwargs = setup(tmp_path)
+    account = transport.request("GET", "/api/v3/account", {})
+    account["balances"].append({"asset": "币安人生", "free": "1", "locked": "0"})
+    transport.overrides["/api/v3/account"] = account
+    with pytest.raises(RuntimeError, match="baseline"):
+        recover_missing_trial_order(controller.journal, transport, **kwargs)
+    assert controller._row()["state"] == "ENTRY_PENDING"
+
+
+def test_regular_snapshot_accepts_exact_unicode_names_but_rejects_malformed_assets():
+    from hixton.live.reconciliation import AccountSnapshot
+
+    AccountSnapshot("account", NOW, {"币安人生": (Decimal("1"), Decimal(0))}, ()).validate(NOW)
+    for asset in ("", "币 安", "USDC/BNB", "USDC\n"):
+        with pytest.raises(ValueError, match="asset"):
+            AccountSnapshot("account", NOW, {asset: (Decimal(1), Decimal(0))}, ()).validate(NOW)
+
+
 def test_24h_windows_cover_history_without_gaps():
     clock = Clock()
     transport = Transport(clock)
