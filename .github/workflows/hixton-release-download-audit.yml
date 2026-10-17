@@ -5,11 +5,6 @@ name: Hixton 0.5.0 Download Audit
 
 on:
   workflow_dispatch:
-  push:
-    branches:
-      - main
-    paths:
-      - .github/workflows/hixton-release-download-audit.yml
 
 permissions:
   contents: read

@@ -1,13 +1,6 @@
 name: Hixton 5m Progress Watchdog
 
 on:
-  push:
-    branches:
-      - main
-    paths:
-      - ".github/workflows/hixton-15m-watchdog.yml"
-  schedule:
-    - cron: "*/5 * * * *"
   workflow_dispatch:
 
 permissions:

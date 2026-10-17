@@ -10,19 +10,8 @@
 name: Hixton Paper 24x7
 
 on:
-  push:
-    branches:
-      - main
-    paths:
-      - .github/workflows/hixton-paper-cloud.yml
   workflow_dispatch:
-  schedule:
-    # Each runner lease remains active for almost six hours and persists the
-    # Paper ledger every 15 minutes. Backup leases are offset by three hours.
-    - cron: "7 */6 * * *"
 
-# Paper-only runtime: official Binance public market-data endpoint,
-# simulated fills, persistent Paper ledger, no exchange secrets.
 permissions:
   contents: write
   actions: read

@@ -2,12 +2,6 @@ name: Hixton Quarter-Hour Controller
 
 on:
   workflow_dispatch:
-  push:
-    branches:
-      - main
-    paths:
-      - ".github/workflows/hixton-quarter-hour-controller.yml"
-      - ".github/hixton-quarter-hour-trigger.json"
 
 permissions:
   contents: write
