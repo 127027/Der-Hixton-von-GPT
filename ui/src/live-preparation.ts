@@ -40,6 +40,7 @@ export function initializeLivePreparation(sharedSettingsBlocker: (mode?: "live" 
   let generation = 0;
   let busy = false;
   let focusAfter: string | null = null;
+  let checkError: string | null = null;
   const credentialButtons = [
     "live-save-key",
     "live-delete-key",
@@ -114,7 +115,9 @@ export function initializeLivePreparation(sharedSettingsBlocker: (mode?: "live" 
       WAITING_SIGNAL: "Scharf · wartet auf ein neues Signal; noch kein Test-Kauf.",
       ENTRY_PENDING: "Kauf in Übermittlung oder Abgleich; Ausführung noch nicht bestätigt.",
       OPEN: "Offen · Kauf bestätigt; wartet auf den regulären Strategie-Ausstieg.",
-      EXIT_PENDING: "Verkauf in Übermittlung oder Abgleich; Abschluss noch nicht bestätigt.",
+      EXIT_PENDING: status.trial?.sell?.state === "CREATED" || !status.trial?.sell
+        ? "Strategie-Ausstieg erkannt · Verkauf vorbereitet, noch nicht an Binance gesendet; Abschluss noch nicht bestätigt."
+        : "Verkauf in Übermittlung oder Abgleich; Abschluss noch nicht bestätigt.",
       COMPLETED: "Abgeschlossen; Kauf/Verkauf und Kontenabgleich im Bericht prüfen.",
       CANCELED: "Abgebrochen; kein bestandener regulärer Testabschluss.",
       NEEDS_REVIEW: "Ungeklärt · Bericht prüfen; keine weiteren Einstiege freigeben.",
@@ -173,8 +176,10 @@ export function initializeLivePreparation(sharedSettingsBlocker: (mode?: "live" 
     if (status.authenticated && status.credentials.configured && !status.account_check) {
       message(
         "live-check-result",
-        "Kein frischer Diagnose-Check gespeichert. Das ist kein Startblocker: "
-          + "50-USDC-Test und Live prüfen das Binance-Konto beim Klick automatisch neu.",
+        checkError ?? (trialState === "EXIT_PENDING"
+          ? "Kein frischer Diagnose-Check gespeichert. Der bestehende Test wartet auf Verkauf und Kontenabgleich; keinen neuen Test starten."
+          : "Kein frischer Diagnose-Check gespeichert. Das ist kein Startblocker: "
+            + "50-USDC-Test und Live prüfen das Binance-Konto beim Klick automatisch neu."),
       );
     }
     const list = element("live-blockers");
@@ -258,7 +263,11 @@ export function initializeLivePreparation(sharedSettingsBlocker: (mode?: "live" 
       busy = true; ++generation; focusAfter = null; updateControls();
       message(feedback, "Bitte warten …");
       try { await run(); }
-      catch (error) { message(feedback, error instanceof Error ? error.message : "Aktion fehlgeschlagen."); }
+      catch (error) {
+        const detail = error instanceof Error ? error.message : "Aktion fehlgeschlagen.";
+        if (id === "live-check") checkError = detail;
+        message(feedback, detail);
+      }
       finally {
         await refresh();
         busy = false; updateControls();
@@ -282,6 +291,7 @@ export function initializeLivePreparation(sharedSettingsBlocker: (mode?: "live" 
     const secret_key = element<HTMLInputElement>("live-api-secret").value;
     try {
       await request("credentials", {api_key, secret_key, confirmation:"SCHLUESSEL SPEICHERN"});
+      checkError = null;
       message(
         "live-key-result",
         "Schlüssel sicher gespeichert. Du kannst den 50-USDC-Test direkt starten; "
@@ -295,6 +305,7 @@ export function initializeLivePreparation(sharedSettingsBlocker: (mode?: "live" 
   bind("live-check", "click", "live-check-result", async () => {
     requireAuth();
     const result = await request("check", {});
+    checkError = null;
     const freeUsdc = typeof result.free_usdc === "string" ? ` · frei: ${result.free_usdc} USDC` : "";
     const warnings = Array.isArray(result.warnings)
       ? result.warnings.filter((item): item is string => typeof item === "string")
@@ -343,6 +354,7 @@ export function initializeLivePreparation(sharedSettingsBlocker: (mode?: "live" 
   bind("live-delete-confirm", "click", "live-key-result", async () => {
     requireAuth();
     await request("credentials/delete", {confirmation:"SCHLUESSEL ENTFERNEN"});
+    checkError = null;
     clearSecrets(); message("live-key-result", "Lokalen Schlüssel entfernt. Bei Binance nicht widerrufen.");
   });
   bind("live-request", "click", "live-result", async () => {

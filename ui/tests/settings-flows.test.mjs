@@ -7,6 +7,46 @@ async function unlockUI(ui) {
   await ui.node("live-auth-panel").fire("submit");
 }
 
+test("failed Binance diagnosis survives the action refresh and polling until a successful retry",async()=>{
+  const mock=mockLive();mock.state.credentials.configured=true;
+  let fail=true;
+  const failure="Binance-Prüfung: API-Berechtigungen fehlgeschlagen (HTTP 400, Code -2015).";
+  const ui=harness((url,options)=>url.endsWith("/check")&&fail
+    ? Promise.resolve({ok:false,status:400,json:async()=>({detail:failure})})
+    : mock.fetcher(url,options));
+  const live=initializeLivePreparation(()=>null);
+  try {
+    await live.refresh();await unlockUI(ui);
+    await ui.node("live-check").fire("click");
+    assert.equal(ui.node("live-check-result").textContent,failure);
+    await live.refresh();await live.refresh();
+    assert.equal(ui.node("live-check-result").textContent,failure);
+    assert.equal(ui.node("live-request").disabled,true);
+    fail=false;await ui.node("live-check").fire("click");
+    assert.match(ui.node("live-check-result").textContent,/bestanden/);
+    mock.state.account_check=null;await live.refresh();
+    assert.match(ui.node("live-check-result").textContent,/Kein frischer Diagnose-Check/);
+    assert.doesNotMatch(ui.node("live-check-result").textContent,/-2015|bestanden/);
+    assert.equal(mock.calls.some(c=>/\/(enable|trial\/start)$/.test(c.url)),false);
+  } finally {live.dispose();ui.restore();}
+});
+
+test("prepared trial exit is distinguished from a submitted sale without enabling Live",async()=>{
+  const mock=mockLive();mock.state.credentials.configured=true;
+  mock.state.state="TRIAL_EXIT_PENDING";
+  mock.state.trial={state:"EXIT_PENDING",symbol:"NEARUSDC",sell:{state:"CREATED"}};
+  const ui=harness(mock.fetcher),live=initializeLivePreparation(()=>null);
+  try {
+    await live.refresh();await unlockUI(ui);
+    assert.match(ui.node("real-trial-status").textContent,/vorbereitet, noch nicht an Binance gesendet/);
+    assert.match(ui.node("live-check-result").textContent,/bestehende Test wartet auf Verkauf/);
+    assert.equal(ui.node("live-request").disabled,true);
+    mock.state.trial.sell.state="SUBMITTING";await live.refresh();
+    assert.match(ui.node("real-trial-status").textContent,/Order ungeklärt/);
+    assert.doesNotMatch(ui.node("real-trial-status").textContent,/noch nicht an Binance gesendet/);
+  } finally {live.dispose();ui.restore();}
+});
+
 test("ambiguous trial is explicit on locked overview and settings, without another order",async()=>{
   const mock=mockLive();
   mock.state.credentials.configured=true;
