@@ -78,10 +78,14 @@ class PaperStore:
                 raise RuntimeError("Legacy USDT Paper ledger: use a separate USDC database")
         if read_only:
             return  # Identity checks apply; migrations/writer transactions do not.
-        self._connection.execute("PRAGMA journal_mode=WAL")
-        self._connection.execute("PRAGMA foreign_keys=ON")
-        self._connection.execute("PRAGMA synchronous=FULL")
-        self._migrate()
+        try:
+            self._connection.execute("PRAGMA journal_mode=WAL")
+            self._connection.execute("PRAGMA foreign_keys=ON")
+            self._connection.execute("PRAGMA synchronous=FULL")
+            self._migrate()
+        except BaseException:
+            self._connection.close()
+            raise
 
     def __enter__(self) -> PaperStore:
         return self

@@ -46,7 +46,7 @@ def install_live_routes(
     app.state.live_preparation = service
 
     def trading_settings() -> tuple[Decimal, bool]:
-        with PaperStore(config.database_path) as store:
+        with PaperStore(config.database_path, read_only=True) as store:
             settings = store.load_settings()
         # Trial is still allowed with the automatic option saved: it is an
         # explicitly authorized *single 50-USDC order*. Persistent autonomous
@@ -54,21 +54,21 @@ def install_live_routes(
         return settings.max_capital_usdc, settings.emergency_stop
 
     def autonomous_spot_enabled() -> bool:
-        with PaperStore(config.database_path) as store:
+        with PaperStore(config.database_path, read_only=True) as store:
             settings = store.load_settings()
         return settings.autonomous_performance_enabled
 
     def reinvest_profits_enabled() -> bool:
-        with PaperStore(config.database_path) as store:
+        with PaperStore(config.database_path, read_only=True) as store:
             return store.load_settings().auto_budget_enabled
 
     def gap_fillers_enabled() -> bool:
-        with PaperStore(config.database_path) as store:
+        with PaperStore(config.database_path, read_only=True) as store:
             return store.load_settings().gap_fillers_enabled
 
     def execution_rules() -> dict[str, ExecutionRules]:
         result: dict[str, ExecutionRules] = {}
-        with CandleStore(config.database_path) as store:
+        with CandleStore(config.database_path, read_only=True) as store:
             for symbol in supervisor.strategy.symbols:
                 stored = store.load_symbol_rules(symbol)
                 if stored is None:
@@ -82,7 +82,7 @@ def install_live_routes(
         return result
 
     def allocation_reference(at: datetime) -> Mapping[str, str] | None:
-        with PaperStore(config.database_path) as store:
+        with PaperStore(config.database_path, read_only=True) as store:
             return store.allocation_reference(supervisor.strategy.version, at)
 
     supervisor.trial_runtime = service.connect_runtime(
@@ -134,12 +134,7 @@ def install_live_routes(
         preview: dict[str, object] | None = None
         shared: dict[str, object] | None = None
         try:
-            with PaperStore(config.database_path) as store:
-                store.initialize(
-                    strategy_key=supervisor.strategy.key,
-                    strategy_version=supervisor.strategy.version,
-                    starting_cash_usdc=config.paper_starting_cash_usdc,
-                )
+            with PaperStore(config.database_path, read_only=True) as store:
                 store.require_strategy(supervisor.strategy.key, supervisor.strategy.version)
                 settings = store.load_settings()
                 preview = {
@@ -166,7 +161,7 @@ def install_live_routes(
         except (RuntimeError, sqlite3.DatabaseError, KeyError):
             pass
         try:
-            with PaperStore(config.database_path) as store:
+            with PaperStore(config.database_path, read_only=True) as store:
                 soak_ready = store.load_soak_progress().ready
         except (RuntimeError, sqlite3.DatabaseError, KeyError):
             pass

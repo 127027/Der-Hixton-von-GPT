@@ -68,10 +68,14 @@ class CandleStore:
         self.path.parent.mkdir(parents=True, exist_ok=True)
         self._connection = sqlite3.connect(self.path)
         self._connection.row_factory = sqlite3.Row
-        self._connection.execute("PRAGMA journal_mode=WAL")
-        self._connection.execute("PRAGMA foreign_keys=ON")
-        self._connection.execute("PRAGMA synchronous=FULL")
-        self._migrate()
+        try:
+            self._connection.execute("PRAGMA journal_mode=WAL")
+            self._connection.execute("PRAGMA foreign_keys=ON")
+            self._connection.execute("PRAGMA synchronous=FULL")
+            self._migrate()
+        except BaseException:
+            self._connection.close()
+            raise
 
     def __enter__(self) -> CandleStore:
         return self
@@ -152,11 +156,14 @@ class CandleStore:
 
     def load_open_times(
         self, symbol: str, *, start: datetime, end_exclusive: datetime,
+        closed_only: bool = False,
     ) -> list[datetime]:
-        """Find gaps without decoding every historical OHLCV row (including open bars)."""
+        """Read availability without decoding OHLCV; unfinished bars are optional."""
+        final_filter = " AND closed=1" if closed_only else ""
         rows = self._connection.execute(
             "SELECT open_time_ms FROM candles WHERE exchange=? AND symbol=? "
-            "AND timeframe=? AND open_time_ms>=? AND open_time_ms<? ORDER BY open_time_ms",
+            "AND timeframe=? AND open_time_ms>=? AND open_time_ms<?"
+            + final_filter + " ORDER BY open_time_ms",
             (EXCHANGE, symbol.replace("/", "").upper(), TIMEFRAME,
              _to_epoch_ms(start), _to_epoch_ms(end_exclusive)),
         )

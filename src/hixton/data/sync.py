@@ -76,6 +76,7 @@ def synchronize_symbol(
         normalized,
         start=start,
         end_exclusive=end_exclusive,
+        closed_only=True,
     )
     ranges = (
         [(start, end_exclusive)]

@@ -83,3 +83,6 @@ def test_gap_scan_matches_candle_times_with_gaps_provisional_and_exclusive_end(t
         full = store.load_candles("BTCUSDC", start=start, end_exclusive=end, closed_only=False)
         assert actual == [candle.open_time_utc for candle in full]
         assert actual == [candles[2].open_time_utc, candles[4].open_time_utc]
+        assert store.load_open_times(
+            "BTCUSDC", start=start, end_exclusive=end, closed_only=True,
+        ) == [candles[2].open_time_utc]

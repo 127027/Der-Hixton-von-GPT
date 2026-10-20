@@ -155,7 +155,7 @@ export function initializeLivePreparation(sharedSettingsBlocker: (mode?: "live" 
       "live-trial-status",
       unresolvedTrial ? unresolvedNotice : status.trial?.state && status.trial.state !== "NOT_STARTED"
         ? status.trial_retest_available
-          ? "Alter Test abgeschlossen und abgeglichen. Für die aktuelle Version kann ein neuer 1×50-USDC-Test ausdrücklich freigegeben werden; der alte Bericht bleibt gespeichert."
+          ? "Vorheriger Test abgeschlossen und abgeglichen. Du kannst ausdrücklich einen weiteren 1×50-USDC-Test starten; der bisherige Bericht bleibt gespeichert. Noch kein neuer Test freigegeben."
           : status.trial_retryable_before_submit
           ? `Vor einer Binance-Order beendet (${status.trial.state}) · sicher erneut startbar.`
           : `Test: ${status.trial.state}${status.trial.symbol ? " · " + status.trial.symbol : ""}.${healthWait}${signalWait}`

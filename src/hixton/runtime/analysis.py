@@ -53,7 +53,7 @@ def rebuild_analysis(
 ]:
     points_by_symbol: dict[str, tuple[IndicatorPoint, ...]] = {}
     quality_by_symbol: dict[str, DataQualityReport] = {}
-    with CandleStore(database_path) as store:
+    with CandleStore(database_path, read_only=True) as store:
         if not store.integrity_check():
             raise RuntimeError("SQLite integrity check failed")
         for symbol in strategy.symbols:

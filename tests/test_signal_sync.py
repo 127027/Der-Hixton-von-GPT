@@ -34,6 +34,38 @@ class Client:
         return [c for c in self.candles if start <= c.open_time_utc < end_exclusive]
 
 
+@pytest.mark.parametrize("provider_finalizes", [True, False])
+def test_long_outage_refetches_old_provisional_and_missing_bars(tmp_path, provider_finalizes):
+    candles = deterministic_candles("BTCUSDC", 160)
+    end = candles[-1].open_time_utc
+    provisional = replace(candles[3], closed=False)
+    cached = [c for i, c in enumerate(candles[:-1]) if i not in (3, 6)] + [provisional]
+    provided = [*candles[:-1], replace(candles[-1], closed=False)]
+    if not provider_finalizes:
+        provided[3] = provisional
+    client = Client(provided)
+    with CandleStore(tmp_path / "outage.sqlite3") as store:
+        store.put_candles(cached)
+        if not provider_finalizes:
+            with pytest.raises(ValueError, match="data quality"):
+                synchronize_symbol(
+                    client=client, store=store, symbol="BTCUSDC",
+                    start=candles[0].open_time_utc, end_exclusive=end, include_next_open=True,
+                )
+            assert len(store.load_candles("BTCUSDC")) == len(candles) - 3
+            assert store.revision_count() == 0
+        else:
+            result = synchronize_symbol(
+                client=client, store=store, symbol="BTCUSDC",
+                start=candles[0].open_time_utc, end_exclusive=end, include_next_open=True,
+            )
+            assert result.quality.valid and result.quality.candle_count == len(candles) - 1
+            assert store.load_candles("BTCUSDC") == candles[:-1]
+            assert not store.load_candles("BTCUSDC", closed_only=False)[-1].closed
+        assert (candles[3].open_time_utc, candles[4].open_time_utc) in client.calls
+        assert (candles[6].open_time_utc, candles[7].open_time_utc) in client.calls
+
+
 @pytest.mark.parametrize("next_open", [True, False])
 def test_close_and_next_open_share_one_request_without_provisional_signals(tmp_path, next_open):
     candles = deterministic_candles("BTCUSDC", 60)

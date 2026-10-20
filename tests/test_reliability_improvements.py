@@ -181,7 +181,7 @@ def test_completed_stale_trial_makes_new_action_available_without_arming(tmp_pat
     assert [i.side for i in exchange.submits] == ["BUY", "SELL"]
 
 
-def retest_service(tmp_path, *, orders=()):
+def retest_service(tmp_path, *, orders=(), same_source=False):
     from datetime import UTC, datetime
 
     from hixton.domain.versions import strategy_definition
@@ -191,12 +191,15 @@ def retest_service(tmp_path, *, orders=()):
 
     controller, exchange = completed(tmp_path)
     service = LivePreparation(
-        controller.journal.path, MemoryVault(), execution_source_sha256="new-source"
+        controller.journal.path, MemoryVault(),
+        execution_source_sha256="test-source-v1" if same_source else "new-source",
+        application_version=controller.application_version,
+        allocator_version=controller.allocator_version,
     )
     credentials = BinanceCredentials(KEY, SECRET)
     service.credentials.save(credentials)
     service.connect_runtime(
-        strategy_definition("v8r"),
+        controller.strategy if same_source else strategy_definition("v8r"),
         settings_provider=lambda: (Decimal(250), False),
         rules_provider=lambda: {},
     )
@@ -208,6 +211,80 @@ def retest_service(tmp_path, *, orders=()):
         orders,
     )
     return service, exchange
+
+
+def test_same_source_test_is_repeatable_only_on_explicit_click(tmp_path):
+    from hixton.live.binance import BinanceCheckError
+
+    service, exchange = retest_service(tmp_path, same_source=True)
+    previous = service.trial.report()
+    assert service._trial_covers_current_runtime(previous)
+    status = service.status(
+        authenticated=True, soak_ready=False, healthy=True,
+        max_capital=Decimal(250), emergency_stop=False,
+    )
+    assert status["trial_retest_available"] and status["trial_dispatch_available"]
+    assert service.trial.report() == previous
+    report = service.start_trial(healthy=True, emergency_stop=False)
+    assert report["state"] == "WAITING_SIGNAL"
+    assert report["trial_id"] != previous["trial_id"]
+    old_file = service.database.parent / "trial-reports" / f"{previous['trial_id']}.json"
+    assert json.loads(old_file.read_text(encoding="utf-8")) == previous
+    assert [i.side for i in exchange.submits] == ["BUY", "SELL"]
+    with pytest.raises(BinanceCheckError, match="WAITING_SIGNAL"):
+        service.start_trial(healthy=True, emergency_stop=False)
+
+
+def test_stale_snapshot_cannot_archive_completed_trial(tmp_path):
+    from dataclasses import replace
+    from datetime import timedelta
+
+    from hixton.live.binance import BinanceCheckError
+
+    service, exchange = retest_service(tmp_path, same_source=True)
+    previous = service.trial.report()
+    snapshot = service._account_snapshot()
+    service._account_snapshot = lambda: replace(
+        snapshot, observed_at=snapshot.observed_at - timedelta(minutes=1)
+    )
+    with pytest.raises(BinanceCheckError, match="nicht frisch"):
+        service.start_trial(healthy=True, emergency_stop=False)
+    assert service.trial.report() == previous
+    with service.trial.journal._connect() as db:
+        assert db.execute("SELECT count(*) FROM trial_intents").fetchone()[0] == 2
+        assert not db.execute(
+            "SELECT 1 FROM sqlite_master WHERE name='trial_archives'"
+        ).fetchone()
+    assert len(exchange.submits) == 2
+
+
+@pytest.mark.parametrize("obligation", ["positions", "unresolved_intents"])
+def test_live_obligation_blocks_retest_before_archive(tmp_path, monkeypatch, obligation):
+    from hixton.live.binance import BinanceCheckError
+
+    service, exchange = retest_service(tmp_path, same_source=True)
+    previous = service.trial.report()
+    original = service.live.report()
+    monkeypatch.setattr(service.live, "report", lambda: {**original, obligation: ["owned"]})
+    status = service.status(
+        authenticated=True, soak_ready=False, healthy=True,
+        max_capital=Decimal(250), emergency_stop=False,
+    )
+    assert not status["trial_retest_available"] and not status["trial_dispatch_available"]
+    with pytest.raises(BinanceCheckError, match="Live-Positionen"):
+        service.start_trial(healthy=True, emergency_stop=False)
+    assert service.trial.report() == previous and len(exchange.submits) == 2
+
+
+def test_changed_disk_source_cannot_start_a_retest(tmp_path):
+    from hixton.live.binance import BinanceCheckError
+
+    service, exchange = retest_service(tmp_path, same_source=True)
+    previous = service.trial.report()
+    service.source_is_current = lambda: False
+    with pytest.raises(BinanceCheckError, match="Code seit Botstart"):
+        service.start_trial(healthy=True, emergency_stop=False)
+    assert service.trial.report() == previous and len(exchange.submits) == 2
 
 
 def test_explicit_new_version_action_archives_and_rebinds_without_a_buy(tmp_path):

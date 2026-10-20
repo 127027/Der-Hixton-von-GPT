@@ -89,7 +89,7 @@ class RuntimeSupervisor:
             return ()
         # The current provisional candle supplies only its immutable OPEN for fills.
         # It never enters the indicator or the closed-bar quality audit.
-        with CandleStore(self.config.database_path) as store:
+        with CandleStore(self.config.database_path, read_only=True) as store:
             execution = {
                 symbol: [point.candle for point in values]
                 + store.load_candles(
@@ -151,7 +151,7 @@ class RuntimeSupervisor:
         healthy = self.state.snapshot().health == "HEALTHY"
         entries_allowed: bool | None
         try:
-            with PaperStore(self.config.database_path) as store:
+            with PaperStore(self.config.database_path, read_only=True) as store:
                 settings = store.load_settings()
             entries_allowed = not settings.emergency_stop
         except Exception:
@@ -485,7 +485,7 @@ class RuntimeSupervisor:
             },
         )
         rules: dict[str, ExecutionRules] = {}
-        with CandleStore(self.config.database_path) as store:
+        with CandleStore(self.config.database_path, read_only=True) as store:
             for symbol in self.strategy.symbols:
                 stored = store.load_symbol_rules(symbol)
                 if stored is None:
@@ -547,7 +547,7 @@ class RuntimeSupervisor:
             for item_symbol, symbol_points in points.items()
         }
         rules: dict[str, ExecutionRules] = {}
-        with CandleStore(self.config.database_path) as store:
+        with CandleStore(self.config.database_path, read_only=True) as store:
             for item_symbol in self.strategy.symbols:
                 stored = store.load_symbol_rules(item_symbol)
                 if stored is None:
@@ -558,7 +558,7 @@ class RuntimeSupervisor:
                     min_qty=stored.min_qty,
                     min_notional=stored.min_notional,
                 )
-        with PaperStore(self.config.database_path) as store:
+        with PaperStore(self.config.database_path, read_only=True) as store:
             paper_settings = store.load_settings()
         if mode == "all":
             result: RunResult = run_isolated_batch(

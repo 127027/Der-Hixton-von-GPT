@@ -82,12 +82,7 @@ def _trading_settings_payload(
 ) -> dict[str, object] | None:
     """Load editable trading settings independently from Paper dashboard health."""
     try:
-        with PaperStore(config.database_path) as store:
-            store.initialize(
-                strategy_key=supervisor.strategy.key,
-                strategy_version=supervisor.strategy.version,
-                starting_cash_usdc=config.paper_starting_cash_usdc,
-            )
+        with PaperStore(config.database_path, read_only=True) as store:
             store.require_strategy(supervisor.strategy.key, supervisor.strategy.version)
             return _settings_payload(
                 store.load_settings(),
@@ -149,7 +144,7 @@ def _activity_payload(
     last_event: dict[str, object] | None = None
     if paper is not None:
         try:
-            with PaperStore(config.database_path) as store:
+            with PaperStore(config.database_path, read_only=True) as store:
                 checkpoints = store.all_checkpoints()
                 events = store.load_events(limit=1)
             if events:
@@ -213,8 +208,9 @@ def _paper_payload(
             strategy_key=supervisor.strategy.key,
             strategy_version=supervisor.strategy.version,
             starting_cash_usdc=config.paper_starting_cash_usdc,
+            read_only=True,
         )
-        with PaperStore(config.database_path) as store:
+        with PaperStore(config.database_path, read_only=True) as store:
             soak = store.load_soak_progress()
             session = store.load_strategy_session()
             diversification_count = store.diversification_count(supervisor.strategy.version)
@@ -551,7 +547,7 @@ def create_app(
         points = supervisor.state.points().get(normalized, ())
         live = supervisor.state.live_candle(normalized)
         try:
-            with PaperStore(config.database_path) as store:
+            with PaperStore(config.database_path, read_only=True) as store:
                 events = store.load_events(symbol=normalized, limit=5_000)
         except (OSError, sqlite3.Error):
             events = ()
@@ -576,14 +572,12 @@ def create_app(
 
     @app.get("/api/paper/events")
     def paper_events(symbol: str | None = None, limit: int = 250) -> dict[str, object]:
-        with PaperStore(config.database_path) as store:
-            store.initialize(
-                strategy_key=supervisor.strategy.key,
-                strategy_version=supervisor.strategy.version,
-                starting_cash_usdc=config.paper_starting_cash_usdc,
-            )
-            store.require_strategy(supervisor.strategy.key, supervisor.strategy.version)
-            events = store.load_events(symbol=symbol, limit=limit)
+        try:
+            with PaperStore(config.database_path, read_only=True) as store:
+                store.require_strategy(supervisor.strategy.key, supervisor.strategy.version)
+                events = store.load_events(symbol=symbol, limit=limit)
+        except (OSError, RuntimeError, sqlite3.DatabaseError) as error:
+            raise HTTPException(503, "Paper-Konto noch nicht lesebereit.") from error
         return {
             "events": [
                 {

@@ -416,7 +416,7 @@ class LivePreparation:
                 raise BinanceCheckError("Einstiegspause ist aktiv; 50-USDC-Test bleibt gesperrt")
             current_report = self.trial.report()
             state = str(current_report["state"])
-            retest = state == "COMPLETED" and not self._trial_covers_current_runtime(current_report)
+            retest = state == "COMPLETED"
             if retest and not self.source_is_current():
                 raise BinanceCheckError("Code seit Botstart geändert; vor neuem Test neu starten")
             if state in {"CANCELED", "FAILED"}:
@@ -455,6 +455,12 @@ class LivePreparation:
                     "Kontobaseline konnte nicht stabil gelesen werden; bitte erneut versuchen."
                 ) from error
             if retest:
+                try:
+                    snapshot.validate(datetime.now(UTC))
+                except (RuntimeError, ValueError) as error:
+                    raise BinanceCheckError(
+                        "Kontobaseline ist nicht frisch oder ungültig; alter Test bleibt erhalten."
+                    ) from error
                 if snapshot.open_orders or any(
                     locked != 0 for _, locked in snapshot.balances.values()
                 ):
@@ -482,7 +488,7 @@ class LivePreparation:
                     self.runtime.points_transform = FrozenTrialPoints(
                         self.live.strategy, self.live.strategy
                     )
-                self.audit("EXPLICIT_VERSION_RETEST_REQUESTED", {"previous_trial_id": old_id})
+                self.audit("EXPLICIT_TRIAL_RETEST_REQUESTED", {"previous_trial_id": old_id})
             try:
                 self.trial_reconciler.capture(snapshot, now=datetime.now(UTC))
             except (RuntimeError, ValueError, sqlite3.DatabaseError) as error:
@@ -699,9 +705,10 @@ class LivePreparation:
             )
             retest_available = bool(
                 trial_state == "COMPLETED"
-                and not self._trial_covers_current_runtime(trial)
                 and self.source_is_current()
                 and live.get("state") == "LIVE_DISABLED"
+                and not live.get("positions")
+                and not live.get("unresolved_intents")
             )
             trial_blockers: list[str] = []
             if not credential_status["configured"]:

@@ -871,15 +871,17 @@ def load_paper_portfolio(
     strategy_key: str = "v1",
     strategy_version: str = HIXTON_SPEC_VERSION,
     starting_cash_usdc: Decimal | None = None,
+    read_only: bool = False,
 ) -> PaperPortfolio:
     moment = (at or datetime.now(UTC)).astimezone(UTC)
-    with PaperStore(database_path) as store:
-        store.initialize(
-            at=moment,
-            strategy_key=strategy_key,
-            strategy_version=strategy_version,
-            starting_cash_usdc=starting_cash_usdc,
-        )
+    with PaperStore(database_path, read_only=read_only) as store:
+        if not read_only:
+            store.initialize(
+                at=moment,
+                strategy_key=strategy_key,
+                strategy_version=strategy_version,
+                starting_cash_usdc=starting_cash_usdc,
+            )
         store.require_strategy(strategy_key, strategy_version)
         account = store.load_account()
         settings = store.load_settings()
