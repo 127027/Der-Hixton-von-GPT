@@ -354,6 +354,9 @@ def test_new_v2_runtime_uses_configured_reserve_from_first_api_call(
     config = replace(_config(tmp_path), paper_starting_cash_usdc=Decimal("250.00"))
     client = TestClient(create_app(config, RuntimeSupervisor(config)),
                         base_url="http://127.0.0.1:8765")
+    # Bootstrap owns initialization; neither GET is allowed to migrate/write.
+    with PaperStore(config.database_path, read_only=True) as store:
+        assert store.load_account().cash_usdc == Decimal("250.00")
     assert client.get(first_endpoint).status_code == 200
     # Before data initialization there is intentionally no complete Paper/soak payload.
     client.get("/api/status")

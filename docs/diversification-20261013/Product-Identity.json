@@ -1,7 +1,7 @@
 {
   "application_version": "0.5.0",
   "strategy_version": "HIXTON-V8-LINK8-ATR075-DOGE50-DD10-ETH8-DIV32-PAPER-5",
-  "python_source_sha256": "ae5ed2f544a0c3cdae4d906251361625827f6cc4bb08b0b2efcd54a079a58af3",
+  "python_source_sha256": "985c0c92061deb50017f44aefaf1ad3d14dd282588bb4176f95bbee911c97451",
   "allocator_version": "CAPITAL-V3-LATCHED-DISTINCT",
   "diversification_stages": [
     [
@@ -76,7 +76,7 @@
     "src/hixton/runtime/supervisor.py": "fda047c9b27a0c9d9d227ca7f7fc51b2c98170f9e46889039fad7692e88fb2e8",
     "src/hixton/ui/__init__.py": "d40442dba8ffd20b9841d905f7a132fa9ce036ceadf9797c358d78ada07c498b",
     "src/hixton/ui/account_balance.py": "5cb0014b2ca6f0d92206e90a7a0df340c9ce3cd99d34b18513ee746835724dd1",
-    "src/hixton/ui/api.py": "ab7b6b3943b1764425c0953ada8c8aa026d4381b201930a9e85a62bb0560a1e6",
+    "src/hixton/ui/api.py": "444f70a74ccd626a15b6cd12bf996d6af12a48a2f49fcb7903f7f1e54f5d8826",
     "src/hixton/ui/chart.py": "ebd331d2640bacfb556c4db701be48be0282f680489745ac81ed761d744cd6f5",
     "src/hixton/ui/instance.py": "cc7550171278cb5bd660f15713b5d618e352d98bada5159eea7dab2d7ae3f8f6",
     "src/hixton/ui/lifecycle.py": "e07ae6d4107929f65a0759b8cc860035f72b4cd45c2f698ecc44186697d18c86",

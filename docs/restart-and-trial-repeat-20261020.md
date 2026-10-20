@@ -16,7 +16,10 @@ vorläufige Providerdaten werden nicht erfunden und nicht als gültig gespeicher
 Reine Runtime-, Filter-, Settings-, Status-, Chart- und Paper-Lesezugriffe öffnen
 die vorhandene Datenbank nur lesend. Dadurch benötigen diese Zugriffe keine
 Migration und keine SQLite-Schreibsperre. Initialisierung und tatsächliche
-Speicherung bleiben in den vorgesehenen Schreibpfaden. Bei fehlgeschlagenen
+Speicherung bleiben in den vorgesehenen Schreibpfaden. Das konfigurierte
+Paper-Startkapital wird einmal beim Erstellen der Anwendung angelegt, bevor sie
+Anfragen bedient; bestehende Konten und Checkpoints bleiben dabei erhalten.
+Bei fehlgeschlagenen
 Migrationen wird die eigene Verbindung sofort geschlossen. Fehlende oder nicht
 initialisierte Daten ergeben keine erfundene Bereitschaft.
 

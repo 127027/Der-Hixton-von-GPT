@@ -490,6 +490,15 @@ def create_app(
             response.headers["Cache-Control"] = "no-store"
         return response
 
+    # Bootstrap once before serving; GET handlers remain read-only, including
+    # while the supervisor is writing a new market/Paper transaction.
+    with PaperStore(config.database_path) as store:
+        store.initialize(
+            strategy_key=supervisor.strategy.key,
+            strategy_version=supervisor.strategy.version,
+            starting_cash_usdc=config.paper_starting_cash_usdc,
+        )
+
     install_live_routes(app, config, supervisor, _origin_is_local, live_vault)
     account_balance = AccountBalanceDisplay(
         app.state.live_preparation.credentials, base_url=config.binance_base_url
