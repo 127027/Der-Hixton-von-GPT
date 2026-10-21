@@ -121,7 +121,7 @@ export function initializeNotifications(): {refresh: () => Promise<void>; dispos
     event.preventDefault();
     return act(async epoch => {
       const recipient = control<HTMLInputElement>("notification-recipient").value.trim();
-      if (!/^[1-9]\d*$/.test(recipient))
+      if (!/^[1-9][0-9]{0,19}$/.test(recipient))
         throw new Error("Die private Chat-ID muss eine positive Zahl sein, kein Bot-Link oder Benutzername. Bitte „Privaten Chat finden“ wählen und deinen Chat auswählen.");
       if (!control<HTMLInputElement>("notification-secret").value.trim() && !last?.secret_configured)
         throw new Error("Noch kein Bot-Token gespeichert. Zuerst bei Schritt 1 das BotFather-Token eintragen und speichern.");

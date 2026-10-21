@@ -189,18 +189,20 @@ test("missing token reports a visible setup step without sending a discover requ
   } finally {controller.dispose();ui.restore();}
 });
 
-test("invalid nonnumeric chat ID blocks a full save locally and preserves the typed token",async()=>{
+for (const invalidChat of ["https://t.me/my_test_bot", "123456789012345678901"]) {
+test(`invalid chat ID ${invalidChat} blocks a full save locally and preserves the typed token`,async()=>{
   const mock=backend(),ui=harness(mock.fetcher),controller=initializeNotifications();
   try {
     await controller.refresh();
     ui.node("notification-secret").value="test-only-token";await ui.node("notification-secret").fire("input");
-    ui.node("notification-recipient").value="https://t.me/my_test_bot";await ui.node("notification-recipient").fire("input");
+    ui.node("notification-recipient").value=invalidChat;await ui.node("notification-recipient").fire("input");
     await ui.node("notification-form").fire("submit");
     assert.equal(mock.calls.some(c=>c.options.method==="POST"),false);
     assert.equal(ui.node("notification-secret").value,"test-only-token");
     assert.match(ui.node("notification-feedback").textContent,/Chat-ID muss eine positive Zahl sein.*Privaten Chat finden/);
   } finally {controller.dispose();ui.restore();}
 });
+}
 
 for (const revoke of ["lock","expiry"]) {
   test(`late chat discovery after ${revoke} cannot reveal chat identities`,async()=>{
