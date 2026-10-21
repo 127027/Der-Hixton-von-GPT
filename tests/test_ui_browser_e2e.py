@@ -110,7 +110,9 @@ def _free_port() -> int:
         return int(sock.getsockname()[1])
 
 
-def test_real_browser_settings_and_trial_user_flow(tmp_path: Path) -> None:
+def test_real_browser_settings_and_trial_user_flow(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch,
+) -> None:
     from playwright.sync_api import expect, sync_playwright
 
     port = _free_port()
@@ -229,13 +231,17 @@ def test_real_browser_settings_and_trial_user_flow(tmp_path: Path) -> None:
             page.locator("#live-unlock").click()
             expect(page.locator("#live-auth-result")).to_contain_text("Entsperrt")
 
-            class CompletedTrial:
-                def report(self) -> dict[str, object]:
-                    return {"state": "COMPLETED", "has_unsettled": False}
+            from tests.test_durable_trial_acceptance import completed_trial
 
-            service.trial = CompletedTrial()  # type: ignore[assignment]
+            # Replace this fake-exchange waiting test only; no real keys/orders.
+            with service.trial.journal._connect() as connection:
+                connection.execute("DELETE FROM signal_trial")
+                connection.execute("DELETE FROM trial_account_baseline")
+            with monkeypatch.context() as clock_patch:
+                service.trial = completed_trial(service.database, clock_patch)[0]
             page.wait_for_timeout(5500)
             expect(page.locator("#live-request")).to_be_enabled()
+            expect(page.locator("#live-trial-acceptance")).to_contain_text("dauerhaft gespeichert")
 
             supervisor.state.set_status(
                 health="DEGRADED",
@@ -243,10 +249,8 @@ def test_real_browser_settings_and_trial_user_flow(tmp_path: Path) -> None:
                 last_error="warmup pending",
             )
             page.wait_for_timeout(5500)
-            expect(page.locator("#live-trial-status")).to_contain_text(
-                "Order-Ausführung derzeit blockiert"
-            )
-            expect(page.locator("#live-trial-status")).to_contain_text("HEALTHY")
+            expect(page.locator("#live-request")).to_be_disabled()
+            expect(page.locator("#live-trial-acceptance")).to_contain_text("dauerhaft gespeichert")
             browser.close()
     finally:
         server.should_exit = True

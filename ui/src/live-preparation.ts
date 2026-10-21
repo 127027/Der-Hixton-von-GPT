@@ -11,6 +11,13 @@ interface LiveStatus {
   trial_dispatch_available: boolean;
   trial_retryable_before_submit?: boolean;
   trial_retest_available?: boolean;
+  trial_acceptance?: {
+    eligible: boolean;
+    state: "ACCEPTED" | "RETEST_REQUIRED" | "NOT_VERIFIED" | "ACCOUNT_MISMATCH";
+    trial_id: string | null;
+    accepted_at_utc: string | null;
+    reason: string | null;
+  };
   trial_blockers?: string[];
   runtime_health?: string;
   trial_order_execution_blocked_by_health?: boolean;
@@ -84,11 +91,21 @@ export function initializeLivePreparation(sharedSettingsBlocker: (mode?: "live" 
       message("live-auth-result", "Sitzung abgelaufen oder in einem anderen Fenster ersetzt. Bitte erneut entsperren.");
     }
     last = status;
-    message("live-state", status.state === "LIVE_DISABLED" ? "Live aus · Echtgeld noch nicht freigegeben"
+    message("live-state", status.state === "LIVE_DISABLED" ? "Live aus · keine neuen Echtgeld-Einstiege"
       : status.state === "LIVE_ENABLED" ? "Live an · echte Orders aktiv"
       : status.state === "EXIT_ONLY" ? "Live aus · offene Positionen laufen aus"
       : status.state.startsWith("TRIAL_") ? `Einmaltest: ${status.state.slice(6)}`
       : `Ungeklärter Live-Status: ${status.state}`);
+    const acceptance = status.trial_acceptance;
+    const accepted = acceptance?.state === "ACCEPTED" && acceptance.eligible === true;
+    message("live-trial-acceptance", accepted
+      ? "50-USDC-Test bestanden · Nachweis dauerhaft gespeichert; "
+        + (status.state === "LIVE_ENABLED" ? "Live ist eingeschaltet." : "Live separat einschalten.")
+      : acceptance?.state === "RETEST_REQUIRED"
+        ? "Neuer 50-USDC-Test noch nicht bestanden · Live gesperrt."
+        : acceptance?.state === "ACCOUNT_MISMATCH"
+          ? "50-USDC-Nachweis passt nicht zum aktuellen Binance-Zugang · Live gesperrt."
+          : "50-USDC-Nachweis noch nicht bestätigt · Live gesperrt.");
     element("live-auth-panel").classList.toggle("hidden", status.authenticated);
     element("live-password-repeat-label").classList.toggle("hidden", status.password_configured);
     element<HTMLInputElement>("live-password-repeat").required = !status.password_configured;
@@ -155,7 +172,7 @@ export function initializeLivePreparation(sharedSettingsBlocker: (mode?: "live" 
       "live-trial-status",
       unresolvedTrial ? unresolvedNotice : status.trial?.state && status.trial.state !== "NOT_STARTED"
         ? status.trial_retest_available
-          ? "Vorheriger Test abgeschlossen und abgeglichen. Du kannst ausdrücklich einen weiteren 1×50-USDC-Test starten; der bisherige Bericht bleibt gespeichert. Noch kein neuer Test freigegeben."
+          ? "Vorheriger Test abgeschlossen und abgeglichen. Ein freiwilliger neuer 1×50-USDC-Test sperrt Live bis zum erneuten erfolgreichen Abschluss. Der bisherige Bericht bleibt gespeichert. Noch kein neuer Test freigegeben."
           : status.trial_retryable_before_submit
           ? `Vor einer Binance-Order beendet (${status.trial.state}) · sicher erneut startbar.`
           : `Test: ${status.trial.state}${status.trial.symbol ? " · " + status.trial.symbol : ""}.${healthWait}${signalWait}`
@@ -167,7 +184,9 @@ export function initializeLivePreparation(sharedSettingsBlocker: (mode?: "live" 
     );
     const trialButton = element<HTMLButtonElement>("live-trial-start");
     trialButton.title = status.trial_dispatch_available
-      ? "Kontrollierten 1×50-USDC-Echtgeldtest starten; Kontoprüfung erfolgt automatisch"
+      ? status.trial_retest_available
+        ? "Freiwilligen neuen Test starten: Live bleibt bis zum erneuten Erfolg gesperrt. Kontoprüfung erfolgt automatisch."
+        : "Kontrollierten 1×50-USDC-Echtgeldtest starten; Kontoprüfung erfolgt automatisch"
       : trialReason || "50-USDC-Test ist noch nicht freigegeben.";
     const liveButton = element<HTMLButtonElement>("live-request");
     liveButton.title = status.order_dispatch_available
@@ -209,6 +228,7 @@ export function initializeLivePreparation(sharedSettingsBlocker: (mode?: "live" 
         element("live-auth-panel").classList.remove("hidden");
         message("live-auth-result", "Verbindung zum Bot fehlt. Bitte erneut versuchen; Zugang bleibt gesperrt.");
         message("live-state", "Status unbekannt · keine Echtgeldfreigabe");
+        message("live-trial-acceptance", "50-USDC-Nachweis derzeit nicht bestätigt · Verbindung zum Bot fehlt.");
         message("real-trial-status", "Echtgeldtest: Verbindung unterbrochen; Zustand nicht bestätigt.");
         message("real-live-slots", "—");
         message("position-real-status", "Verbindung unterbrochen; Echtgeld-Teststatus nicht bestätigt.");

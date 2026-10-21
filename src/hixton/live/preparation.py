@@ -7,7 +7,7 @@ import re
 import sqlite3
 import time
 from collections.abc import Callable, Mapping, Sequence
-from contextlib import suppress
+from contextlib import closing, suppress
 from dataclasses import replace
 from datetime import UTC, datetime
 from decimal import Decimal
@@ -22,6 +22,7 @@ from hixton.backtest.models import ExecutionRules
 from hixton.domain.capital import ALLOCATOR_VERSION, capital_plan
 from hixton.domain.models import IndicatorPoint
 from hixton.domain.versions import StrategyDefinition
+from hixton.live.acceptance import acceptance_status
 from hixton.live.binance import BinanceCheckError, BinanceReadOnlyClient
 from hixton.live.credentials import CredentialService, LocalAccess, Vault
 from hixton.live.exchange import BinanceSpotExchange, BinanceSpotTransport
@@ -522,15 +523,27 @@ class LivePreparation:
     def _trial_covers_current_runtime(self, report: Mapping[str, object]) -> bool:
         if self.live is None or report.get("state") != "COMPLETED":
             return False
-        identity = report.get("execution_identity")
         return bool(
-            isinstance(identity, dict)
-            and identity.get("source_matches_current") is True
-            and identity.get("allocator_matches_current") is True
-            and identity.get("frozen_application_version") == self.application_version
-            and report.get("strategy") == self.live.strategy.config_payload()
+            self.trial_acceptance().get("eligible") is True
             and self.source_is_current()
         )
+
+    def trial_acceptance(self) -> dict[str, object]:
+        credential_status = self.credentials.status()
+        account = credential_status.get("fingerprint")
+        # The certificate is tied to the tested API key fingerprint, not a presumed
+        # Binance account ID. A replacement key cannot silently inherit this proof.
+        if not self.database.exists():
+            return {
+                "eligible": False, "state": "NOT_VERIFIED", "reason": "ROUNDTRIP_PROOF_REQUIRED",
+                "trial_id": None, "accepted_at_utc": None,
+            }
+        with closing(sqlite3.connect(
+            self.database.resolve().as_uri() + "?mode=ro", uri=True
+        )) as connection:
+            connection.row_factory = sqlite3.Row
+            connection.execute("BEGIN")
+            return acceptance_status(connection, account if isinstance(account, str) else None)
 
     def enable_live(
         self,
@@ -565,8 +578,8 @@ class LivePreparation:
                 )
             if not self._trial_covers_current_runtime(self.trial.report()):
                 raise BinanceCheckError(
-                    "Der abgeschlossene Test gehört zu einer anderen Strategie/Quellversion; "
-                    "keine Freigabe für die aktuelle Version."
+                    "Kein gültiger dauerhafter 50-USDC-Testnachweis für diesen Schlüssel "
+                    "oder Code seit Botstart geändert; technische Freigabe prüfen."
                 )
             # Live performs its own fresh/sufficient preflight. A separate manual
             # connection-check click is diagnostic only, never a required ritual.
@@ -726,6 +739,7 @@ class LivePreparation:
                 trial_blockers.append("Einmaltest-Runtime ist nicht verbunden.")
             trial_available = not trial_blockers
             trial_completed = trial_state == "COMPLETED"
+            trial_acceptance = self.trial_acceptance()
             trial_current = self._trial_covers_current_runtime(trial)
             production_ready = bool(
                 credential_status["configured"]
@@ -761,7 +775,12 @@ class LivePreparation:
                     "Keinen weiteren Test starten und Live nicht freigeben."
                 )
             if trial_completed and not trial_current:
-                blockers.append("50-USDC-Test gehört zu einer anderen Strategie/Quellversion.")
+                blockers.append(
+                    "Code seit Botstart geändert; vor Live-Freigabe neu starten."
+                    if not self.source_is_current() else
+                    "Dauerhafter 50-USDC-Testnachweis fehlt oder passt nicht zum gespeicherten "
+                    "Binance-Schlüssel; technischen Bericht prüfen."
+                )
             if not production_settings_ok:
                 blockers.append("Maximalbudget oder Einstiegspause verhindert die Live-Freigabe.")
             if live.get("state") == "NEEDS_REVIEW":
@@ -773,6 +792,7 @@ class LivePreparation:
                 "state": self.execution_state(),
                 "order_dispatch_available": production_ready,
                 "ready": production_ready,
+                "trial_acceptance": trial_acceptance,
                 "authenticated": authenticated,
                 "password_configured": self.access.configured(),
                 "credentials": (

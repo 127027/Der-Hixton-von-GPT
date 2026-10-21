@@ -112,7 +112,7 @@ def test_frozen_points_match_full_original_replay_with_changed_link_parameters()
         mapper(invalid)
 
 
-def test_old_completed_certificate_cannot_release_new_runtime(tmp_path):
+def test_completed_report_alone_cannot_release_any_runtime_without_persisted_proof(tmp_path):
     service = LivePreparation(
         tmp_path / "trial.sqlite3", MemoryVault(), execution_source_sha256="current-source"
     )
@@ -129,7 +129,7 @@ def test_old_completed_certificate_cannot_release_new_runtime(tmp_path):
             "frozen_application_version": service.application_version,
         },
     }
-    assert service._trial_covers_current_runtime(report)
+    assert not service._trial_covers_current_runtime(report)
     report["strategy"] = strategy_definition("v8").config_payload()
     assert not service._trial_covers_current_runtime(report)
     report["strategy"] = active.config_payload()

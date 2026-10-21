@@ -8,6 +8,8 @@ from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any
 
+from hixton.live.acceptance import acceptance_status
+
 _FINAL_ORDER = {"FILLED", "CANCELED", "REJECTED", "EXPIRED", "EXPIRED_IN_MATCH"}
 _ERROR_REASONS = {
     "ACCOUNT_RECONCILIATION_MISMATCH",
@@ -253,6 +255,9 @@ def build_execution_report(
             if _table_exists(live, "signal_trial"):
                 trial = live.execute("SELECT * FROM signal_trial WHERE singleton=1").fetchone()
                 if trial is not None:
+                    # Historical evidence only: the protected Live action separately
+                    # binds this certificate to the currently stored API key.
+                    technical_acceptance = acceptance_status(live, trial["account"])
                     trial_columns = set(trial.keys())
                     strategy = _json(str(trial["strategy_json"]))
                     trial_source = (
@@ -294,6 +299,7 @@ def build_execution_report(
                         "armed_at_utc": trial["armed_at"],
                         "completed_at_utc": trial["completed_at"],
                         "account_reconciled": trial["state"] == "COMPLETED",
+                        "technical_execution_acceptance": technical_acceptance,
                         "residual_quantity": trial["residual_quantity"],
                         "frozen_identity": {
                             "application_version": (
@@ -320,7 +326,7 @@ def build_execution_report(
                             and sell["binance_filled"]
                         ),
                     }
-                    if not source_matches:
+                    if not source_matches and not technical_acceptance["eligible"]:
                         _incident(
                             incidents,
                             severity=(
@@ -335,10 +341,12 @@ def build_execution_report(
                     if not strategy_matches:
                         _incident(
                             incidents,
-                            severity="ERROR",
+                            severity="WARNING" if technical_acceptance["eligible"] else "ERROR",
                             code="TRIAL_STRATEGY_VERSION_STALE",
                             detail=(
-                                "50-USDC-Test und aktuelle Strategieversion stimmen nicht überein."
+                                "Historischer 50-USDC-Test und aktuelle Strategieversion "
+                                "sind verschieden; der Ausführungsnachweis bestätigt keine "
+                                "Performance oder reale Abnahme einer neuen Strategie."
                             ),
                             symbol=trial["symbol"],
                         )

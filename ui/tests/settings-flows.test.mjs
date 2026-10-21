@@ -7,6 +7,78 @@ async function unlockUI(ui) {
   await ui.node("live-auth-panel").fire("submit");
 }
 
+const acceptedTrial = () => ({eligible:true,state:"ACCEPTED",trial_id:"confirmed-trial",accepted_at_utc:"2026-10-21T10:00:00Z",reason:null});
+
+test("durable trial acceptance survives a new UI session without automatically enabling Live",async()=>{
+  const mock=mockLive();mock.state.credentials.configured=true;
+  mock.state.trial_acceptance=acceptedTrial();
+  const ui=harness(mock.fetcher);let live=initializeLivePreparation(()=>null);
+  try {
+    await live.refresh();
+    assert.match(ui.node("live-trial-acceptance").textContent,/bestanden.*dauerhaft gespeichert.*separat einschalten/);
+    assert.match(ui.node("live-state").textContent,/Live aus.*keine neuen Echtgeld-Einstiege/);
+    assert.equal(ui.node("live-request").disabled,true);
+    live.dispose();live=initializeLivePreparation(()=>null);await live.refresh();
+    assert.match(ui.node("live-trial-acceptance").textContent,/dauerhaft gespeichert/);
+    await unlockUI(ui);
+    assert.equal(ui.node("live-request").disabled,true); // Other backend gates still apply.
+    mock.state.ready=true;mock.state.order_dispatch_available=true;await live.refresh();
+    assert.equal(ui.node("live-request").disabled,false);
+    assert.equal(mock.state.state,"LIVE_DISABLED");
+    assert.equal(mock.calls.some(c=>/\/(enable|trial\/start)$/.test(c.url)),false);
+  } finally {live.dispose();ui.restore();}
+});
+
+test("an explicit optional retest warns about replacing eligibility and follows the new server gate",async()=>{
+  const mock=mockLive();Object.assign(mock.state,{credentials:{configured:true},trial:{state:"COMPLETED"},
+    trial_retest_available:true,trial_dispatch_available:true,trial_acceptance:acceptedTrial(),ready:true,order_dispatch_available:true});
+  const ui=harness((url,options)=>{
+    if(url.endsWith("/trial/start"))Object.assign(mock.state,{trial_acceptance:{...acceptedTrial(),eligible:false,state:"RETEST_REQUIRED"},ready:false,order_dispatch_available:false});
+    return mock.fetcher(url,options);
+  });
+  const live=initializeLivePreparation(()=>null);
+  try {
+    await live.refresh();await unlockUI(ui);
+    assert.match(ui.node("live-trial-status").textContent,/freiwilliger neuer.*sperrt Live.*erneuten erfolgreichen Abschluss/);
+    await ui.node("live-trial-start").fire("click");
+    assert.match(ui.node("live-trial-acceptance").textContent,/Neuer 50-USDC-Test noch nicht bestanden.*Live gesperrt/);
+    assert.equal(ui.node("live-request").disabled,true);
+    assert.equal(mock.calls.filter(c=>c.url.endsWith("/trial/start")).length,1);
+    assert.equal(mock.calls.some(c=>c.url.endsWith("/enable")),false);
+    Object.assign(mock.state,{trial_acceptance:acceptedTrial(),trial:{state:"COMPLETED"}});await live.refresh();
+    assert.match(ui.node("live-trial-acceptance").textContent,/dauerhaft gespeichert/);
+    assert.equal(ui.node("live-request").disabled,true); // Acceptance does not override other gates.
+  } finally {live.dispose();ui.restore();}
+});
+
+test("COMPLETED alone or inconsistent acceptance never produces a saved passing notice",async()=>{
+  const mock=mockLive();mock.state.trial={state:"COMPLETED"};
+  const ui=harness(mock.fetcher),live=initializeLivePreparation(()=>null);
+  try {
+    for(const acceptance of [undefined,{...acceptedTrial(),eligible:false},{...acceptedTrial(),eligible:"true"},
+      {...acceptedTrial(),state:"NOT_VERIFIED"}]){
+      mock.state.trial_acceptance=acceptance;await live.refresh();
+      assert.match(ui.node("live-trial-acceptance").textContent,/noch nicht bestätigt/);
+      assert.doesNotMatch(ui.node("live-trial-acceptance").textContent,/dauerhaft gespeichert/);
+    }
+    mock.state.trial_acceptance={...acceptedTrial(),eligible:false,state:"ACCOUNT_MISMATCH"};await live.refresh();
+    assert.match(ui.node("live-trial-acceptance").textContent,/passt nicht zum aktuellen Binance-Zugang.*Live gesperrt/);
+  } finally {live.dispose();ui.restore();}
+});
+
+test("HTTP status failure clears an old passing notice and keeps activation disabled",async()=>{
+  const mock=mockLive();mock.state.trial_acceptance=acceptedTrial();let failed=false;
+  const ui=harness((...args)=>failed?Promise.resolve({ok:false,status:503,json:async()=>({detail:"unavailable"})}):mock.fetcher(...args));
+  const live=initializeLivePreparation(()=>null);
+  try {
+    await live.refresh();assert.match(ui.node("live-trial-acceptance").textContent,/dauerhaft gespeichert/);
+    failed=true;await live.refresh();
+    assert.match(ui.node("live-trial-acceptance").textContent,/derzeit nicht bestätigt.*Verbindung zum Bot fehlt/);
+    assert.doesNotMatch(ui.node("live-trial-acceptance").textContent,/bestanden|dauerhaft gespeichert/);
+    assert.equal(ui.node("live-request").disabled,true);
+  } finally {live.dispose();ui.restore();}
+});
+
 test("failed Binance diagnosis survives the action refresh and polling until a successful retry",async()=>{
   const mock=mockLive();mock.state.credentials.configured=true;
   let fail=true;

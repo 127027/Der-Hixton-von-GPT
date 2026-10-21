@@ -28,6 +28,7 @@ from hixton.domain.spot_autonomy import quality_filler_block_reason
 from hixton.domain.strategy import entry_priority
 from hixton.domain.trade_policy import TradePolicyGate
 from hixton.domain.versions import StrategyDefinition
+from hixton.live.acceptance import initialize_acceptance, issue_acceptance
 from hixton.live.orders import OrderJournal, TrialIntent, TrialOrderExecutor
 
 _FINAL = {"COMPLETED", "CANCELED", "FAILED"}
@@ -117,6 +118,7 @@ class SignalTrial:
                         f"ALTER TABLE signal_trial ADD COLUMN {column} TEXT NOT NULL "
                         "DEFAULT 'legacy'"
                     )
+            initialize_acceptance(connection)
 
     def archive_completed(self) -> str:
         """Archive a settled roundtrip only in response to an explicit new test action."""
@@ -167,6 +169,7 @@ class SignalTrial:
             connection.execute("DELETE FROM trial_intents")
             connection.execute("DELETE FROM signal_trial WHERE singleton=1")
             connection.execute("DELETE FROM trial_account_baseline WHERE singleton=1")
+            connection.execute("DELETE FROM trial_acceptance")
             self.journal._audit(connection, old_id, "COMPLETED_TRIAL_ARCHIVED_FOR_EXPLICIT_RETEST")
             return old_id
 
@@ -264,6 +267,7 @@ class SignalTrial:
                     self.allocator_version,
                 ),
             )
+            connection.execute("DELETE FROM trial_acceptance")
             self.journal._audit(connection, trial_id, "TRIAL_ARMED")
 
     def disable_entries(self) -> None:
@@ -515,14 +519,17 @@ class SignalTrial:
                 or owned_remaining != 0
             ):
                 raise RuntimeError("Account/order reconciliation incomplete")
-            self._set(
-                state="COMPLETED",
-                reason=None,
-                entries_enabled=0,
-                completed_at=_utc(now).isoformat(),
-            )
             with self.journal._connect() as connection:
+                connection.execute("BEGIN IMMEDIATE")
+                changed = connection.execute(
+                    "UPDATE signal_trial SET state='COMPLETED',reason=NULL,entries_enabled=0,"
+                    "completed_at=? WHERE singleton=1 AND state='AWAITING_RECONCILIATION'",
+                    (_utc(now).isoformat(),),
+                )
+                if changed.rowcount != 1:
+                    raise RuntimeError("Trial changed during reconciliation")
                 self.journal._audit(connection, row["trial_id"], "TRIAL_COMPLETED")
+                issue_acceptance(connection)
 
     def advance(
         self, points: Mapping[str, Sequence[IndicatorPoint]], *, now: datetime, healthy: bool

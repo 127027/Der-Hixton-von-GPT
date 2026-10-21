@@ -756,26 +756,15 @@ def test_size_limit_does_not_echo_secrets(tmp_path: Path) -> None:
 
 
 def test_completed_trial_unlocks_live_action_without_paper_soak_or_manual_check(
-    tmp_path: Path,
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch,
 ) -> None:
+    from tests.test_durable_trial_acceptance import completed_trial
+
     client, _, service = client_for(tmp_path)
     unlock(client)
     save_key(client)
 
-    class CompletedTrial:
-        def report(self):
-            return {
-                "state": "COMPLETED",
-                "has_unsettled": False,
-                "strategy": service.live.strategy.config_payload(),
-                "execution_identity": {
-                    "source_matches_current": True,
-                    "allocator_matches_current": True,
-                    "frozen_application_version": service.application_version,
-                },
-            }
-
-    service.trial = CompletedTrial()
+    service.trial = completed_trial(service.database, monkeypatch)[0]
     status = service.status(
         authenticated=True,
         soak_ready=False,
@@ -791,7 +780,11 @@ def test_completed_trial_unlocks_live_action_without_paper_soak_or_manual_check(
     assert status["production_live"]["paper_soak_required"] is False
 
 
-def test_live_enable_auto_preflights_full_configured_budget(tmp_path: Path) -> None:
+def test_live_enable_auto_preflights_full_configured_budget(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    from tests.test_durable_trial_acceptance import completed_trial
+
     service = LivePreparation(tmp_path / "live.sqlite3", MemoryVault())
     credentials = BinanceCredentials(KEY, SECRET)
     service.credentials.save(credentials)
@@ -818,19 +811,6 @@ def test_live_enable_auto_preflights_full_configured_budget(tmp_path: Path) -> N
                 "free_bnb": "0.03",
             }
 
-    class CompletedTrial:
-        def report(self):
-            return {
-                "state": "COMPLETED",
-                "has_unsettled": False,
-                "strategy": service.live.strategy.config_payload(),
-                "execution_identity": {
-                    "source_matches_current": True,
-                    "allocator_matches_current": True,
-                    "frozen_application_version": service.application_version,
-                },
-            }
-
     class Live:
         def __init__(self) -> None:
             self.enabled = False
@@ -847,7 +827,7 @@ def test_live_enable_auto_preflights_full_configured_budget(tmp_path: Path) -> N
 
     live = Live()
     service.client_factory = Client
-    service.trial = CompletedTrial()
+    service.trial = completed_trial(service.database, monkeypatch)[0]
     service.live = live
     service._live_snapshot = lambda: LiveAccountSnapshot(
         credentials.fingerprint,

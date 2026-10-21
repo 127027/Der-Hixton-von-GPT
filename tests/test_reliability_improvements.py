@@ -218,7 +218,9 @@ def test_same_source_test_is_repeatable_only_on_explicit_click(tmp_path):
 
     service, exchange = retest_service(tmp_path, same_source=True)
     previous = service.trial.report()
-    assert service._trial_covers_current_runtime(previous)
+    # This lifecycle fixture asserts completion directly without a real baseline
+    # reconciliation audit. Matching source alone must no longer grant eligibility.
+    assert not service._trial_covers_current_runtime(previous)
     status = service.status(
         authenticated=True, soak_ready=False, healthy=True,
         max_capital=Decimal(250), emergency_stop=False,
