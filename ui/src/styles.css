@@ -287,8 +287,9 @@ th, td { padding: 10px 12px; }
 .system-log-table th { position: sticky; top: 0; z-index: 1; }
 .backtest-block-details { padding: 0 14px; }
 #positions > .position-card { margin-bottom: 18px; }
-.notification-card .settings-toggle { display: flex; align-items: flex-start; gap: 8px; }
+.notification-card label.settings-toggle { display: flex; align-items: flex-start; gap: 8px; }
 .notification-card .settings-toggle input { flex: 0 0 18px; width: 18px; height: 18px; }
+.notification-card a { color: var(--blue); text-underline-offset: 2px; }
 .notification-card small, .notification-card legend { color: var(--muted); font-size: .76rem; }
 .notification-card ol { padding-left: 20px; }
 .notification-card li { margin: 6px 0; }
