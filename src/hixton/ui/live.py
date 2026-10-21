@@ -24,6 +24,7 @@ from hixton.live.preparation import LivePreparation
 from hixton.notifications.service import NotificationService
 from hixton.paper.storage import PaperStore
 from hixton.runtime.supervisor import RuntimeSupervisor
+from hixton.ui.account_balance import AccountBalanceDisplay
 from hixton.ui.notifications import install_notification_routes
 
 _COOKIE = "hixton_live_session"
@@ -132,10 +133,23 @@ def install_live_routes(
         finally:
             raw[:] = b"\x00" * len(raw)
 
+    # Dedicated no-success-cache reader: every actual delivery gets a signed
+    # account observation after the fill, independently of the UI's 30s cache.
+    notification_balance = AccountBalanceDisplay(
+        service.credentials, base_url=config.binance_base_url, refresh_seconds=0,
+    )
+
+    def read_notification_balance(account: str) -> dict[str, object]:
+        with service.credentials.lock:
+            if service.credentials.status().get("fingerprint") != account:
+                return {}  # An old key's trade must not inherit a new account balance.
+            return notification_balance.read()
+
     notifications = NotificationService(
         config.database_path.with_name("notification-outbox.sqlite3"),
         config.database_path.with_name("live-preparation.sqlite3"),
         secure_vault,
+        balance_provider=read_notification_balance,
     )
     app.state.notifications = notifications
     install_notification_routes(

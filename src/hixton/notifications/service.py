@@ -13,7 +13,9 @@ from threading import RLock
 from typing import Any
 from uuid import uuid4
 
+from hixton.domain.markets import split_market
 from hixton.live.credentials import Vault, VaultError
+from hixton.notifications.compact import balance_line, compact_message
 from hixton.notifications.events import Notice, collect_notices
 from hixton.notifications.telegram import (
     DeliveryError,
@@ -35,10 +37,12 @@ class NotificationService:
         client: TelegramClient | None = None,
         collector: Callable[[Path], tuple[Notice, ...]] = collect_notices,
         clock: Callable[[], datetime] = lambda: datetime.now(UTC),
+        balance_provider: Callable[[str], dict[str, object]] | None = None,
     ) -> None:
         self.path, self.live_database, self.vault = path, live_database, vault
         self.client = client or TelegramClient()
         self.collector, self.clock = collector, clock
+        self.balance_provider = balance_provider
         self._lock = RLock()
         self._task: asyncio.Task[None] | None = None
         self._stopping = False
@@ -64,6 +68,10 @@ class NotificationService:
                     PRIMARY KEY(generation,event_key)
                 );
             """)
+            columns = {r[1] for r in connection.execute("PRAGMA table_info(notification_outbox)")}
+            for column in ("account_fingerprint", "quote_asset", "detail_body", "last_payload"):
+                if column not in columns:
+                    connection.execute(f"ALTER TABLE notification_outbox ADD COLUMN {column} TEXT")
 
     @contextmanager
     def _connect(self) -> Iterator[sqlite3.Connection]:
@@ -195,9 +203,8 @@ class NotificationService:
             self.client.send(
                 config["secret"],
                 config["recipient"],
-                "Hixton · Testnachricht",
-                "Telegram ist eingerichtet. Dies ist nur eine Kommunikationsprobe. "
-                "Keine Order, kein Echtgeld-Trade und kein simuliertes Handelsergebnis.",
+                "Hixton · Verbindungstest",
+                "✅ Telegram verbunden.\nKeine Order ausgelöst.",
             )
             with self._connect() as connection:
                 connection.execute(
@@ -233,18 +240,23 @@ class NotificationService:
                 for notice in notices:
                     if notice.occurred_at < enabled_at:
                         continue
+                    title, body = compact_message(notice)
                     connection.execute(
                         "INSERT OR IGNORE INTO notification_outbox"
-                        "(generation,event_key,occurred_at,kind,title,body,next_attempt_at)"
-                        " VALUES(?,?,?,?,?,?,?)",
+                        "(generation,event_key,occurred_at,kind,title,body,next_attempt_at,"
+                        "account_fingerprint,quote_asset,detail_body)"
+                        " VALUES(?,?,?,?,?,?,?,?,?,?)",
                         (
                             control["generation"],
                             notice.key,
                             notice.occurred_at.isoformat(),
                             notice.kind,
-                            notice.title,
-                            notice.body,
+                            title,
+                            body,
                             now.isoformat(),
+                            notice.trade.account if notice.trade else None,
+                            split_market(notice.trade.symbol)[1] if notice.trade else None,
+                            notice.body,
                         ),
                     )
                 pending = connection.execute(
@@ -254,12 +266,31 @@ class NotificationService:
                 ).fetchone()
             if pending is None or datetime.fromisoformat(pending["next_attempt_at"]) > now:
                 return
+            delivery_body = str(pending["body"])
+            if pending["account_fingerprint"]:
+                balance: dict[str, object] = {}
+                if self.balance_provider is not None:
+                    # Missing account data never suppresses proven executions.
+                    with suppress(Exception):
+                        balance = self.balance_provider(pending["account_fingerprint"])
+                delivery_body += "\n" + balance_line(
+                    balance, quote=pending["quote_asset"],
+                    after=datetime.fromisoformat(pending["occurred_at"]), now=self.clock(),
+                )
+            else:
+                delivery_body += "\n\nMeldung: " + pending["event_key"]
+            with self._connect() as connection:
+                connection.execute(
+                    "UPDATE notification_outbox SET last_payload=? "
+                    "WHERE generation=? AND event_key=?",
+                    (delivery_body, control["generation"], pending["event_key"]),
+                )
             try:
                 provider_id = self.client.send(
                     config["secret"],
                     config["recipient"],
                     pending["title"],
-                    pending["body"] + "\n\nMeldung: " + pending["event_key"],
+                    delivery_body,
                 )
             except DeliveryError as error:
                 attempts = pending["attempts"] + 1

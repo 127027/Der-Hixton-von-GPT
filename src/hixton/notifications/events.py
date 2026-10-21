@@ -9,7 +9,7 @@ from __future__ import annotations
 
 import json
 import sqlite3
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
 from datetime import UTC, datetime
 from decimal import Decimal, InvalidOperation
 from pathlib import Path
@@ -23,12 +23,29 @@ _Row = dict[str, object]
 
 
 @dataclass(frozen=True)
+class TradeFacts:
+    account: str
+    label: str
+    symbol: str
+    quantity: Decimal
+    spent: Decimal
+    received: Decimal | None
+    fees: tuple[tuple[str, Decimal], ...]
+    remaining: Decimal = _ZERO
+    automatic: bool = False
+    total_realized: Decimal = _ZERO
+    completed_count: int = 0
+    total_foreign_fees: tuple[tuple[str, Decimal], ...] = ()
+
+
+@dataclass(frozen=True)
 class Notice:
     key: str
     kind: str
     occurred_at: datetime
     title: str
     body: str
+    trade: TradeFacts | None = None
 
 
 @dataclass(frozen=True)
@@ -242,6 +259,8 @@ def _entry(key: str, label: str, buy: _Order, signal_time: object) -> Notice:
         f"Gebühren: {_fee_text(buy.fees)}\n"
         f"Binance-Bestätigung erfasst: {_stamp(buy.recorded)}\n"
         f"Strategie-Signal: {signal_time or 'nicht gespeichert'}\n{_ids(buy)}",
+        TradeFacts(buy.account, label, buy.symbol, buy.quantity,
+                   buy.quote + buy.fees.get(quote, _ZERO), None, tuple(sorted(buy.fees.items()))),
     )
 
 
@@ -301,7 +320,11 @@ def _exit(
         f"{_stamp(recorded)}\n" + _order_ids([buy, *sells])
     )
     kind = "partial_exit" if partial else "exit" if reconciled else "review"
-    return Notice(key, kind, recorded, f"{label} · {suffix}", details)
+    return Notice(
+        key, kind, recorded, f"{label} · {suffix}", details,
+        TradeFacts(buy.account, label, buy.symbol, buy.quantity, spent, received,
+                   tuple(sorted(fees.items())), remaining),
+    )
 
 
 def _trial_notices(
@@ -353,6 +376,21 @@ def _trial_notices(
         reconciled=settled,
     )
     if notice is not None:
+        exit_reason = _json(trial.get("exit_signal_json")).get("reason")
+        automatic_exit = isinstance(exit_reason, str) and (
+            exit_reason in {"HIXTON_EXIT_LONG", "POLICY_STOP_ATR", "POLICY_TRAIL_ATR",
+                            "SATELLITE_MAX_HOLD"}
+            or exit_reason.startswith("CORE_CAPACITY_HANDOFF::")
+        )
+        automatic = signal.get("reason") == "HIXTON_ENTER_LONG" and any(
+            _text(a, "intent_id") == identity and _text(a, "action") == "ENTRY_RESERVED"
+            for a in audit
+        ) and automatic_exit and any(
+            _text(a, "intent_id") == identity and _text(a, "action") == "EXIT_RESERVED"
+            for a in audit
+        )
+        assert notice.trade is not None
+        notice = replace(notice, trade=replace(notice.trade, automatic=automatic))
         notices.append(notice)
     return notices
 
@@ -431,6 +469,11 @@ def _live_notices(
                 reconciled=settled,
             )
             if notice is not None:
+                assert notice.trade is not None
+                notice = replace(notice, trade=replace(
+                    notice.trade, automatic=cycle.valid and cycle.buy.state == "FILLED"
+                    and all(s.state == "FILLED" for s in cycle.sells),
+                ))
                 notices.append(notice)
             if not settled:
                 cycle.valid = False
@@ -487,7 +530,32 @@ def collect_notices(database: Path) -> tuple[Notice, ...]:
         )
         # Current + archived copies of one trial must not duplicate delivery keys.
         unique = {notice.key: notice for notice in reversed(notices)}
-        return tuple(sorted(unique.values(), key=lambda n: (n.occurred_at, n.key)))
+        ordered = sorted(unique.values(), key=lambda n: (n.occurred_at, n.key))
+        # Only closed automatic zero-residual cycles count. Paper, deposits,
+        # manual tests, partial cash returns and unvalued dust are not total profit.
+        totals: dict[tuple[str, str], tuple[Decimal, int, dict[str, Decimal]]] = {}
+        result = []
+        for notice in ordered:
+            facts = notice.trade
+            if facts is None:
+                result.append(notice)
+                continue
+            base, quote = split_market(facts.symbol)
+            total, count, foreign = totals.get((facts.account, quote), (_ZERO, 0, {}))
+            foreign = dict(foreign)
+            if (notice.kind == "exit" and facts.automatic and facts.remaining == 0
+                and facts.received is not None):
+                total += facts.received - facts.spent
+                count += 1
+                for asset, amount in facts.fees:
+                    if asset not in {base, quote}:
+                        foreign[asset] = foreign.get(asset, _ZERO) + amount
+                totals[(facts.account, quote)] = (total, count, foreign)
+            result.append(replace(notice, trade=replace(
+                facts, total_realized=total, completed_count=count,
+                total_foreign_fees=tuple(sorted(foreign.items())),
+            )))
+        return tuple(result)
     finally:
         connection.rollback()
         connection.close()
