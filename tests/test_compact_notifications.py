@@ -1,10 +1,12 @@
 """Brief real-money summaries with honest cumulative PnL and fresh balances."""
 
+import asyncio
 import json
 import sqlite3
 from dataclasses import replace
 from datetime import timedelta
 from decimal import Decimal as D
+from threading import Event
 
 import pytest
 
@@ -211,3 +213,47 @@ def test_runtime_never_attaches_another_keys_balance(tmp_path, monkeypatch):
     provider = client.app.state.notifications.balance_provider
     assert provider("another-key") == {} and reads == []
     assert provider(credentials.fingerprint)["free_usdc"] == "1050" and len(reads) == 1
+
+
+def test_stop_during_balance_read_never_sends_late_and_pending_survives(tmp_path):
+    data = Fixture(tmp_path / "fills")
+    automatic_trial(data)
+    service, sender, notices, clock = setup_service(tmp_path / "delivery")
+    clock[0] = AT - timedelta(minutes=1)
+    save(service)
+    notices.append(collect_notices(data.path)[-1])
+    clock[0] = AT + timedelta(minutes=12)
+    entered, release = Event(), Event()
+
+    def blocked_balance(_):
+        entered.set()
+        assert release.wait(5)
+        return current_balance(clock[0])
+
+    service.balance_provider = blocked_balance
+
+    async def scenario():
+        service.start()
+        try:
+            assert await asyncio.to_thread(entered.wait, 3)
+            stop = asyncio.create_task(service.stop())
+            await asyncio.sleep(0)
+            assert service._stopping
+            release.set()
+            await asyncio.wait_for(stop, timeout=3)
+        finally:
+            release.set()
+            await service.stop()
+
+    asyncio.run(scenario())
+    assert sender.sent == []
+    assert service.status(True)["pending"] == 1
+    from hixton.notifications.service import NotificationService
+
+    restarted = NotificationService(
+        service.path, service.live_database, service.vault, client=sender,
+        collector=service.collector, clock=service.clock,
+        balance_provider=lambda _: current_balance(clock[0]),
+    )
+    restarted.cycle()
+    assert len(sender.sent) == 1 and restarted.status(True)["pending"] == 0

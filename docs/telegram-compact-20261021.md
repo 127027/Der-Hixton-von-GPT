@@ -34,6 +34,8 @@ produce an explicit unavailable warning while the confirmed trade is still sent.
 Delivery/account lookup never holds a transaction on the trading ledger and never
 changes entries, exits, approvals or risk settings. The precise attempted outgoing
 body is retained in `last_payload` before transmission, including retry snapshots.
+Shutdown guards prevent a new Telegram call after a slow balance lookup returns
+to a stopping worker; the same pending event remains deliverable after restart.
 
 These are notification-only changes, but the existing full-source guard still
 applies before a new trial BUY. A waiting test is not silently rebound or re-armed

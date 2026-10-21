@@ -221,6 +221,8 @@ class NotificationService:
         # Only this delivery worker uses the lock. No lock/transaction on the trading database
         # is held during provider requests, and delivery never controls entries or exits.
         with self._lock:
+            if self._stopping:
+                return
             with self._connect() as connection:
                 control = connection.execute("SELECT * FROM notification_control").fetchone()
             assert control is not None
@@ -279,6 +281,8 @@ class NotificationService:
                 )
             else:
                 delivery_body += "\n\nMeldung: " + pending["event_key"]
+            if self._stopping:
+                return  # to_thread cancellation cannot interrupt a slow balance lookup.
             with self._connect() as connection:
                 connection.execute(
                     "UPDATE notification_outbox SET last_payload=? "
@@ -286,6 +290,8 @@ class NotificationService:
                     (delivery_body, control["generation"], pending["event_key"]),
                 )
             try:
+                if self._stopping:
+                    return  # Never start a new provider call after stop was requested.
                 provider_id = self.client.send(
                     config["secret"],
                     config["recipient"],
