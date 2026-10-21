@@ -1,11 +1,11 @@
 {
-  "mode": "V6_PRODUCT_CONTINUOUS",
+  "mode": "V8R_PRODUCT_CONTINUOUS",
   "bootstrap_complete": true,
   "progress_percent": 100,
-  "current_focus": "SWARM-003 is active: maintain one clean current V6 USDC product with one saved max_capital_usdc, CAPITAL-V1-2X50PCT (default 250 -> 2x125), a separate controlled local 1x50-USDC first real-money roundtrip, key-free A01-A11 verification, and isolated 10x250 coin research.",
-  "last_indexed_commit": "247ec4f3ed3fae547fbb486992bef820b05cb245",
+  "current_focus": "Maintain the current code-selected v8r product with identical versioned rules in portfolio backtest, 15 independent 250-USDC diagnostics, Paper, explicit 1x50-USDC trial and ordinary Live. Owner selection order on 2026-10-21: highest validated net portfolio profit first, lower maximum drawdown second, on identical frozen comparison inputs. No automatic real-order activation.",
+  "last_indexed_commit": "c934509b670c7fa68b932a5d6f1d3331d500f252",
   "last_learning_round": 6,
-  "current_strategy": "V6 canonical coin profiles from src/hixton/domain/versions.py",
+  "current_strategy": "Active v8r definition from src/hixton/domain/versions.py; V6 and older V8/V8r are frozen historical/regression references.",
   "current_reference": {
     "source_run_id": "35463131378",
     "isolated_10x250_baseline_usdc": "8217.00711069101365000000",
@@ -30,13 +30,33 @@
     "Binance public market-data endpoint availability and policy are external facts and must fail closed rather than trigger synthetic operational candles.",
     "Historical performance does not guarantee future profitability."
   ],
-  "notes": "Current A01-A11 roles live under agent_memory/swarm/. The active product uses the max-capital allocator; legacy 3x80 values in current_reference are historical research evidence only. Paper state is preserved across strategy activation. Cloud agents never submit real/testnet orders; local real-money execution remains fail-closed behind the explicit controlled 1x50 trial.",
+  "notes": "Current code and the latest owner instructions in AGENTS.md take precedence over older memory/coordination descriptions. current_reference below is a historical V6-era checkpoint only, not the current product benchmark. Preserve Paper/history and owned frozen exit obligations. Candidate eligibility retains validation, parity, cost/stress and fail-closed trading gates.",
   "current_product": {
-    "max_capital_source": "max_capital_usdc",
-    "allocator_version": "CAPITAL-V1-2X50PCT",
+    "max_capital_source": "max_capital_usdc; fresh free Binance Spot USDC when auto_budget_enabled",
+    "allocator_version": "CAPITAL-V3-LATCHED-DISTINCT",
     "default_max_capital_usdc": "250.00",
     "default_slot_count": 2,
     "default_target_notional_usdc": "125.00",
-    "first_live_trial": "1x50 USDC controlled roundtrip"
+    "first_live_trial": "1x50 USDC controlled roundtrip",
+    "strategy_source": "src/hixton/domain/versions.py:STRATEGY_DEFINITIONS[v8r]",
+    "diversification_source": "Read active strategy diversification_stages and second_tranche_split_dd_pct; do not substitute old memory values."
+  },
+  "owner_selection_policy": {
+    "instruction_date": "2026-10-21",
+    "ranking": [
+      "HIGHEST_VALIDATED_NET_PORTFOLIO_PROFIT",
+      "LOWEST_MAXIMUM_DRAWDOWN"
+    ],
+    "comparison_inputs": "IDENTICAL_FROZEN_DATA_WINDOW_CAPITAL_SETTINGS_FILTERS_COSTS",
+    "scope": "TECHNICALLY_ELIGIBLE_VALIDATED_CANDIDATES",
+    "shared_active_rules": [
+      "PORTFOLIO_BACKTEST",
+      "ISOLATED_250_DIAGNOSTICS",
+      "PAPER",
+      "NEXT_EXPLICIT_50_USDC_TRIAL",
+      "ORDINARY_LIVE"
+    ],
+    "automatic_order_authorization": false,
+    "documentation": "docs/selection-policy-20261021.md"
   }
 }
