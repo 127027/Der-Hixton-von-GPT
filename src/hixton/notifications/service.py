@@ -76,14 +76,18 @@ class NotificationService:
         finally:
             connection.close()
 
-    def _config(self) -> dict[str, Any]:
+    def _config(self, *, require_chat: bool = True) -> dict[str, Any]:
         raw = self.vault.read(_VAULT_NAME)
         try:
             value = json.loads(raw or "{}")
             if not isinstance(value, dict):
                 raise ValueError
             token = validate_token(value.get("secret", ""))
-            chat = validate_chat(value.get("recipient", ""))
+            chat = value.get("recipient", "")
+            if not isinstance(chat, str):
+                raise ValueError
+            if chat or require_chat:
+                chat = validate_chat(chat)
         except (ValueError, TypeError):
             raise ValueError("Telegram-Kontakt zuerst vollständig speichern.") from None
         return {"secret": token, "recipient": chat}
@@ -100,9 +104,8 @@ class NotificationService:
             if not authenticated:
                 return result
             config: dict[str, Any] = {}
-            if row["configured"]:
-                with suppress(ValueError, VaultError):
-                    config = self._config()
+            with suppress(ValueError, VaultError):
+                config = self._config(require_chat=False)
             result.update(
                 {
                     "channel": "telegram",
@@ -123,18 +126,21 @@ class NotificationService:
         recipient, secret = data.get("recipient"), data.get("secret", "")
         if not isinstance(recipient, str) or not isinstance(secret, str):
             raise ValueError("Ungültige Telegram-Kontaktdaten.")
-        recipient = validate_chat(recipient.strip())
+        recipient = recipient.strip()
+        if recipient:
+            recipient = validate_chat(recipient)
+        enabled = bool(data["enabled"] and recipient)
         secret = secret.strip()
         with self._lock:
             previous: dict[str, Any] = {}
             with suppress(ValueError):
-                previous = self._config()
+                previous = self._config(require_chat=False)
             secret = validate_token(secret or previous.get("secret", ""))
             new_config = {"recipient": recipient, "secret": secret}
             with self._connect() as connection:
                 row = connection.execute("SELECT * FROM notification_control").fetchone()
                 assert row is not None
-                new_generation = previous != new_config or not row["enabled"] or not data["enabled"]
+                new_generation = previous != new_config or not row["enabled"] or not enabled
                 if new_generation:
                     # Commit the stop BEFORE rotating a vault record. A crash or vault/
                     # SQLite failure must never reroute pending financial data to a new chat.
@@ -147,10 +153,11 @@ class NotificationService:
                 self.vault.write(_VAULT_NAME, json.dumps(new_config))
             with self._connect() as connection:
                 connection.execute(
-                    "UPDATE notification_control SET configured=1,enabled=?,generation=?,"
+                    "UPDATE notification_control SET configured=?,enabled=?,generation=?,"
                     "enabled_at=?,last_error=NULL WHERE singleton=1",
                     (
-                        int(data["enabled"]),
+                        int(bool(recipient)),
+                        int(enabled),
                         uuid4().hex if new_generation else row["generation"],
                         self.clock().isoformat() if new_generation else row["enabled_at"],
                     ),
@@ -171,7 +178,15 @@ class NotificationService:
 
     def discover(self, secret: str) -> list[dict[str, str]]:
         with self._lock:
-            token = validate_token(secret.strip() or self._config()["secret"])
+            token = secret.strip()
+            if not token:
+                try:
+                    token = self._config(require_chat=False)["secret"]
+                except ValueError:
+                    raise ValueError(
+                        "Zuerst den Bot-Token eintragen oder sicher speichern."
+                    ) from None
+            token = validate_token(token)
             return self.client.discover(token)
 
     def test(self) -> dict[str, object]:

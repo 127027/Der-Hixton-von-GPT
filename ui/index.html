@@ -237,7 +237,7 @@
                 <ol>
                   <li>In Telegram beim offiziellen <a href="https://t.me/BotFather" target="_blank" rel="noopener">BotFather</a> mit <code>/newbot</code> einen eigenen Bot anlegen.</li>
                   <li>Deinen neuen Bot öffnen und <code>/start</code> senden.</li>
-                  <li>Das Bot-Token unten eintragen und „Privaten Chat finden“ wählen. Deinen Chat auswählen, speichern und ausdrücklich eine Testmeldung senden.</li>
+                  <li>Unten zuerst das Bot-Token speichern, dann deinen privaten Chat finden und auswählen. Anschließend Kontakt speichern und ausdrücklich eine Testmeldung senden.</li>
                 </ol>
                 <p>Der Bot muss laufen und Internet haben. Bei einer Unterbrechung wartet der Versand. „Vom Versanddienst angenommen“ bestätigt keine Zustellung oder gelesene Nachricht. Fremdgebühren wie BNB werden ohne verfügbare Umrechnung getrennt angegeben.</p>
               </details>
@@ -247,13 +247,15 @@
                   <legend>Mit demselben lokalen Hixton-Passwort oben entsperren</legend>
                   <label class="settings-toggle"><input id="notification-enabled" type="checkbox" /> Telegram-Handelsmeldungen aktivieren</label>
                   <label>Bot-Token<input id="notification-secret" type="password" maxlength="256" autocomplete="off" spellcheck="false" aria-describedby="notification-secret-help" /></label>
+                  <button id="notification-token-save" type="button" class="button secondary">1 · Bot-Token speichern</button>
                   <small id="notification-secret-help">Nur lokal sicher speichern. Leer lassen, um ein bereits gespeichertes Token zu behalten.</small>
-                  <button id="notification-discover" type="button" class="button secondary">Privaten Chat finden</button>
+                  <button id="notification-discover" type="button" class="button secondary">2 · Privaten Chat finden</button>
+                  <p id="notification-feedback" role="status" aria-live="polite"></p>
                   <label id="notification-chat-choice-wrap" class="hidden">Gefundene private Chats<select id="notification-chat-choice"><option value="">Chat auswählen …</option></select></label>
                   <label>Private Chat-ID<input id="notification-recipient" type="text" inputmode="numeric" maxlength="32" autocomplete="off" spellcheck="false" placeholder="z. B. 123456789" /></label>
                   <small>Deine Chat-ID ist keine Telefonnummer. Du kannst sie auch direkt eintragen.</small>
                   <div class="settings-fields">
-                    <button id="notification-save" type="submit" class="button secondary">Kontakt speichern</button>
+                    <button id="notification-save" type="submit" class="button secondary">3 · Kontakt speichern</button>
                     <button id="notification-test" type="button" class="button secondary" disabled>Testmeldung senden</button>
                   </div>
                   <p id="notification-edit-state" class="quiet-note"></p>
@@ -264,7 +266,6 @@
                 </fieldset>
               </form>
               </details>
-              <p id="notification-feedback" role="status" aria-live="polite"></p>
             </article>
 
             <article class="settings-card settings-live-card">

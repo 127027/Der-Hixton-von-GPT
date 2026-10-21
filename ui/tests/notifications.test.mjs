@@ -15,7 +15,7 @@ function backend() {
     if(url.endsWith("/test"))return reply(200,{accepted:true});
     if(url.endsWith("/delete")){Object.assign(state,{configured:false,enabled:false,recipient:"",secret_configured:false});return reply(200,state);}
     if(failSave)return reply(400,{detail:"Chat-ID ungültig."});
-    Object.assign(state,{configured:true,enabled:body.enabled,recipient:body.recipient,secret_configured:true});return reply(200,state);
+    Object.assign(state,{configured:Boolean(body.recipient),enabled:Boolean(body.recipient)&&body.enabled,recipient:body.recipient,secret_configured:true});return reply(200,state);
   };
   return {state,calls,fetcher,failSave(){failSave=true;}};
 }
@@ -78,6 +78,7 @@ test("token clears on failed save, immediate lock, session expiry and pagehide",
   const mock=backend(),ui=harness(mock.fetcher),controller=initializeNotifications();
   try {
     await controller.refresh();mock.failSave();
+    ui.node("notification-recipient").value="123456789";
     ui.node("notification-secret").value="never-persist";await ui.node("notification-secret").fire("input");
     await ui.node("notification-form").fire("submit");
     assert.equal(ui.node("notification-secret").value,"");
@@ -133,6 +134,72 @@ test("contact help and form describe only Telegram and never persist browser sec
   assert.match(contact,/type="password"[^>]*autocomplete="off"/);
   const source=readFileSync(new URL("../src/notifications.ts",import.meta.url),"utf8");
   assert.doesNotMatch(source,/localStorage|sessionStorage|\/api\/live\/enable|\/trial\/start/);
+  assert.ok(contact.indexOf('id="notification-feedback"')>contact.indexOf('id="notification-discover"'));
+  assert.ok(contact.indexOf('id="notification-feedback"')<contact.indexOf('id="notification-recipient"'));
+});
+
+test("token-only setup ignores an invalid bot URL, stays disabled and discovers with the stored token",async()=>{
+  const mock=backend(),ui=harness(mock.fetcher),controller=initializeNotifications();
+  try {
+    await controller.refresh();
+    assert.match(ui.node("notification-secret-help").textContent,/Noch kein Token gespeichert/);
+    ui.node("notification-secret").value="test-only-token";await ui.node("notification-secret").fire("input");
+    ui.node("notification-recipient").value="https://t.me/my_test_bot";await ui.node("notification-recipient").fire("input");
+    ui.node("notification-enabled").checked=true;
+    await ui.node("notification-token-save").fire("click");
+    const save=mock.calls.find(c=>c.options.method==="POST");
+    assert.deepEqual(save.body,{channel:"telegram",secret:"test-only-token",recipient:"",enabled:false});
+    assert.equal(mock.state.configured,false);assert.equal(mock.state.enabled,false);assert.equal(mock.state.secret_configured,true);
+    assert.equal(ui.node("notification-recipient").value,"");assert.equal(ui.node("notification-secret").value,"");
+    assert.equal(ui.node("notification-enabled").checked,false);
+    assert.match(ui.node("notification-feedback").textContent,/Token sicher gespeichert.*privaten Chat finden/);
+    assert.match(ui.node("notification-secret-help").textContent,/Token gespeichert \(erneute Eingabe nicht nötig\)/);
+    assert.equal(ui.node("notification-delete").disabled,false);
+    assert.equal(ui.node("notification-test").disabled,true);
+    await ui.node("notification-discover").fire("click");
+    assert.deepEqual(mock.calls.find(c=>c.url.endsWith("/discover")).body,{secret:""});
+    ui.node("notification-chat-choice").value="123456789";await ui.node("notification-chat-choice").fire("change");
+    ui.node("notification-enabled").checked=true;await ui.node("notification-enabled").fire("change");
+    await ui.node("notification-form").fire("submit");
+    assert.equal(mock.state.configured,true);assert.equal(mock.state.enabled,true);
+    assert.deepEqual(mock.calls.filter(c=>c.options.method==="POST").at(-1).body,{channel:"telegram",enabled:true,recipient:"123456789",secret:""});
+    assert.equal(ui.node("notification-token-save").classList.contains("hidden"),true);
+    assert.equal(mock.calls.some(c=>c.url.endsWith("/test")),false);
+  } finally {controller.dispose();ui.restore();}
+});
+
+test("token-only configuration can be removed before selecting a chat",async()=>{
+  const mock=backend();Object.assign(mock.state,{secret_configured:true,configured:false,recipient:""});
+  const ui=harness(mock.fetcher),controller=initializeNotifications();
+  try {
+    await controller.refresh();assert.equal(ui.node("notification-delete").disabled,false);
+    await ui.node("notification-delete").fire("click");
+    assert.equal(mock.state.secret_configured,false);assert.equal(mock.state.configured,false);
+    assert.equal(ui.node("notification-delete").disabled,true);
+    assert.match(ui.node("notification-secret-help").textContent,/Noch kein Token gespeichert/);
+  } finally {controller.dispose();ui.restore();}
+});
+
+test("missing token reports a visible setup step without sending a discover request",async()=>{
+  const mock=backend(),ui=harness(mock.fetcher),controller=initializeNotifications();
+  try {
+    await controller.refresh();await ui.node("notification-discover").fire("click");
+    assert.equal(mock.calls.some(c=>c.options.method==="POST"),false);
+    assert.match(ui.node("notification-feedback").textContent,/Noch kein Bot-Token vorhanden.*Schritt 1/);
+  } finally {controller.dispose();ui.restore();}
+});
+
+test("invalid nonnumeric chat ID blocks a full save locally and preserves the typed token",async()=>{
+  const mock=backend(),ui=harness(mock.fetcher),controller=initializeNotifications();
+  try {
+    await controller.refresh();
+    ui.node("notification-secret").value="test-only-token";await ui.node("notification-secret").fire("input");
+    ui.node("notification-recipient").value="https://t.me/my_test_bot";await ui.node("notification-recipient").fire("input");
+    await ui.node("notification-form").fire("submit");
+    assert.equal(mock.calls.some(c=>c.options.method==="POST"),false);
+    assert.equal(ui.node("notification-secret").value,"test-only-token");
+    assert.match(ui.node("notification-feedback").textContent,/Chat-ID muss eine positive Zahl sein.*Privaten Chat finden/);
+  } finally {controller.dispose();ui.restore();}
 });
 
 for (const revoke of ["lock","expiry"]) {

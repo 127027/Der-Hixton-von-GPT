@@ -13,7 +13,10 @@ lösen keine Handelsnachricht aus. Paper und Backtests werden nicht gemeldet.
 2. Den eigenen neuen Bot öffnen und `/start` senden. Telegram erlaubt Bots nicht,
    von sich aus ein Gespräch mit einem unbekannten Benutzer anzufangen.
 3. In Hixton oben mit dem lokalen Passwort entsperren. Unter Kontakt das Token
-   eintragen, **Privaten Chat finden** wählen und den eigenen Chat auswählen.
+   eintragen und zuerst **Bot-Token speichern** wählen. Dafür ist noch keine
+   Chat-ID nötig; Handelsmeldungen bleiben dabei ausgeschaltet. Hixton bestätigt
+   ausdrücklich, ob das Token im Windows-Schlüsselspeicher gespeichert ist.
+   Danach **Privaten Chat finden** wählen und den eigenen Chat auswählen.
    Eine Chat-ID ist keine Telefonnummer. Die automatische Suche liest die letzten
    Nachrichten des eigenen Bots; bei einem bereits anderweitig verwendeten Bot
    kann stattdessen die private Chat-ID direkt eingetragen werden.
@@ -21,7 +24,11 @@ lösen keine Handelsnachricht aus. Paper und Backtests werden nicht gemeldet.
    **Testmeldung senden** drücken. Den Empfang in Telegram selbst prüfen.
 
 Ein vorhandenes Token kann durch ein leeres Tokenfeld beim Speichern beibehalten
-werden. Entfernen löscht nur den lokalen Kontakt und dessen lokale Versandkopien;
+werden. Der Bot-Link (`t.me/...`) ist keine Chat-ID. Eine ungültige manuelle Chat-ID
+wird vor dem Speichern direkt im Formular erklärt; ein noch nicht abgesendeter
+Token bleibt dabei im Eingabefeld, damit die Korrektur keine erneute Eingabe
+erfordert. Antworten der Chatsuche stehen direkt unter dem Suchbutton.
+Entfernen löscht auch einen allein gespeicherten Token und dessen lokale Versandkopien;
 es stoppt oder verkauft keine Position und widerruft den Bot nicht bei Telegram.
 
 ## Was gemeldet wird

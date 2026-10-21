@@ -38,10 +38,11 @@ export function initializeNotifications(): {refresh: () => Promise<void>; dispos
     !disposed && !suspended && epoch === accessEpoch && last?.authenticated === true;
   const updateControls = (): void => {
     control<HTMLFieldSetElement>("notification-protected").disabled = busy || !last?.authenticated;
-    for (const id of ["notification-save", "notification-discover"])
+    for (const id of ["notification-save", "notification-token-save", "notification-discover"])
       control<HTMLButtonElement>(id).disabled = busy || !last?.authenticated;
+    control("notification-token-save").classList.toggle("hidden", last?.configured === true);
     control<HTMLButtonElement>("notification-test").disabled = busy || dirty || !last?.authenticated || !last.configured;
-    control<HTMLButtonElement>("notification-delete").disabled = busy || !last?.authenticated || !last.configured;
+    control<HTMLButtonElement>("notification-delete").disabled = busy || !last?.authenticated || !(last.configured || last.secret_configured);
     text("notification-edit-state", dirty ? "Änderungen noch nicht gespeichert. Erst speichern, dann eine Testmeldung senden." : "Speichern sendet keine Testmeldung und keine früheren Handelsmeldungen.");
   };
   const render = (status: NotificationStatus): void => {
@@ -49,11 +50,15 @@ export function initializeNotifications(): {refresh: () => Promise<void>; dispos
     if (!status.authenticated) {
       redactPrivate();
       last = {authenticated:false, configured:status.configured, enabled:status.enabled};
+      text("notification-secret-help", "Tokenstatus nach dem Entsperren prüfen. Das Token bleibt ausschließlich lokal gespeichert.");
       if (busy) text("notification-feedback", "Sitzung abgelaufen. Späte Kontaktantworten werden nicht angezeigt.");
       text("notification-status", status.configured
         ? `Telegram-Kontakt gespeichert · ${status.enabled ? "Meldungen aktiviert" : "Meldungen aus"}. Zum Bearbeiten oben entsperren.`
         : "Noch kein Telegram-Kontakt. Zum Einrichten oben entsperren.");
     } else {
+      text("notification-secret-help", status.secret_configured
+        ? "Token gespeichert (erneute Eingabe nicht nötig). Nur zum Ersetzen ein neues Token eintragen."
+        : "Noch kein Token gespeichert. BotFather-Token eintragen und mit Schritt 1 sicher speichern.");
       if (!dirty) {
         control<HTMLInputElement>("notification-enabled").checked = status.enabled;
         control<HTMLInputElement>("notification-recipient").value = status.recipient ?? "";
@@ -63,7 +68,9 @@ export function initializeNotifications(): {refresh: () => Promise<void>; dispos
         ? ` · zuletzt vom Versanddienst angenommen: ${new Intl.DateTimeFormat("de-DE", {dateStyle:"short", timeStyle:"short", timeZone:"Europe/Berlin"}).format(new Date(status.last_sent_at))}` : "";
       text("notification-status", status.configured
         ? `Telegram ${status.enabled ? "aktiviert" : "aus"}${pending}${sent}${status.last_error ? ` · ${status.last_error}` : ""}`
-        : "Noch kein Telegram-Kontakt gespeichert.");
+        : status.secret_configured
+          ? "Token sicher gespeichert · Chat-ID fehlt. Jetzt privaten Chat finden."
+          : "Noch kein Telegram-Kontakt und kein Token gespeichert.");
     }
     updateControls();
   };
@@ -113,10 +120,15 @@ export function initializeNotifications(): {refresh: () => Promise<void>; dispos
   control("notification-form").addEventListener("submit", event => {
     event.preventDefault();
     return act(async epoch => {
+      const recipient = control<HTMLInputElement>("notification-recipient").value.trim();
+      if (!/^[1-9]\d*$/.test(recipient))
+        throw new Error("Die private Chat-ID muss eine positive Zahl sein, kein Bot-Link oder Benutzername. Bitte „Privaten Chat finden“ wählen und deinen Chat auswählen.");
+      if (!control<HTMLInputElement>("notification-secret").value.trim() && !last?.secret_configured)
+        throw new Error("Noch kein Bot-Token gespeichert. Zuerst bei Schritt 1 das BotFather-Token eintragen und speichern.");
       try {
         await request("", {
           channel:"telegram", enabled:control<HTMLInputElement>("notification-enabled").checked,
-          recipient:control<HTMLInputElement>("notification-recipient").value.trim(),
+          recipient,
           secret:control<HTMLInputElement>("notification-secret").value.trim(),
         }, epoch);
         if (!actionCurrent(epoch)) return;
@@ -125,8 +137,25 @@ export function initializeNotifications(): {refresh: () => Promise<void>; dispos
       } finally { clearSecret(); }
     });
   });
+  control("notification-token-save").addEventListener("click", () => act(async epoch => {
+    if (last?.configured) throw new Error("Kontakt ist bereits eingerichtet. Tokenänderungen mit dem vollständigen Kontakt speichern.");
+    const secret = control<HTMLInputElement>("notification-secret").value.trim();
+    if (!secret && !last?.secret_configured)
+      throw new Error("Noch kein Bot-Token gespeichert. Bitte das BotFather-Token oben eintragen und Schritt 1 erneut wählen.");
+    try {
+      await request("", {channel:"telegram", secret, recipient:"", enabled:false}, epoch);
+      if (!actionCurrent(epoch)) return;
+      control<HTMLInputElement>("notification-recipient").value = "";
+      control<HTMLInputElement>("notification-enabled").checked = false;
+      dirty = false;
+      text("notification-feedback", "Token sicher gespeichert. Jetzt privaten Chat finden.");
+    } finally { clearSecret(); }
+  }));
   control("notification-discover").addEventListener("click", () => act(async epoch => {
-    const result = await request("/discover", {secret:control<HTMLInputElement>("notification-secret").value.trim()}, epoch);
+    const secret = control<HTMLInputElement>("notification-secret").value.trim();
+    if (!secret && !last?.secret_configured)
+      throw new Error("Noch kein Bot-Token vorhanden. Bitte zuerst bei Schritt 1 das Token eintragen und speichern.");
+    const result = await request("/discover", {secret}, epoch);
     if (!actionCurrent(epoch)) return;
     const chats = Array.isArray(result.chats) ? result.chats : [];
     const choices = control<HTMLSelectElement>("notification-chat-choice");

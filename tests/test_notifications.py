@@ -77,6 +77,43 @@ def test_disabled_and_save_never_send_or_replay_historical_trades(tmp_path: Path
     assert "12345" not in json.dumps(service.status(False))
 
 
+def test_token_can_be_saved_first_discovered_and_kept_without_enabling_delivery(
+    tmp_path: Path,
+) -> None:
+    service, sender, _, _ = setup_service(tmp_path)
+    partial = save(service, recipient="", enabled=True)
+    assert partial["secret_configured"] is True
+    assert partial["configured"] is False and partial["enabled"] is False
+    assert TOKEN not in json.dumps(partial)
+    service.cycle()
+    assert not sender.sent
+    assert service.discover("") == [{"id": "12345", "label": "Testnutzer"}]
+    with pytest.raises(ValueError):
+        service.test()
+    completed = save(service, recipient="12345", secret="")
+    assert completed["configured"] is True and completed["enabled"] is True
+    assert not sender.sent
+
+
+def test_partial_token_survives_restart_and_can_be_removed(tmp_path: Path) -> None:
+    service, sender, _, _ = setup_service(tmp_path)
+    save(service, recipient="", enabled=False)
+    restarted = NotificationService(
+        service.path,
+        service.live_database,
+        service.vault,
+        client=sender,
+        collector=service.collector,
+        clock=service.clock,
+    )
+    assert restarted.status(True)["secret_configured"] is True
+    assert "secret_configured" not in restarted.status(False)
+    assert restarted.discover("")[0]["id"] == "12345"
+    restarted.delete()
+    assert restarted.status(True)["secret_configured"] is False
+    assert not sender.sent
+
+
 def test_restart_deduplicates_and_retains_failed_pending_message(tmp_path: Path) -> None:
     service, sender, notices, now = setup_service(tmp_path)
     save(service)
@@ -242,6 +279,42 @@ def test_contact_api_shares_password_origin_and_secrets_never_roundtrip(tmp_path
     assert "recipient" not in client.get("/api/live/notifications").json()
     assert client.post("/api/live/notifications/test", headers=HEADERS, json={}).status_code == 401
     assert len(fake.sent) == 1
+
+
+def test_api_token_first_chat_discovery_then_full_contact_without_token_reentry(
+    tmp_path: Path,
+) -> None:
+    client, _, _ = client_for(tmp_path)
+    fake = FakeTelegram()
+    client.app.state.notifications.client = fake
+    unlock(client)
+    partial = client.post(
+        "/api/live/notifications",
+        headers=HEADERS,
+        json={
+            "enabled": True,
+            "recipient": "",
+            "secret": TOKEN,
+        },
+    )
+    assert partial.status_code == 200
+    assert partial.json()["secret_configured"] is True
+    assert partial.json()["configured"] is False and partial.json()["enabled"] is False
+    assert TOKEN not in partial.text
+    chats = client.post("/api/live/notifications/discover", headers=HEADERS, json={"secret": ""})
+    assert chats.status_code == 200 and chats.json()["chats"][0]["id"] == "12345"
+    full = client.post(
+        "/api/live/notifications",
+        headers=HEADERS,
+        json={
+            "enabled": True,
+            "recipient": "12345",
+            "secret": "",
+        },
+    )
+    assert full.status_code == 200 and full.json()["configured"] is True
+    assert full.json()["enabled"] is True and TOKEN not in full.text
+    assert not fake.sent
 
 
 def test_telegram_http_uses_private_chat_no_paid_broadcast_and_no_markup(monkeypatch: Any) -> None:
