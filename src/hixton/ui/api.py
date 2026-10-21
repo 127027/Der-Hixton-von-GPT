@@ -460,11 +460,13 @@ def create_app(
             supervisor.start()
         else:
             session.start(supervisor)
+        app.state.notifications.start()
         try:
             yield
         finally:
             if session is not None:
                 await session.close()
+            await app.state.notifications.stop()
             await supervisor.stop()
 
     app = FastAPI(

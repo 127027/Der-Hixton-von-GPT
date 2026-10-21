@@ -5,8 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="color-scheme" content="dark" />
     <title>Der Hixton</title>
-    <script type="module" crossorigin src="/assets/index-Djt2enP3.js"></script>
-    <link rel="stylesheet" crossorigin href="/assets/index-v1hER6E4.css">
+    <script type="module" crossorigin src="/assets/index-B6zh0uRr.js"></script>
+    <link rel="stylesheet" crossorigin href="/assets/index-DnL4Ff7h.css">
   </head>
   <body>
     <div id="app-shell">
@@ -229,6 +229,44 @@
                   </div>
                 </details>
               </fieldset>
+            </article>
+
+            <article class="settings-card notification-card">
+              <h2>Kontakt · Telegram</h2>
+              <p id="notification-status" role="status">Kontaktstatus wird geladen …</p>
+              <p class="quiet-note">Meldungen zu bestätigten Echtgeld-Käufen, Verkäufen und Abschlüssen, einschließlich des 50-USDC-Tests. Paper sendet keine Handelsmeldungen.</p>
+              <details class="compact-details"><summary>Telegram einrichten</summary>
+                <ol>
+                  <li>In Telegram beim offiziellen <a href="https://t.me/BotFather" target="_blank" rel="noopener">BotFather</a> mit <code>/newbot</code> einen eigenen Bot anlegen.</li>
+                  <li>Deinen neuen Bot öffnen und <code>/start</code> senden.</li>
+                  <li>Das Bot-Token unten eintragen und „Privaten Chat finden“ wählen. Deinen Chat auswählen, speichern und ausdrücklich eine Testmeldung senden.</li>
+                </ol>
+                <p>Der Bot muss laufen und Internet haben. Bei einer Unterbrechung wartet der Versand. „Vom Versanddienst angenommen“ bestätigt keine Zustellung oder gelesene Nachricht. Fremdgebühren wie BNB werden ohne verfügbare Umrechnung getrennt angegeben.</p>
+              </details>
+              <details class="compact-details"><summary>Telegram-Kontakt bearbeiten</summary>
+              <form id="notification-form" class="settings-form">
+                <fieldset id="notification-protected" class="live-controls" disabled>
+                  <legend>Mit demselben lokalen Hixton-Passwort oben entsperren</legend>
+                  <label class="settings-toggle"><input id="notification-enabled" type="checkbox" /> Telegram-Handelsmeldungen aktivieren</label>
+                  <label>Bot-Token<input id="notification-secret" type="password" maxlength="256" autocomplete="off" spellcheck="false" aria-describedby="notification-secret-help" /></label>
+                  <small id="notification-secret-help">Nur lokal sicher speichern. Leer lassen, um ein bereits gespeichertes Token zu behalten.</small>
+                  <button id="notification-discover" type="button" class="button secondary">Privaten Chat finden</button>
+                  <label id="notification-chat-choice-wrap" class="hidden">Gefundene private Chats<select id="notification-chat-choice"><option value="">Chat auswählen …</option></select></label>
+                  <label>Private Chat-ID<input id="notification-recipient" type="text" inputmode="numeric" maxlength="32" autocomplete="off" spellcheck="false" placeholder="z. B. 123456789" /></label>
+                  <small>Deine Chat-ID ist keine Telefonnummer. Du kannst sie auch direkt eintragen.</small>
+                  <div class="settings-fields">
+                    <button id="notification-save" type="submit" class="button secondary">Kontakt speichern</button>
+                    <button id="notification-test" type="button" class="button secondary" disabled>Testmeldung senden</button>
+                  </div>
+                  <p id="notification-edit-state" class="quiet-note"></p>
+                  <details class="compact-details"><summary>Kontakt entfernen</summary>
+                    <p>Telegram-Kontakt und lokal gespeichertes Bot-Token entfernen. Dies beendet keine Handelsposition.</p>
+                    <button id="notification-delete" type="button" class="button secondary" disabled>Kontakt und Token entfernen</button>
+                  </details>
+                </fieldset>
+              </form>
+              </details>
+              <p id="notification-feedback" role="status" aria-live="polite"></p>
             </article>
 
             <article class="settings-card settings-live-card">

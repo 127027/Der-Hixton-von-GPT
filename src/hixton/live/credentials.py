@@ -73,7 +73,7 @@ class WindowsVault:
         self.prefix = f"DerHixton/{digest}/"
 
     def _target(self, name: str) -> str:
-        if name not in {"binance-hmac", "ui-password"}:
+        if name not in {"binance-hmac", "ui-password", "telegram-notifications"}:
             raise VaultError("Unbekannter Hixton-Schlüsselspeicher.")
         return self.prefix + name
 

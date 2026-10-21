@@ -21,8 +21,10 @@ from hixton.data.storage import CandleStore
 from hixton.live.binance import BinanceCheckError, BinanceReadOnlyClient
 from hixton.live.credentials import BinanceCredentials, Vault, VaultError, WindowsVault
 from hixton.live.preparation import LivePreparation
+from hixton.notifications.service import NotificationService
 from hixton.paper.storage import PaperStore
 from hixton.runtime.supervisor import RuntimeSupervisor
+from hixton.ui.notifications import install_notification_routes
 
 _COOKIE = "hixton_live_session"
 
@@ -34,9 +36,10 @@ def install_live_routes(
     local_action: Callable[[Request], bool],
     vault: Vault | None = None,
 ) -> None:
+    secure_vault = vault if vault is not None else WindowsVault(config.database_path)
     service = LivePreparation(
         config.database_path.with_name("live-preparation.sqlite3"),
-        vault if vault is not None else WindowsVault(config.database_path),
+        secure_vault,
         client_factory=partial(
             BinanceReadOnlyClient, quote_asset="USDC", market_symbols=supervisor.strategy.symbols
         ),
@@ -128,6 +131,17 @@ def install_live_routes(
             raise HTTPException(400, "Ungültige Eingabe.") from None
         finally:
             raw[:] = b"\x00" * len(raw)
+
+    notifications = NotificationService(
+        config.database_path.with_name("notification-outbox.sqlite3"),
+        config.database_path.with_name("live-preparation.sqlite3"),
+        secure_vault,
+    )
+    app.state.notifications = notifications
+    install_notification_routes(
+        app, notifications, require_session,
+        lambda request: service.access.authorized(request.cookies.get(_COOKIE)), payload,
+    )
 
     def get_status(authenticated: bool) -> dict[str, object]:
         soak_ready = False

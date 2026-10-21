@@ -1,5 +1,13 @@
 # Der Hixton
 
+**Telegram-Kontakt (Erweiterung 21.10.2026):** Einstellungen enthalten einen
+separaten Kontaktbereich für bestätigte Echtgeld-Käufe, Teilverkäufe und
+abgeglichene Abschlüsse. Keine Paper- oder Freigabemeldungen; Zugang im
+Windows-Schlüsselspeicher, gespeicherte Versandwarteschlange und transparente
+Gebühren nach Asset. [Einrichtung, Betrieb und Grenzen](docs/telegram-notifications.md).
+Code-Verfügbarkeit aktiviert weder den Versand noch Echtgeld. Bei laufendem
+freigegebenem Test wird die Installation wegen der Versionsbindung abgestimmt.
+
 Technischer Stand 16.10.2026: bestätigte Orderkennungen werden vor Folgeabfragen
 gespeichert; ungeklärte Testorders erscheinen als Fehler. Eine eng begrenzte,
 ausdrücklich autorisierte Orderklärung prüft Börsenhistorie und unveränderliche

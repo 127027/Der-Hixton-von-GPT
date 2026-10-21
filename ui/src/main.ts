@@ -17,6 +17,7 @@ import "./styles.css";
 import type { TradingSettings, TradingLimits } from "./settings-draft";
 import { initializeTradingSettings } from "./trading-settings";
 import { initializeLivePreparation } from "./live-preparation";
+import { initializeNotifications } from "./notifications";
 import { marketSignalText } from "./market-signal";
 import { initializeSessionLifetime } from "./session-lifetime";
 import { portfolioBlocksText, savedRunNotice, type RunComparison } from "./backtest-context";
@@ -614,6 +615,7 @@ const tradingSettings = initializeTradingSettings(async (settings) => {
 initializeControls();
 initializeSessionLifetime();
 initializeLivePreparation(mode => tradingSettings.liveBlocker(mode));
+initializeNotifications();
 ensureChart();
 void Promise.all([refreshCore(), refreshEvents(), refreshBacktests(), refreshRuntimeLogs()]).then(() => loadChart());
 window.setInterval(() => void refreshCore(), 5_000);

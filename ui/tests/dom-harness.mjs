@@ -11,6 +11,7 @@ function moduleUrl(name) {
 }
 export const {initializeLivePreparation} = await import(moduleUrl("live-preparation"));
 export const {initializeTradingSettings} = await import(moduleUrl("trading-settings"));
+export const {initializeNotifications} = await import(moduleUrl("notifications"));
 
 class Element {
   value = ""; checked = false; disabled = false; required = false; textContent = "";
@@ -24,6 +25,7 @@ class Element {
     toggle: (x, force) => force ? this.classes.add(x) : this.classes.delete(x),
   };
   addEventListener(event, callback) { this.listeners.set(event, [...(this.listeners.get(event) ?? []), callback]); }
+  removeEventListener(event, callback) { this.listeners.set(event, (this.listeners.get(event) ?? []).filter(fn=>fn!==callback)); }
   async fire(event) { await Promise.all((this.listeners.get(event) ?? []).map(fn => fn({preventDefault(){}}))); }
   focus() { this.focused = true; }
   reportValidity() { return true; } // Controller/server validation is tested explicitly.
@@ -43,9 +45,15 @@ export function harness(fetcher) {
   }
   const timers = new Map(); let next = 0;
   globalThis.document = {getElementById:id=>nodes.get(id),createElement:()=>new Element()};
-  globalThis.window = {addEventListener(){},removeEventListener(){},setInterval:fn=>{timers.set(++next,fn);return next;},clearInterval:id=>timers.delete(id)};
+  const windowListeners = new Map();
+  globalThis.window = {
+    addEventListener:(event,callback)=>windowListeners.set(event,[...(windowListeners.get(event)??[]),callback]),
+    removeEventListener:(event,callback)=>windowListeners.set(event,(windowListeners.get(event)??[]).filter(fn=>fn!==callback)),
+    setInterval:fn=>{timers.set(++next,fn);return next;},clearInterval:id=>timers.delete(id),
+  };
   globalThis.fetch = fetcher;
   return {node:id=>{if(!nodes.has(id))throw Error(`Missing ${id}`);return nodes.get(id);},timers,
+    fireWindow:async event=>{for(const fn of windowListeners.get(event)??[])await fn();},
     restore(){Object.assign(globalThis,previous);}};
 }
 
