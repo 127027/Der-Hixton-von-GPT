@@ -159,6 +159,7 @@ td.mono { font-family: var(--mono); }
 .settings-card details button { margin-top: 10px; }
 .settings-live-card .button.is-selected { border: 2px solid var(--green); }
 .settings-live-card #live-request.is-selected { background: var(--green); color: #071016; }
+.settings-live-card #live-trial-start.is-selected { opacity: 1; cursor: default; }
 .settings-card input { min-width: 0; width: 100%; }
 .settings-card input[type="checkbox"] { width: auto; }
 .settings-card button { white-space: normal; }

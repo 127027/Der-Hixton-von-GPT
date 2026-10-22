@@ -44,7 +44,11 @@ export function harness(fetcher) {
     nodes.set(match[1], node);
   }
   const timers = new Map(); let next = 0;
-  globalThis.document = {getElementById:id=>nodes.get(id),createElement:()=>new Element()};
+  const documentListeners = new Map();
+  globalThis.document = {getElementById:id=>nodes.get(id),createElement:()=>new Element(),visibilityState:"visible",
+    addEventListener:(event,callback)=>documentListeners.set(event,[...(documentListeners.get(event)??[]),callback]),
+    removeEventListener:(event,callback)=>documentListeners.set(event,(documentListeners.get(event)??[]).filter(fn=>fn!==callback)),
+  };
   const windowListeners = new Map();
   globalThis.window = {
     addEventListener:(event,callback)=>windowListeners.set(event,[...(windowListeners.get(event)??[]),callback]),
@@ -54,6 +58,7 @@ export function harness(fetcher) {
   globalThis.fetch = fetcher;
   return {node:id=>{if(!nodes.has(id))throw Error(`Missing ${id}`);return nodes.get(id);},timers,
     fireWindow:async event=>{for(const fn of windowListeners.get(event)??[])await fn();},
+    fireDocument:async event=>{for(const fn of documentListeners.get(event)??[])await fn();},
     restore(){Object.assign(globalThis,previous);}};
 }
 

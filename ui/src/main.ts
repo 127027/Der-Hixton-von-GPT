@@ -205,7 +205,7 @@ const timestamp = (value: string): UTCTimestamp => Math.floor(new Date(value).ge
 const escapeHtml = (value: unknown): string => String(value ?? "—").replace(/[&<>"']/g, (char) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[char]!));
 
 async function api<T>(url: string, options?: RequestInit): Promise<T> {
-  const response = await fetch(url, { ...options, headers: { "Content-Type": "application/json", "X-Hixton-Action": "local-ui-v1", ...(options?.headers ?? {}) } });
+  const response = await fetch(url, { cache: "no-store", ...options, headers: { "Content-Type": "application/json", "X-Hixton-Action": "local-ui-v1", ...(options?.headers ?? {}) } });
   if (!response.ok) {
     const detail = await response.json().catch(() => ({ detail: response.statusText })) as { detail?: string };
     throw new Error(detail.detail ?? `HTTP ${response.status}`);
@@ -622,3 +622,10 @@ window.setInterval(() => void refreshCore(), 5_000);
 window.setInterval(() => void refreshEvents(), 15_000);
 window.setInterval(() => void refreshBacktests(), 10_000);
 window.setInterval(() => void refreshRuntimeLogs(), 10_000);
+// Browsers throttle background tabs. Read shared state immediately on return.
+const refreshForeground = (): void => { void refreshCore(); void refreshEvents(); };
+window.addEventListener("focus", refreshForeground);
+window.addEventListener("pageshow", refreshForeground);
+document.addEventListener("visibilitychange", () => {
+  if (document.visibilityState === "visible") refreshForeground();
+});

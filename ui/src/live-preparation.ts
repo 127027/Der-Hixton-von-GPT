@@ -84,8 +84,20 @@ export function initializeLivePreparation(sharedSettingsBlocker: (mode?: "live" 
     }
     message("live-request", enabled ? "● Live ist an" : "Live an");
     message("live-off", "Echtgeld-Einstiege stoppen");
+    const trialState = last?.trial?.state;
+    const trialActive = ["WAITING_SIGNAL", "ENTRY_PENDING", "OPEN", "EXIT_PENDING"].includes(trialState ?? "");
+    const trialButton = element<HTMLButtonElement>("live-trial-start");
+    trialButton.setAttribute("aria-pressed", String(trialActive));
+    trialButton.classList.toggle("is-selected", trialActive);
+    message("live-trial-start", trialState === "WAITING_SIGNAL" ? "● 50-USDC-Test scharf · wartet auf Signal"
+      : trialState === "ENTRY_PENDING" ? "50-USDC-Test · Kauf wird abgeglichen"
+      : trialState === "OPEN" ? "● 50-USDC-Test offen"
+      : trialState === "EXIT_PENDING" ? "50-USDC-Test · Ausstieg wird abgeglichen"
+      : "1 × 50 USDC · Test freigeben");
   };
   const render = (status: LiveStatus): void => {
+    if (!busy && last?.trial?.state !== status.trial?.state) message("live-trial-result", "");
+    if (!busy && last?.state !== status.state) message("live-result", "");
     if (last?.authenticated && !status.authenticated) {
       clearSecrets();
       message("live-auth-result", "Sitzung abgelaufen oder in einem anderen Fenster ersetzt. Bitte erneut entsperren.");
@@ -175,7 +187,7 @@ export function initializeLivePreparation(sharedSettingsBlocker: (mode?: "live" 
           ? "Vorheriger Test abgeschlossen und abgeglichen. Ein freiwilliger neuer 1×50-USDC-Test sperrt Live bis zum erneuten erfolgreichen Abschluss. Der bisherige Bericht bleibt gespeichert. Noch kein neuer Test freigegeben."
           : status.trial_retryable_before_submit
           ? `Vor einer Binance-Order beendet (${status.trial.state}) · sicher erneut startbar.`
-          : `Test: ${status.trial.state}${status.trial.symbol ? " · " + status.trial.symbol : ""}.${healthWait}${signalWait}`
+          : `50-USDC-Einmaltest: ${trialDescription}${status.trial.symbol ? " · " + status.trial.symbol : ""}${healthWait}${signalWait}`
         : status.trial_dispatch_available
           ? `Noch nicht gestartet: Test freigeben, um auf das nächste gültige Signal zu warten.${healthWait}${signalWait}`
           : trialReason
@@ -183,7 +195,11 @@ export function initializeLivePreparation(sharedSettingsBlocker: (mode?: "live" 
             : "Nicht gestartet. Voraussetzungen siehe technische Freigabe.",
     );
     const trialButton = element<HTMLButtonElement>("live-trial-start");
-    trialButton.title = status.trial_dispatch_available
+    trialButton.title = trialState === "WAITING_SIGNAL"
+      ? `Bereits freigegeben; nicht erneut starten. Wartet auf ein neues gültiges Signal, noch kein Test-Kauf.${healthWait}${signalWait}`
+      : ["ENTRY_PENDING", "OPEN", "EXIT_PENDING"].includes(trialState)
+        ? `50-USDC-Einmaltest: ${trialDescription}`
+      : status.trial_dispatch_available
       ? status.trial_retest_available
         ? "Freiwilligen neuen Test starten: Live bleibt bis zum erneuten Erfolg gesperrt. Kontoprüfung erfolgt automatisch."
         : "Kontrollierten 1×50-USDC-Echtgeldtest starten; Kontoprüfung erfolgt automatisch"
@@ -233,6 +249,9 @@ export function initializeLivePreparation(sharedSettingsBlocker: (mode?: "live" 
         message("real-live-slots", "—");
         message("position-real-status", "Verbindung unterbrochen; Echtgeld-Teststatus nicht bestätigt.");
         message("real-live-slots-detail", "Live-Zustand nicht bestätigt.");
+        message("live-trial-status", "Teststatus unbekannt · Verbindung zum Bot fehlt. Nicht erneut freigeben, bis der aktuelle Zustand bestätigt ist.");
+        message("live-trial-result", "");
+        element("live-trial-start").title = "Teststatus derzeit nicht bestätigt · Verbindung zum Bot fehlt.";
       }
       return false;
     }
@@ -418,7 +437,22 @@ export function initializeLivePreparation(sharedSettingsBlocker: (mode?: "live" 
     );
   });
   window.addEventListener("pagehide", clearSecrets);
+  const foreground = async (): Promise<void> => { if (!busy) await refresh(); };
+  const visible = async (): Promise<void> => {
+    if (document.visibilityState === "visible") await foreground();
+  };
+  window.addEventListener("focus", foreground);
+  window.addEventListener("pageshow", foreground);
+  document.addEventListener("visibilitychange", visible);
   void refresh();
   const timer = window.setInterval(() => { if (!busy) void refresh(); }, 5_000);
-  return {refresh, dispose: () => { window.clearInterval(timer); window.removeEventListener("pagehide", clearSecrets); clearSecrets(); }};
+  return {refresh, dispose: () => {
+    ++generation;
+    window.clearInterval(timer);
+    window.removeEventListener("pagehide", clearSecrets);
+    window.removeEventListener("focus", foreground);
+    window.removeEventListener("pageshow", foreground);
+    document.removeEventListener("visibilitychange", visible);
+    clearSecrets();
+  }};
 }
