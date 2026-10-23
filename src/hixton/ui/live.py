@@ -77,12 +77,7 @@ def install_live_routes(
                 stored = store.load_symbol_rules(symbol)
                 if stored is None:
                     raise RuntimeError(f"Binance-Orderfilter fehlen für {symbol}")
-                result[symbol] = ExecutionRules(
-                    tick_size=stored.tick_size,
-                    step_size=stored.step_size,
-                    min_qty=stored.min_qty,
-                    min_notional=stored.min_notional,
-                )
+                result[symbol] = ExecutionRules.from_symbol_rules(stored)
         return result
 
     def allocation_reference(at: datetime) -> Mapping[str, str] | None:

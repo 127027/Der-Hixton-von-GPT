@@ -86,9 +86,7 @@ def run_portfolio_review(database: Path, output: Path, end: datetime) -> None:
                 raise ValueError(f"unavailable market {s}")
             if saved.quote_asset != "USDC" or "MARKET" not in saved.order_types:
                 raise ValueError(f"unavailable USDC MARKET {s}")
-            rules[s] = ExecutionRules(
-                saved.tick_size, saved.step_size, saved.min_qty, saved.min_notional
-            )
+            rules[s] = ExecutionRules.from_symbol_rules(saved)
     start, coverage = continuous_window(candles, requested, end)
     split = datetime(2025, 1, 1, tzinfo=UTC)
     if start >= split - timedelta(days=90):

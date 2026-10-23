@@ -32,6 +32,12 @@ from hixton.domain.diversification import (
     trim_quantity,
     trim_signal_id,
 )
+from hixton.domain.market_rules import (
+    market_order_block_reason,
+    market_order_is_dust,
+    market_quantity_step,
+    round_market_quantity,
+)
 from hixton.domain.markets import validate_market_symbols
 from hixton.domain.models import (
     Candle,
@@ -48,6 +54,8 @@ from hixton.domain.satellite_layer import (
     shared_satellite_horizon_exit,
 )
 from hixton.domain.spot_autonomy import (
+    ENTRY_CAPITAL_BASIS,
+    entry_capital_equity,
     entry_volatility_fraction,
     marked_portfolio_equity,
     quality_filler_block_reason,
@@ -290,12 +298,15 @@ def run_shared_portfolio_backtest(
                         closed_equity=stage_equity,
                         close=_d(point.candle.close),
                         count=next_slots,
-                        step=rule.step_size,
+                        step=market_quantity_step(rule),
                     )
                     reference = _d(candles[sym].open)
                     price = reference * (ONE - costs.adverse_price_rate)
                     gross = quantity * price
-                    if quantity <= ZERO or quantity < rule.min_qty or gross < rule.min_notional:
+                    trim_block = market_order_block_reason(rule, quantity, price)
+                    if trim_block is not None:
+                        if quantity > ZERO:
+                            blocked.append(f"{sym}:DIVERSIFICATION_FILTER_{trim_block}")
                         continue
                     forced = HixtonStrategy.signal_for(
                         replace(point, flip_down=True, flip_up=False), is_long=True
@@ -392,9 +403,13 @@ def run_shared_portfolio_backtest(
                 rule = rules.get(signal.symbol, ExecutionRules())
                 reference = _d(candles[signal.symbol].open)
                 fill_price = reference * (ONE - costs.adverse_price_rate)
-                sell_quantity = _round_down(open_trade.quantity, rule.step_size)
+                sell_quantity = round_market_quantity(open_trade.quantity, rule)
                 gross_quote = sell_quantity * fill_price
-                if sell_quantity < rule.min_qty or gross_quote < rule.min_notional:
+                filter_reason = market_order_block_reason(rule, sell_quantity, fill_price)
+                if filter_reason is not None and not market_order_is_dust(filter_reason):
+                    blocked.append(f"{signal.signal_id}:EXIT_FILTER_{filter_reason}")
+                    continue
+                if filter_reason is not None:
                     blocked.append(f"{signal.signal_id}:EXIT_BECAME_DUST")
                     dust[signal.symbol] += open_trade.quantity
                     del positions[signal.symbol]
@@ -547,12 +562,19 @@ def run_shared_portfolio_backtest(
                 )
                 if reinvest_profits:
                     price_marks = {symbol: _d(candles[symbol].open) for symbol in symbols}
-                    equity_at_open = marked_portfolio_equity(
-                        free_quote=cash,
-                        base_quantities={symbol: p.quantity for symbol, p in positions.items()},
-                        dust_quantities=dust,
-                        open_prices=price_marks,
-                    )
+                    if strategy is not None and strategy.entry_capital_basis == ENTRY_CAPITAL_BASIS:
+                        equity_at_open = entry_capital_equity(
+                            free_quote=cash,
+                            base_quantities={symbol: p.quantity for symbol, p in positions.items()},
+                            closed_prices={s: _d(previous_points[s].candle.close) for s in symbols},
+                        )
+                    else:
+                        equity_at_open = marked_portfolio_equity(
+                            free_quote=cash,
+                            base_quantities={symbol: p.quantity for symbol, p in positions.items()},
+                            dust_quantities=dust,
+                            open_prices=price_marks,
+                        )
                     budget = size_spot_entry(
                         equity=reinvestment_capital(
                             equity=equity_at_open,
@@ -593,10 +615,21 @@ def run_shared_portfolio_backtest(
                     )
                 reference = _d(candles[signal.symbol].open)
                 fill_price = reference * (ONE + costs.adverse_price_rate)
-                gross_quantity = _round_down(budget / fill_price, rule.step_size)
+                gross_quantity = round_market_quantity(budget / fill_price, rule)
                 quote_spend = min(gross_quantity * fill_price, budget)
-                if gross_quantity < rule.min_qty or quote_spend < rule.min_notional:
-                    blocked.append(f"{signal.signal_id}:BELOW_EXCHANGE_MINIMUM")
+                if (
+                    filter_reason := market_order_block_reason(
+                        rule, gross_quantity, fill_price, quote=quote_spend
+                    )
+                ) is not None:
+                    blocked.append(
+                        f"{signal.signal_id}:"
+                        + (
+                            "BELOW_EXCHANGE_MINIMUM"
+                            if market_order_is_dust(filter_reason)
+                            else filter_reason
+                        )
+                    )
                     continue
                 if quote_spend <= ZERO or quote_spend > cash:
                     blocked.append(f"{signal.signal_id}:INSUFFICIENT_CASH")
@@ -764,4 +797,3 @@ def run_shared_portfolio_backtest(
             symbol: candle_snapshot_sha256(selected_by_symbol[symbol]) for symbol in symbols
         },
     )
-

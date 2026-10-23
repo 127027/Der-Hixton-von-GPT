@@ -124,9 +124,7 @@ def run_weak_coin_review(database: Path, output: Path, end: datetime) -> None:
                 raise ValueError(f"missing or invalid stored Binance rules: {symbol}")
             if "MARKET" not in saved.order_types or saved.quote_asset != "USDC":
                 raise ValueError(f"USDC market orders unavailable: {symbol}")
-            rules[symbol] = ExecutionRules(
-                saved.tick_size, saved.step_size, saved.min_qty, saved.min_notional
-            )
+            rules[symbol] = ExecutionRules.from_symbol_rules(saved)
     start, coverage = continuous_window(candles, requested, end)
     if start >= TRAIN_SPLIT - timedelta(days=90):
         raise ValueError("insufficient first training window")

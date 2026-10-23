@@ -490,12 +490,7 @@ class RuntimeSupervisor:
                 stored = store.load_symbol_rules(symbol)
                 if stored is None:
                     raise RuntimeError(f"Binance filters missing for {symbol}")
-                rules[symbol] = ExecutionRules(
-                    tick_size=stored.tick_size,
-                    step_size=stored.step_size,
-                    min_qty=stored.min_qty,
-                    min_notional=stored.min_notional,
-                )
+                rules[symbol] = ExecutionRules.from_symbol_rules(stored)
         return points, quality, rules
 
     def _synchronous_backtest(
@@ -552,12 +547,7 @@ class RuntimeSupervisor:
                 stored = store.load_symbol_rules(item_symbol)
                 if stored is None:
                     raise RuntimeError(f"Binance filters missing for {item_symbol}")
-                rules[item_symbol] = ExecutionRules(
-                    tick_size=stored.tick_size,
-                    step_size=stored.step_size,
-                    min_qty=stored.min_qty,
-                    min_notional=stored.min_notional,
-                )
+                rules[item_symbol] = ExecutionRules.from_symbol_rules(stored)
         with PaperStore(self.config.database_path, read_only=True) as store:
             paper_settings = store.load_settings()
         if mode == "all":

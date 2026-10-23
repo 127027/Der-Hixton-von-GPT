@@ -13,9 +13,10 @@ from pathlib import Path
 from types import TracebackType
 
 from hixton.constants import EXCHANGE, TIMEFRAME
+from hixton.domain.market_rules import MARKET_FILTER_FIELDS, validate_market_rules
 from hixton.domain.models import Candle
 
-_SCHEMA_VERSION = 1
+_SCHEMA_VERSION = 2
 
 
 def _to_epoch_ms(value: datetime) -> int:
@@ -53,6 +54,16 @@ class StoredSymbolRules:
     min_qty: Decimal
     min_notional: Decimal
     checked_at_utc: datetime
+    max_qty: Decimal = Decimal(0)
+    market_min_qty: Decimal = Decimal(0)
+    market_max_qty: Decimal = Decimal(0)
+    market_step_size: Decimal = Decimal(0)
+    max_notional: Decimal = Decimal(0)
+    notional_avg_price_mins: int = 0
+    market_limits_known: bool = False
+
+    def __post_init__(self) -> None:
+        validate_market_rules(self)
 
 
 class CandleStore:
@@ -155,7 +166,11 @@ class CandleStore:
         return StoreResult(inserted=inserted, unchanged=unchanged, revised=revised)
 
     def load_open_times(
-        self, symbol: str, *, start: datetime, end_exclusive: datetime,
+        self,
+        symbol: str,
+        *,
+        start: datetime,
+        end_exclusive: datetime,
         closed_only: bool = False,
     ) -> list[datetime]:
         """Read availability without decoding OHLCV; unfinished bars are optional."""
@@ -163,9 +178,15 @@ class CandleStore:
         rows = self._connection.execute(
             "SELECT open_time_ms FROM candles WHERE exchange=? AND symbol=? "
             "AND timeframe=? AND open_time_ms>=? AND open_time_ms<?"
-            + final_filter + " ORDER BY open_time_ms",
-            (EXCHANGE, symbol.replace("/", "").upper(), TIMEFRAME,
-             _to_epoch_ms(start), _to_epoch_ms(end_exclusive)),
+            + final_filter
+            + " ORDER BY open_time_ms",
+            (
+                EXCHANGE,
+                symbol.replace("/", "").upper(),
+                TIMEFRAME,
+                _to_epoch_ms(start),
+                _to_epoch_ms(end_exclusive),
+            ),
         )
         return [_from_epoch_ms(row[0]) for row in rows]
 
@@ -242,8 +263,8 @@ class CandleStore:
                 INSERT INTO symbol_rules (
                     symbol, status, quote_asset, spot_allowed, order_types_json,
                     tick_size_text, step_size_text, min_qty_text, min_notional_text,
-                    checked_at_utc
-                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                    checked_at_utc, market_limits_json
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
                 ON CONFLICT(symbol) DO UPDATE SET
                     status=excluded.status,
                     quote_asset=excluded.quote_asset,
@@ -253,7 +274,8 @@ class CandleStore:
                     step_size_text=excluded.step_size_text,
                     min_qty_text=excluded.min_qty_text,
                     min_notional_text=excluded.min_notional_text,
-                    checked_at_utc=excluded.checked_at_utc
+                    checked_at_utc=excluded.checked_at_utc,
+                    market_limits_json=excluded.market_limits_json
                 """,
                 (
                     rules.symbol,
@@ -266,6 +288,17 @@ class CandleStore:
                     str(rules.min_qty),
                     str(rules.min_notional),
                     rules.checked_at_utc.astimezone(UTC).isoformat(),
+                    json.dumps(
+                        {
+                            name: (
+                                getattr(rules, name)
+                                if name == "market_limits_known"
+                                else str(getattr(rules, name))
+                            )
+                            for name in MARKET_FILTER_FIELDS
+                        },
+                        sort_keys=True,
+                    ),
                 ),
             )
 
@@ -279,6 +312,18 @@ class CandleStore:
         raw_order_types = json.loads(str(row["order_types_json"]))
         if not isinstance(raw_order_types, list):
             raise ValueError("stored order types have invalid shape")
+        # Old databases remain readable in mode=ro without attempting migration.
+        columns = set(row.keys())
+        extra = (
+            json.loads(str(row["market_limits_json"])) if "market_limits_json" in columns else {}
+        )
+        if not isinstance(extra, dict):
+            raise ValueError("stored market limits have invalid shape")
+        limits = {
+            name: Decimal(str(extra.get(name, "0")))
+            for name in MARKET_FILTER_FIELDS
+            if name not in {"notional_avg_price_mins", "market_limits_known"}
+        }
         return StoredSymbolRules(
             symbol=str(row["symbol"]),
             status=str(row["status"]),
@@ -290,6 +335,9 @@ class CandleStore:
             min_qty=Decimal(str(row["min_qty_text"])),
             min_notional=Decimal(str(row["min_notional_text"])),
             checked_at_utc=datetime.fromisoformat(str(row["checked_at_utc"])).astimezone(UTC),
+            **limits,
+            notional_avg_price_mins=int(extra.get("notional_avg_price_mins", 0)),
+            market_limits_known=extra.get("market_limits_known", False),
         )
 
     def _migrate(self) -> None:
@@ -355,6 +403,14 @@ class CandleStore:
                 );
                 """
             )
+            columns = {
+                row["name"] for row in self._connection.execute("PRAGMA table_info(symbol_rules)")
+            }
+            if "market_limits_json" not in columns:
+                self._connection.execute(
+                    "ALTER TABLE symbol_rules ADD COLUMN market_limits_json "
+                    "TEXT NOT NULL DEFAULT '{}'"
+                )
             self._connection.execute(
                 """
                 INSERT INTO schema_meta(key, value) VALUES('schema_version', ?)

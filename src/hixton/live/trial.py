@@ -17,6 +17,11 @@ from typing import Any
 from uuid import UUID
 
 from hixton.backtest.models import ExecutionRules
+from hixton.domain.market_rules import (
+    market_order_block_reason,
+    market_quantity_step,
+    round_market_quantity,
+)
 from hixton.domain.markets import split_market
 from hixton.domain.models import IndicatorPoint, Signal, SignalAction
 from hixton.domain.satellite_layer import (
@@ -413,40 +418,44 @@ class SignalTrial:
         started = time.monotonic()
         entry = row["state"] == "ENTRY_PENDING"
         signal = json.loads(row["entry_signal_json"] if entry else row["exit_signal_json"])
-        sell_quantity = Decimal(0)
-        if not entry:
-            owned = Decimal(row["owned_quantity"])
+        identity = row["buy_id"] if entry else row["sell_id"]
+        try:
+            # A filter refresh must never rewrite or obstruct lookup of an
+            # already submitted quantity. Only CREATED orders need a new gate.
+            intent, _ = self.journal.load(identity)
+        except KeyError:
             rules = self._execution_rules(str(row["symbol"]))
-            sell_quantity = owned
-            if rules is not None:
-                sell_quantity = self._round_down(owned, rules.step_size)
-                if sell_quantity < rules.min_qty:
-                    self._set(
-                        from_state="EXIT_PENDING",
-                        state="NEEDS_REVIEW",
-                        reason="EXIT_BELOW_MINIMUM_REQUIRES_REVIEW",
-                    )
-                    return
-        intent = TrialIntent(
-            row["buy_id"] if entry else row["sell_id"],
-            row["account"],
-            row["symbol"],
-            "BUY" if entry else "SELL",
-            self.strategy.version,
-            Decimal(signal["reference_price"]),
-            quote_budget=Decimal("50") if entry else Decimal(0),
-            base_quantity=Decimal(0) if entry else sell_quantity,
-        )
-        self.journal.create(intent)
+            sell_quantity = Decimal(0) if entry else Decimal(row["owned_quantity"])
+            if not entry and rules is not None:
+                sell_quantity = round_market_quantity(sell_quantity, rules)
+            if not entry and sell_quantity <= 0:
+                self._set(state="NEEDS_REVIEW", reason="EXIT_BELOW_MINIMUM_REQUIRES_REVIEW")
+                return
+            intent = TrialIntent(
+                identity,
+                row["account"],
+                row["symbol"],
+                "BUY" if entry else "SELL",
+                self.strategy.version,
+                Decimal(signal["reference_price"]),
+                quote_budget=Decimal("50") if entry else Decimal(0),
+                base_quantity=Decimal(0) if entry else sell_quantity,
+            )
+            self.journal.create(intent)
         _, state = self.journal.load(intent.intent_id)
+        if state == "CREATED" and not self._market_submit_allowed(intent):
+            return
         if state == "CREATED" and entry and not self._entry_submit_allowed(intent.intent_id, now):
             return
         state = self.executor.execute(
             intent.intent_id,
             before_submit=lambda: (
-                not entry
-                or self._entry_submit_allowed(
-                    intent.intent_id, now + timedelta(seconds=time.monotonic() - started)
+                self._market_submit_allowed(intent)
+                and (
+                    not entry
+                    or self._entry_submit_allowed(
+                        intent.intent_id, now + timedelta(seconds=time.monotonic() - started)
+                    )
                 )
             ),
         )
@@ -483,7 +492,11 @@ class SignalTrial:
             consumed = sold + Decimal(str(fees.get(base, "0")))
             remaining = owned - consumed
             rules = self._execution_rules(str(row["symbol"]))
-            dust_limit = max(rules.step_size, rules.min_qty) if rules is not None else Decimal(0)
+            dust_limit = (
+                max(market_quantity_step(rules), rules.min_qty, rules.market_min_qty)
+                if rules is not None
+                else Decimal(0)
+            )
             if remaining < 0 or (remaining > 0 and (rules is None or remaining >= dust_limit)):
                 self._set(
                     from_state="EXIT_PENDING",
@@ -498,6 +511,36 @@ class SignalTrial:
                     residual_quantity=str(remaining),
                     reason="ACCOUNT_CHECK_REQUIRED",
                 )
+
+    def _market_submit_allowed(self, intent: TrialIntent) -> bool:
+        rules = self._execution_rules(intent.symbol)
+        if rules is None:
+            if self.rules_provider is None:
+                return True  # Explicit legacy offline executor, never runtime.
+            self._set(reason="MARKET_FILTERS_REFRESH_REQUIRED")
+            return False
+        if not rules.market_limits_known:
+            self._set(reason="MARKET_FILTERS_REFRESH_REQUIRED")
+            return False
+        quantity = (
+            round_market_quantity(intent.quote_budget / intent.reference_price, rules)
+            if intent.side == "BUY"
+            else intent.base_quantity
+        )
+        reason = market_order_block_reason(
+            rules,
+            quantity,
+            intent.reference_price,
+            quote=intent.quote_budget if intent.side == "BUY" else None,
+        )
+        if reason is None:
+            return True
+        self._set(
+            state="FAILED" if intent.side == "BUY" else "NEEDS_REVIEW",
+            reason="ORDER_FILTER_" + reason,
+            entries_enabled=0,
+        )
+        return False
 
     def confirm_reconciled(
         self,

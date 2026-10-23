@@ -31,6 +31,11 @@ from hixton.domain.allocation import (
     SUPPORTED_SLOT_ALLOCATIONS,
     allocate_entry_slots,
 )
+from hixton.domain.market_rules import (
+    market_order_block_reason,
+    market_order_is_dust,
+    round_market_quantity,
+)
 from hixton.domain.models import (
     Candle,
     IndicatorPoint,
@@ -193,9 +198,8 @@ def run_filler_router_portfolio(
         raise ValueError("router parameters must cover the full research universe")
     if set(trade_policies_by_symbol) != set(symbols):
         raise ValueError("router policies must cover the full research universe")
-    if (
-        strategy_semantics_by_symbol is not None
-        and set(strategy_semantics_by_symbol) != set(symbols)
+    if strategy_semantics_by_symbol is not None and set(strategy_semantics_by_symbol) != set(
+        symbols
     ):
         raise ValueError("router semantics must cover the full research universe")
     if slot_count <= 0 or starting_cash <= 0 or target_notional <= 0:
@@ -253,9 +257,7 @@ def run_filler_router_portfolio(
         )
         for symbol in symbols
     }
-    gates = {
-        symbol: TradePolicyGate(trade_policies_by_symbol[symbol]) for symbol in symbols
-    }
+    gates = {symbol: TradePolicyGate(trade_policies_by_symbol[symbol]) for symbol in symbols}
     core_set = frozenset(core_symbols)
     satellite_set = frozenset(satellite_symbols)
     entry_filters = entry_filter_by_symbol or {}
@@ -295,17 +297,13 @@ def run_filler_router_portfolio(
         raise ValueError("filler horizons are Satellite-only")
     if any(type(value) is not int or value <= 0 for value in filler_horizons.values()):
         raise ValueError("per-Satellite filler horizons must be positive integers")
-    if (
-        satellite_max_portfolio_drawdown_pct is not None
-        and (
-            satellite_max_portfolio_drawdown_pct < ZERO
-            or satellite_max_portfolio_drawdown_pct > HUNDRED
-        )
+    if satellite_max_portfolio_drawdown_pct is not None and (
+        satellite_max_portfolio_drawdown_pct < ZERO
+        or satellite_max_portfolio_drawdown_pct > HUNDRED
     ):
         raise ValueError("Satellite portfolio drawdown gate must be in [0, 100]")
-    if (
-        core_imminence_guard_atr is not None
-        and (core_imminence_guard_atr < ZERO or core_imminence_guard_atr > D("10"))
+    if core_imminence_guard_atr is not None and (
+        core_imminence_guard_atr < ZERO or core_imminence_guard_atr > D("10")
     ):
         raise ValueError("Core imminence guard must be in [0, 10] ATR")
 
@@ -339,9 +337,13 @@ def run_filler_router_portfolio(
         rule = execution_rules[symbol]
         reference = _d(candle.open)
         fill_price = reference * (ONE - costs.adverse_price_rate)
-        sell_quantity = _round_down(trade.quantity, rule.step_size)
+        sell_quantity = round_market_quantity(trade.quantity, rule)
         gross_quote = sell_quantity * fill_price
-        if sell_quantity < rule.min_qty or gross_quote < rule.min_notional:
+        filter_reason = market_order_block_reason(rule, sell_quantity, fill_price)
+        if filter_reason is not None and not market_order_is_dust(filter_reason):
+            blocked.append(f"{reason_id}:EXIT_FILTER_{filter_reason}")
+            return False
+        if filter_reason is not None:
             blocked.append(f"{reason_id}:EXIT_BECAME_DUST")
             dust[symbol] += trade.quantity
             del positions[symbol]
@@ -408,10 +410,21 @@ def run_filler_router_portfolio(
         )
         reference = _d(candle.open)
         fill_price = reference * (ONE + costs.adverse_price_rate)
-        gross_quantity = _round_down(budget / fill_price, rule.step_size)
+        gross_quantity = round_market_quantity(budget / fill_price, rule)
         quote_spend = min(gross_quantity * fill_price, budget)
-        if gross_quantity < rule.min_qty or quote_spend < rule.min_notional:
-            blocked.append(f"{signal.signal_id}:BELOW_EXCHANGE_MINIMUM")
+        if (
+            filter_reason := market_order_block_reason(
+                rule, gross_quantity, fill_price, quote=quote_spend
+            )
+        ) is not None:
+            blocked.append(
+                f"{signal.signal_id}:"
+                + (
+                    "BELOW_EXCHANGE_MINIMUM"
+                    if market_order_is_dust(filter_reason)
+                    else filter_reason
+                )
+            )
             return False
         if quote_spend <= ZERO or quote_spend > cash:
             blocked.append(f"{signal.signal_id}:INSUFFICIENT_CASH")
@@ -482,9 +495,7 @@ def run_filler_router_portfolio(
             # Compute the Core allocation that would exist if filler slots were
             # completely reclaimable. This preserves the protected Core ranked-repeat
             # exposure whenever the Core signal is strong enough to justify the handoff.
-            core_used_slots = sum(
-                p.slots for p in positions.values() if not p.is_satellite
-            )
+            core_used_slots = sum(p.slots for p in positions.values() if not p.is_satellite)
             ideal_core_alloc = allocate_entry_slots(
                 [s.symbol for s in core_entries if s.symbol not in positions],
                 free_slots=max(0, slot_count - core_used_slots),
@@ -508,16 +519,12 @@ def run_filler_router_portfolio(
                     if free_slots >= desired_slots:
                         break
                     candidates = [
-                        (symbol, trade)
-                        for symbol, trade in positions.items()
-                        if trade.is_satellite
+                        (symbol, trade) for symbol, trade in positions.items() if trade.is_satellite
                     ]
                     if not candidates:
                         break
                     if strict_core_idle_mask:
-                        sat_symbol, _sat_trade = sorted(
-                            candidates, key=lambda item: item[0]
-                        )[0]
+                        sat_symbol, _sat_trade = sorted(candidates, key=lambda item: item[0])[0]
                         router_events.append(
                             {
                                 "time_utc": open_time.isoformat(),
@@ -535,9 +542,7 @@ def run_filler_router_portfolio(
                         )
                         continue
 
-                    ranked_running: list[
-                        tuple[Decimal, str, OpenTrade, Decimal]
-                    ] = []
+                    ranked_running: list[tuple[Decimal, str, OpenTrade, Decimal]] = []
                     for symbol, trade in candidates:
                         point = last_points.get(symbol)
                         remaining = _remaining_satellite_score(
@@ -556,17 +561,11 @@ def run_filler_router_portfolio(
                             if point is not None
                             else D("999")
                         )
-                        ranked_running.append(
-                            (remaining, symbol, trade, switch_cost)
-                        )
+                        ranked_running.append((remaining, symbol, trade, switch_cost))
                     ranked_running.sort(key=lambda row: row[0])
                     remaining, sat_symbol, sat_trade, switch_cost = ranked_running[0]
                     core_score = _candidate_core_score(core_signal)
-                    threshold = (
-                        remaining
-                        + switch_cost
-                        + router_config.hysteresis_atr
-                    )
+                    threshold = remaining + switch_cost + router_config.hysteresis_atr
                     decision = "SWITCH" if core_score > threshold else "HOLD"
                     router_events.append(
                         {
@@ -582,10 +581,7 @@ def run_filler_router_portfolio(
                             "satellite_age_hours": str(
                                 D(
                                     str(
-                                        (
-                                            open_time
-                                            - sat_trade.fill.fill_time_utc
-                                        ).total_seconds()
+                                        (open_time - sat_trade.fill.fill_time_utc).total_seconds()
                                         / 3600
                                     )
                                 )
@@ -621,9 +617,7 @@ def run_filler_router_portfolio(
             core_active = any(not trade.is_satellite for trade in positions.values())
             if strict_core_idle_mask and core_active:
                 for sat_symbol in sorted(
-                    symbol
-                    for symbol, trade in positions.items()
-                    if trade.is_satellite
+                    symbol for symbol, trade in positions.items() if trade.is_satellite
                 ):
                     close_position(
                         sat_symbol,
@@ -644,9 +638,7 @@ def run_filler_router_portfolio(
                         or core_point.atr <= 0
                     ):
                         continue
-                    gap_atr = D(str(
-                        (core_point.upper - core_point.candle.close) / core_point.atr
-                    ))
+                    gap_atr = D(str((core_point.upper - core_point.candle.close) / core_point.atr))
                     if ZERO <= gap_atr <= core_imminence_guard_atr:
                         core_imminent = True
                         break
@@ -660,9 +652,7 @@ def run_filler_router_portfolio(
                 if core_imminent:
                     blocked.append(f"{signal.signal_id}:CORE_IMMINENT_FILLER_GUARD")
                     continue
-                satellite_positions = sum(
-                    trade.is_satellite for trade in positions.values()
-                )
+                satellite_positions = sum(trade.is_satellite for trade in positions.values())
                 if satellite_positions >= satellite_capacity:
                     blocked.append(f"{signal.signal_id}:NO_FREE_SLOT")
                     continue
@@ -905,9 +895,7 @@ def run_filler_router_portfolio(
                     continue
                 signals.append(pending_signal)
                 if decisions[symbol].block_reason:
-                    blocked.append(
-                        f"{pending_signal.signal_id}:{decisions[symbol].block_reason}"
-                    )
+                    blocked.append(f"{pending_signal.signal_id}:{decisions[symbol].block_reason}")
                     continue
                 if pending_signal.action is SignalAction.ENTER_LONG:
                     if (
@@ -989,11 +977,7 @@ def run_filler_router_portfolio(
         starting_cash=starting_cash,
         target_notional=target_notional,
         slot_count=max(slot_count, satellite_capacity if satellite_symbols else slot_count),
-        slot_allocation=(
-            "core_"
-            + core_allocation_policy
-            + "_satellite_one_position_gap_filler"
-        ),
+        slot_allocation=("core_" + core_allocation_policy + "_satellite_one_position_gap_filler"),
         signals=tuple(signals),
         fills=tuple(fills),
         trades=tuple(trades),
@@ -1008,9 +992,7 @@ def run_filler_router_portfolio(
         daily_paused_bars=daily_paused_bars,
         metrics=metrics,
         data_snapshot_sha256_by_symbol={
-            symbol: candle_snapshot_sha256(selected_by_symbol[symbol])
-            for symbol in symbols
+            symbol: candle_snapshot_sha256(selected_by_symbol[symbol]) for symbol in symbols
         },
     )
     return result, router_events
-

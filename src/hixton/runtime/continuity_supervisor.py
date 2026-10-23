@@ -74,12 +74,7 @@ class RuntimeSupervisor(BaseRuntimeSupervisor):
                 stored = store.load_symbol_rules(item_symbol)
                 if stored is None:
                     raise RuntimeError(f"Binance filters missing for {item_symbol}")
-                rules[item_symbol] = ExecutionRules(
-                    tick_size=stored.tick_size,
-                    step_size=stored.step_size,
-                    min_qty=stored.min_qty,
-                    min_notional=stored.min_notional,
-                )
+                rules[item_symbol] = ExecutionRules.from_symbol_rules(stored)
 
         history = load_continuity_history(
             strategy=strategy,

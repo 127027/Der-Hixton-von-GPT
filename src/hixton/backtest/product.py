@@ -51,12 +51,7 @@ def run_product_backtest(
                 or "MARKET" not in saved.order_types
             ):
                 raise ValueError(f"{item}: synchronized Binance Spot rules required")
-            rules[item] = ExecutionRules(
-                tick_size=saved.tick_size,
-                step_size=saved.step_size,
-                min_qty=saved.min_qty,
-                min_notional=saved.min_notional,
-            )
+            rules[item] = ExecutionRules.from_symbol_rules(saved)
     with PaperStore(config.database_path, read_only=True) as store:
         settings = store.load_settings()
     capital_source: dict[str, object] | None = None

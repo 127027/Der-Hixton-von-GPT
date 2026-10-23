@@ -23,6 +23,11 @@ from hixton.backtest.models import (
 )
 from hixton.constants import SYMBOLS, TIMEFRAME_DELTA
 from hixton.data.quality import audit_candles
+from hixton.domain.market_rules import (
+    market_order_block_reason,
+    market_order_is_dust,
+    round_market_quantity,
+)
 from hixton.domain.markets import validate_market_symbols
 from hixton.domain.models import (
     Candle,
@@ -169,10 +174,21 @@ def run_single_backtest(
                 budget = min(target_notional, cash)
                 reference = _d(candle.open)
                 fill_price = reference * (ONE + costs.adverse_price_rate)
-                gross_quantity = _round_down(budget / fill_price, rules.step_size)
+                gross_quantity = round_market_quantity(budget / fill_price, rules)
                 quote_spend = min(gross_quantity * fill_price, budget)
-                if gross_quantity < rules.min_qty or quote_spend < rules.min_notional:
-                    blocked.append(f"{pending_signal.signal_id}:BELOW_EXCHANGE_MINIMUM")
+                if (
+                    filter_reason := market_order_block_reason(
+                        rules, gross_quantity, fill_price, quote=quote_spend
+                    )
+                ) is not None:
+                    blocked.append(
+                        f"{pending_signal.signal_id}:"
+                        + (
+                            "BELOW_EXCHANGE_MINIMUM"
+                            if market_order_is_dust(filter_reason)
+                            else filter_reason
+                        )
+                    )
                 elif quote_spend <= ZERO:
                     blocked.append(f"{pending_signal.signal_id}:NO_CASH")
                 else:
@@ -205,9 +221,12 @@ def run_single_backtest(
                     raise RuntimeError("exit pending while flat")
                 reference = _d(candle.open)
                 fill_price = reference * (ONE - costs.adverse_price_rate)
-                sell_quantity = _round_down(open_trade.quantity, rules.step_size)
+                sell_quantity = round_market_quantity(open_trade.quantity, rules)
                 gross_quote = sell_quantity * fill_price
-                if sell_quantity < rules.min_qty or gross_quote < rules.min_notional:
+                filter_reason = market_order_block_reason(rules, sell_quantity, fill_price)
+                if filter_reason is not None and not market_order_is_dust(filter_reason):
+                    blocked.append(f"{pending_signal.signal_id}:EXIT_FILTER_{filter_reason}")
+                elif filter_reason is not None:
                     blocked.append(f"{pending_signal.signal_id}:EXIT_BECAME_DUST")
                     dust += open_trade.quantity
                     open_trade = None

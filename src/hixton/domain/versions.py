@@ -51,6 +51,7 @@ class StrategyDefinition:
     entry_atr_target_fraction: str | None = None
     second_tranche_split_dd_pct: str | None = None
     diversification_stages: tuple[tuple[str, int], ...] = ()
+    entry_capital_basis: str = "EXECUTION_OPEN_WITH_DUST"
 
     @property
     def allocator_version(self) -> str:
@@ -75,6 +76,11 @@ class StrategyDefinition:
                 self.version == "HIXTON-V8-LINK8-ATR075-DOGE50-DD10-ETH8-DIV32-PAPER-5"
                 and self.diversification_stages == (("32000", 3),)
             )
+            or (
+                self.version == "HIXTON-V8-LINK8-ATR075-DOGE50-DD10-ETH8-DIV32-CLOSECAP-PAPER-6"
+                and self.entry_capital_basis == "FINALIZED_CLOSE_OWNED_POSITIONS_V1"
+                and self.diversification_stages == (("32000", 3),)
+            )
         )
 
     @property
@@ -87,6 +93,11 @@ class StrategyDefinition:
         from hixton.domain.diversification import validate_schedule
 
         validate_schedule(self.diversification_stages)
+        if self.entry_capital_basis not in {
+            "EXECUTION_OPEN_WITH_DUST",
+            "FINALIZED_CLOSE_OWNED_POSITIONS_V1",
+        }:
+            raise ValueError("unsupported entry capital valuation basis")
         if self.diversification_stages and self.second_tranche_split_dd_pct is None:
             raise ValueError("diversification requires the shared weighted allocator")
         fraction = Decimal(self.capital_exposure_fraction)
@@ -172,6 +183,8 @@ class StrategyDefinition:
             payload["capital_exposure_fraction"] = self.capital_exposure_fraction
         if self.entry_atr_target_fraction is not None:
             payload["entry_atr_target_fraction"] = self.entry_atr_target_fraction
+        if self.entry_capital_basis != "EXECUTION_OPEN_WITH_DUST":
+            payload["entry_capital_basis"] = self.entry_capital_basis
         if self.second_tranche_split_dd_pct is not None:
             payload["second_tranche_split"] = {
                 "trigger_dd_pct": self.second_tranche_split_dd_pct,
@@ -517,11 +530,19 @@ V8_VOLATILITY_PAPER_STRATEGY = replace(
     reference="docs/diversification-20261013.md",
     diversification_stages=(("32000", 3),),
 )
+V8_DIV32_PAPER_STRATEGY = V8_VOLATILITY_PAPER_STRATEGY
+V8_VOLATILITY_PAPER_STRATEGY = replace(
+    V8_DIV32_PAPER_STRATEGY,
+    version="HIXTON-V8-LINK8-ATR075-DOGE50-DD10-ETH8-DIV32-CLOSECAP-PAPER-6",
+    reference="docs/entry-capital-parity-20261022.md",
+    entry_capital_basis="FINALIZED_CLOSE_OWNED_POSITIONS_V1",
+)
 FROZEN_STRATEGY_DEFINITIONS = (
     V8_VOLATILITY_INITIAL_PAPER_STRATEGY,
     V8_DOGE50_PAPER_STRATEGY,
     V8_DD10_PAPER_STRATEGY,
     V8_ETH8_PAPER_STRATEGY,
+    V8_DIV32_PAPER_STRATEGY,
 )
 
 STRATEGY_DEFINITIONS = {

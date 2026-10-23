@@ -131,6 +131,13 @@ def synchronize_symbol(
             min_qty=rules.min_qty,
             min_notional=rules.min_notional,
             checked_at_utc=datetime.now(UTC),
+            max_qty=rules.max_qty,
+            market_min_qty=rules.market_min_qty,
+            market_max_qty=rules.market_max_qty,
+            market_step_size=rules.market_step_size,
+            max_notional=rules.max_notional,
+            notional_avg_price_mins=rules.notional_avg_price_mins,
+            market_limits_known=rules.market_limits_known,
         )
     )
     result = store.put_candles(fetched_candles)

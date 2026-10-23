@@ -5,6 +5,7 @@ from __future__ import annotations
 import json
 import sqlite3
 from collections.abc import Mapping
+from dataclasses import replace
 from datetime import UTC, datetime
 from decimal import Decimal
 from pathlib import Path
@@ -13,7 +14,7 @@ from uuid import uuid4
 
 from hixton.constants import HIXTON_SPEC_VERSION
 from hixton.domain.capital import capital_plan
-from hixton.domain.versions import strategy_definition
+from hixton.domain.versions import StrategyDefinition, strategy_definition
 from hixton.paper.models import (
     PaperAccount,
     PaperEvent,
@@ -196,6 +197,66 @@ class PaperStore:
             activated_at_utc=_parse_time(row["activated_at_utc"]),
             starting_equity_usdc=Decimal(str(row["starting_equity_text"])),
         )
+
+    def activate_compatible_entry_upgrade(
+        self, previous: StrategyDefinition, selected: StrategyDefinition, *, at: datetime
+    ) -> bool:
+        """Explicit, atomic capital-basis upgrade; preserve existing exits and ledger.
+
+        Only the new entry valuation contract may change. A different indicator,
+        exit, routing, risk or allocator requires the normal explicit cutover.
+        This method is never called automatically by a status read or restart.
+        """
+        if (
+            not selected.paper_approved
+            or previous.entry_capital_basis != "EXECUTION_OPEN_WITH_DUST"
+            or selected.entry_capital_basis != "FINALIZED_CLOSE_OWNED_POSITIONS_V1"
+            or replace(
+                selected,
+                version=previous.version,
+                reference=previous.reference,
+                entry_capital_basis=previous.entry_capital_basis,
+            )
+            != previous
+        ):
+            raise ValueError(
+                "entry-only upgrade requires identical indicators, exits and allocation"
+            )
+        with self._connection:
+            self._connection.execute("BEGIN IMMEDIATE")
+            session = self.load_strategy_session()
+            if (session.strategy_key, session.strategy_version) == (selected.key, selected.version):
+                return False
+            if (session.strategy_key, session.strategy_version) != (previous.key, previous.version):
+                raise RuntimeError("entry upgrade does not match the persisted original session")
+            self._connection.execute(
+                "UPDATE paper_strategy_state SET strategy_version=? WHERE singleton=1",
+                (selected.version,),
+            )
+            self._connection.execute(
+                "INSERT INTO paper_diversification(strategy_version,distinct_coins) "
+                "SELECT ?,distinct_coins FROM paper_diversification WHERE strategy_version=?",
+                (selected.version, previous.version),
+            )
+            self._connection.execute(
+                "INSERT INTO paper_audit(audit_id,occurred_at_utc,actor,action,details_json) "
+                "VALUES(?,?,'OWNER_DECISION','ENTRY_CAPITAL_CONTRACT_UPGRADED',?)",
+                (
+                    str(uuid4()),
+                    _time(at),
+                    json.dumps(
+                        {
+                            "previous_strategy": previous.config_payload(),
+                            "selected_strategy": selected.config_payload(),
+                            "open_entry_identities_preserved": True,
+                            "cash_positions_dust_risk_checkpoints_and_events_preserved": True,
+                            "forced_exits": 0,
+                        },
+                        separators=(",", ":"),
+                    ),
+                ),
+            )
+        return True
 
     def require_strategy(self, strategy_key: str, strategy_version: str) -> None:
         session = self.load_strategy_session()

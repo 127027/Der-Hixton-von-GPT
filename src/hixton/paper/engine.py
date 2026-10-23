@@ -19,6 +19,12 @@ from hixton.domain.diversification import (
     trim_quantity,
     trim_signal_id,
 )
+from hixton.domain.market_rules import (
+    market_order_block_reason,
+    market_order_is_dust,
+    market_quantity_step,
+    round_market_quantity,
+)
 from hixton.domain.models import Candle, IndicatorPoint, Signal, SignalAction
 from hixton.domain.risk import PortfolioRiskState, evaluate_portfolio_risk
 from hixton.domain.satellite_layer import (
@@ -27,6 +33,8 @@ from hixton.domain.satellite_layer import (
     shared_satellite_horizon_exit,
 )
 from hixton.domain.spot_autonomy import (
+    ENTRY_CAPITAL_BASIS,
+    entry_capital_equity,
     entry_volatility_fraction,
     marked_portfolio_equity,
     quality_filler_block_reason,
@@ -345,7 +353,7 @@ def process_new_closed_points(
                             closed_equity=stage_equity,
                             close=latest_prices[sym],
                             count=next_slots,
-                            step=rules.step_size,
+                            step=market_quantity_step(rules),
                         )
                         reference = _d(fill_candles[sym].open)
                         price = reference * (ONE - BASELINE_COSTS.adverse_price_rate)
@@ -353,11 +361,31 @@ def process_new_closed_points(
                         position = replace(
                             position, slot_count=1, allocation_units=capacity_units(next_slots)
                         )
-                        if (
-                            quantity > ZERO
-                            and quantity >= rules.min_qty
-                            and gross >= rules.min_notional
-                        ):
+                        trim_block = market_order_block_reason(rules, quantity, price)
+                        if trim_block is not None and quantity > ZERO:
+                            identity = trim_signal_id(sym, next_slots, close_time)
+                            emitted.append(
+                                PaperEvent(
+                                    event_id=hashlib.sha256(
+                                        f"PAPER|{identity}".encode()
+                                    ).hexdigest(),
+                                    signal_id=identity,
+                                    occurred_at_utc=boundary,
+                                    symbol=sym,
+                                    action="EXIT_LONG",
+                                    status=PaperEventStatus.BLOCKED,
+                                    reason="DIVERSIFICATION_FILTER_" + trim_block,
+                                    reference_price=reference,
+                                    execution_price=None,
+                                    base_quantity=None,
+                                    quote_amount_usdc=None,
+                                    fee_usdc=None,
+                                    realized_pnl_usdc=None,
+                                    breakout_strength=None,
+                                    strategy_version=strategy_version,
+                                )
+                            )
+                        if trim_block is None:
                             basis = position.cost_basis_usdc * quantity / position.quantity
                             fee = gross * BASELINE_COSTS.fee_rate
                             net = gross - fee
@@ -419,9 +447,13 @@ def process_new_closed_points(
                 rules = rules_by_symbol[point.symbol]
                 reference = _d(fill_candles[point.symbol].open)
                 fill_price = reference * (ONE - BASELINE_COSTS.adverse_price_rate)
-                quantity = _round_down(position.quantity, rules.step_size)
+                quantity = round_market_quantity(position.quantity, rules)
                 gross_quote = quantity * fill_price
-                if quantity < rules.min_qty or gross_quote < rules.min_notional:
+                filter_reason = market_order_block_reason(rules, quantity, fill_price)
+                if filter_reason is not None and not market_order_is_dust(filter_reason):
+                    emitted.append(_blocked_event(signal, "EXIT_FILTER_" + filter_reason))
+                    continue
+                if filter_reason is not None:
                     emitted.append(_blocked_event(signal, "EXIT_BECAME_DUST"))
                     dust[point.symbol] = dust.get(point.symbol, ZERO) + position.quantity
                     del positions[point.symbol]
@@ -513,9 +545,15 @@ def process_new_closed_points(
                     rules = rules_by_symbol[satellite_symbol]
                     reference = _d(fill_candles[satellite_symbol].open)
                     fill_price = reference * (ONE - BASELINE_COSTS.adverse_price_rate)
-                    quantity = _round_down(position.quantity, rules.step_size)
+                    quantity = round_market_quantity(position.quantity, rules)
                     gross_quote = quantity * fill_price
-                    if quantity < rules.min_qty or gross_quote < rules.min_notional:
+                    filter_reason = market_order_block_reason(rules, quantity, fill_price)
+                    if filter_reason is not None and not market_order_is_dust(filter_reason):
+                        emitted.append(
+                            _blocked_event(core_signal, "HANDOFF_EXIT_FILTER_" + filter_reason)
+                        )
+                        continue
+                    if filter_reason is not None:
                         dust[satellite_symbol] = (
                             dust.get(satellite_symbol, ZERO) + position.quantity
                         )
@@ -652,12 +690,19 @@ def process_new_closed_points(
                     execution_marks = {
                         symbol: _d(candle.open) for symbol, candle in fill_candles.items()
                     }
-                    managed_equity = marked_portfolio_equity(
-                        free_quote=account.cash_usdc,
-                        base_quantities={sym: p.quantity for sym, p in positions.items()},
-                        dust_quantities=dust,
-                        open_prices=execution_marks,
-                    )
+                    if definition.entry_capital_basis == ENTRY_CAPITAL_BASIS:
+                        managed_equity = entry_capital_equity(
+                            free_quote=account.cash_usdc,
+                            base_quantities={sym: p.quantity for sym, p in positions.items()},
+                            closed_prices=latest_prices,
+                        )
+                    else:
+                        managed_equity = marked_portfolio_equity(
+                            free_quote=account.cash_usdc,
+                            base_quantities={sym: p.quantity for sym, p in positions.items()},
+                            dust_quantities=dust,
+                            open_prices=execution_marks,
+                        )
                     budget = size_spot_entry(
                         equity=managed_equity,
                         free_quote=account.cash_usdc,
@@ -698,10 +743,21 @@ def process_new_closed_points(
                     )
                 reference = _d(fill_candles[signal.symbol].open)
                 fill_price = reference * (ONE + BASELINE_COSTS.adverse_price_rate)
-                gross_quantity = _round_down(budget / fill_price, rules.step_size)
+                gross_quantity = round_market_quantity(budget / fill_price, rules)
                 quote_spend = gross_quantity * fill_price
-                if gross_quantity < rules.min_qty or quote_spend < rules.min_notional:
-                    emitted.append(_blocked_event(signal, "BELOW_EXCHANGE_MINIMUM"))
+                if (
+                    filter_reason := market_order_block_reason(
+                        rules, gross_quantity, fill_price, quote=quote_spend
+                    )
+                ) is not None:
+                    emitted.append(
+                        _blocked_event(
+                            signal,
+                            "BELOW_EXCHANGE_MINIMUM"
+                            if market_order_is_dust(filter_reason)
+                            else filter_reason,
+                        )
+                    )
                     continue
                 if quote_spend <= ZERO or quote_spend > account.cash_usdc:
                     emitted.append(_blocked_event(signal, "INSUFFICIENT_CASH"))
@@ -798,11 +854,12 @@ def activate_paper_strategy(
             rule = rules_by_symbol[position.symbol]
             reference = latest_prices[position.symbol]
             fill_price = reference * (ONE - BASELINE_COSTS.adverse_price_rate)
-            quantity = _round_down(position.quantity, rule.step_size)
+            quantity = round_market_quantity(position.quantity, rule)
             gross_quote = quantity * fill_price
-            if quantity < rule.min_qty or gross_quote < rule.min_notional:
+            if (filter_reason := market_order_block_reason(rule, quantity, fill_price)) is not None:
                 raise RuntimeError(
-                    f"cannot activate strategy while {position.symbol} is exchange dust"
+                    f"cannot activate strategy while {position.symbol} "
+                    f"is filter-blocked: {filter_reason}"
                 )
             fee = gross_quote * BASELINE_COSTS.fee_rate
             net_quote = gross_quote - fee

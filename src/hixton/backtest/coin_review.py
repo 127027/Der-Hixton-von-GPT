@@ -210,9 +210,7 @@ def run_coin_review(database: Path, output: Path) -> None:
             rule = store.load_symbol_rules(symbol)
             if rule is None:
                 raise ValueError(f"missing Binance filters: {symbol}")
-            rules[symbol] = ExecutionRules(
-                rule.tick_size, rule.step_size, rule.min_qty, rule.min_notional
-            )
+            rules[symbol] = ExecutionRules.from_symbol_rules(rule)
     incumbent = V2_RESEARCH_STRATEGY.parameters
     for symbol in SYMBOLS:
         print(f"{symbol}: training frozen policy catalogue, then exact validation", flush=True)
@@ -477,9 +475,7 @@ def run_frozen_profile_review(database: Path, output: Path) -> None:
             rule = store.load_symbol_rules(symbol)
             if rule is None:
                 raise ValueError(f"missing Binance filters: {symbol}")
-            rules[symbol] = ExecutionRules(
-                rule.tick_size, rule.step_size, rule.min_qty, rule.min_notional
-            )
+            rules[symbol] = ExecutionRules.from_symbol_rules(rule)
         payload["execution_rules"] = {s: asdict(r) for s, r in rules.items()}
         for label, lo, hi, warmup_start in (
             ("full", START, END, START - timedelta(hours=400)),

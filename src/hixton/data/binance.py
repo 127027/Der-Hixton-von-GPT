@@ -13,6 +13,7 @@ from urllib.parse import urlencode
 from urllib.request import Request, urlopen
 
 from hixton.constants import TIMEFRAME
+from hixton.domain.market_rules import market_filter_values, validate_market_rules
 from hixton.domain.models import Candle
 
 _INTERVAL_MS = 3_600_000
@@ -66,6 +67,16 @@ class SymbolRules:
     step_size: Decimal
     min_qty: Decimal
     min_notional: Decimal
+    max_qty: Decimal = Decimal(0)
+    market_min_qty: Decimal = Decimal(0)
+    market_max_qty: Decimal = Decimal(0)
+    market_step_size: Decimal = Decimal(0)
+    max_notional: Decimal = Decimal(0)
+    notional_avg_price_mins: int = 0
+    market_limits_known: bool = False
+
+    def __post_init__(self) -> None:
+        validate_market_rules(self)
 
     @property
     def tradable_for_v1(self) -> bool:
@@ -119,12 +130,17 @@ class BinancePublicClient:
             raise BinanceApiError("exchangeInfo filters have unexpected shape")
         filters: dict[str, dict[str, Any]] = {}
         for raw_filter in raw_filters:
-            if not isinstance(raw_filter, dict) or "filterType" not in raw_filter:
+            if (
+                not isinstance(raw_filter, dict)
+                or not isinstance(raw_filter.get("filterType"), str)
+                or raw_filter["filterType"] in filters
+            ):
                 raise BinanceApiError("exchangeInfo filter has unexpected shape")
             filters[str(raw_filter["filterType"])] = raw_filter
-        price_filter = filters.get("PRICE_FILTER", {})
-        lot_filter = filters.get("LOT_SIZE", {})
-        notional_filter = filters.get("NOTIONAL") or filters.get("MIN_NOTIONAL") or {}
+        try:
+            values = market_filter_values(filters)
+        except (ValueError, ArithmeticError) as error:
+            raise BinanceApiError("exchangeInfo market filters are invalid") from error
         return SymbolRules(
             symbol=normalized,
             status=str(item.get("status", "")),
@@ -132,10 +148,7 @@ class BinancePublicClient:
             quote_asset=str(item.get("quoteAsset", "")),
             spot_allowed=bool(item.get("isSpotTradingAllowed", False)),
             order_types=tuple(str(value) for value in item.get("orderTypes", [])),
-            tick_size=Decimal(str(price_filter.get("tickSize", "0"))),
-            step_size=Decimal(str(lot_filter.get("stepSize", "0"))),
-            min_qty=Decimal(str(lot_filter.get("minQty", "0"))),
-            min_notional=Decimal(str(notional_filter.get("minNotional", "0"))),
+            **values,
         )
 
     def first_available_open(

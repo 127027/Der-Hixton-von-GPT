@@ -6,6 +6,7 @@ from dataclasses import dataclass
 from datetime import datetime
 from decimal import Decimal
 
+from hixton.domain.market_rules import FILTER_DECIMALS, MarketRules, validate_market_rules
 from hixton.domain.models import Signal, SignalAction
 
 ZERO = Decimal("0")
@@ -73,10 +74,24 @@ class ExecutionRules:
     step_size: Decimal = ZERO
     min_qty: Decimal = ZERO
     min_notional: Decimal = ZERO
+    max_qty: Decimal = ZERO
+    market_min_qty: Decimal = ZERO
+    market_max_qty: Decimal = ZERO
+    market_step_size: Decimal = ZERO
+    max_notional: Decimal = ZERO
+    notional_avg_price_mins: int = 0
+    market_limits_known: bool = True
 
     def __post_init__(self) -> None:
-        if min(self.tick_size, self.step_size, self.min_qty, self.min_notional) < ZERO:
-            raise ValueError("execution filters must be non-negative")
+        validate_market_rules(self)
+
+    @classmethod
+    def from_symbol_rules(cls, rules: MarketRules) -> ExecutionRules:
+        return cls(
+            **{name: getattr(rules, name) for name in FILTER_DECIMALS},
+            notional_avg_price_mins=rules.notional_avg_price_mins,
+            market_limits_known=rules.market_limits_known,
+        )
 
 
 @dataclass(frozen=True, slots=True)

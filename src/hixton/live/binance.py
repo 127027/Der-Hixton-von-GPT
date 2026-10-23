@@ -13,6 +13,8 @@ from urllib.error import HTTPError, URLError
 from urllib.parse import urlencode
 from urllib.request import HTTPRedirectHandler, ProxyHandler, Request, build_opener
 
+from hixton.backtest.models import ExecutionRules
+from hixton.domain.market_rules import market_filter_values
 from hixton.domain.markets import symbols_for_quote, validate_market_symbols
 from hixton.live.credentials import BinanceCredentials
 
@@ -264,18 +266,29 @@ def assess_account(
         if not isinstance(filters, list):
             blockers.append(f"{symbol}: Orderfilter fehlen.")
             continue
-        by_kind = {f.get("filterType"): f for f in filters if isinstance(f, dict)}
+        by_kind = {
+            str(f["filterType"]): f
+            for f in filters
+            if isinstance(f, dict) and isinstance(f.get("filterType"), str)
+        }
+        if len(by_kind) != len(filters):
+            blockers.append(f"{symbol}: Doppelte oder ungültige Market-Orderfilter.")
+            continue
         if not {"LOT_SIZE", "MARKET_LOT_SIZE"} <= by_kind.keys():
             blockers.append(f"{symbol}: Mengenfilter unvollständig.")
         notionals = [by_kind[k] for k in ("MIN_NOTIONAL", "NOTIONAL") if k in by_kind]
-        if not notionals or any(_amount(f.get("minNotional")) > notional for f in notionals):
+        try:
+            rules = ExecutionRules(**market_filter_values(by_kind))
+        except (ValueError, ArithmeticError):
+            blockers.append(f"{symbol}: Ungültige Market-Orderfilter.")
+            continue
+        if not notionals or rules.min_notional > notional:
             blockers.append(
                 f"{symbol}: Mindestnotional fehlt oder liegt über {notional} {quote_asset}."
             )
-        notional_filter = by_kind.get("NOTIONAL")
-        if isinstance(notional_filter, dict) and notional_filter.get("applyMaxToMarket") is True:
-            max_notional = _amount(notional_filter.get("maxNotional"))
-            if max_notional > 0 and notional > max_notional:
+        if rules.max_notional > 0:
+            max_notional = rules.max_notional
+            if notional > max_notional:
                 blockers.append(
                     f"{symbol}: Market-Notional {notional} {quote_asset} überschreitet "
                     f"Binance-Maximum {max_notional}."

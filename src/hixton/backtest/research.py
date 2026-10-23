@@ -140,9 +140,7 @@ def run_review(database: Path, output: Path) -> None:
             rule = store.load_symbol_rules(symbol)
             if rule is None:
                 raise ValueError(f"missing rules for {symbol}")
-            rules[symbol] = ExecutionRules(
-                rule.tick_size, rule.step_size, rule.min_qty, rule.min_notional
-            )
+            rules[symbol] = ExecutionRules.from_symbol_rules(rule)
     for symbol in SYMBOLS:
         ranked = []
         best_points = None

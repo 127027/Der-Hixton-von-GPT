@@ -33,13 +33,21 @@ from hixton.domain.diversification import (
     trim_quantity,
     trim_signal_id,
 )
+from hixton.domain.market_rules import (
+    market_order_block_reason,
+    market_order_is_dust,
+    market_quantity_step,
+    round_market_quantity,
+)
 from hixton.domain.models import IndicatorPoint, SignalAction
+from hixton.domain.risk import PortfolioRiskState, evaluate_portfolio_risk
 from hixton.domain.satellite_layer import (
     satellite_handoff_symbols,
     shared_satellite_entry_block_reason,
     shared_satellite_horizon_exit,
 )
 from hixton.domain.spot_autonomy import (
+    entry_capital_equity,
     entry_volatility_fraction,
     marked_portfolio_equity,
     quality_filler_block_reason,
@@ -1165,6 +1173,24 @@ class LivePortfolioController:
                     return False
             elif control["state"] not in {"LIVE_ENABLED", "EXIT_ONLY"}:
                 return False
+            rules = self.rules()[intent.symbol]
+            if not rules.market_limits_known:
+                return False
+            quantity = (
+                round_market_quantity(intent.quote_budget / intent.reference_price, rules)
+                if intent.side == "BUY"
+                else intent.base_quantity
+            )
+            if (
+                market_order_block_reason(
+                    rules,
+                    quantity,
+                    intent.reference_price,
+                    quote=intent.quote_budget if intent.side == "BUY" else None,
+                )
+                is not None
+            ):
+                return False
             snapshot = self.snapshot()
             proof = self.reconciler.check(
                 snapshot, now=datetime.now(UTC), ignore_intent_id=intent.intent_id
@@ -1214,12 +1240,12 @@ class LivePortfolioController:
                     # on EVERY attempt, including after a pending-intent restart.
                     try:
                         marks = self._live_marks(now=datetime.now(UTC))
-                        equity = marked_portfolio_equity(
+                        equity = entry_capital_equity(
                             free_quote=free_usdc,
                             base_quantities={
                                 s: Decimal(p["quantity"]) for s, p in positions.items()
                             },
-                            open_prices=marks,
+                            closed_prices=marks,
                         )
                         maximum = size_spot_entry(
                             equity=equity,
@@ -1370,13 +1396,15 @@ class LivePortfolioController:
                     closed_equity=equity,
                     close=Decimal(str(point.candle.close)),
                     count=count,
-                    step=rules.step_size,
+                    step=market_quantity_step(rules),
                 )
-                if (
-                    quantity <= ZERO
-                    or quantity < rules.min_qty
-                    or quantity * Decimal(str(point.candle.close)) < rules.min_notional
-                ):
+                trim_block = market_order_block_reason(
+                    rules, quantity, Decimal(str(point.candle.close))
+                )
+                if trim_block is not None:
+                    if quantity > ZERO and not market_order_is_dust(trim_block):
+                        self.fail_closed("DIVERSIFICATION_FILTER_" + trim_block)
+                        return None
                     continue
                 trims[symbol] = {
                     "quantity": str(quantity),
@@ -1774,7 +1802,9 @@ class LivePortfolioController:
                 self.fail_closed("DIVERSIFICATION_TRIM_NOT_FULLY_FILLED")
             return
         rules = self.rules()[str(pending["symbol"])]
-        if remaining < ZERO or remaining >= max(rules.step_size, rules.min_qty):
+        if remaining < ZERO or remaining >= max(
+            market_quantity_step(rules), rules.min_qty, rules.market_min_qty
+        ):
             self.fail_closed("EXIT_RESIDUAL_REQUIRES_REVIEW")
             return
         with self.journal._connect() as connection:
@@ -1820,30 +1850,42 @@ class LivePortfolioController:
         group: Mapping[str, IndicatorPoint],
     ) -> Decimal:
         quote = sum(snapshot.balances.get("USDC", (ZERO, ZERO)), ZERO)
-        position_value = sum(
-            (
-                Decimal(row["quantity"]) * Decimal(str(group[symbol].candle.close))
-                for symbol, row in positions.items()
-            ),
-            ZERO,
+        with self.journal._connect() as connection:
+            dust = {
+                str(row["symbol"]): Decimal(row["quantity"])
+                for row in connection.execute("SELECT symbol,quantity FROM live_dust")
+            }
+        return marked_portfolio_equity(
+            free_quote=quote,
+            base_quantities={symbol: Decimal(row["quantity"]) for symbol, row in positions.items()},
+            dust_quantities=dust,
+            open_prices={
+                symbol: Decimal(str(point.candle.close)) for symbol, point in group.items()
+            },
         )
-        return quote + position_value
 
     def _risk_paused(self, equity: Decimal, boundary: datetime) -> bool:
         control = self._control()
         if control is None:
             return True
-        day = boundary.date().isoformat()
         start = Decimal(control["day_start_equity"])
-        if control["day_start_date"] != day:
+        decision = evaluate_portfolio_risk(
+            PortfolioRiskState(
+                high_water_equity_usdc=max(start, equity),
+                day_start_equity_usdc=start,
+                day_start_date_utc=str(control["day_start_date"]),
+            ),
+            equity=equity,
+            at=boundary,
+        )
+        if control["day_start_date"] != decision.state.day_start_date_utc:
             with self.journal._connect() as connection:
                 connection.execute(
                     "UPDATE live_control SET day_start_date=?,day_start_equity=?,updated_at=? "
                     "WHERE singleton=1",
-                    (day, str(equity), boundary.isoformat()),
+                    (decision.state.day_start_date_utc, str(equity), boundary.isoformat()),
                 )
-            start = equity
-        return start > ZERO and equity <= start * Decimal("0.95")
+        return decision.daily_paused
 
     def _finish_boundary(
         self,
@@ -1973,9 +2015,12 @@ class LivePortfolioController:
                     and self._event(signal.signal_id) is None
                 ):
                     rules = self.rules()[symbol]
-                    quantity = _round_down(Decimal(position["quantity"]), rules.step_size)
-                    if quantity < rules.min_qty:
-                        self.fail_closed("EXIT_BELOW_MINIMUM_REQUIRES_REVIEW")
+                    quantity = round_market_quantity(Decimal(position["quantity"]), rules)
+                    exit_block = market_order_block_reason(
+                        rules, quantity, Decimal(str(group[symbol].candle.close))
+                    )
+                    if exit_block is not None:
+                        self.fail_closed("EXIT_FILTER_" + exit_block)
                         return self.report()
                     self._reserve(
                         signal,
@@ -2067,12 +2112,12 @@ class LivePortfolioController:
                     ):
                         row = positions[satellite_symbol]
                         rules = self.rules()[satellite_symbol]
-                        quantity = _round_down(
-                            Decimal(row["quantity"]),
-                            rules.step_size,
+                        quantity = round_market_quantity(Decimal(row["quantity"]), rules)
+                        exit_block = market_order_block_reason(
+                            rules, quantity, Decimal(str(group[satellite_symbol].candle.close))
                         )
-                        if quantity < rules.min_qty:
-                            self.fail_closed("EXIT_BELOW_MINIMUM_REQUIRES_REVIEW")
+                        if exit_block is not None:
+                            self.fail_closed("EXIT_FILTER_" + exit_block)
                             return self.report()
                         self._reserve_forced_exit(
                             symbol=satellite_symbol,
@@ -2172,12 +2217,12 @@ class LivePortfolioController:
                     if self.reinvest_profits():
                         try:
                             marks = self._live_marks(now=datetime.now(UTC))
-                            portfolio_equity = marked_portfolio_equity(
+                            portfolio_equity = entry_capital_equity(
                                 free_quote=snapshot.balances.get("USDC", (ZERO, ZERO))[0],
                                 base_quantities={
                                     s: Decimal(pos["quantity"]) for s, pos in positions.items()
                                 },
-                                open_prices=marks,
+                                closed_prices=marks,
                             )
                             trade_budget = size_spot_entry(
                                 equity=portfolio_equity,

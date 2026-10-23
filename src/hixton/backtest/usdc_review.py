@@ -98,12 +98,7 @@ def run_usdc_review(
         rule = client.symbol_rules(symbol)
         if not rule.tradable_for_quote("USDC"):
             raise ValueError(f"{symbol}: USDC spot market not confirmed")
-        rules[symbol] = ExecutionRules(
-            tick_size=rule.tick_size,
-            step_size=rule.step_size,
-            min_qty=rule.min_qty,
-            min_notional=rule.min_notional,
-        )
+        rules[symbol] = ExecutionRules.from_symbol_rules(rule)
         market_checks[symbol] = asdict(rule)
         with CandleStore(database) as store:
             cached = store.load_candles(symbol, start=warmup_start, end_exclusive=end)
@@ -183,12 +178,7 @@ def run_usdc_review(
             rule = client.symbol_rules(symbol)
             if not rule.tradable_for_quote("USDC"):
                 raise ValueError(f"{symbol}: control market not confirmed")
-            control_rules[symbol] = ExecutionRules(
-                tick_size=rule.tick_size,
-                step_size=rule.step_size,
-                min_qty=rule.min_qty,
-                min_notional=rule.min_notional,
-            )
+            control_rules[symbol] = ExecutionRules.from_symbol_rules(rule)
         controls = {}
         for label, (window_start, window_end) in windows.items():
             controls[label] = _evaluate_window(

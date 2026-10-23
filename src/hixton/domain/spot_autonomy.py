@@ -13,6 +13,7 @@ MAX_RESEARCH_SPOT_SLOTS = 4
 FILLERS_WITH_POSITIVE_RESEARCH_HYPOTHESIS = frozenset(("NEARUSDC", "BCHUSDC"))
 FILLER_CMO_RESEARCH_FLOOR = 0.20
 _CENT = Decimal("0.01")
+ENTRY_CAPITAL_BASIS = "FINALIZED_CLOSE_OWNED_POSITIONS_V1"
 
 
 def _nonnegative(value: Decimal, name: str) -> Decimal:
@@ -48,6 +49,23 @@ def marked_portfolio_equity(
                 raise ValueError(f"{symbol} cannot have a zero execution price")
             equity += qty * price
     return equity
+
+
+def entry_capital_equity(
+    *,
+    free_quote: Decimal,
+    base_quantities: Mapping[str, Decimal],
+    closed_prices: Mapping[str, Decimal],
+) -> Decimal:
+    """Shared entry capital: actual free quote plus owned positions at signal CLOSE.
+
+    Callers supply the aligned finalized decision-bar prices. Execution OPEN,
+    future candle fields and unsellable dust never increase a new order budget.
+    Dust remains part of reported account equity, separately from entry capital.
+    """
+    return marked_portfolio_equity(
+        free_quote=free_quote, base_quantities=base_quantities, open_prices=closed_prices
+    )
 
 
 def size_spot_entry(

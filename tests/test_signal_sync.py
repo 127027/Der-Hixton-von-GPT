@@ -4,6 +4,7 @@ from decimal import Decimal as D
 
 import pytest
 
+from hixton.backtest.models import ExecutionRules
 from hixton.data.binance import SymbolRules
 from hixton.data.storage import CandleStore
 from hixton.data.sync import synchronize_symbol
@@ -188,7 +189,7 @@ def test_recent_refresh_retains_full_history_validation(monkeypatch, healthy, co
             return True
 
         def load_symbol_rules(self, s):
-            return SimpleNamespace(
+            return ExecutionRules(
                 tick_size=D(".01"), step_size=D(".01"), min_qty=D(".01"), min_notional=D("5")
             )
 

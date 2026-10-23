@@ -86,12 +86,7 @@ def _execution_rules(store: CandleStore, symbol: str) -> ExecutionRules:
         raise ValueError(f"missing Binance filters for {symbol}; run data sync first")
     if stored.status != "TRADING" or not stored.spot_allowed or "MARKET" not in stored.order_types:
         raise ValueError(f"stored Binance rules do not permit V1 market trading for {symbol}")
-    return ExecutionRules(
-        tick_size=stored.tick_size,
-        step_size=stored.step_size,
-        min_qty=stored.min_qty,
-        min_notional=stored.min_notional,
-    )
+    return ExecutionRules.from_symbol_rules(stored)
 
 
 def _code_commit() -> str:
