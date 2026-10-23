@@ -262,6 +262,26 @@ def run_shared_portfolio_backtest(
     closed_equity = starting_cash
     closed_high_water = starting_cash
     diversification_count = 2
+    closed_entry_contract = (
+        strategy is not None and strategy.entry_capital_basis == ENTRY_CAPITAL_BASIS
+    )
+
+    def entry_paused_after_fills() -> bool:
+        if not apply_risk_limits:
+            return False
+        if daily_paused:
+            return True
+        known_equity = marked_portfolio_equity(
+            free_quote=cash,
+            base_quantities={sym: p.quantity for sym, p in positions.items()},
+            dust_quantities=dust,
+            open_prices={sym: _d(point.candle.close) for sym, point in previous_points.items()},
+        )
+        return evaluate_portfolio_risk(
+            risk_state,
+            equity=known_equity,
+            at=max(point.candle.close_time_utc for point in previous_points.values()),
+        ).daily_paused
 
     for row in rows:
         open_time = row[0].open_time_utc
@@ -368,8 +388,16 @@ def run_shared_portfolio_backtest(
                 s for s in entries if s.symbol in core_symbols and s.symbol not in positions
             ]
             core_entries.sort(key=lambda s: entry_priority(s.breakout_strength, s.symbol, symbols))
-            if satellite_symbols and core_entries and not (apply_risk_limits and daily_paused):
-                exit_symbols = {s.symbol for s in exits}
+
+            def handoff_signals(
+                exiting: frozenset[str],
+                core_entries: list[Signal] = core_entries,
+                previous_points: dict[str, IndicatorPoint] = previous_points,
+                open_time: datetime = open_time,
+            ) -> list[Signal]:
+                queued: list[Signal] = []
+                if not satellite_symbols or not core_entries:
+                    return queued
                 core_signal = sorted(
                     core_entries,
                     key=lambda s: entry_priority(s.breakout_strength, s.symbol, symbols),
@@ -379,7 +407,7 @@ def run_shared_portfolio_backtest(
                     position_slots={s: p.slots for s, p in positions.items()},
                     active_satellites=active_satellites,
                     slot_count=slot_count,
-                    exiting_symbols=frozenset(exit_symbols),
+                    exiting_symbols=exiting,
                 ):
                     forced = HixtonStrategy.signal_for(
                         replace(previous_points[symbol], flip_down=True, flip_up=False),
@@ -392,14 +420,24 @@ def run_shared_portfolio_backtest(
                             f"CORE_CAPACITY_HANDOFF|{symbol}|{core_signal.signal_id}|{open_time.isoformat()}".encode()
                         ).hexdigest(),
                     )
-                    exits.append(forced)
+                    queued.append(forced)
                     signals.append(forced)
 
-            for signal in exits:
+                return queued
+
+            if not closed_entry_contract and not (apply_risk_limits and daily_paused):
+                exits.extend(handoff_signals(frozenset(sig.symbol for sig in exits)))
+
+            def execute_exit(
+                signal: Signal,
+                candles: dict[str, Candle] = candles,
+                open_time: datetime = open_time,
+            ) -> None:
+                nonlocal cash
                 open_trade = positions.get(signal.symbol)
                 if open_trade is None:
                     blocked.append(f"{signal.signal_id}:POSITION_ALREADY_CLOSED")
-                    continue
+                    return
                 rule = rules.get(signal.symbol, ExecutionRules())
                 reference = _d(candles[signal.symbol].open)
                 fill_price = reference * (ONE - costs.adverse_price_rate)
@@ -408,12 +446,12 @@ def run_shared_portfolio_backtest(
                 filter_reason = market_order_block_reason(rule, sell_quantity, fill_price)
                 if filter_reason is not None and not market_order_is_dust(filter_reason):
                     blocked.append(f"{signal.signal_id}:EXIT_FILTER_{filter_reason}")
-                    continue
+                    return
                 if filter_reason is not None:
                     blocked.append(f"{signal.signal_id}:EXIT_BECAME_DUST")
                     dust[signal.symbol] += open_trade.quantity
                     del positions[signal.symbol]
-                    continue
+                    return
                 residual = open_trade.quantity - sell_quantity
                 fee_quote = gross_quote * costs.fee_rate
                 net_quote = gross_quote - fee_quote
@@ -458,6 +496,14 @@ def run_shared_portfolio_backtest(
                     )
                 )
                 del positions[signal.symbol]
+
+            for signal in exits:
+                execute_exit(signal)
+            if closed_entry_contract and not entry_paused_after_fills():
+                for signal in handoff_signals(frozenset()):
+                    if entry_paused_after_fills():
+                        break
+                    execute_exit(signal)
 
             entries.sort(
                 key=lambda signal: entry_priority(signal.breakout_strength, signal.symbol, symbols)
@@ -522,6 +568,9 @@ def run_shared_portfolio_backtest(
                 )
                 split = True
             for signal in entries:
+                if closed_entry_contract and entry_paused_after_fills():
+                    blocked.append(f"{signal.signal_id}:DAILY_LOSS_5_PERCENT")
+                    continue
                 if satellite_symbols and apply_risk_limits and daily_paused:
                     blocked.append(f"{signal.signal_id}:DAILY_LOSS_5_PERCENT")
                     continue

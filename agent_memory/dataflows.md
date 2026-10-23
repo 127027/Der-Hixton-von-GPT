@@ -1,5 +1,22 @@
 # Hixton data flows — current V8 product
 
+## Current entry flow correction — 2026-10-23
+
+Current v8r: aligned finalized closes → immutable pre-exit UTC risk decision →
+regular exits / required diversification trims → reconcile actual cash and owned
+inventory → check risk again before each capacity handoff or BUY → allocate using
+cash plus remaining owned positions at those same closed marks → enforce complete
+MARKET limits → submit once / query the same identity → reconcile. A pause blocks
+new exposure, never a valid regular owned exit. Paper and the current native
+portfolio/250-per-coin diagnostic use these same information phases. Legacy frozen
+contracts retain their versioned behavior and genuine original execution evidence.
+
+Automatic budget reads free Spot USDC; manual mode uses the saved maximum. Current
+code defines weighted/diversified capacity, not the old fixed-slot examples below.
+A current product backtest records the active contract, fresh starting budget,
+reinvestment preference, last three calendar years of finalized data and explicit
+continuity proxies. Historical headline results are never relabeled as current.
+
 Status: CURRENT · 2026-10-06
 
 ## Market data

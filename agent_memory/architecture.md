@@ -1,5 +1,23 @@
 # Hixton architecture — current V8 product
 
+## Current v8r correction — 2026-10-23
+
+The active definition is always `strategy_definition("v8r")`; the historical
+anchors below do not override it. Automatic capital mode uses fresh available
+Binance Spot USDC and reinvests actual realized changes. Foreign coin inventory
+and fee BNB are not liquidated into this budget. Manual mode retains its saved
+maximum. Current diversification is versioned in the strategy definition.
+
+`FINALIZED_CLOSE_OWNED_POSITIONS_V1` values new-entry capital with aligned finalized
+signal closes and actual cash. Owned dust remains reported equity but is excluded
+from entry spending. Entry risk requires both the frozen pre-exit decision and a
+fresh check after realized fills; UTC rollover between signal and execution cannot
+clear that signal's pause. Live persists the original risk decision across restarts.
+Exit obligations remain independent. MARKET quantity/notional bounds are shared;
+unknown live bounds stop new submissions, while existing unknown orders remain
+queryable under their original identities. See `docs/entry-capital-parity-20261022.md`
+and `docs/market-order-filters-20261022.md`.
+
 Status: CURRENT · 2026-10-06
 
 ## Product boundary

@@ -47,6 +47,7 @@ from hixton.domain.satellite_layer import (
     shared_satellite_horizon_exit,
 )
 from hixton.domain.spot_autonomy import (
+    ENTRY_CAPITAL_BASIS,
     entry_capital_equity,
     entry_volatility_fraction,
     marked_portfolio_equity,
@@ -845,6 +846,11 @@ class LivePortfolioController:
                 "CREATE TABLE IF NOT EXISTS live_diversification_decisions("
                 "bar_close_utc TEXT PRIMARY KEY,payload_json TEXT NOT NULL)"
             )
+            connection.execute(
+                "CREATE TABLE IF NOT EXISTS live_entry_risk_decisions("
+                "bar_close_utc TEXT NOT NULL,strategy_version TEXT NOT NULL,"
+                "payload_json TEXT NOT NULL,PRIMARY KEY(bar_close_utc,strategy_version))"
+            )
             for column in ("application_version", "execution_source_sha256"):
                 if column not in columns:
                     connection.execute(
@@ -1199,6 +1205,23 @@ class LivePortfolioController:
                 return False
             positions = self._positions()
             if intent.side == "BUY":
+                if self.strategy.entry_capital_basis == ENTRY_CAPITAL_BASIS:
+                    with self.journal._connect() as connection:
+                        event = connection.execute(
+                            "SELECT payload_json FROM live_events WHERE intent_id=?",
+                            (intent.intent_id,),
+                        ).fetchone()
+                    if event is None:
+                        return False
+                    boundary = datetime.fromisoformat(json.loads(event[0])["bar_close"])
+                    pre_paused = self._read_entry_risk(boundary, control)
+                    if pre_paused is not False:
+                        return False
+                    latest_points = self.market_points()
+                    group = {s: latest_points[s][-1] for s in self.strategy.symbols}
+                    self._validate_risk_group(boundary, group)
+                    if self._risk_paused(self._equity(snapshot, positions, group), boundary):
+                        return False
                 weighted = self.strategy.second_tranche_split_dd_pct is not None
                 used = sum(
                     position_units(int(row["slot_count"]), int(row["allocation_units"]))
@@ -1630,6 +1653,16 @@ class LivePortfolioController:
         )
         self.journal.create(intent)
         _loaded, state = self.journal.load(intent.intent_id)
+        if self.strategy.entry_capital_basis == ENTRY_CAPITAL_BASIS and state == "CREATED":
+            try:
+                frozen_risk = self._read_entry_risk(
+                    datetime.fromisoformat(str(payload["bar_close"])), control
+                )
+            except Exception:
+                frozen_risk = None
+            if frozen_risk is None:
+                self.fail_closed("PRE_EXIT_RISK_FREEZE_REQUIRED")
+                return
 
         def before_submit() -> bool:
             if not buy:
@@ -1887,6 +1920,155 @@ class LivePortfolioController:
                 )
         return decision.daily_paused
 
+    def _validate_risk_group(self, boundary: datetime, group: Mapping[str, IndicatorPoint]) -> None:
+        if set(group) != set(self.strategy.symbols) or any(
+            point.symbol != symbol
+            or point.candle.symbol != symbol
+            or point.strategy_version != self.strategy.version
+            or not point.candle.closed
+            or not point.candle.ohlc_is_valid
+            or _utc(point.candle.close_time_utc) != _utc(boundary)
+            for symbol, point in group.items()
+        ):
+            raise ValueError("Pre-exit risk requires aligned finalized strategy marks")
+
+    def _read_entry_risk(self, boundary: datetime, control: sqlite3.Row) -> bool | None:
+        """Read the immutable pre-exit decision; absence is never a passed gate."""
+        with self.journal._connect() as connection:
+            row = connection.execute(
+                "SELECT payload_json FROM live_entry_risk_decisions "
+                "WHERE bar_close_utc=? AND strategy_version=?",
+                (_utc(boundary).isoformat(), self.strategy.version),
+            ).fetchone()
+        if row is None:
+            return None
+        data = json.loads(row["payload_json"])
+        if (
+            data.get("account") != control["account"]
+            or data.get("strategy_json") != self._strategy_json()
+            or data.get("execution_source_sha256") != control["execution_source_sha256"]
+            or data.get("bar_close_utc") != _utc(boundary).isoformat()
+            or data.get("entry_capital_basis") != ENTRY_CAPITAL_BASIS
+            or type(data.get("daily_paused")) is not bool
+        ):
+            raise ValueError("Pre-exit risk identity mismatch")
+        equity, start = Decimal(data["equity"]), Decimal(data["previous_day_start_equity"])
+        if any(not amount.is_finite() or amount < ZERO for amount in (equity, start)):
+            raise ValueError("Invalid frozen pre-exit equity")
+        expected = evaluate_portfolio_risk(
+            PortfolioRiskState(
+                high_water_equity_usdc=max(equity, start),
+                day_start_equity_usdc=start,
+                day_start_date_utc=data["previous_day_start_date"],
+            ),
+            equity=equity,
+            at=boundary,
+        )
+        if (
+            data["daily_paused"] is not expected.daily_paused
+            or data.get("day_start_date") != expected.state.day_start_date_utc
+            or Decimal(data["day_start_equity"]) != expected.state.day_start_equity_usdc
+        ):
+            raise ValueError("Invalid frozen pre-exit decision")
+        return expected.daily_paused is True
+
+    def _freeze_entry_risk(
+        self, boundary: datetime, group: Mapping[str, IndicatorPoint]
+    ) -> bool | None:
+        """Freeze CLOSECAP risk before the boundary can change its owned cash.
+
+        UTC rollover and the decision commit together. A subsequent profitable
+        exit cannot rewrite a paused pre-exit boundary, including after restart.
+        """
+        if self.strategy.entry_capital_basis != ENTRY_CAPITAL_BASIS:
+            return False
+        try:
+            control = self._control()
+            if control is None:
+                raise ValueError("Pre-exit risk requires Live control")
+            existing = self._read_entry_risk(boundary, control)
+            if existing is not None:
+                return existing
+            self._validate_risk_group(boundary, group)
+            snapshot = self.snapshot()
+            if (
+                snapshot.account != control["account"]
+                or self.reconciler.check(snapshot, now=datetime.now(UTC))["passed"] is not True
+            ):
+                raise ValueError("Pre-exit risk account reconciliation failed")
+            equity = self._equity(snapshot, self._positions(), group)
+            start = Decimal(control["day_start_equity"])
+            decision = evaluate_portfolio_risk(
+                PortfolioRiskState(
+                    high_water_equity_usdc=max(start, equity),
+                    day_start_equity_usdc=start,
+                    day_start_date_utc=str(control["day_start_date"]),
+                ),
+                equity=equity,
+                at=boundary,
+            )
+            data = {
+                "account": control["account"],
+                "strategy_json": self._strategy_json(),
+                "execution_source_sha256": control["execution_source_sha256"],
+                "entry_capital_basis": ENTRY_CAPITAL_BASIS,
+                "bar_close_utc": _utc(boundary).isoformat(),
+                "equity": str(equity),
+                "previous_day_start_date": control["day_start_date"],
+                "previous_day_start_equity": str(start),
+                "day_start_date": decision.state.day_start_date_utc,
+                "day_start_equity": str(decision.state.day_start_equity_usdc),
+                "daily_paused": decision.daily_paused,
+            }
+            with self.journal._connect() as connection:
+                connection.execute("BEGIN IMMEDIATE")
+                fresh = connection.execute(
+                    "SELECT * FROM live_control WHERE singleton=1"
+                ).fetchone()
+                if fresh is None or any(
+                    fresh[key] != control[key]
+                    for key in (
+                        "account",
+                        "strategy_json",
+                        "execution_source_sha256",
+                        "day_start_date",
+                        "day_start_equity",
+                    )
+                ):
+                    raise ValueError("Risk baseline changed during freeze")
+                # Missing proof must not be reconstructed after a possible fill.
+                acted = connection.execute(
+                    "SELECT 1 FROM live_events e LEFT JOIN live_intents i "
+                    "ON i.intent_id=e.intent_id WHERE e.occurred_at_utc=? "
+                    "AND (e.status IN ('FILLED','RECONCILING','PARTIAL_REQUIRES_REVIEW') "
+                    "OR (i.state IS NOT NULL AND i.state NOT IN ('CREATED'))) LIMIT 1",
+                    (_utc(boundary).isoformat(),),
+                ).fetchone()
+                if acted is not None:
+                    raise ValueError("Cannot invent pre-exit risk after execution")
+                connection.execute(
+                    "INSERT INTO live_entry_risk_decisions VALUES(?,?,?)",
+                    (
+                        _utc(boundary).isoformat(),
+                        self.strategy.version,
+                        json.dumps(data, sort_keys=True, allow_nan=False),
+                    ),
+                )
+                if control["day_start_date"] != decision.state.day_start_date_utc:
+                    connection.execute(
+                        "UPDATE live_control SET day_start_date=?,day_start_equity=?,updated_at=? "
+                        "WHERE singleton=1",
+                        (
+                            decision.state.day_start_date_utc,
+                            str(decision.state.day_start_equity_usdc),
+                            boundary.isoformat(),
+                        ),
+                    )
+            return decision.daily_paused
+        except Exception:
+            self.fail_closed("PRE_EXIT_RISK_FREEZE_REQUIRED")
+            return None
+
     def _finish_boundary(
         self,
         boundary: datetime,
@@ -1975,6 +2157,9 @@ class LivePortfolioController:
             if next_group is None:
                 return self.report()
             boundary, group = next_group
+            pre_paused = self._freeze_entry_risk(boundary, group)
+            if pre_paused is None:
+                return self.report()
             positions = self._positions()
             decisions = {
                 symbol: self._decision(points[symbol], point, positions.get(symbol))
@@ -2098,7 +2283,7 @@ class LivePortfolioController:
                     self.fail_closed("ACCOUNT_RECONCILIATION_MISMATCH")
                     return self.report()
                 equity = self._equity(snapshot, positions, group)
-                paused = self._risk_paused(equity, boundary)
+                paused = self._risk_paused(equity, boundary) or pre_paused
 
                 # Process one persistent forced exit at a time. The boundary is not
                 # finalized until every required Satellite handoff has reconciled.

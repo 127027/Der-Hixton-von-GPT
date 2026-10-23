@@ -17,6 +17,18 @@ konnten dadurch die Budgetentscheidungen voneinander abweichen. Beispiel:
 alte simulierte halbe Tranche 375, Live 500. Die neue gemeinsame Regel ergibt 500.
 Das ist eine Korrektur der Entscheidungsgrundlage, keine Renditeprognose.
 
+Für neue Einstiege gilt dieselbe zweistufige Tagesverlustprüfung: Die endgültige
+Signalbewertung vor Verkäufen muss einen Kauf erlauben. Nach jedem tatsächlich
+verbuchten Verkauf beziehungsweise Kauf wird das bekannte Cash zusammen mit den
+verbliebenen eigenen Positionen und Restbeständen zu diesen Schlusskursen erneut
+geprüft. Ein durch einen Verkauf bekannt gewordener Tagesverlust von mindestens
+5 % verhindert einen Ersatzkauf. Ein bereits gesperrtes Signal wird durch einen
+besseren Verkaufspreis nicht nachträglich freigegeben. Der UTC-Tag richtet sich
+nach dem Signalzeitpunkt; Mitternacht zwischen Signal und Ausführung setzt diese
+Basis nicht zurück. Live speichert die ursprüngliche Entscheidung vor dem ersten
+Auftrag dauerhaft und verwendet sie auch nach Neustarts. Reguläre Ausstiege
+bleiben unabhängig von dieser Einstiegspause möglich.
+
 Der vollständige vorherige DIV32-/ATR0,75-Vertrag bleibt als
 `V8_DIV32_PAPER_STRATEGY` registriert. Bereits eröffnete echte Einmaltests behalten
 ihre ursprüngliche Strategie, Quelle, Order-/Fillidentitäten, Baseline und regulären
@@ -26,7 +38,7 @@ normale Portfolio-Allokation erweitert. Keine Aktualisierung aktiviert Echtgeld.
 
 Für diese reine Änderung neuer Einstiegskapitalbewertungen existiert eine
 ausdrückliche atomare Paper-Migration. Sie erlaubt keine Änderung von Indikatoren,
-Ausstiegen, Routing oder Allokation. Sie erhält Cash, Positionen samt ursprünglicher
+Ausstiegen, Risikoschwellen, Routing oder Allokation. Sie erhält Cash, Positionen samt ursprünglicher
 Einstiegsidentität, Restbestände, Risiko, Checkpoints, Ereignisse und den latched
 Diversifikationsstand. Sie erzeugt keine künstlichen Verkäufe oder Kontoeinzahlungen.
 Statusabfragen und Neustarts führen diese Migration nicht selbstständig aus.

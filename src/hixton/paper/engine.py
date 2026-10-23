@@ -532,6 +532,22 @@ def process_new_closed_points(
                 )
             )
 
+            def entry_paused_after_fills(
+                current: PaperAccount, paused: bool = daily_paused, at: datetime = close_time
+            ) -> bool:
+                if paused:
+                    return True
+                known_equity, _ = _equity(current.cash_usdc, positions, latest_prices, dust)
+                return evaluate_portfolio_risk(
+                    PortfolioRiskState(
+                        high_water_equity_usdc=current.high_water_equity_usdc,
+                        day_start_equity_usdc=current.day_start_equity_usdc,
+                        day_start_date_utc=current.day_start_date_utc,
+                    ),
+                    equity=known_equity,
+                    at=at,
+                ).daily_paused
+
             # Reclaim only slots needed for executable Core entries at this open.
             if core_candidates and not (settings.emergency_stop or account.halted or daily_paused):
                 core_signal = core_candidates[0][0]
@@ -541,6 +557,11 @@ def process_new_closed_points(
                     active_satellites=active_satellites,
                     slot_count=settings.slot_count,
                 ):
+                    if (
+                        definition.entry_capital_basis == ENTRY_CAPITAL_BASIS
+                        and entry_paused_after_fills(account)
+                    ):
+                        break
                     position = positions[satellite_symbol]
                     rules = rules_by_symbol[satellite_symbol]
                     reference = _d(fill_candles[satellite_symbol].open)
@@ -650,6 +671,12 @@ def process_new_closed_points(
                 )
                 split = True
             for signal, point in candidates:
+                if (
+                    definition.entry_capital_basis == ENTRY_CAPITAL_BASIS
+                    and entry_paused_after_fills(account)
+                ):
+                    emitted.append(_blocked_event(signal, "DAILY_LOSS_5_PERCENT"))
+                    continue
                 if settings.emergency_stop:
                     emitted.append(_blocked_event(signal, "EMERGENCY_STOP"))
                     continue

@@ -53,7 +53,10 @@ def test_partial_trim_ambiguous_response_restart_then_regular_exit(tmp_path):
     drain(c, first, at)
     assert D(c._positions()["BTCUSDC"]["quantity"]) == 310
     second = {
-        s: tuple(replace(p, candle=replace(p.candle, close=110)) for p in series)
+        s: tuple(
+            replace(p, candle=replace(p.candle, high=max(p.candle.high, 110), close=110))
+            for p in series
+        )
         for s, series in history(at + timedelta(hours=1)).items()
     }
     c.market_points = lambda: second
@@ -100,7 +103,10 @@ def test_unfilled_partial_remainder_stays_owned_and_blocks_entries(tmp_path):
     c.market_points = lambda: first
     drain(c, first, at)
     second = {
-        s: tuple(replace(p, candle=replace(p.candle, close=110)) for p in series)
+        s: tuple(
+            replace(p, candle=replace(p.candle, high=max(p.candle.high, 110), close=110))
+            for p in series
+        )
         for s, series in history(at + timedelta(hours=1)).items()
     }
     c.advance(second, now=at + timedelta(hours=1), healthy=True)
