@@ -7,7 +7,7 @@ from pathlib import Path
 from hixton.config import load_project_config
 from hixton.constants import SYMBOLS
 from hixton.domain.satellite_layer import ACTIVE_SHARED_SATELLITES, SATELLITE_SYMBOLS
-from hixton.domain.versions import V6_COIN_STRATEGY, V8_SATELLITE_STRATEGY
+from hixton.domain.versions import V6_COIN_STRATEGY, V8_SATELLITE_STRATEGY, strategy_definition
 
 ROOT = Path(__file__).resolve().parents[1]
 
@@ -20,12 +20,13 @@ def test_v6_core_remains_the_frozen_ten_coin_regression_anchor() -> None:
     assert V6_COIN_STRATEGY.active_shared_satellites == ()
 
 
-def test_product_config_selects_v8_without_mutating_v6() -> None:
+def test_product_config_selects_current_v8r_without_mutating_frozen_anchors() -> None:
     config_path = ROOT / "config" / "examples" / "config.example.json"
     payload = json.loads(config_path.read_text(encoding="utf-8"))
-    assert payload["strategy"] == {"key": "v8"}
+    assert payload["strategy"] == {"key": "v8r"}
     config = load_project_config(config_path, project_root=ROOT)
-    assert config.strategy_key == "v8"
+    assert config.strategy_key == "v8r"
+    assert payload["markets"] == list(strategy_definition("v8r").symbols)
     assert V8_SATELLITE_STRATEGY.config_payload()["quote_asset"] == "USDC"
     assert payload["markets"] == list(V8_SATELLITE_STRATEGY.symbols)
     assert tuple(V8_SATELLITE_STRATEGY.symbols[:10]) == tuple(SYMBOLS)
@@ -64,9 +65,11 @@ def test_promoted_core_profiles_stay_exact() -> None:
     assert V6_COIN_STRATEGY.policy_for("DOTUSDC").cmo_floor == 0.35
 
 
-def test_product_ui_exposes_only_current_v8() -> None:
+def test_product_ui_waits_for_actual_runtime_strategy() -> None:
     html = (ROOT / "ui" / "index.html").read_text(encoding="utf-8")
-    assert '<option value="v8">Aktuelle V8' in html
+    assert '<select id="backtest-strategy" aria-label="Backteststrategie" disabled>' in html
+    assert '<option value="">Aktive Strategie wird geladen' in html
+    assert '<option value="v8">' not in html
     assert '<option value="v6">' not in html
     assert '<option value="v1">' not in html
     assert '<option value="v2">' not in html

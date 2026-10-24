@@ -243,11 +243,10 @@ function setPage(target: string, title: string): void {
 }
 
 function renderStatus(status: StatusResponse): void {
-  if (!lastStatus) {
+  if (!lastStatus || lastStatus.strategy_key !== status.strategy_key || lastStatus.strategy_version !== status.strategy_version) {
     const strategySelect = required<HTMLSelectElement>("#backtest-strategy");
-    if (!Array.from(strategySelect.options).some(option => option.value === status.strategy_key)) {
-      strategySelect.add(new Option(`Aktiv: ${status.strategy_version}`, status.strategy_key));
-    }
+    strategySelect.replaceChildren(new Option(`Aktiv: ${status.strategy_version}`, status.strategy_key));
+    strategySelect.disabled = false;
     strategySelect.value = status.strategy_key;
     void refreshBacktests();
   }
