@@ -24,7 +24,7 @@ from hixton.domain.models import IndicatorPoint
 from hixton.domain.versions import StrategyDefinition
 from hixton.live.acceptance import acceptance_status
 from hixton.live.binance import BinanceCheckError, BinanceReadOnlyClient
-from hixton.live.credentials import CredentialService, LocalAccess, Vault
+from hixton.live.credentials import CredentialService, LocalAccess, Vault, VaultError
 from hixton.live.exchange import BinanceSpotExchange, BinanceSpotTransport
 from hixton.live.frozen_trial import FrozenTrialPoints, continuation_strategy
 from hixton.live.monitoring import build_execution_report, write_execution_report
@@ -244,6 +244,14 @@ class LivePreparation:
 
         live_journal = LiveOrderJournal(self.database)
         self.live_reconciler = LiveBalanceReconciler(live_journal)
+
+        def current_account_fingerprint() -> str | None:
+            try:
+                fingerprint = self.credentials.status().get("fingerprint")
+            except VaultError:
+                return None  # A locked/unavailable vault cannot authorize an idle migration.
+            return fingerprint if isinstance(fingerprint, str) else None
+
         holder: dict[str, LivePortfolioController] = {}
         live_executor = LiveOrderExecutor(
             live_journal,
@@ -268,6 +276,7 @@ class LivePreparation:
             reinvest_profits=reinvest_profits_enabled,
             market_points=market_points,
             allocation_reference=allocation_reference,
+            account_fingerprint=current_account_fingerprint,
         )
         holder["controller"] = self.live
         self.live_runtime = LivePortfolioRuntime(self.live)

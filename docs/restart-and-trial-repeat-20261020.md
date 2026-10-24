@@ -38,8 +38,13 @@ bleibt archiviert. Erst anschließend erhält der neue Test eine eigene UUID und
 wartet auf ein neues Signal. Ein erneuter Klick während eines laufenden Tests
 erzeugt keinen zweiten Test. Normale Live-Historie und Paper werden nicht gelöscht.
 
-Der neue Python-Fingerprint macht die bisherige Abnahme nicht automatisch zur
-Abnahme des korrigierten Codes. Für diese Version ist der neue Roundtrip erforderlich.
+Die Besitzerentscheidung vom 21.10.2026 ersetzt die frühere Forderung, nach jedem
+Python-Patch einen neuen Echtgeldtest zu verlangen: Ein korrekt abgeschlossener
+automatischer Roundtrip bleibt ein dauerhafter technischer Ausführungsnachweis
+für den getesteten Schlüssel. Er ist keine reale Abnahme neuer Handelsregeln.
+Ein weiterer Test ist nur nach ausdrücklichem Wiederholungswunsch erforderlich;
+dieser setzt die Freigabe bis zu seinem eigenen erfolgreichen Abschluss aus.
+Siehe [dauerhafte Testabnahme](durable-trial-acceptance-20261021.md).
 Live-An-/Ausschalten bleibt eine separate ausdrückliche Benutzeraktion. Historische
 Backtests bleiben erhalten und müssen die bestehende Versionsprüfung bestehen;
 ein neuer Lauf verwendet weiterhin dieselben aktuellen Produktregeln.

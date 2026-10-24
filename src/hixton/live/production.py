@@ -62,6 +62,7 @@ from hixton.domain.tranche import (
     size_tranche,
 )
 from hixton.domain.versions import StrategyDefinition
+from hixton.live.idle_upgrade import upgrade_unused_live_binding
 from hixton.live.orders import ExchangeOrder, OrderLookupNotFound, request_error_metadata
 
 ZERO = Decimal("0")
@@ -749,6 +750,7 @@ class LivePortfolioController:
         reinvest_profits: Callable[[], bool] | None = None,
         market_points: Callable[[], Mapping[str, Sequence[IndicatorPoint]]] | None = None,
         allocation_reference: Callable[[datetime], Mapping[str, str] | None] | None = None,
+        account_fingerprint: Callable[[], str | None] | None = None,
     ) -> None:
         self.autonomous_spot = autonomous_spot or (lambda: False)
         self.reinvest_profits = reinvest_profits or (lambda: self.autonomous_spot())
@@ -767,6 +769,7 @@ class LivePortfolioController:
         self.application_version = application_version
         self.execution_source_sha256 = execution_source_sha256
         self.source_is_current = source_is_current or (lambda: True)
+        self.account_fingerprint = account_fingerprint
         self.lock = RLock()
         with journal._connect() as connection:
             connection.executescript(
@@ -817,6 +820,7 @@ class LivePortfolioController:
                 );
                 """
             )
+            connection.execute("BEGIN IMMEDIATE")
             position_columns = {
                 row["name"] for row in connection.execute("PRAGMA table_info(live_positions)")
             }
@@ -857,6 +861,14 @@ class LivePortfolioController:
                         f"ALTER TABLE live_control ADD COLUMN {column} TEXT NOT NULL "
                         "DEFAULT 'legacy'"
                     )
+            upgrade_unused_live_binding(
+                connection,
+                self.strategy,
+                application_version=self.application_version,
+                execution_source_sha256=self.execution_source_sha256,
+                source_is_current=self.source_is_current(),
+                current_account_fingerprint=account_fingerprint,
+            )
 
     def _strategy_json(self) -> str:
         return json.dumps(self.strategy.config_payload(), sort_keys=True, allow_nan=False)
@@ -953,9 +965,27 @@ class LivePortfolioController:
         elif free_usdc < plan.max_capital_usdc:
             raise RuntimeError("Live account has less free USDC than configured max capital")
         capital_json = self._capital_json(plan)
+        # Retry the narrow metadata-only migration if credentials were unavailable
+        # at startup. Explicit activation still validates this fresh snapshot below.
+        with self.lock, self.journal._connect() as connection:
+            connection.execute("BEGIN IMMEDIATE")
+            upgrade_unused_live_binding(
+                connection,
+                self.strategy,
+                application_version=self.application_version,
+                execution_source_sha256=self.execution_source_sha256,
+                source_is_current=self.source_is_current(),
+                current_account_fingerprint=self.account_fingerprint,
+            )
         existing_control = self._control()
         existing_positions = self._positions()
         existing_unresolved = self.journal.unresolved_ids()
+        if existing_control is not None:
+            if (existing_control["account"] != account
+                    or existing_control["strategy_json"] != self._strategy_json()):
+                raise RuntimeError("Live account/strategy cannot change in place")
+            if existing_control["state"] == "NEEDS_REVIEW":
+                raise RuntimeError("Live ledger requires review before re-enable")
         allow_baseline_refresh = bool(
             existing_control is not None
             and existing_control["state"] == "LIVE_DISABLED"
