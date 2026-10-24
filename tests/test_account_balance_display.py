@@ -98,6 +98,31 @@ def test_zero_is_real_balance_not_missing_or_budget_fallback():
     assert display.read()["state"] == "CURRENT"
 
 
+def test_health_observation_is_passive_fresh_and_redacted():
+    from hixton.live.exchange import ExchangeRequestError
+
+    display, _, now, response, calls = fixture_display()
+    assert display.health_observation()["state"] == "UNKNOWN"
+    assert not calls
+    response[0] = ExchangeRequestError(code=-2015, http_status=400)
+    display.read()
+    assert display.health_observation() == {
+        "state": "UNAVAILABLE", "code": -2015, "fresh": True,
+    }
+    now[0] = 91
+    assert display.health_observation()["fresh"] is False
+    assert len(calls) == 1  # Sampling must not retry or bypass account throttling.
+    response[0] = RuntimeError("secret/signed-url")
+    display.read()
+    assert display.health_observation()["code"] is None
+    assert "secret" not in str(display.health_observation())
+    display._lock.acquire()
+    try:
+        assert display.health_observation()["state"] == "UNKNOWN"
+    finally:
+        display._lock.release()
+
+
 def test_status_keeps_real_balance_separate_from_paper(tmp_path, monkeypatch):
     from fastapi.testclient import TestClient
 

@@ -16,6 +16,23 @@ def test_windows_runtime_timezone_is_available() -> None:
     assert ZoneInfo("Europe/Berlin").key == "Europe/Berlin"
 
 
+def test_fresh_default_uses_active_product_and_never_private_account_settings(
+    capsys: pytest.CaptureFixture[str],
+) -> None:
+    from hixton.cli import DEFAULT_CONFIG, PROJECT_ROOT
+
+    config = load_project_config(DEFAULT_CONFIG, project_root=PROJECT_ROOT)
+    selected = strategy_definition("v8r")
+    assert config.strategy_key == selected.key
+    assert len(selected.symbols) == 15
+    assert config.run_output_root == PROJECT_ROOT / "backtests/v8r/runs"
+    assert config.paper_max_capital_usdc == Decimal("250.00")
+    assert main(["status"]) == 0
+    status = json.loads(capsys.readouterr().out)
+    assert status["strategy_version"] == selected.version
+    assert status["live_enabled"] is False
+
+
 def _payload() -> dict[str, object]:
     return {
         "schema_version": 1,

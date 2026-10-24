@@ -1,0 +1,21 @@
+# Telegram: Betriebsstörungen und Wiederanlauf
+
+Unter Einstellungen → Kontakt können zusätzlich zu bestätigten Echtgeld-Handelsmeldungen **Störungen und Entwarnungen** aktiviert werden. Diese zusätzliche Einwilligung ist bei einer neuen Installation aus. Der bestehende Kontakt und dessen Token bleiben erhalten. Speichern versendet keine Probe und schaltet keinen Handel ein. Das Abschalten dieser Zusatzfunktion entfernt keine ausstehenden Handelsmeldungen.
+
+Der getrennte Nachrichtenworker liest den lokalen Ausführungszustand ausschließlich lesend. Er meldet ungeklärte reale Orders, erforderliche Ausführungsprüfungen und bei aktivem Echtgeldkontext fehlende aktuelle Marktdaten. Ein wartender Test ist aktiv, aber noch kein Kauf. Historische abgeschlossene Tests und reine Paper-Positionen gelten nicht als offene Echtgeldposition. WebSocket-Ausfall mit gesunder aktueller REST-Versorgung allein ist kein Alarm.
+
+Binance-Zugriffs-, Zeit- und Verbindungsfehler stammen aus bereits vorhandenen Kontobeobachtungen; dafür werden keine zusätzlichen privaten Requests erzeugt. Ohne frische Kontobeobachtung wird keine Entwarnung behauptet. Fehler −2015 kann Schlüssel, Berechtigungen oder IP-Freigabe betreffen und betrifft möglicherweise auch Verkäufe. Der Bot ändert weder öffentliche IP-Adressen noch Binance-Freigaben automatisch.
+
+Probleme und Nachrichten werden atomar in der lokalen Benachrichtigungsdatenbank gespeichert. Marktdatenprobleme benötigen 120 Sekunden fortlaufende Beobachtung, Entwarnungen 30 Sekunden. Kritische ungeklärte Orders und beobachtete Zugriffsfehler werden unmittelbar eingereiht. Beobachtungslücken oder ein Neustart zählen nicht als gesunde Beobachtungszeit. Fehlende oder beschädigte Journale sind unbekannt, nicht gesund. Ungeklärte Orders benötigen für ihre Entwarnung positive terminale Belege für dieselben Aufträge. Jede Episode hat eine stabile Kennung; Nachrichten tragen ihren Beobachtungszeitpunkt.
+
+Ausstehende Handelsmeldungen behalten ihre Reihenfolge, ebenso Alarm und zugehörige Entwarnung. Ein zurückgestellter Störungsalarm blockiert keine neue bestätigte Handelsmeldung. Nachrichtenfehler verändern keine Orders, Handelsfreigaben oder Strategieregeln. Telegram-Annahme bestätigt keine Zustellung oder gelesenes Telegram. Nach unklarer Versandbestätigung sind Wiederholungen möglich; es gibt keine Genau-einmal-Garantie.
+
+**Vollständig ausgeschalteter Laptop oder ausgefallenes Internet:** Ein lokaler Worker kann währenddessen nichts senden. Gespeicherte Meldungen werden später erneut versucht; ein unterbrochener Prozess erfindet keine unbeobachteten Ereignisse. Für eine Warnung während des Totalausfalls ist ein unabhängig eingerichteter externer Monitor erforderlich. Diese Version richtet keinen externen Dienst oder versteckten Hintergrundbetrieb ein. Ein Telegram-Kontakt allein ist kein externer Monitor. Benachrichtigungen garantieren keinen rechtzeitigen Börsenausstieg.
+
+## Aktualisieren und neu starten
+
+Am gleichen absoluten Installations-/Datenbankpfad unter demselben Windows-Benutzer bleiben der Windows-Vault, Passwort, Binance-/Telegram-Schlüssel, Einstellungen, Paper-Zustand, Ausführungsjournal und historische technische Testabnahme erhalten. Zugangsdaten werden nicht in den Quellcode oder ein Downloadpaket exportiert. Ein anderer Ordner oder Rechner ist ein eigener Vault-Namensraum; ein frischer GitHub-Download benötigt eigene Zugangsdaten und eine eigene technische Testabnahme.
+
+Die mitgelieferte Standard-Konfiguration wählt jetzt wie die aktive Installation `v8r`. Sie enthält weiterhin nur das öffentliche 250-USDC-Beispielbudget und keine privaten Kontoeinstellungen. Die alte `v8`-Definition bleibt als historische Referenz explizit auswählbar. Bestehende lokale Budgetwerte werden beim Einspielen dieses Updates erhalten.
+
+Ein vollständig abgeglichener qualifizierender Einmaltest bleibt als Originalbeleg gespeichert. Dieses Benachrichtigungsupdate verlangt keinen neuen Echtgeldtest allein wegen seines neuen Quellenhashs. Ein ausdrücklich neu angeforderter Test sperrt die Freigabe bis zu seinem Erfolg. Live wird niemals durch Installation oder Neustart eingeschaltet. Vor ausdrücklicher Aktivierung bleiben aktuelle Software-, Konten-, Marktdaten- und Risiko-Prüfungen erforderlich. Der technische Test ist kein Nachweis zukünftiger Profitabilität.

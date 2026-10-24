@@ -183,6 +183,125 @@ def test_ordinary_save_preserves_epoch_and_pending_delivery(tmp_path: Path) -> N
     assert len(sender.sent) == 1
 
 
+def test_operations_are_explicit_opt_in_and_restart_does_not_repeat_alert(tmp_path: Path) -> None:
+    service, sender, _, now = setup_service(tmp_path)
+    service.operations_provider = lambda: ("UNKNOWN_ORDER",)
+    assert save(service)["operations_enabled"] is False
+    service.cycle()
+    assert not sender.sent
+    save(service, secret="", operations_enabled=True)
+    original_vault = dict(service.vault.records)
+    service.cycle()
+    assert len(sender.sent) == 1
+    restarted = NotificationService(
+        service.path, service.live_database, service.vault, client=sender,
+        collector=service.collector, clock=service.clock,
+        operations_provider=service.operations_provider,
+    )
+    now[0] += timedelta(seconds=5)
+    restarted.cycle()
+    assert len(sender.sent) == 1
+    assert service.vault.records == original_vault
+    assert "operations_enabled" not in restarted.status(False)
+
+
+def test_operations_toggle_preserves_pending_real_trade_and_disables_only_alerts(
+    tmp_path: Path,
+) -> None:
+    service, sender, notices, now = setup_service(tmp_path)
+    service.operations_provider = lambda: ("UNKNOWN_ORDER",)
+    save(service, operations_enabled=True)
+    sender.fail = True
+    service.cycle()
+    notices.append(notice("confirmed-fill", now[0] + timedelta(seconds=1)))
+    now[0] += timedelta(seconds=5)
+    service.cycle()
+    assert service.status(True)["pending"] == 2
+    save(service, secret="", operations_enabled=False)
+    assert service.status(True)["pending"] == 1
+    sender.fail = False
+    now[0] += timedelta(minutes=2)
+    service.cycle()
+    assert len(sender.sent) == 1 and "confirmed-fill" in sender.sent[0][2]
+
+
+def test_retrying_alert_does_not_block_new_confirmed_fill(tmp_path: Path) -> None:
+    service, sender, notices, now = setup_service(tmp_path)
+    service.operations_provider = lambda: ("UNKNOWN_ORDER",)
+    save(service, operations_enabled=True)
+    sender.fail = True
+    service.cycle()
+    notices.append(notice("actual-fill", now[0] + timedelta(seconds=1)))
+    now[0] += timedelta(seconds=5)
+    sender.fail = False
+    service.cycle()
+    assert len(sender.sent) == 1 and "actual-fill" in sender.sent[0][2]
+
+
+def test_recovery_waits_for_its_retrying_alert(tmp_path: Path) -> None:
+    service, sender, _, now = setup_service(tmp_path)
+    codes = [("BINANCE_CONNECTION",)]
+    service.operations_provider = lambda: codes[0]
+    save(service, operations_enabled=True)
+    sender.fail = True
+    service.cycle()
+    sender.fail = False
+    codes[0] = ()
+    for _ in range(8):
+        now[0] += timedelta(seconds=5)
+        service.cycle()
+    assert not sender.sent  # Recovery exists but must not overtake its failed alert.
+    assert service.status(True)["pending"] == 2
+    for _ in range(4):
+        now[0] += timedelta(seconds=5)
+        service.cycle()
+    assert len(sender.sent) == 1 and "gestört" in sender.sent[0][1]
+    now[0] += timedelta(seconds=5)
+    service.cycle()
+    assert len(sender.sent) == 2 and "unauffällig" in sender.sent[1][1]
+
+
+def test_failed_entry_message_is_delivered_before_confirmed_exit(tmp_path: Path) -> None:
+    service, sender, notices, now = setup_service(tmp_path)
+    save(service)
+    notices.append(notice("buy", now[0] + timedelta(seconds=1)))
+    now[0] += timedelta(seconds=2)
+    sender.fail = True
+    service.cycle()
+    sender.fail = False
+    notices.append(notice("sell", now[0] + timedelta(seconds=1), "exit"))
+    now[0] += timedelta(seconds=5)
+    service.cycle()
+    assert not sender.sent
+    now[0] += timedelta(minutes=2)
+    service.cycle()
+    service.cycle()
+    assert [item[2].split("Meldung: ")[1] for item in sender.sent] == ["buy", "sell"]
+
+
+def test_failed_trade_collector_still_delivers_sanitized_observation_warning(
+    tmp_path: Path,
+) -> None:
+    service, sender, _, _ = setup_service(tmp_path)
+    service.operations_provider = lambda: ()
+    def broken(_: Path) -> tuple[Notice, ...]:
+        raise sqlite3.DatabaseError("secret/signed-url")
+    service.collector = broken
+    save(service, operations_enabled=True)
+    service.cycle()
+    assert len(sender.sent) == 1
+    assert "secret" not in str(sender.sent)
+
+
+def test_operations_validation_does_not_mutate_credentials(tmp_path: Path) -> None:
+    service, _, _, _ = setup_service(tmp_path)
+    save(service)
+    original = dict(service.vault.records)
+    with pytest.raises(ValueError):
+        save(service, operations_enabled="yes")
+    assert service.vault.records == original
+
+
 def test_failed_contact_rotation_stops_delivery_before_vault_mutation(
     tmp_path: Path,
     monkeypatch: Any,

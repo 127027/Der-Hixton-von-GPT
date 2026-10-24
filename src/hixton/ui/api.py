@@ -505,6 +505,7 @@ def create_app(
     account_balance = AccountBalanceDisplay(
         app.state.live_preparation.credentials, base_url=config.binance_base_url
     )
+    app.state.account_balance = account_balance
     if session is not None:
         session.install(app)
 

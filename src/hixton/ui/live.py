@@ -5,7 +5,8 @@ from __future__ import annotations
 import json
 import sqlite3
 from collections.abc import Callable, Mapping
-from datetime import datetime
+from dataclasses import asdict
+from datetime import UTC, datetime
 from decimal import Decimal, InvalidOperation
 from functools import partial
 from typing import Any
@@ -21,6 +22,7 @@ from hixton.data.storage import CandleStore
 from hixton.live.binance import BinanceCheckError, BinanceReadOnlyClient
 from hixton.live.credentials import BinanceCredentials, Vault, VaultError, WindowsVault
 from hixton.live.preparation import LivePreparation
+from hixton.notifications.operations import sample_operations
 from hixton.notifications.service import NotificationService
 from hixton.paper.storage import PaperStore
 from hixton.runtime.supervisor import RuntimeSupervisor
@@ -140,11 +142,31 @@ def install_live_routes(
                 return {}  # An old key's trade must not inherit a new account balance.
             return notification_balance.read()
 
+    def read_operations() -> tuple[str, ...]:
+        # Only existing local observations: no new signed request, no trading callback.
+        snapshot = asdict(supervisor.state.snapshot())
+        points = supervisor.state.points()
+        snapshot["final_bar_times"] = {
+            symbol: series[-1].candle.close_time_utc for symbol, series in points.items() if series
+        }
+        snapshot["expected_symbols"] = supervisor.strategy.symbols
+        balance = getattr(app.state, "account_balance", None)
+        snapshot["account_observation"] = (
+            balance.health_observation() if balance is not None else {"state": "UNKNOWN"}
+        )
+        return sample_operations(
+            config.database_path.with_name("live-preparation.sqlite3"), snapshot,
+            tuple(getattr(runtime, "last_error", None) for runtime in (
+                supervisor.trial_runtime, supervisor.live_runtime,
+            )), datetime.now(UTC),
+        )
+
     notifications = NotificationService(
         config.database_path.with_name("notification-outbox.sqlite3"),
         config.database_path.with_name("live-preparation.sqlite3"),
         secure_vault,
         balance_provider=read_notification_balance,
+        operations_provider=read_operations,
     )
     app.state.notifications = notifications
     install_notification_routes(

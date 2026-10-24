@@ -17,6 +17,11 @@ from hixton.domain.markets import split_market
 from hixton.live.credentials import Vault, VaultError
 from hixton.notifications.compact import balance_line, compact_message
 from hixton.notifications.events import Notice, collect_notices
+from hixton.notifications.operations import (
+    evaluate_operations,
+    initialize_operations,
+    reset_operations,
+)
 from hixton.notifications.telegram import (
     DeliveryError,
     TelegramClient,
@@ -38,11 +43,13 @@ class NotificationService:
         collector: Callable[[Path], tuple[Notice, ...]] = collect_notices,
         clock: Callable[[], datetime] = lambda: datetime.now(UTC),
         balance_provider: Callable[[str], dict[str, object]] | None = None,
+        operations_provider: Callable[[], tuple[str, ...]] | None = None,
     ) -> None:
         self.path, self.live_database, self.vault = path, live_database, vault
         self.client = client or TelegramClient()
         self.collector, self.clock = collector, clock
         self.balance_provider = balance_provider
+        self.operations_provider = operations_provider
         self._lock = RLock()
         self._task: asyncio.Task[None] | None = None
         self._stopping = False
@@ -72,6 +79,15 @@ class NotificationService:
             for column in ("account_fingerprint", "quote_asset", "detail_body", "last_payload"):
                 if column not in columns:
                     connection.execute(f"ALTER TABLE notification_outbox ADD COLUMN {column} TEXT")
+            control_columns = {
+                r[1] for r in connection.execute("PRAGMA table_info(notification_control)")
+            }
+            if "operations_enabled" not in control_columns:
+                connection.execute(
+                    "ALTER TABLE notification_control ADD COLUMN operations_enabled INTEGER "
+                    "NOT NULL DEFAULT 0"
+                )
+            initialize_operations(connection)
 
     @contextmanager
     def _connect(self) -> Iterator[sqlite3.Connection]:
@@ -124,6 +140,7 @@ class NotificationService:
                     ).fetchone()[0],
                     "last_sent_at": row["last_sent_at"],
                     "last_error": row["last_error"],
+                    "operations_enabled": bool(row["operations_enabled"]),
                 }
             )
             return result
@@ -131,6 +148,8 @@ class NotificationService:
     def save(self, data: dict[str, Any]) -> dict[str, object]:
         if data.get("channel", "telegram") != "telegram" or type(data.get("enabled")) is not bool:
             raise ValueError("Telegram und den gewünschten Benachrichtigungsstatus wählen.")
+        if "operations_enabled" in data and type(data["operations_enabled"]) is not bool:
+            raise ValueError("Den gewünschten Status der Störungsmeldungen wählen.")
         recipient, secret = data.get("recipient"), data.get("secret", "")
         if not isinstance(recipient, str) or not isinstance(secret, str):
             raise ValueError("Ungültige Telegram-Kontaktdaten.")
@@ -148,6 +167,7 @@ class NotificationService:
             with self._connect() as connection:
                 row = connection.execute("SELECT * FROM notification_control").fetchone()
                 assert row is not None
+                operations_enabled = data.get("operations_enabled", bool(row["operations_enabled"]))
                 new_generation = previous != new_config or not row["enabled"] or not enabled
                 if new_generation:
                     # Commit the stop BEFORE rotating a vault record. A crash or vault/
@@ -162,14 +182,21 @@ class NotificationService:
             with self._connect() as connection:
                 connection.execute(
                     "UPDATE notification_control SET configured=?,enabled=?,generation=?,"
-                    "enabled_at=?,last_error=NULL WHERE singleton=1",
+                    "enabled_at=?,operations_enabled=?,last_error=NULL WHERE singleton=1",
                     (
                         int(bool(recipient)),
                         int(enabled),
                         uuid4().hex if new_generation else row["generation"],
                         self.clock().isoformat() if new_generation else row["enabled_at"],
+                        int(operations_enabled),
                     ),
                 )
+                if new_generation or operations_enabled != bool(row["operations_enabled"]):
+                    reset_operations(connection)
+                    connection.execute(
+                        "UPDATE notification_outbox SET state='CANCELED' "
+                        "WHERE state='PENDING' AND kind LIKE 'operation_%'"
+                    )
         return self.status(True)
 
     def delete(self) -> dict[str, object]:
@@ -178,10 +205,12 @@ class NotificationService:
             with self._connect() as connection:
                 connection.execute(
                     "UPDATE notification_control SET configured=0,enabled=0,generation='',"
-                    "enabled_at=NULL,last_error=NULL,last_sent_at=NULL WHERE singleton=1"
+                    "enabled_at=NULL,last_error=NULL,last_sent_at=NULL,operations_enabled=0 "
+                    "WHERE singleton=1"
                 )
                 # Remove local financial message copies when contact is explicitly removed.
                 connection.execute("DELETE FROM notification_outbox")
+                reset_operations(connection)
         return self.status(True)
 
     def discover(self, secret: str) -> list[dict[str, str]]:
@@ -228,17 +257,31 @@ class NotificationService:
             assert control is not None
             if not control["enabled"]:
                 return
+            now = self.clock()
+            codes: tuple[str, ...] = ()
+            if control["operations_enabled"] and self.operations_provider is not None:
+                try:
+                    codes = self.operations_provider()
+                except Exception:
+                    # Local observation failed, never interpret that as recovery or echo it.
+                    codes = ("OBSERVATION_UNAVAILABLE", "ACCOUNT_UNOBSERVED")
+            order_evidence = getattr(codes, "order_evidence", None)
             try:
-                config = self._config()
                 notices = self.collector(self.live_database)
-            except (VaultError, ValueError, OSError, sqlite3.DatabaseError):
+            except (ValueError, OSError, sqlite3.DatabaseError):
+                notices = ()
+                codes = (*codes, "OBSERVATION_UNAVAILABLE", "ACCOUNT_UNOBSERVED")
                 self._error(
                     "Echtgeld-Meldungen konnten nicht gelesen werden. Erneuter Versuch folgt."
                 )
-                return
-            now = self.clock()
             enabled_at = datetime.fromisoformat(control["enabled_at"])
             with self._connect() as connection:
+                connection.execute("BEGIN IMMEDIATE")
+                if control["operations_enabled"] and self.operations_provider is not None:
+                    notices = (*notices, *evaluate_operations(
+                        connection, control["generation"], codes, now,
+                        order_evidence=order_evidence,
+                    ))
                 for notice in notices:
                     if notice.occurred_at < enabled_at:
                         continue
@@ -262,11 +305,27 @@ class NotificationService:
                         ),
                     )
                 pending = connection.execute(
-                    "SELECT * FROM notification_outbox WHERE generation=? AND state='PENDING' "
-                    "ORDER BY occurred_at,event_key LIMIT 1",
-                    (control["generation"],),
+                    "SELECT q.* FROM notification_outbox q "
+                    "WHERE q.generation=? AND q.state='PENDING' AND q.next_attempt_at<=? "
+                    "AND (q.kind LIKE 'operation_%' OR NOT EXISTS ("
+                    "SELECT 1 FROM notification_outbox earlier "
+                    "WHERE earlier.generation=q.generation AND earlier.state='PENDING' "
+                    "AND earlier.kind NOT LIKE 'operation_%' AND "
+                    "(earlier.occurred_at<q.occurred_at OR "
+                    "(earlier.occurred_at=q.occurred_at AND earlier.event_key<q.event_key)))) "
+                    "AND (q.kind!='operation_recovery' OR NOT EXISTS ("
+                    "SELECT 1 FROM notification_outbox alert "
+                    "WHERE alert.generation=q.generation AND alert.state='PENDING' "
+                    "AND alert.event_key=substr(q.event_key,1,length(q.event_key)-8)||'alert')) "
+                    "ORDER BY q.occurred_at,q.event_key LIMIT 1",
+                    (control["generation"], now.isoformat()),
                 ).fetchone()
-            if pending is None or datetime.fromisoformat(pending["next_attempt_at"]) > now:
+            if pending is None:
+                return
+            try:
+                config = self._config()
+            except (ValueError, VaultError):
+                self._error("Telegram-Kontakt nicht lesbar; Meldungen bleiben gespeichert.")
                 return
             delivery_body = str(pending["body"])
             if pending["account_fingerprint"]:
@@ -278,6 +337,11 @@ class NotificationService:
                 delivery_body += "\n" + balance_line(
                     balance, quote=pending["quote_asset"],
                     after=datetime.fromisoformat(pending["occurred_at"]), now=self.clock(),
+                )
+            elif str(pending["kind"]).startswith("operation_"):
+                episode_id = str(pending["event_key"]).split(":")[1][:8]
+                delivery_body += (
+                    "\nStand: " + pending["occurred_at"] + "\nID: " + episode_id
                 )
             else:
                 delivery_body += "\n\nMeldung: " + pending["event_key"]

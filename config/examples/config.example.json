@@ -1,7 +1,7 @@
 {
   "schema_version": 1,
   "strategy": {
-    "key": "v8"
+    "key": "v8r"
   },
   "markets": [
     "BTCUSDC",
@@ -39,7 +39,7 @@
   },
   "runtime": {
     "database_path": "data/hixton-usdc.sqlite3",
-    "run_output_root": "backtests/v8/runs",
+    "run_output_root": "backtests/v8r/runs",
     "binance_base_url": "https://api.binance.com"
   }
 }

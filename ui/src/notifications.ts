@@ -8,6 +8,7 @@ interface NotificationStatus {
   pending?: number;
   last_sent_at?: string | null;
   last_error?: string | null;
+  operations_enabled?: boolean;
 }
 
 function control<T extends HTMLElement>(id: string): T {
@@ -61,6 +62,7 @@ export function initializeNotifications(): {refresh: () => Promise<void>; dispos
         : "Noch kein Token gespeichert. BotFather-Token eintragen und mit Schritt 1 sicher speichern.");
       if (!dirty) {
         control<HTMLInputElement>("notification-enabled").checked = status.enabled;
+        control<HTMLInputElement>("notification-operations").checked = status.operations_enabled === true;
         control<HTMLInputElement>("notification-recipient").value = status.recipient ?? "";
       }
       const pending = status.pending ? ` · ${status.pending} Meldung(en) warten` : "";
@@ -115,7 +117,7 @@ export function initializeNotifications(): {refresh: () => Promise<void>; dispos
     finally { if (actionCurrent(epoch)) await refresh(); busy = false; updateControls(); }
   };
   const edited = (): void => { dirty = true; updateControls(); };
-  for (const id of ["notification-enabled", "notification-recipient", "notification-secret"])
+  for (const id of ["notification-enabled", "notification-operations", "notification-recipient", "notification-secret"])
     for (const event of ["input", "change"]) control(id).addEventListener(event, edited);
   control("notification-form").addEventListener("submit", event => {
     event.preventDefault();
@@ -128,6 +130,7 @@ export function initializeNotifications(): {refresh: () => Promise<void>; dispos
       try {
         await request("", {
           channel:"telegram", enabled:control<HTMLInputElement>("notification-enabled").checked,
+          operations_enabled:control<HTMLInputElement>("notification-operations").checked,
           recipient,
           secret:control<HTMLInputElement>("notification-secret").value.trim(),
         }, epoch);

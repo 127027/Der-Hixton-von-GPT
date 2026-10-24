@@ -15,7 +15,7 @@ function backend() {
     if(url.endsWith("/test"))return reply(200,{accepted:true});
     if(url.endsWith("/delete")){Object.assign(state,{configured:false,enabled:false,recipient:"",secret_configured:false});return reply(200,state);}
     if(failSave)return reply(400,{detail:"Chat-ID ungültig."});
-    Object.assign(state,{configured:Boolean(body.recipient),enabled:Boolean(body.recipient)&&body.enabled,recipient:body.recipient,secret_configured:true});return reply(200,state);
+    Object.assign(state,{configured:Boolean(body.recipient),enabled:Boolean(body.recipient)&&body.enabled,recipient:body.recipient,secret_configured:true,operations_enabled:body.operations_enabled??state.operations_enabled});return reply(200,state);
   };
   return {state,calls,fetcher,failSave(){failSave=true;}};
 }
@@ -34,7 +34,7 @@ test("contact save is explicit, sends no message and polling preserves unsaved i
     assert.equal(ui.node("notification-enabled").checked,true);
     await ui.node("notification-form").fire("submit");
     const save=mock.calls.find(c=>c.options.method==="POST");
-    assert.deepEqual(save.body,{channel:"telegram",enabled:true,recipient:"123456789",secret:"test-only-token"});
+    assert.deepEqual(save.body,{channel:"telegram",enabled:true,operations_enabled:false,recipient:"123456789",secret:"test-only-token"});
     assert.equal(save.options.headers["X-Hixton-Action"],"local-ui-v1");
     assert.equal(save.options.credentials,"same-origin");
     assert.equal(ui.node("notification-secret").value,"");
@@ -58,6 +58,26 @@ test("empty token keeps a stored secret and unsaved changes cannot send a stale 
     assert.match(ui.node("notification-feedback").textContent,/zuerst speichern/);
     await ui.node("notification-form").fire("submit");
     assert.equal(mock.calls.find(c=>c.options.method==="POST").body.secret,"");
+  } finally {controller.dispose();ui.restore();}
+});
+
+test("operational warnings are explicit and polling preserves their draft",async()=>{
+  const mock=backend();Object.assign(mock.state,{configured:true,enabled:true,recipient:"123456789",secret_configured:true});
+  const ui=harness(mock.fetcher),controller=initializeNotifications();
+  try {
+    await controller.refresh();
+    assert.equal(ui.node("notification-operations").checked,false);
+    ui.node("notification-operations").checked=true;
+    await ui.node("notification-operations").fire("change");
+    await controller.refresh();
+    assert.equal(ui.node("notification-operations").checked,true);
+    await ui.node("notification-form").fire("submit");
+    assert.equal(mock.calls.find(c=>c.options.method==="POST").body.operations_enabled,true);
+    assert.equal(mock.calls.filter(c=>c.url.endsWith("/test")).length,0);
+    assert.equal(ui.node("notification-operations").checked,true);
+    mock.state.authenticated=false;
+    await controller.refresh();
+    assert.equal(ui.node("notification-protected").disabled,true);
   } finally {controller.dispose();ui.restore();}
 });
 
@@ -162,7 +182,7 @@ test("token-only setup ignores an invalid bot URL, stays disabled and discovers 
     ui.node("notification-enabled").checked=true;await ui.node("notification-enabled").fire("change");
     await ui.node("notification-form").fire("submit");
     assert.equal(mock.state.configured,true);assert.equal(mock.state.enabled,true);
-    assert.deepEqual(mock.calls.filter(c=>c.options.method==="POST").at(-1).body,{channel:"telegram",enabled:true,recipient:"123456789",secret:""});
+    assert.deepEqual(mock.calls.filter(c=>c.options.method==="POST").at(-1).body,{channel:"telegram",enabled:true,operations_enabled:false,recipient:"123456789",secret:""});
     assert.equal(ui.node("notification-token-save").classList.contains("hidden"),true);
     assert.equal(mock.calls.some(c=>c.url.endsWith("/test")),false);
   } finally {controller.dispose();ui.restore();}
