@@ -676,3 +676,25 @@ test("lost server connection clears previous readiness, action success, titles a
     assert.equal(mock.calls.some(c=>/\/(enable|trial\/start)$/.test(c.url)),false);
   } finally {live.dispose();ui.restore();}
 });
+
+
+test("restart blocks new-entry readiness even when persisted Live is enabled, locked or unlocked",async()=>{
+  for(const authenticated of [true,false]){
+    const mock=mockLive();Object.assign(mock.state,{authenticated,state:"LIVE_ENABLED",credentials:{configured:true},
+      trial:{state:"COMPLETED"},trial_acceptance:acceptedTrial(),restart_required:true,
+      ready:false,order_dispatch_available:false,trial_dispatch_available:false,
+      blockers:["Code seit Botstart geändert; vor Live-Freigabe neu starten."]});
+    const ui=harness(mock.fetcher),live=initializeLivePreparation(()=>null);
+    try {
+      await live.refresh();
+      assert.match(ui.node("live-readiness").textContent,/Neue Echtgeld-Einstiege gesperrt.*Code seit Botstart geändert.*neu starten/);
+      assert.doesNotMatch(ui.node("live-readiness").textContent,/Bereit:|echte Orders nach|echte Orders aktiv/);
+      assert.doesNotMatch(ui.node("live-request").title,/Bereit:|echte Orders nach|echte Orders aktiv/);
+      if(!authenticated)assert.match(ui.node("live-readiness").textContent,/zuerst oben.*entsperren/);
+      assert.match(ui.node("live-state").textContent,/Live an/); // Retain acknowledged server state.
+      assert.match(ui.node("live-trial-acceptance").textContent,/dauerhaft gespeichert.*Kein neuer Test nötig/);
+      assert.equal(ui.node("live-request").disabled,true);
+      assert.equal(mock.calls.every(c=>c.url==="/api/live/status"),true);
+    } finally {live.dispose();ui.restore();}
+  }
+});

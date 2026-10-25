@@ -203,12 +203,12 @@ export function initializeLivePreparation(sharedSettingsBlocker: (mode?: "live" 
     );
     const unlockHint = "zuerst oben mit deinem lokalen Hixton-Passwort entsperren";
     const liveReason = status.blockers.join(" · ");
-    const liveReadiness = status.state === "LIVE_ENABLED"
-      ? `Live ist eingeschaltet · ${status.authenticated ? "echte Orders nach den aktuellen Bot-Regeln." : `für Änderungen ${unlockHint}.`}`
-      : !status.authenticated
-        ? `Live-Freigabe gesperrt · ${unlockHint}.`
-        : status.restart_required === true
-          ? `Live-Freigabe gesperrt · ${liveReason || "Bot vor einer neuen Freigabe neu starten."}`
+    const liveReadiness = status.restart_required === true
+      ? `Neue Echtgeld-Einstiege gesperrt · ${liveReason || "Bot vor einer neuen Freigabe neu starten."}${!status.authenticated ? ` Für Änderungen ${unlockHint}.` : ""}`
+      : status.state === "LIVE_ENABLED"
+        ? `Live ist eingeschaltet · ${status.authenticated ? "echte Orders nach den aktuellen Bot-Regeln." : `für Änderungen ${unlockHint}.`}`
+        : !status.authenticated
+          ? `Live-Freigabe gesperrt · ${unlockHint}.`
           : status.ready && status.order_dispatch_available
             ? "Bereit: Live separat einschalten. Das Binance-Konto wird beim Klick frisch geprüft."
             : `Live-Freigabe gesperrt · ${liveReason || "Aktuelle Startvoraussetzungen noch nicht bestätigt."}`;
