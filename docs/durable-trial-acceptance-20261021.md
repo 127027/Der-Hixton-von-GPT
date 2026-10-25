@@ -45,3 +45,24 @@ Offline coverage exercises real order-adapter parsing, journal fills and account
 reconciliation against a fake exchange; restart/release persistence; optional
 retest invalidation; wrong keys; incomplete/foreign/non-finite fills; manual or
 late historical tests; startup-only migration and reads overlapping a writer.
+
+
+## Source update versus saved eligibility — 2026-10-25
+
+A stopped server, an expired local unlock session, or source files changed while
+an older process is running cannot accept trading actions. None of these deletes
+a valid execution certificate. The UI exposes the concrete action blocker next
+to each button and keeps historical acceptance separate. If an update requires a
+restart, it says that no new 50-USDC test is needed. After restart the existing
+journal/key proof remains eligible; warmup, local unlock and fresh account checks
+still apply before a user explicitly enables Live. The optional retest requires
+ordinary Live to be completely off and warns that it replaces eligibility.
+
+The source guard applies to arming the first trial as well as voluntary retests.
+A mismatch cannot masquerade solely as "already COMPLETED" or arm a stale-source
+first trial. Backend and UI regressions cover an empty install before/after fake
+key setup, genuine fake-exchange BUY/SELL/reconciliation, source-update blockage,
+reopening/restarting against the same journal and restored technical readiness.
+No restart, GET refresh or certificate migration automatically enables Live or
+starts another test. A separate new installation never imports another machine's
+private key or execution certificate from the public download.

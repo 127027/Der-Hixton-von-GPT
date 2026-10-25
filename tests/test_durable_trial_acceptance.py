@@ -10,6 +10,7 @@ import pytest
 
 from hixton.domain.versions import strategy_definition
 from hixton.live.acceptance import acceptance_status
+from hixton.live.binance import BinanceCheckError
 from hixton.live.credentials import BinanceCredentials
 from hixton.live.exchange import BinanceSpotExchange
 from hixton.live.monitoring import build_execution_report
@@ -215,3 +216,85 @@ def test_diagnostic_report_keeps_original_identity_without_false_source_failure(
     assert report["trial"]["identity_matches_current"]["source"] is False
     assert report["trial"]["frozen_identity"]["execution_source_sha256"] == "original-source"
     assert "TRIAL_EXECUTION_SOURCE_STALE" not in {i["code"] for i in report["incidents"]}
+
+
+
+def test_completed_execution_eligibility_and_both_actions_return_after_restart(
+    tmp_path, monkeypatch
+):
+    controller, fixture = completed_trial(tmp_path / "live.sqlite3", monkeypatch)
+    original_report = controller.report()
+    original_acceptance = read_status(controller)
+    vault = MemoryVault()
+    stale = LivePreparation(
+        controller.journal.path, vault,
+        execution_source_sha256="old-running-source", source_is_current=lambda: False,
+    )
+    stale.credentials.save(BinanceCredentials(KEY, SECRET))
+    stale.connect_runtime(
+        strategy_definition("v8r"), settings_provider=lambda: (Decimal(250), False),
+        rules_provider=lambda: {},
+    )
+    args = {
+        "authenticated": True, "soak_ready": False, "healthy": True,
+        "max_capital": Decimal(250), "emergency_stop": False,
+    }
+    blocked = stale.status(**args)
+    assert blocked["trial_acceptance"] == original_acceptance
+    assert blocked["restart_required"] is True
+    assert blocked["ready"] is False
+    assert blocked["trial_dispatch_available"] is False
+    assert any("neu starten" in reason for reason in blocked["trial_blockers"])
+    assert not any("bereits im Zustand COMPLETED" in reason for reason in blocked["trial_blockers"])
+    restarted = LivePreparation(
+        controller.journal.path, vault,
+        execution_source_sha256="new-running-source", source_is_current=lambda: True,
+    )
+    restarted.connect_runtime(
+        strategy_definition("v8r"), settings_provider=lambda: (Decimal(250), False),
+        rules_provider=lambda: {},
+    )
+    ready = restarted.status(**args)
+    assert ready["restart_required"] is False
+    assert ready["trial_acceptance"] == original_acceptance
+    assert ready["ready"] is True and ready["order_dispatch_available"] is True
+    assert ready["trial_retest_available"] is True
+    assert ready["trial_dispatch_available"] is True
+    assert ready["blockers"] == [] and ready["trial_blockers"] == []
+    after = restarted.trial.report()
+    assert {k: v for k, v in after.items() if k != "execution_identity"} == {
+        k: v for k, v in original_report.items() if k != "execution_identity"
+    }
+    for key in ("frozen_application_version", "frozen_source_sha256", "frozen_allocator_version"):
+        assert after["execution_identity"][key] == original_report["execution_identity"][key]
+    assert restarted.live.report()["state"] == "LIVE_DISABLED"
+    assert len([call for call in fixture.calls if call[0] == "POST"]) == 2
+
+
+def test_fresh_install_has_no_live_proof_and_stale_source_cannot_arm_first_test(tmp_path):
+    service = LivePreparation(
+        tmp_path / "fresh.sqlite3", MemoryVault(), source_is_current=lambda: True,
+    )
+    service.connect_runtime(
+        strategy_definition("v8r"), settings_provider=lambda: (Decimal(250), False),
+        rules_provider=lambda: {},
+    )
+    args = {
+        "authenticated": True, "soak_ready": False, "healthy": True,
+        "max_capital": Decimal(250), "emergency_stop": False,
+    }
+    assert service.status(**args)["credentials"]["configured"] is False
+    service.credentials.save(BinanceCredentials(KEY, SECRET))
+    fresh = service.status(**args)
+    assert fresh["trial"]["state"] == "NOT_STARTED"
+    assert fresh["trial_dispatch_available"] is True
+    assert fresh["ready"] is False
+    assert fresh["trial_acceptance"]["eligible"] is False
+    service.source_is_current = lambda: False
+    stale = service.status(**args)
+    assert stale["restart_required"] is True
+    assert stale["trial_dispatch_available"] is False
+    with pytest.raises(BinanceCheckError, match="vor Testfreigabe neu starten"):
+        service.start_trial(healthy=True, emergency_stop=False)
+    assert service.trial.report()["state"] == "NOT_STARTED"
+    assert service.trial_acceptance()["eligible"] is False

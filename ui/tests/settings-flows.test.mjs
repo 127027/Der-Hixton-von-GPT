@@ -583,3 +583,96 @@ test("locked weighted status never infers free fractional capacity from legacy s
     assert.equal(ui.node("real-live-slots").textContent,"50 %");
   } finally {live.dispose();ui.restore();}
 });
+
+
+test("saved passing test and restart blocker remain distinct across unlock, reload and fresh server status",async()=>{
+  const mock=mockLive();
+  const restart="Code seit Botstart geändert; vor Live-Freigabe neu starten.";
+  Object.assign(mock.state,{credentials:{configured:true},trial:{state:"COMPLETED"},
+    trial_acceptance:acceptedTrial(),restart_required:true,ready:false,order_dispatch_available:false,
+    trial_dispatch_available:false,trial_retest_available:false,
+    blockers:[restart],trial_blockers:["Code seit Botstart geändert; vor neuer Testfreigabe neu starten."]});
+  const ui=harness(mock.fetcher);let live=initializeLivePreparation(()=>null);
+  try {
+    await live.refresh();
+    assert.match(ui.node("live-readiness").textContent,/zuerst oben.*entsperren/);
+    assert.match(ui.node("live-trial-readiness").textContent,/zuerst oben.*entsperren/);
+    assert.match(ui.node("live-trial-acceptance").textContent,/dauerhaft gespeichert.*Kein neuer Test nötig.*neu starten/);
+    await unlockUI(ui);
+    assert.match(ui.node("live-readiness").textContent,/gesperrt.*Code seit Botstart geändert.*neu starten/);
+    assert.match(ui.node("live-trial-status").textContent,/Neue Testfreigabe gesperrt.*Code seit Botstart geändert.*neu starten/);
+    assert.match(ui.node("live-trial-readiness").textContent,/neu starten.*Kein neuer Test nötig/);
+    assert.equal(ui.node("live-request").disabled,true);
+    assert.equal(ui.node("live-trial-start").disabled,true);
+    live.dispose();live=initializeLivePreparation(()=>null);await live.refresh();
+    assert.match(ui.node("live-trial-acceptance").textContent,/dauerhaft gespeichert.*Kein neuer Test nötig/);
+    Object.assign(mock.state,{restart_required:false,ready:true,order_dispatch_available:true,
+      trial_dispatch_available:true,trial_retest_available:true,blockers:[],trial_blockers:[]});
+    await live.refresh();
+    assert.match(ui.node("live-readiness").textContent,/Bereit: Live separat einschalten/);
+    assert.doesNotMatch(ui.node("live-readiness").textContent,/neu starten|gesperrt/);
+    assert.match(ui.node("live-trial-readiness").textContent,/Optional: neuer 50-USDC-Test/);
+    assert.equal(ui.node("live-request").disabled,false);
+    assert.equal(mock.state.state,"LIVE_DISABLED");
+    assert.equal(mock.calls.some(c=>/\/(enable|trial\/start)$/.test(c.url)),false);
+  } finally {live.dispose();ui.restore();}
+});
+
+test("fresh locked page cannot claim actionable readiness even when backend gates are otherwise ready",async()=>{
+  const mock=mockLive();Object.assign(mock.state,{credentials:{configured:true},ready:true,
+    order_dispatch_available:true,trial_dispatch_available:true});
+  const ui=harness(mock.fetcher),live=initializeLivePreparation(()=>null);
+  try {
+    await live.refresh();
+    assert.match(ui.node("live-readiness").textContent,/zuerst oben.*entsperren/);
+    assert.match(ui.node("live-trial-readiness").textContent,/zuerst oben.*entsperren/);
+    assert.doesNotMatch(ui.node("live-readiness").textContent,/Bereit:/);
+    assert.equal(ui.node("live-request").disabled,true);
+    assert.equal(ui.node("live-trial-start").disabled,true);
+    await unlockUI(ui);
+    assert.match(ui.node("live-readiness").textContent,/Bereit:/);
+    assert.match(ui.node("live-trial-readiness").textContent,/Bereit:/);
+    assert.equal(mock.calls.some(c=>/\/(enable|trial\/start)$/.test(c.url)),false);
+  } finally {live.dispose();ui.restore();}
+});
+
+test("restart field prevents UI dispatch despite inconsistent ready flags and a completed test",async()=>{
+  const mock=mockLive();Object.assign(mock.state,{credentials:{configured:true},ready:true,
+    order_dispatch_available:true,trial_dispatch_available:true,restart_required:true,
+    trial:{state:"COMPLETED"},trial_acceptance:acceptedTrial(),
+    blockers:["Vor Live-Freigabe neu starten."],trial_blockers:["Vor neuer Testfreigabe neu starten."]});
+  const ui=harness(mock.fetcher),live=initializeLivePreparation(()=>null);
+  try {
+    await live.refresh();await unlockUI(ui);
+    assert.equal(ui.node("live-request").disabled,true);
+    assert.equal(ui.node("live-trial-start").disabled,true);
+    await ui.node("live-request").fire("click");await ui.node("live-trial-start").fire("click");
+    assert.equal(mock.calls.some(c=>/\/(enable|trial\/start)$/.test(c.url)),false);
+  } finally {live.dispose();ui.restore();}
+});
+
+test("lost server connection clears previous readiness, action success, titles and diagnostic success",async()=>{
+  const mock=mockLive();Object.assign(mock.state,{authenticated:true,credentials:{configured:true},ready:true,
+    order_dispatch_available:true,trial_dispatch_available:true,trial_acceptance:acceptedTrial()});
+  let offline=false;
+  const ui=harness((...args)=>offline?Promise.reject(Error("offline")):mock.fetcher(...args));
+  const live=initializeLivePreparation(()=>null);
+  try {
+    await live.refresh();
+    assert.match(ui.node("live-readiness").textContent,/Bereit:/);
+    ui.node("live-result").textContent="Livebetrieb aktiviert.";
+    ui.node("live-check-result").textContent="Binance-Verbindung bestanden.";
+    offline=true;await live.refresh();
+    for(const id of ["live-readiness","live-trial-readiness"]){
+      assert.match(ui.node(id).textContent,/Verbindung zum Bot fehlt/);
+      assert.doesNotMatch(ui.node(id).textContent,/Bereit:|Optional:/);
+    }
+    assert.equal(ui.node("live-result").textContent,"");
+    assert.match(ui.node("live-check-result").textContent,/derzeit nicht bestätigt/);
+    assert.match(ui.node("live-request").title,/Verbindung zum Bot fehlt/);
+    assert.match(ui.node("live-trial-start").title,/Verbindung zum Bot fehlt/);
+    assert.equal(ui.node("live-request").disabled,true);
+    assert.equal(ui.node("live-trial-start").disabled,true);
+    assert.equal(mock.calls.some(c=>/\/(enable|trial\/start)$/.test(c.url)),false);
+  } finally {live.dispose();ui.restore();}
+});

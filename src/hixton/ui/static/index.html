@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="color-scheme" content="dark" />
     <title>Der Hixton</title>
-    <script type="module" crossorigin src="/assets/index-DMr3CV3V.js"></script>
+    <script type="module" crossorigin src="/assets/index-7zCvXtgR.js"></script>
     <link rel="stylesheet" crossorigin href="/assets/index-BMcig-YN.css">
   </head>
   <body>
@@ -281,6 +281,7 @@
                 <button id="live-off" type="button" class="button secondary" aria-pressed="false" disabled>Echtgeld-Einstiege stoppen</button>
               </div>
               <p id="live-trial-acceptance" class="quiet-note" role="status">50-USDC-Nachweis wird geprüft …</p>
+              <p id="live-readiness" class="quiet-note" role="status" aria-live="polite">Aktuelle Live-Startvoraussetzungen werden geprüft …</p>
               <p id="live-result" role="alert"></p>
               <details class="compact-details"><summary>Livehandel und Stopp erklärt</summary><p>Ein bestandener echter 50-USDC-Test mit Kontenabgleich bleibt als technischer Nachweis gespeichert, auch nach einem Neustart oder Benachrichtigungsupdate. Live wird separat eingeschaltet und prüft Konto, Marktdaten und aktuelle Software weiterhin. Ein ausdrücklich neu gestarteter Test sperrt Live bis zu seinem erneuten Erfolg.</p><p>Live an gibt echte Binance-Spot-Orders mit den gespeicherten Bot-Einstellungen frei, sobald alle Prüfungen bestanden sind. Echtgeld-Einstiege stoppen beendet auch einen noch wartenden 50-USDC-Test. Bereits gekaufte Positionen werden weiter überwacht und steigen regulär aus; kein Sofortverkauf. Paper läuft unabhängig weiter.</p></details>
               <details open>
@@ -288,6 +289,7 @@
                 <p>Einmal 50 USDC: auf ein neues Core-Signal warten, kaufen, regulär aussteigen und Binance abgleichen.</p>
                 <details class="compact-details"><summary>Ablauf des Einmaltests</summary><p>Die Freigabe prüft Konto und Rechte neu. Kein Sofortkauf, höchstens ein echter 50-USDC-Kauf. Das manuelle Budget bleibt unverändert. Dauer-Live benötigt einen vollständig abgeglichenen Roundtrip sowie seine übrigen Freigaben.</p></details>
                 <button id="live-trial-start" type="button" class="button primary" disabled>1 × 50 USDC · Test freigeben</button>
+                <p id="live-trial-readiness" class="quiet-note" role="status" aria-live="polite">Aktuelle Test-Startvoraussetzungen werden geprüft …</p>
                 <p id="live-trial-status" role="status">Nicht gestartet.</p>
                 <p id="live-trial-result" role="alert"></p>
               </details>

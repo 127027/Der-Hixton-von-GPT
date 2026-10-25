@@ -7,6 +7,7 @@ interface LiveStatus {
   credentials: { configured: boolean };
   blockers: string[];
   ready: boolean;
+  restart_required?: boolean;
   order_dispatch_available: boolean;
   trial_dispatch_available: boolean;
   trial_retryable_before_submit?: boolean;
@@ -72,9 +73,9 @@ export function initializeLivePreparation(sharedSettingsBlocker: (mode?: "live" 
       element<HTMLButtonElement>(id).disabled = busy || !last?.authenticated;
     }
     element<HTMLButtonElement>("live-request").disabled =
-      busy || !last?.authenticated || !last.ready || !last.order_dispatch_available;
+      busy || !last?.authenticated || last.restart_required === true || !last.ready || !last.order_dispatch_available;
     element<HTMLButtonElement>("live-trial-start").disabled =
-      busy || !last?.authenticated || !last.trial_dispatch_available;
+      busy || !last?.authenticated || last.restart_required === true || !last.trial_dispatch_available;
     // State comes only from the server, never from clicking an action button.
     const enabled = last?.state === "LIVE_ENABLED";
     const disabled = last?.state === "LIVE_DISABLED" || last?.state === "EXIT_ONLY";
@@ -97,7 +98,8 @@ export function initializeLivePreparation(sharedSettingsBlocker: (mode?: "live" 
   };
   const render = (status: LiveStatus): void => {
     if (!busy && last?.trial?.state !== status.trial?.state) message("live-trial-result", "");
-    if (!busy && last?.state !== status.state) message("live-result", "");
+    if (!busy && (last?.state !== status.state || last?.restart_required !== status.restart_required)) message("live-result", "");
+    if (!busy && last?.restart_required !== status.restart_required) message("live-trial-result", "");
     if (last?.authenticated && !status.authenticated) {
       clearSecrets();
       message("live-auth-result", "Sitzung abgelaufen oder in einem anderen Fenster ersetzt. Bitte erneut entsperren.");
@@ -112,7 +114,10 @@ export function initializeLivePreparation(sharedSettingsBlocker: (mode?: "live" 
     const accepted = acceptance?.state === "ACCEPTED" && acceptance.eligible === true;
     message("live-trial-acceptance", accepted
       ? "50-USDC-Test bestanden · Nachweis dauerhaft gespeichert; "
-        + (status.state === "LIVE_ENABLED" ? "Live ist eingeschaltet." : "Live separat einschalten.")
+        + (status.restart_required === true
+          ? "Kein neuer Test nötig. Vor einer neuen Freigabe den Bot neu starten."
+          : status.state === "LIVE_ENABLED" ? "Live ist eingeschaltet."
+            : "Live separat einschalten, sobald die aktuellen Startvoraussetzungen erfüllt sind.")
       : acceptance?.state === "RETEST_REQUIRED"
         ? "Neuer 50-USDC-Test noch nicht bestanden · Live gesperrt."
         : acceptance?.state === "ACCOUNT_MISMATCH"
@@ -183,31 +188,49 @@ export function initializeLivePreparation(sharedSettingsBlocker: (mode?: "live" 
     message(
       "live-trial-status",
       unresolvedTrial ? unresolvedNotice : status.trial?.state && status.trial.state !== "NOT_STARTED"
-        ? status.trial_retest_available
+        ? status.trial_retest_available && status.trial_dispatch_available && status.restart_required !== true
           ? "Vorheriger Test abgeschlossen und abgeglichen. Ein freiwilliger neuer 1×50-USDC-Test sperrt Live bis zum erneuten erfolgreichen Abschluss. Der bisherige Bericht bleibt gespeichert. Noch kein neuer Test freigegeben."
-          : status.trial_retryable_before_submit
+          : status.trial_retryable_before_submit && status.trial_dispatch_available && status.restart_required !== true
           ? `Vor einer Binance-Order beendet (${status.trial.state}) · sicher erneut startbar.`
           : `50-USDC-Einmaltest: ${trialDescription}${status.trial.symbol ? " · " + status.trial.symbol : ""}${healthWait}${signalWait}`
+            + (trialState === "COMPLETED" && !status.trial_dispatch_available && trialReason
+              ? ` Neue Testfreigabe gesperrt: ${trialReason}.${accepted ? " Kein neuer Test nötig; der bestandene Nachweis bleibt gespeichert." : ""}` : "")
         : status.trial_dispatch_available
           ? `Noch nicht gestartet: Test freigeben, um auf das nächste gültige Signal zu warten.${healthWait}${signalWait}`
           : trialReason
             ? `Noch gesperrt: ${trialReason}`
             : "Nicht gestartet. Voraussetzungen siehe technische Freigabe.",
     );
-    const trialButton = element<HTMLButtonElement>("live-trial-start");
-    trialButton.title = trialState === "WAITING_SIGNAL"
-      ? `Bereits freigegeben; nicht erneut starten. Wartet auf ein neues gültiges Signal, noch kein Test-Kauf.${healthWait}${signalWait}`
+    const unlockHint = "zuerst oben mit deinem lokalen Hixton-Passwort entsperren";
+    const liveReason = status.blockers.join(" · ");
+    const liveReadiness = status.state === "LIVE_ENABLED"
+      ? `Live ist eingeschaltet · ${status.authenticated ? "echte Orders nach den aktuellen Bot-Regeln." : `für Änderungen ${unlockHint}.`}`
+      : !status.authenticated
+        ? `Live-Freigabe gesperrt · ${unlockHint}.`
+        : status.restart_required === true
+          ? `Live-Freigabe gesperrt · ${liveReason || "Bot vor einer neuen Freigabe neu starten."}`
+          : status.ready && status.order_dispatch_available
+            ? "Bereit: Live separat einschalten. Das Binance-Konto wird beim Klick frisch geprüft."
+            : `Live-Freigabe gesperrt · ${liveReason || "Aktuelle Startvoraussetzungen noch nicht bestätigt."}`;
+    const trialReadiness = !status.authenticated
+      ? `Neue Testfreigabe gesperrt · ${unlockHint}.`
+      : status.restart_required === true
+        ? `Neue Testfreigabe gesperrt · ${trialReason || "Bot vor einer neuen Freigabe neu starten."}${accepted ? " Kein neuer Test nötig." : ""}`
+        : ["WAITING_SIGNAL", "ENTRY_PENDING", "OPEN", "EXIT_PENDING"].includes(trialState)
+          ? "Test bereits aktiv · keinen weiteren Test starten. Zustand siehe unten."
+          : status.trial_dispatch_available
+            ? status.trial_retest_available
+              ? "Optional: neuer 50-USDC-Test. Er sperrt Live bis zu seinem erneuten erfolgreichen Abschluss."
+              : "Bereit: 50-USDC-Test ausdrücklich freigeben. Kein Sofortkauf; wartet danach auf ein neues gültiges Signal."
+            : `Neue Testfreigabe gesperrt · ${trialReason || "Aktuelle Testvoraussetzungen noch nicht bestätigt."}`;
+    message("live-readiness", liveReadiness);
+    message("live-trial-readiness", trialReadiness);
+    element<HTMLButtonElement>("live-request").title = liveReadiness;
+    element<HTMLButtonElement>("live-trial-start").title = trialState === "WAITING_SIGNAL"
+      ? `Bereits freigegeben; nicht erneut starten. Wartet auf ein neues gültiges Signal, noch kein Test-Kauf.${healthWait}${signalWait}${!status.authenticated ? ` Für Änderungen ${unlockHint}.` : ""}`
       : ["ENTRY_PENDING", "OPEN", "EXIT_PENDING"].includes(trialState)
-        ? `50-USDC-Einmaltest: ${trialDescription}`
-      : status.trial_dispatch_available
-      ? status.trial_retest_available
-        ? "Freiwilligen neuen Test starten: Live bleibt bis zum erneuten Erfolg gesperrt. Kontoprüfung erfolgt automatisch."
-        : "Kontrollierten 1×50-USDC-Echtgeldtest starten; Kontoprüfung erfolgt automatisch"
-      : trialReason || "50-USDC-Test ist noch nicht freigegeben.";
-    const liveButton = element<HTMLButtonElement>("live-request");
-    liveButton.title = status.order_dispatch_available
-      ? "Normalen Livebetrieb starten; Kontoprüfung erfolgt automatisch"
-      : status.blockers.join(" · ") || "Livebetrieb ist noch nicht freigegeben.";
+        ? `50-USDC-Einmaltest: ${trialDescription}${healthWait}${!status.authenticated ? ` Für Änderungen ${unlockHint}.` : ""}`
+        : trialReadiness;
     if (status.authenticated && status.credentials.configured && !status.account_check) {
       message(
         "live-check-result",
@@ -244,6 +267,11 @@ export function initializeLivePreparation(sharedSettingsBlocker: (mode?: "live" 
         element("live-auth-panel").classList.remove("hidden");
         message("live-auth-result", "Verbindung zum Bot fehlt. Bitte erneut versuchen; Zugang bleibt gesperrt.");
         message("live-state", "Status unbekannt · keine Echtgeldfreigabe");
+        message("live-readiness", "Live-Startvoraussetzungen unbekannt · Verbindung zum Bot fehlt.");
+        message("live-trial-readiness", "Test-Startvoraussetzungen unbekannt · Verbindung zum Bot fehlt; nicht erneut freigeben.");
+        message("live-result", "");
+        message("live-check-result", "Binance-Diagnose derzeit nicht bestätigt · Verbindung zum Bot fehlt.");
+        element("live-request").title = "Live-Startvoraussetzungen unbekannt · Verbindung zum Bot fehlt.";
         message("live-trial-acceptance", "50-USDC-Nachweis derzeit nicht bestätigt · Verbindung zum Bot fehlt.");
         message("real-trial-status", "Echtgeldtest: Verbindung unterbrochen; Zustand nicht bestätigt.");
         message("real-live-slots", "—");
@@ -398,7 +426,7 @@ export function initializeLivePreparation(sharedSettingsBlocker: (mode?: "live" 
   });
   bind("live-request", "click", "live-result", async () => {
     requireAuth();
-    if (!last?.ready || !last.order_dispatch_available) {
+    if (last?.restart_required === true || !last?.ready || !last.order_dispatch_available) {
       throw new Error("Produktiver Livehandel ist serverseitig noch nicht freigegeben.");
     }
     const blocker = sharedSettingsBlocker(); if (blocker) throw new Error(blocker);
@@ -418,7 +446,7 @@ export function initializeLivePreparation(sharedSettingsBlocker: (mode?: "live" 
   });
   bind("live-trial-start", "click", "live-trial-result", async () => {
     requireAuth();
-    if (!last?.trial_dispatch_available) {
+    if (last?.restart_required === true || !last?.trial_dispatch_available) {
       throw new Error("Der 50-USDC-Testtrade ist serverseitig noch nicht freigegeben.");
     }
     const blocker = sharedSettingsBlocker("trial"); if (blocker) throw new Error(blocker);

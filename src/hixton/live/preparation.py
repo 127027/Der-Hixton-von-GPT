@@ -427,8 +427,8 @@ class LivePreparation:
             current_report = self.trial.report()
             state = str(current_report["state"])
             retest = state == "COMPLETED"
-            if retest and not self.source_is_current():
-                raise BinanceCheckError("Code seit Botstart geändert; vor neuem Test neu starten")
+            if not self.source_is_current():
+                raise BinanceCheckError("Code seit Botstart geändert; vor Testfreigabe neu starten")
             if state in {"CANCELED", "FAILED"}:
                 try:
                     reset = self.trial.prepare_retry()
@@ -660,6 +660,7 @@ class LivePreparation:
     ) -> dict[str, object]:
         with self.lock:
             credential_status = self.credentials.status()
+            restart_required = not self.source_is_current()
             fresh = self._fresh_check()
             trial = self.trial.report() if self.trial is not None else {"state": "NOT_STARTED"}
             live = (
@@ -727,12 +728,17 @@ class LivePreparation:
             )
             retest_available = bool(
                 trial_state == "COMPLETED"
-                and self.source_is_current()
+                and not restart_required
                 and live.get("state") == "LIVE_DISABLED"
                 and not live.get("positions")
                 and not live.get("unresolved_intents")
             )
             trial_blockers: list[str] = []
+            if restart_required:
+                trial_blockers.append(
+                    "Code seit Botstart geändert; vor Testfreigabe neu starten. "
+                    "Ein bestandener Testnachweis bleibt gespeichert."
+                )
             if not credential_status["configured"]:
                 trial_blockers.append("Binance API-Schlüssel fehlt.")
             if not trial_settings_ok:
@@ -740,7 +746,12 @@ class LivePreparation:
                     "Gemeinsame Einstiegspause ist aktiv. "
                     "In Einstellungen deaktivieren und übernehmen."
                 )
-            if trial_state != "NOT_STARTED" and not trial_retryable and not retest_available:
+            if (
+                trial_state != "NOT_STARTED"
+                and not trial_retryable
+                and not retest_available
+                and not (trial_state == "COMPLETED" and restart_required)
+            ):
                 trial_blockers.append(f"50-USDC-Test ist bereits im Zustand {trial_state}.")
             if live.get("state") != "LIVE_DISABLED":
                 trial_blockers.append("Normaler Livebetrieb ist nicht vollständig deaktiviert.")
@@ -814,6 +825,7 @@ class LivePreparation:
                 "trial_dispatch_available": trial_available,
                 "trial_retryable_before_submit": trial_retryable,
                 "trial_retest_available": retest_available,
+                "restart_required": restart_required,
                 "trial_blockers": trial_blockers,
                 "runtime_health": "HEALTHY" if healthy else "DEGRADED",
                 "trial_order_execution_blocked_by_health": not healthy,
