@@ -235,6 +235,10 @@ def write_report_bundle(
         stored_strategy["capital_exposure_fraction"] = strategy.capital_exposure_fraction
     if strategy.entry_atr_target_fraction is not None:
         stored_strategy["entry_atr_target_fraction"] = strategy.entry_atr_target_fraction
+    contract = strategy.config_payload()
+    for key in ("entry_capital_basis", "second_tranche_split", "diversification"):
+        if key in contract:
+            stored_strategy[key] = _primitive(contract[key])
     if strategy.satellite_symbols:
         stored_strategy = manifest["strategy"]
         assert isinstance(stored_strategy, dict)

@@ -1118,8 +1118,6 @@ class LivePortfolioController:
 
     def _intent_entry_fraction(self, intent: LiveIntent) -> Decimal:
         """Recheck the frozen signal's risk budget, including after a restart."""
-        if self.strategy.entry_atr_target_fraction is None:
-            return Decimal(self.strategy.capital_exposure_fraction)
         with self.journal._connect() as connection:
             row = connection.execute(
                 "SELECT symbol,action,payload_json FROM live_events WHERE intent_id=?",
@@ -1135,6 +1133,8 @@ class LivePortfolioController:
             or Decimal(payload["quote_budget"]) != intent.quote_budget
         ):
             raise ValueError("intent differs from its persisted signal")
+        if self.strategy.entry_atr_target_fraction is None:
+            return Decimal(self.strategy.capital_exposure_fraction)
         return entry_volatility_fraction(
             atr=Decimal(payload["atr"]),
             reference_close=intent.reference_price,
@@ -1188,7 +1188,7 @@ class LivePortfolioController:
                     or (
                         not self.reinvest_profits()
                         and intent.quote_budget
-                        != (
+                        > (
                             entry_budget(
                                 equity=plan.max_capital_usdc,
                                 free_quote=plan.max_capital_usdc,
@@ -2450,7 +2450,10 @@ class LivePortfolioController:
                             self.fail_closed("AUTONOMOUS_MARKS_OR_EQUITY_NOT_VERIFIED")
                             return self.report()
                     else:
-                        trade_budget = plan.target_notional_usdc * allocated * entry_fraction
+                        trade_budget = min(
+                            plan.target_notional_usdc * allocated * entry_fraction,
+                            snapshot.balances.get("USDC", (ZERO, ZERO))[0],
+                        )
                     if weighted:
                         trade_budget = (
                             size_tranche(
@@ -2460,10 +2463,13 @@ class LivePortfolioController:
                                 entry_fraction=entry_fraction,
                             )
                             if self.reinvest_profits()
-                            else plan.target_notional_usdc
-                            * Decimal(allocation_units)
-                            / 10
-                            * entry_fraction
+                            else min(
+                                plan.target_notional_usdc
+                                * Decimal(allocation_units)
+                                / 10
+                                * entry_fraction,
+                                snapshot.balances.get("USDC", (ZERO, ZERO))[0],
+                            )
                         )
                     if trade_budget <= ZERO:
                         self._blocked(signal, "INSUFFICIENT_FREE_USDC")

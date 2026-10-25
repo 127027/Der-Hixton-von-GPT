@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import json
 from dataclasses import replace
 from datetime import UTC, datetime, timedelta
 from decimal import Decimal as D
@@ -266,6 +267,34 @@ def test_all_simultaneous_signals_never_exceed_two_slots(tmp_path: Path) -> None
         == D("250")
     )
     assert c.report()["used_slots"] == 2
+
+
+def test_manual_pre_submit_keeps_frozen_budget_and_fresh_cash_guards(tmp_path: Path) -> None:
+    c, exchange, account, _settings = controller(tmp_path)
+    enable_now(c, account, universe(NOW - timedelta(hours=1)))
+    points = universe(NOW, enter=("BTCUSDC",))
+    c.advance(points, now=NOW, healthy=True)
+    pending = c._pending()
+    assert pending is not None and not exchange.submits
+    # Materialize the reserved event's immutable intent without sending it.
+    payload = json.loads(pending["payload_json"])
+    intent = LiveIntent(
+        pending["intent_id"],
+        "fake-account",
+        pending["symbol"],
+        "BUY",
+        V6.version,
+        D(payload["reference_price"]),
+        payload["slot_count"],
+        quote_budget=D(payload["quote_budget"]),
+    )
+    c.journal.create(intent)
+    assert c.pre_submit(intent)
+    assert not c.pre_submit(replace(intent, quote_budget=D(249)))
+    assert not c.pre_submit(replace(intent, quote_budget=D(251)))
+    account.balances["USDC"] = (D(249), D(0))
+    assert not c.pre_submit(intent)
+    assert not exchange.submits
 
 
 def test_preexisting_spot_holdings_stay_outside_owned_live_position(tmp_path: Path) -> None:

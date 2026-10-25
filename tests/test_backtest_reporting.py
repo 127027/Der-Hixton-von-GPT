@@ -8,7 +8,7 @@ from hixton.backtest.engine import run_single_backtest
 from hixton.backtest.portfolio import run_shared_portfolio_backtest
 from hixton.backtest.reporting import source_fingerprint, write_report_bundle
 from hixton.constants import SYMBOLS
-from hixton.domain.versions import V2_RESEARCH_STRATEGY
+from hixton.domain.versions import V2_RESEARCH_STRATEGY, strategy_definition
 from tests.golden_reference import deterministic_candles
 
 
@@ -21,6 +21,36 @@ def test_source_fingerprint_detects_uncommitted_python_patch(tmp_path):
     after = source_fingerprint(tmp_path)
     (tmp_path / "unrelated.log").write_text("not executable", encoding="utf-8")
     assert after == source_fingerprint(tmp_path)
+
+
+def test_current_report_freezes_capital_tranche_and_diversification_contract(tmp_path):
+    strategy = strategy_definition("v8r")
+    candles = {
+        symbol: deterministic_candles(symbol, 405, i)
+        for i, symbol in enumerate(strategy.symbols)
+    }
+    first = candles[strategy.symbols[0]]
+    start = first[400].open_time_utc
+    end = first[-1].open_time_utc + timedelta(hours=1)
+    result = run_shared_portfolio_backtest(
+        candles_by_symbol=candles,
+        strategy=strategy,
+        report_start_utc=start,
+        report_end_utc=end,
+    )
+    directory = write_report_bundle(
+        scenarios={"current": result},
+        output_root=tmp_path / "runs",
+        config_sha256="fixture",
+        code_commit="fixture",
+        report_start_utc=start,
+        report_end_utc=end,
+        strategy=strategy,
+    )
+    stored = json.loads((directory / "manifest.json").read_text(encoding="utf-8"))["strategy"]
+    contract = strategy.config_payload()
+    for key in ("entry_capital_basis", "second_tranche_split", "diversification"):
+        assert stored[key] == contract[key]
 
 
 def test_v2_report_is_written_only_to_v2_with_full_strategy_snapshot(

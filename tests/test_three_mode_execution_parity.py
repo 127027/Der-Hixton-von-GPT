@@ -42,6 +42,7 @@ def test_independent_three_modes_same_actual_fills_with_gap_dust_and_restart(
     decision_price=100,
     midnight=False,
     restart_during_sell=False,
+    reinvest=True,
 ):
     import hixton.backtest.portfolio as native_module
     import hixton.live.production as live_module
@@ -130,7 +131,7 @@ def test_independent_three_modes_same_actual_fills_with_gap_dust_and_restart(
         report_start_utc=start + timedelta(hours=401),
         report_end_utc=start + timedelta(hours=405),
         costs=cost,
-        reinvest_profits=True,
+        reinvest_profits=reinvest,
         autonomous_spot=True,
     )
     paper_path = tmp_path / "paper.sqlite3"
@@ -146,7 +147,7 @@ def test_independent_three_modes_same_actual_fills_with_gap_dust_and_restart(
         store.save_settings(
             PaperSettings(
                 max_capital_usdc=D(1000),
-                auto_budget_enabled=True,
+                auto_budget_enabled=reinvest,
                 autonomous_performance_enabled=True,
             )
         )
@@ -248,7 +249,7 @@ def test_independent_three_modes_same_actual_fills_with_gap_dust_and_restart(
             strategy,
             lambda: True,
             execution_source_sha256="a09-fake-current",
-            reinvest_profits=lambda: True,
+            reinvest_profits=lambda: reinvest,
             autonomous_spot=lambda: True,
             market_points=lambda: histories["current"],
             allocation_reference=lambda at: {
@@ -333,6 +334,22 @@ def test_risk_pause_uses_identical_post_exit_gap_inputs_in_three_modes(tmp_path,
     # An actually realized 5% portfolio loss is known before a replacement BUY.
     test_independent_three_modes_same_actual_fills_with_gap_dust_and_restart(
         tmp_path, monkeypatch, 50, D(0), exit_price=90, expected_fill_count=3
+    )
+
+
+def test_manual_budget_after_loss_spends_remaining_cash_identically_in_three_modes(
+    tmp_path, monkeypatch
+):
+    # Two 500-USDC entries; one exits at97 for485. The replacement must buy
+    # with485 in all modes, rather than reserve500 and fail at Live submission.
+    test_independent_three_modes_same_actual_fills_with_gap_dust_and_restart(
+        tmp_path,
+        monkeypatch,
+        50,
+        D(0),
+        exit_price=97,
+        reinvest=False,
+        restart_during_sell=True,
     )
 
 
