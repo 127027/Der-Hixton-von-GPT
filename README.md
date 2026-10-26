@@ -1,5 +1,13 @@
 # Der Hixton
 
+**Prüfstand 26.10.2026:** Der aktive gemeinsame Vertrag ist
+`HIXTON-V8-LINK8-ATR075-DOGE50-DD10-ETH8-DIV32-CLOSECAP-PAPER-6`.
+Der neue [Vergleich von Schutzregeln auf denselben letzten drei Jahren](docs/research/risk-controls-20261026/README.md)
+ergibt **NO_CHANGE**: keine neue Regel belegt unter allen vorab festgelegten
+Kostenannahmen weniger Risiko bei mindestens gleichem Endkapital.
+[Ergebnisse und Erklärung der starken Startempfindlichkeit](docs/research/risk-controls-20261026/Einordnung.md).
+Die folgenden datierten Produktstände und älteren Beträge bleiben historische Nachweise.
+
 **Telegram-Kontakt (Erweiterung 21.10.2026):** Einstellungen enthalten einen
 separaten Kontaktbereich für bestätigte Echtgeld-Käufe, Teilverkäufe und
 abgeglichene Abschlüsse. Keine Paper- oder Freigabemeldungen; Zugang im
@@ -21,9 +29,9 @@ Aktuelle kontobezogene Beträge und Laufberichte bleiben lokal und werden nicht 
 [Technische Korrektur und lokale Abnahme](docs/technical-entry-guard-20261014.md).
 Die aktive Stufenregel bleibt zwei Grundtranchen/DD10 und ab 32k höchstens drei verschiedene Coins; keine Vierer-Stufe.
 
-## Aktueller lokaler Produktstand: 14.10.2026
+## Historischer lokaler Produktstand: 14.10.2026
 
-Die aktuelle lokale Strategie ist **HIXTON-V8-LINK8-ATR075-DOGE50-DD10-ETH8-DIV32-PAPER-5**.
+Die damalige lokale Strategie war **HIXTON-V8-LINK8-ATR075-DOGE50-DD10-ETH8-DIV32-PAPER-5**.
 Backtest, Paper und der geschützte Live-Controller verwenden diesen gemeinsamen Vertrag.
 Bis 32.000 USDC bleibt die ETH8/DD10-Aufteilung erhalten; ab der letzten geschlossenen
 Portfolio-Bewertung von 32.000 USDC gilt dauerhaft höchstens eine Position je Coin und

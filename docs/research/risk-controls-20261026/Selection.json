@@ -1,0 +1,274 @@
+{
+  "selected_at_utc": "2026-10-26 15:14:38.451863+00:00",
+  "contract_sha256": "5b47c08446e0a4bea6ce42ca08f4de5ed9be44651ca259c33d53235989124089",
+  "context_sha256": "ffe6e93f99b5aa805ba0e5c0e84227e07aa0d13ad3feeb9e8f0cb30f5288b3ca",
+  "complete_cases": 24,
+  "unassessable_cases": 0,
+  "gates": {
+    "current": {
+      "models": {
+        "current": {
+          "assessable": true,
+          "ending_nonworse": true,
+          "dd_nonworse": true
+        },
+        "stress": {
+          "assessable": true,
+          "ending_nonworse": true,
+          "dd_nonworse": true
+        },
+        "impact": {
+          "assessable": true,
+          "ending_nonworse": true,
+          "dd_nonworse": true
+        }
+      },
+      "eligible": true
+    },
+    "daily5_flat": {
+      "models": {
+        "current": {
+          "assessable": true,
+          "ending_nonworse": false,
+          "dd_nonworse": true
+        },
+        "stress": {
+          "assessable": true,
+          "ending_nonworse": false,
+          "dd_nonworse": true
+        },
+        "impact": {
+          "assessable": true,
+          "ending_nonworse": false,
+          "dd_nonworse": true
+        }
+      },
+      "eligible": false
+    },
+    "daily5_flat24": {
+      "models": {
+        "current": {
+          "assessable": true,
+          "ending_nonworse": false,
+          "dd_nonworse": true
+        },
+        "stress": {
+          "assessable": true,
+          "ending_nonworse": false,
+          "dd_nonworse": true
+        },
+        "impact": {
+          "assessable": true,
+          "ending_nonworse": false,
+          "dd_nonworse": true
+        }
+      },
+      "eligible": false
+    },
+    "dd_step": {
+      "models": {
+        "current": {
+          "assessable": true,
+          "ending_nonworse": false,
+          "dd_nonworse": true
+        },
+        "stress": {
+          "assessable": true,
+          "ending_nonworse": false,
+          "dd_nonworse": true
+        },
+        "impact": {
+          "assessable": true,
+          "ending_nonworse": false,
+          "dd_nonworse": true
+        }
+      },
+      "eligible": false
+    },
+    "loss_cooldown24": {
+      "models": {
+        "current": {
+          "assessable": true,
+          "ending_nonworse": true,
+          "dd_nonworse": false
+        },
+        "stress": {
+          "assessable": true,
+          "ending_nonworse": true,
+          "dd_nonworse": false
+        },
+        "impact": {
+          "assessable": true,
+          "ending_nonworse": true,
+          "dd_nonworse": false
+        }
+      },
+      "eligible": false
+    },
+    "liquidity5": {
+      "models": {
+        "current": {
+          "assessable": true,
+          "ending_nonworse": false,
+          "dd_nonworse": false
+        },
+        "stress": {
+          "assessable": true,
+          "ending_nonworse": false,
+          "dd_nonworse": false
+        },
+        "impact": {
+          "assessable": true,
+          "ending_nonworse": true,
+          "dd_nonworse": false
+        }
+      },
+      "eligible": false
+    },
+    "cmo20": {
+      "models": {
+        "current": {
+          "assessable": true,
+          "ending_nonworse": false,
+          "dd_nonworse": false
+        },
+        "stress": {
+          "assessable": true,
+          "ending_nonworse": false,
+          "dd_nonworse": false
+        },
+        "impact": {
+          "assessable": true,
+          "ending_nonworse": false,
+          "dd_nonworse": false
+        }
+      },
+      "eligible": false
+    },
+    "combined": {
+      "models": {
+        "current": {
+          "assessable": true,
+          "ending_nonworse": false,
+          "dd_nonworse": true
+        },
+        "stress": {
+          "assessable": true,
+          "ending_nonworse": false,
+          "dd_nonworse": true
+        },
+        "impact": {
+          "assessable": true,
+          "ending_nonworse": false,
+          "dd_nonworse": true
+        }
+      },
+      "eligible": false
+    }
+  },
+  "ranked_eligible": [
+    "current"
+  ],
+  "winner": "current",
+  "decision": "NO_CHANGE",
+  "product_promotion_allowed": false,
+  "case_evidence_sha256": {
+    "current-current": {
+      "file": "Complete.json",
+      "sha256": "fdc1d68eb1ea0a375266d2758f479dc750406fefee92edbe749f974752abe39c"
+    },
+    "current-stress": {
+      "file": "Complete.json",
+      "sha256": "498a85d0f4e5202fc12d0f3c0af66e1ecc0387ee2c34a2000ec4a8f2a7bac005"
+    },
+    "current-impact": {
+      "file": "Complete.json",
+      "sha256": "86c6ee15e06ff250149472d3a8eae51d29c35107a51b38a621c7432f4925ef4f"
+    },
+    "daily5_flat-current": {
+      "file": "Complete.json",
+      "sha256": "270b5fc0cbcfd3159d897544e68e7e73c39ec14449609e6249fac1acc77e924a"
+    },
+    "daily5_flat-stress": {
+      "file": "Complete.json",
+      "sha256": "5688d046bb7c07ef87ebd992f42e13b089347a81b59f0506da59f4bd3651ca52"
+    },
+    "daily5_flat-impact": {
+      "file": "Complete.json",
+      "sha256": "9aaab7a8c94899de1c10485c61c43e81b6650b490434f8db914a32402b97be09"
+    },
+    "daily5_flat24-current": {
+      "file": "Complete.json",
+      "sha256": "f77a4d859a31141602ee2eaafd60d046346285f71e32130dce9ee92acfd38686"
+    },
+    "daily5_flat24-stress": {
+      "file": "Complete.json",
+      "sha256": "f3bf03061b346492151bf354b752f8aa395dd116dc14dc28bbd554f85a3f5f40"
+    },
+    "daily5_flat24-impact": {
+      "file": "Complete.json",
+      "sha256": "23cb3333de17f7eb61194595b1b6b49303c7e4123e58f6b40a5c15e1ee963856"
+    },
+    "dd_step-current": {
+      "file": "Complete.json",
+      "sha256": "af5d741293a51fd082082944f11a0c5c1f98144e4088186333547d4b9e07db6a"
+    },
+    "dd_step-stress": {
+      "file": "Complete.json",
+      "sha256": "95ee4f15510095bf36b3e55248412d40a53ed3458746c43b30e4d75e3a9e51df"
+    },
+    "dd_step-impact": {
+      "file": "Complete.json",
+      "sha256": "5d23c40dd7422a87929bc0091f3518060a13cfbad715b428763ab983a99498be"
+    },
+    "loss_cooldown24-current": {
+      "file": "Complete.json",
+      "sha256": "21456655076d60c8fdf13bb9e881314a7521017906c2d88770c676672d0f7d73"
+    },
+    "loss_cooldown24-stress": {
+      "file": "Complete.json",
+      "sha256": "f68f817e3002158eaa9890e9080477e87cf65a0982dab6c8c083075b9c9df54e"
+    },
+    "loss_cooldown24-impact": {
+      "file": "Complete.json",
+      "sha256": "52112250c32045c65efe94c414971b5d292619123e2575b6198ea033a1119e34"
+    },
+    "liquidity5-current": {
+      "file": "Complete.json",
+      "sha256": "143fd34f662c05bc24c90cca309e8e7adef3983936ea9425081aa107f35eb21f"
+    },
+    "liquidity5-stress": {
+      "file": "Complete.json",
+      "sha256": "e64b2d6d320aaf4cde68d044f08c8c32c6c1883756a27116c3ef1dc4c8d2f779"
+    },
+    "liquidity5-impact": {
+      "file": "Complete.json",
+      "sha256": "41ed0dedee9dd135376a4f862e2933ac05cb27b2bd0cb290506ffbf13d0e2746"
+    },
+    "cmo20-current": {
+      "file": "Complete.json",
+      "sha256": "2e5a90afa783341018eb8e7250c350d0476f87bc9878bd04600f1078eefc6851"
+    },
+    "cmo20-stress": {
+      "file": "Complete.json",
+      "sha256": "1670f8fe22b6804c9a92d096a0fdae8c249e1b12bc41977daf7b0bc19e900e92"
+    },
+    "cmo20-impact": {
+      "file": "Complete.json",
+      "sha256": "c8b4c19c961257b471eda3b1a4fdc3cb5c9ad745e9e9c832fa118fd2df964e65"
+    },
+    "combined-current": {
+      "file": "Complete.json",
+      "sha256": "94694052e5c0f25864e79bab59e31a58002eb8fdd45ba7cbfa754f4d02fbb18b"
+    },
+    "combined-stress": {
+      "file": "Complete.json",
+      "sha256": "5e8524294a9d1b79214a25f23b1a1edfa9a44d8312e41e3e6c6656200a7da42d"
+    },
+    "combined-impact": {
+      "file": "Complete.json",
+      "sha256": "1e00259d14d21cf2475b69cf7ec9fdb39a844a0445977b2c0b14dd46682fc677"
+    }
+  },
+  "no_unseen_real_data_claim": true
+}

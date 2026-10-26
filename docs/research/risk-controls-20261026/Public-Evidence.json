@@ -1,0 +1,36 @@
+{
+  "source_commit": "c58253679128d6d924bbdf8af83a6f337b93a1db",
+  "source_sha256": "fb9c47bf2ffe2de8464fbfb083a3bcc3e94ad1fa6cb1259a86e8281a5c5e5efe",
+  "contract_sha256": "5b47c08446e0a4bea6ce42ca08f4de5ed9be44651ca259c33d53235989124089",
+  "context_sha256": "ffe6e93f99b5aa805ba0e5c0e84227e07aa0d13ad3feeb9e8f0cb30f5288b3ca",
+  "selection_sha256": "60b780f5c5a86b80c52e0f84365154729d773af4f6f92db60732d9f5fd50b55d",
+  "decision": "NO_CHANGE",
+  "product_source_changed": false,
+  "runtime_changed": false,
+  "keys_or_private_account_snapshot_published": false,
+  "files_sha256": {
+    ".gitattributes": "41cd237afeff751f9b596d42076c59aa9bb5eeb19ac26a987f8e0ec5f946e015",
+    "Bericht.md": "7c542c673dc5a8586cf3a31178db9cb8e69418e7da9b3aff08e93dc7f2a9e4bc",
+    "Comparison.csv": "a75683c5d1f70ca4fb9171d510c4dd67f34b3c2b8075539e8585335f3cdabad0",
+    "Einordnung.md": "06ce5328eff2f13c56d85065bf23d501a6d8495297ff2d1c832ba78411aa343f",
+    "Methoden-Code.zip": "dc94c3d20b3552db6e0abe1b887dad77eb9a17fb6d802b7af05df93a85081be2",
+    "Native-Overlay.diff": "5e241d145b6723b306470fc83097e331829e3fa446ce3c4bf36dee0b48aaa7fe",
+    "Native-Parity-current.json": "4ef61d5b1cd36597168cacd1233720e7f92e6533b18a9fa676ea15f48f307f5d",
+    "Native-Parity-stress.json": "b68e05e0183702054ac2b87ba583c56d160d926c357b755c78a3cdf6570c1135",
+    "README.md": "0141fddb7591b87ad79a1984d0917fe4736f0768291edf4a7b45d8825a77bc2f",
+    "Rolling-Control-Evidence.json": "5baf33a8a31aa006869c2a34f8595c9959e5b6c2770562c5c8d4fb2d26bb5e45",
+    "Selection.json": "60b780f5c5a86b80c52e0f84365154729d773af4f6f92db60732d9f5fd50b55d",
+    "Simulation-Spezifikation.json": "7cf875d30b0227bdc7a6b84280f38d977297f51f9b609b933927d5de420a2eb7",
+    "Study-Contract.json": "5b47c08446e0a4bea6ce42ca08f4de5ed9be44651ca259c33d53235989124089",
+    "Summary.json": "41dde29866cdb315beefa67eda7cbafc73f91eea7efb6ceb2723d8c4c6c9a41b",
+    "Vergleich.png": "3cba118a979a676358c5a6ea1e5563f4f2e1985cec9b1378b5c50eebb94ebfb9"
+  },
+  "method_sources_sha256": {
+    "controls.py": "5ae7e5bad737fbbdd5bf38b94119dfbe28522eac48f52cf28d361a2a1747f8e1",
+    "native_overlay.py": "7e5fee6dc11b37da5d1bab6dd9c9cd353e6c67c04f7b175020aa3b38f851ec2a",
+    "runner.py": "0ccf7c040bfa80813b5a730a6af95c84f44994aaf267ef4e897004407453a154",
+    "analyze.py": "64e832b36f313accd1e799b2b0d78a68d3c7ca369849dfcbf69b89799796a0e4",
+    "publish.py": "8f370c1bf916ccdf217f70f07754f9f7fa836a24674a4f47f0dabd07598183a7"
+  },
+  "raw_inputs_and_original_execution_records_remain_local": true
+}

@@ -1,0 +1,26 @@
+{
+  "original_attribution_report_sha256": "973995bd1dd38003ad3046187cc7b7356e632a75cafc09e5c988e25e4c918fb9",
+  "original_attribution_artifacts_sha256": {
+    "AVAX-Indicator-Boundary.json": "06c6e4ca73a25440755fe113f110fbde9df572b4c6b071aeb4d1054654d08ab3",
+    "capital_only-Fills.json": "eabaa0847601e72a196856ebd40e0495ef6caf86dc38918f29a1278595779ab4",
+    "capital_only-Result.json": "6afad229b5edbdc5ca8663163c175b5d5a373ad7ade3012fe757acd7eb9a2e06",
+    "capital_only-Trades.json": "87214aba9da2a35c88121cdc135f5168e978339589dd57b95f44935b13999dc2",
+    "Control-Plan.json": "5dd0c65d5e69e00a37d8d55bf7650ac1df4531af17a66090cb3347bd6bdcd5c9",
+    "Control-Summary.json": "16de6bc4fc78f6535f2750f2b0b9db2bc01586f6c10f4fc20b58c694be84ced4",
+    "control.py": "070a42300628662802455f84f132a4e9439439997517927b81fa515b5e8df900",
+    "end_extension-Fills.json": "b2e32e64351953bef718b619521bfa662c79573b277acb4b9e8a97c3555936b6",
+    "end_extension-Result.json": "46d6c256743c5207bbc0e99c8ad1fad1ad76299598b1492adb0c12c2e330fcd6",
+    "end_extension-Trades.json": "eb09d81207e90b7569ce00a844773e421afe5cc92c311857e0099d71b9c7a6d8",
+    "filters_only-Fills.json": "eabaa0847601e72a196856ebd40e0495ef6caf86dc38918f29a1278595779ab4",
+    "filters_only-Result.json": "64ef0051da9aabb2be7319c01cb2ec0174c29f94ccceed7f08561df095d1e919",
+    "filters_only-Trades.json": "87214aba9da2a35c88121cdc135f5168e978339589dd57b95f44935b13999dc2",
+    "old_reproduce-Fills.json": "75b5804bb26c00639f513a8136b1c12d681e16b7a3d9dec69aa6644deacdf729",
+    "old_reproduce-Result.json": "ba830501b929489cf895b1f1a3b6d7b7d1edc476ce89164418a7341ce3df38de",
+    "old_reproduce-Trades.json": "928eac4e8772ea322d75c704aa45d375817672cfd4edac279419475d83e3389f",
+    "Original-AVAX-Trade.json": "e4dc91bc81cc9658741c10b49a766f73feaa3835eafe6ee380c55297e0a5f7fd",
+    "Overlap.json": "83f74d69aaf414d08b16ce95249ac79af1a5677ec8105d0c8d26617178ce87b6"
+  },
+  "no_product_changes": true,
+  "no_candidate_or_method_change": true,
+  "summary": "Old original trades/fills and every overlapping candle field reproduced; capital/filter/end-extension/new-flat-start effects separated. Raw original controls remain local."
+}

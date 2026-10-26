@@ -1,0 +1,171 @@
+{
+  "created_at_utc": "2026-10-26 15:03:09.525026+00:00",
+  "research_only": true,
+  "pre_pnl_method_revision": "A09 required selector hash and strict completion/identity gates; no candidate performance observed before revision",
+  "source_commit": "c58253679128d6d924bbdf8af83a6f337b93a1db",
+  "source_sha256": "fb9c47bf2ffe2de8464fbfb083a3bcc3e94ad1fa6cb1259a86e8281a5c5e5efe",
+  "context_sha256": "ffe6e93f99b5aa805ba0e5c0e84227e07aa0d13ad3feeb9e8f0cb30f5288b3ca",
+  "candles_sha256": "b69602d7d2fb9e1f487c7337fa282227adfec2f66c1a3dee0439264940672800",
+  "methods_sha256": {
+    "controls.py": "5ae7e5bad737fbbdd5bf38b94119dfbe28522eac48f52cf28d361a2a1747f8e1",
+    "native_overlay.py": "7e5fee6dc11b37da5d1bab6dd9c9cd353e6c67c04f7b175020aa3b38f851ec2a",
+    "runner.py": "0ccf7c040bfa80813b5a730a6af95c84f44994aaf267ef4e897004407453a154",
+    "analyze.py": "64e832b36f313accd1e799b2b0d78a68d3c7ca369849dfcbf69b89799796a0e4"
+  },
+  "overlay_file_sha256": "bdd785538e76d98a8e04371dc5ede75cd48943a378aeb1fd5624e71579795f54",
+  "native_overlay_evidence": {
+    "native_sha256": "06da08bf4e63613a5c655eaa34a3361d0b192645e1d128cf545e4075c0401dfd",
+    "overlay_sha256": "14848a1221664dcce5a4c24f4625dfb381df11bd4ab4c8a1c6e29773cf20e4d7"
+  },
+  "candidate_order": [
+    "current",
+    "daily5_flat",
+    "daily5_flat24",
+    "dd_step",
+    "loss_cooldown24",
+    "liquidity5",
+    "cmo20",
+    "combined"
+  ],
+  "candidates": {
+    "current": {
+      "label": "current",
+      "daily_flatten": false,
+      "pause_24h": false,
+      "dd_step": false,
+      "loss_cooldown": false,
+      "liquidity_cap": false,
+      "cmo_floor": false
+    },
+    "daily5_flat": {
+      "label": "daily5_flat",
+      "daily_flatten": true,
+      "pause_24h": false,
+      "dd_step": false,
+      "loss_cooldown": false,
+      "liquidity_cap": false,
+      "cmo_floor": false
+    },
+    "daily5_flat24": {
+      "label": "daily5_flat24",
+      "daily_flatten": true,
+      "pause_24h": true,
+      "dd_step": false,
+      "loss_cooldown": false,
+      "liquidity_cap": false,
+      "cmo_floor": false
+    },
+    "dd_step": {
+      "label": "dd_step",
+      "daily_flatten": false,
+      "pause_24h": false,
+      "dd_step": true,
+      "loss_cooldown": false,
+      "liquidity_cap": false,
+      "cmo_floor": false
+    },
+    "loss_cooldown24": {
+      "label": "loss_cooldown24",
+      "daily_flatten": false,
+      "pause_24h": false,
+      "dd_step": false,
+      "loss_cooldown": true,
+      "liquidity_cap": false,
+      "cmo_floor": false
+    },
+    "liquidity5": {
+      "label": "liquidity5",
+      "daily_flatten": false,
+      "pause_24h": false,
+      "dd_step": false,
+      "loss_cooldown": false,
+      "liquidity_cap": true,
+      "cmo_floor": false
+    },
+    "cmo20": {
+      "label": "cmo20",
+      "daily_flatten": false,
+      "pause_24h": false,
+      "dd_step": false,
+      "loss_cooldown": false,
+      "liquidity_cap": false,
+      "cmo_floor": true
+    },
+    "combined": {
+      "label": "combined",
+      "daily_flatten": true,
+      "pause_24h": true,
+      "dd_step": true,
+      "loss_cooldown": true,
+      "liquidity_cap": true,
+      "cmo_floor": true
+    }
+  },
+  "cost_order": [
+    "current",
+    "stress",
+    "impact"
+  ],
+  "costs": {
+    "current": {
+      "name": "current",
+      "fee_bps_per_side": "10",
+      "spread_bps_per_side": "2",
+      "slippage_bps_per_side": "3"
+    },
+    "stress": {
+      "name": "stress",
+      "fee_bps_per_side": "10",
+      "spread_bps_per_side": "10",
+      "slippage_bps_per_side": "20"
+    },
+    "impact": {
+      "name": "current",
+      "fee_bps_per_side": "10",
+      "spread_bps_per_side": "2",
+      "slippage_bps_per_side": "3"
+    }
+  },
+  "impact_sensitivity": {
+    "formula": "current adverse rate + 0.001*sqrt(pre-fill notional/(0.01*previous closed-hour quote volume))",
+    "buy_notional": "known quote budget before fill",
+    "sell_notional": "owned rounded quantity * execution reference open before impact",
+    "not_calibrated": true,
+    "proxy_limit": "USDT historical proxy quote turnover is not historical USDC orderbook depth",
+    "missing_volume_or_rate_ge_one": "case UNASSESSABLE, no cheap fallback, not eligible",
+    "eligibility": "fully assessable; paired ending equity >= baseline and DD <= baseline"
+  },
+  "daily5_definition": {
+    "basis": "native UTC-day start equity; realized plus unrealized PnL, fees and dust",
+    "threshold": "closed equity <= 0.95*day start equity; first such close per UTC day",
+    "execution": "queue all owned SELLs at next executable open, preserve earlier regular exits",
+    "latch": "daily5_flat until next UTC day; daily5_flat24 until max(next UTC day,trigger+24h)",
+    "unresolved_owned_exits": "continue blocking buys and re-queue exits after pause expiry",
+    "guaranteed_maximum_loss": false
+  },
+  "dd_step_definition": "new entries only: normal fraction below10%peakDD; .75 at10..20%; .50 at>=20%; existing ATR fraction multiplies, no forced rebalance",
+  "cooldown_definition": "aggregate net realized cycle PnL incl partial exits; after final sale, losing coin blocked24h; check again after same-boundary exits",
+  "liquidity_definition": "BUY budget capped at5% previous closed-hour quote turnover; never cap or silently block liquidation SELLs",
+  "cmo_definition": "Core entry floor=max(previous floor,.20); preserve stricter floors and all other policy rules",
+  "selection": {
+    "technical_gates": [
+      "complete reproducible native overlay baseline parity",
+      "ledger/chronology/price checks",
+      "all three execution cases assessable"
+    ],
+    "economic_gates": "ending equity >= baseline AND max DD <= baseline, separately in EACH of current,stress,impact",
+    "ranking": "highest current-cost net PnL first, then smaller current-cost DD, then fixed candidate order",
+    "no_eligible_improvement": "NO_CHANGE; no parameter rescue search",
+    "winner_only_robustness": "12 already existing five-year validation paths, baseline vs selected winner, current and stress costs",
+    "robustness_gates": "median paired net advantage>=0 under BOTH costs; >=7/12 normal nonworse; worst DD <= baseline under BOTH costs",
+    "no_rescue_after_rejection": true
+  },
+  "interpretation": [
+    "known historical data; no truly unseen out-of-sample claim",
+    "24 predeclared three-year cases plus native original controls",
+    "all15 markets/roles, one shared starting capital, reinvested PnL",
+    "open ending positions marked, no assumed final sale",
+    "no actual historical orderbooks, outages, delistings or USDC depeg model"
+  ],
+  "promotion": "only after winner passes historical and robustness gates plus complete same-head Backtest/Paper/Trial/Live parity, regression, A09 and A11 review; no Live activation by this research"
+}

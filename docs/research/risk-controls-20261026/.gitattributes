@@ -1,0 +1,4 @@
+# Preserve frozen JSON/method bytes for published SHA-256 verification.
+* -text whitespace=blank-at-eol,blank-at-eof,space-before-tab,cr-at-eol
+# Unified diff context lines intentionally contain one space.
+Native-Overlay.diff -whitespace

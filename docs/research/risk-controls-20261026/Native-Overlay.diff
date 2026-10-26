@@ -1,0 +1,117 @@
+--- native-portfolio.py
++++ research-overlay.py
+@@ -133,6 +133,7 @@
+     profit_reinvestment_fraction: Decimal = Decimal("1"),
+     capital_exposure_fraction: Decimal = Decimal("1"),
+     allowed_entry_symbols: frozenset[str] | None = None,
++    research_controller=None,
+ ) -> PortfolioBacktestResult:
+     """Replay ten aligned markets against one non-compounding shared ledger."""
+ 
+@@ -237,6 +238,8 @@
+         )
+         for symbol in symbols
+     }
++    controller = research_controller
++    assert controller is not None
+     cash = starting_cash
+     positions: dict[str, _OpenTrade] = {}
+     dust = dict.fromkeys(symbols, ZERO)
+@@ -321,7 +324,8 @@
+                         step=market_quantity_step(rule),
+                     )
+                     reference = _d(candles[sym].open)
+-                    price = reference * (ONE - costs.adverse_price_rate)
++                    price = reference * (ONE - controller.adverse_rate(costs=costs,
++                        notional=quantity*reference, previous=point.candle))
+                     gross = quantity * price
+                     trim_block = market_order_block_reason(rule, quantity, price)
+                     if trim_block is not None:
+@@ -376,6 +380,7 @@
+                             1,
+                         )
+                     )
++                    controller.exit_partial(cycle_id=trim_position.signal.signal_id, pnl=net-basis)
+                     cash += net
+                     trim_position.quantity -= quantity
+                     trim_position.cost_basis -= basis
+@@ -383,6 +388,7 @@
+         if in_report and pending:
+             exits = [signal for signal in pending if signal.action is SignalAction.EXIT_LONG]
+             entries = [signal for signal in pending if signal.action is SignalAction.ENTER_LONG]
++            entries = controller.filter_entries(entries, at=open_time, blocked=blocked)
+ 
+             core_entries = [
+                 s for s in entries if s.symbol in core_symbols and s.symbol not in positions
+@@ -440,8 +446,9 @@
+                     return
+                 rule = rules.get(signal.symbol, ExecutionRules())
+                 reference = _d(candles[signal.symbol].open)
+-                fill_price = reference * (ONE - costs.adverse_price_rate)
+                 sell_quantity = round_market_quantity(open_trade.quantity, rule)
++                fill_price = reference * (ONE - controller.adverse_rate(costs=costs,
++                    notional=sell_quantity*reference, previous=previous_points[signal.symbol].candle))
+                 gross_quote = sell_quantity * fill_price
+                 filter_reason = market_order_block_reason(rule, sell_quantity, fill_price)
+                 if filter_reason is not None and not market_order_is_dust(filter_reason):
+@@ -495,6 +502,8 @@
+                         slot_count=open_trade.slots,
+                     )
+                 )
++                controller.exit_completed(symbol=signal.symbol, cycle_id=open_trade.signal.signal_id,
++                    pnl=realized_pnl, at=open_time)
+                 del positions[signal.symbol]
+ 
+             for signal in exits:
+@@ -568,6 +577,8 @@
+                 )
+                 split = True
+             for signal in entries:
++                if not controller.filter_entries([signal], at=open_time, blocked=blocked):
++                    continue
+                 if closed_entry_contract and entry_paused_after_fills():
+                     blocked.append(f"{signal.signal_id}:DAILY_LOSS_5_PERCENT")
+                     continue
+@@ -607,7 +618,8 @@
+                         if strategy and strategy.entry_atr_target_fraction
+                         else None
+                     ),
+-                    capital_fraction=capital_exposure_fraction,
++                    capital_fraction=capital_exposure_fraction * controller.exposure(
++                        equity=closed_equity, high_water=closed_high_water),
+                 )
+                 if reinvest_profits:
+                     price_marks = {symbol: _d(candles[symbol].open) for symbol in symbols}
+@@ -662,8 +674,11 @@
+                         count=diversification_count,
+                         entry_fraction=entry_fraction,
+                     )
++                budget = controller.budget(budget=budget,
++                    previous=previous_points[signal.symbol].candle, symbol=signal.symbol, at=open_time)
+                 reference = _d(candles[signal.symbol].open)
+-                fill_price = reference * (ONE + costs.adverse_price_rate)
++                fill_price = reference * (ONE + controller.adverse_rate(costs=costs,
++                    notional=budget, previous=previous_points[signal.symbol].candle))
+                 gross_quantity = round_market_quantity(budget / fill_price, rule)
+                 quote_spend = min(gross_quantity * fill_price, budget)
+                 if (
+@@ -764,6 +779,10 @@
+                 daily_paused = decision.daily_paused
+                 daily_paused_bars += int(daily_paused)
+ 
++            forced = controller.on_close(points=points, positions=positions, equity=equity,
++                day_start_equity=risk_state.day_start_equity_usdc,
++                at=max(candle.close_time_utc for candle in row))
++            daily_paused = daily_paused or controller.paused(max(candle.close_time_utc for candle in row))
+             new_pending: list[Signal] = []
+             for symbol in symbols:
+                 new_signal = decisions[symbol].signal
+@@ -794,7 +813,7 @@
+                         blocked.append(f"{new_signal.signal_id}:DAILY_LOSS_5_PERCENT")
+                         continue
+                 new_pending.append(new_signal)
+-            pending = new_pending
++            pending = finish_pending(controller, pending=new_pending, forced=forced, signals=signals)
+             equity_curve.append(
+                 EquityPoint(
+                     time_utc=max(candle.close_time_utc for candle in row),
