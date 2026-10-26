@@ -1,0 +1,44 @@
+{
+  "scope": "CURATED_SYNTHETIC_RESEARCH_PUBLICATION_ONLY",
+  "decision": "NO_CHANGE",
+  "native_product_source_commit": "bd124cc5f72ea5b64179d0009420bfd4e96807bc",
+  "native_product_source_sha256": "fb9c47bf2ffe2de8464fbfb083a3bcc3e94ad1fa6cb1259a86e8281a5c5e5efe",
+  "cases": 156,
+  "selection_original_sha256": "df50da6921f19ceda07142591df26f35a8b24057fd971a762f8bb308b568ff30",
+  "validation_original_sha256": "76051e01fc2291c704d7420b9b2b2135bd4817bbe1087713d6402b056f44b4dd",
+  "public_report_derivation": {
+    "original_sha256": "e9ab199ec60f3502f07323f5e1fa2627dfa498c8c9e592b07cd8a697be3f6b34",
+    "changes": [
+      "remove actual-account provenance",
+      "append explicit rejection and unvalidated research next steps"
+    ]
+  },
+  "exact_method_sources": {
+    "model.py": "47f522f0a372ae4feba370705777d4061fa37a3cb5c70e90ff6a2d6934830d5a",
+    "diagnostics.py": "f24420b3e280e3c5b704dc4a380df612705215b315887983f2712c8983468e4a",
+    "native_study.py": "d29839740ce8fe3a70e7496ac0885512b241bae311d89798c160f6f74778382f",
+    "analysis.py": "e826a98c7bd29cc43145f8c02c3fca249754ab1c8335732bdd99fbbe77eac4e5",
+    "drawdown_anatomy.py": "b1c61dd225a47e6f58008759fee6b721d7b34c37e7f49dc50b0db859a09d409e",
+    "risk_envelope.py": "77fa5d7ef73bd766a624f0db33e696141a1a307def333e819990439ac45582cb",
+    "report.py": "08502be3b5f7ac7ae03dbbfa019536280c96e6f0c9d977420bc4f50825332d18"
+  },
+  "private_inputs_and_keys_published": false,
+  "runtime_changed": false,
+  "future_profitability_or_30pct_cap_certified": false,
+  "files": {
+    ".gitattributes": "9251f33f522e5fd9f1df01eaeae46f03e7910a27d95741ab3cca81e19bd59993",
+    "Alle-Ergebnisse.csv": "8aeac814d3353d016fccc52f4b56de20095c1ae256bfe01de7bacc7671d1ad22",
+    "Bericht.md": "6fa39669611a822e0af03d5f6f592d419c4f44bac87fa2bfc173e8c26131ad6f",
+    "Coin-Beitraege.csv": "2f48a4a5ec908688041608c5bf4cacd054e5cb1982114b6f79f395f988a76e18",
+    "Discovery-Selection.json": "df50da6921f19ceda07142591df26f35a8b24057fd971a762f8bb308b568ff30",
+    "Marktpfade.png": "3410a15fb578198a2965a55876f808e358d42d13cb6ed5f27511cd1c34d1ebb2",
+    "Methoden-Code.zip": "b72ad74562ccf4808b63abc26967db13a9bb53ff50f353ebc85f4f04d03c0d82",
+    "Model-Contract.json": "f9a4e0e1037624d7c040799f3f48330a4593aaedd4d5f1b1d363ca39b13dd62c",
+    "README.md": "b95c51e35070facfd1ac2818c97a93ef52490ad2ca13bd7e2fdd5ed303f778f8",
+    "Simulation-Spezifikation.json": "e38b7a1fbe49ec58b78b16cc595a9088fa53e81ff8aadde44ce3bd7785a45558",
+    "Study-Approval.json": "77a5f1d436b38ef39cdf7da0605d7f360bf9dfb0bdfe82247b1e5b0de82e7b50",
+    "Summary.json": "e6aad7d399a4452466bf7962970d3f782b479491d84bcb3e143cead99e9af300",
+    "Szenarien.png": "fb30a3623d9ad3643cf10c154e9d653219904f8d216d69d1c99ab4fee2967c71",
+    "Validation-Summary.json": "76051e01fc2291c704d7420b9b2b2135bd4817bbe1087713d6402b056f44b4dd"
+  }
+}

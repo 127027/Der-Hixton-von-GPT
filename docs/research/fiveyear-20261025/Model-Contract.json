@@ -1,0 +1,90 @@
+{
+  "source": "fb9c47bf2ffe2de8464fbfb083a3bcc3e94ad1fa6cb1259a86e8281a5c5e5efe",
+  "context_sha256": "abb33f02d1ddf6beec5e34dd9712135d12a3ef2d4f8800c75248fb6b714b5a95",
+  "approval_sha256": "77a5f1d436b38ef39cdf7da0605d7f360bf9dfb0bdfe82247b1e5b0de82e7b50",
+  "prepared_sha256": "8574a45a46494347ce9ca82f495d6d094f18f9d4238ba88294cef7c89cc8718b",
+  "generator_sha256": "47f522f0a372ae4feba370705777d4061fa37a3cb5c70e90ff6a2d6934830d5a",
+  "specification": {
+    "lengths": [
+      168,
+      336,
+      720
+    ],
+    "length_weights": [
+      1,
+      1,
+      1
+    ],
+    "source_alignment": "same UTC hour and weekday as target block start",
+    "risk_on": {
+      "bear": 0.75,
+      "neutral": 1.0,
+      "bull": 2.0
+    },
+    "winter": {
+      "bear": 3.0,
+      "neutral": 1.0,
+      "bull": 0.5
+    },
+    "transition": {
+      "bear": 1.0,
+      "neutral": 2.0,
+      "bull": 1.0
+    },
+    "winter_boundaries": [
+      [
+        0.4,
+        0.6
+      ],
+      [
+        0.72,
+        0.88
+      ]
+    ],
+    "noisy": {
+      "qualified": 4.0,
+      "other": 0.5
+    },
+    "rotation": {
+      "qualified": 3.0,
+      "other": 1.0
+    },
+    "common_shocks": [
+      {
+        "day": 180,
+        "day_jitter": 45,
+        "btc_factor": 0.65
+      },
+      {
+        "day": 720,
+        "day_jitter": 60,
+        "btc_factor": 0.8
+      }
+    ],
+    "shock_beta": "Historical calibration cov(coin,BTC)/var(BTC), clipped .5..2, BTC=1",
+    "shock_quote_factor": 0.2,
+    "shock_quote_hours": 72,
+    "clock_and_phase_horizon": "Always full fixed five years, including prefix generation",
+    "not_a_future_probability_model": true
+  },
+  "families": [
+    "empirical_mixed",
+    "risk_on_bias",
+    "winter_then_recovery",
+    "noisy_range",
+    "rotation_dispersion",
+    "common_shocks"
+  ],
+  "discovery_seeds": [
+    251001,
+    251002
+  ],
+  "validation_seeds": [
+    252001,
+    252002
+  ],
+  "horizon_start": "2026-10-25T16:00:00+00:00",
+  "horizon_end": "2031-10-25T16:00:00+00:00",
+  "research_only": true,
+  "not_model_approval": true
+}

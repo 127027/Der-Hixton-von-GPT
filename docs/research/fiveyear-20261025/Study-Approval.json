@@ -1,0 +1,50 @@
+{
+  "approved_at_utc": "2026-10-25T16:04:42.644363+00:00",
+  "context_sha256": "abb33f02d1ddf6beec5e34dd9712135d12a3ef2d4f8800c75248fb6b714b5a95",
+  "proposal": "A02 six families with synchronized day/week aligned 168/336/720h blocks. Conditional donor pools chosen only using market returns/volatility/dispersion, not bot performance. Actual400bar warmup fromContext; price paths reuse known three-yearDonors into five synthetic years. No stationary-market theorem or future-probability claim.",
+  "candidate_labels": [
+    "current",
+    "gapfillers_off",
+    "exposure85",
+    "one_per_symbol"
+  ],
+  "discovery_phase": {
+    "families": 6,
+    "seeds_per_family": 2,
+    "costs": [
+      "current",
+      "stress"
+    ],
+    "extra_common_shocks_cost": {
+      "name": "tail50",
+      "fee_bps_per_side": "10",
+      "spread_bps_per_side": "15",
+      "slippage_bps_per_side": "25"
+    },
+    "candidate_eligibility": "All discovery jobs present and technically valid, median normal net profit>=baseline and median stress net profit>=baseline. Participation and worst end/DD are disclosure/feasibility metrics, never evidence of real fills.",
+    "ranking": [
+      "median net profit across 12 normal paths descending",
+      "median max closing drawdown across same12normalpaths ascending",
+      "fixed candidate order"
+    ]
+  },
+  "validation_phase": {
+    "seeds_per_family": 2,
+    "unlock": "Write immutable Discovery-Selection.json before generating/reading validation PnL. Only selected winner versus baseline; if winner=baseline no rescue candidate.",
+    "improvement_claim": "Paired median net profit advantage>=0 under both normal and stress, plus at least7/12 normal validation paths not worse. Report everyfamily/tailcost/worstend/DD/participation. Failure is NO_CHANGE, never rerank or expand grid.",
+    "independence_limit": "New random seeds, same examined historical donors; NOT genuinely unknown real market evidence."
+  },
+  "scope": "Research and possible recommendations only. No running bot, source/domain strategy, APIkeys, Live activation or restart changes. No automatic promotion from synthetic evidence alone.",
+  "checks_before_performance": [
+    "Immutable plan/generator/input hashes",
+    "all15 joint sampling indices and UTC-hour/weekday alignment",
+    "OHLC/time/basequotevolume/zero-seamerror checks",
+    "distributional comparison against proper donor pools",
+    "native chronological strategy with no future provisionalbars",
+    "previous-closed-hour liquidity participation coverage and extremeequityflag",
+    "sampler repeatcounts, topdonormonthshares, uniquemonths/blocks",
+    "stable state across joints, no reset of positions/indicators/dayrisk"
+  ],
+  "technical_faults": "Evaluate separately with current fake-exchange operational tests; do not claim candle-gap modeling covers internet downtime or actual exit fills.",
+  "frozen_selection_metrics": true
+}

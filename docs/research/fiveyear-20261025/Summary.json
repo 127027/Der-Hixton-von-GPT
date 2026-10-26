@@ -1,0 +1,503 @@
+{
+  "source_commit": "bd124cc5f72ea5b64179d0009420bfd4e96807bc",
+  "source_sha256": "fb9c47bf2ffe2de8464fbfb083a3bcc3e94ad1fa6cb1259a86e8281a5c5e5efe",
+  "start_usdc": "1085.77093944",
+  "cases": 156,
+  "discovery_cases": 104,
+  "validation_cases": 52,
+  "families": {
+    "empirical_mixed": {
+      "current": {
+        "constructed_paths": 4,
+        "end_min": "1623.070845705100421567734449",
+        "end_median": "5680.57720824464390085759317",
+        "end_max": "14890.27811714182154350054531",
+        "worst_close_dd_pct": "76.86427195430710184944180786",
+        "median_close_dd_pct": "53.62403355451848472775797335",
+        "ending_below_start_paths": 0,
+        "orders": 2320,
+        "orders_over_1pct_prior_hour_volume": 437,
+        "orders_over_5pct_prior_hour_volume": 143,
+        "orders_with_unknown_prior_volume": 0,
+        "orders_with_historical_quote_proxy": 163,
+        "largest_prior_hour_volume_ratio": "2.297833172764127619073249051",
+        "not_future_probabilities": true
+      },
+      "stress": {
+        "constructed_paths": 4,
+        "end_min": "778.3319868289668671377605587",
+        "end_median": "3152.552700515798901933898270",
+        "end_max": "11555.93487126995970677999316",
+        "worst_close_dd_pct": "81.93065789997937732044434745",
+        "median_close_dd_pct": "56.13820158718792810907341615",
+        "ending_below_start_paths": 1,
+        "orders": 2334,
+        "orders_over_1pct_prior_hour_volume": 362,
+        "orders_over_5pct_prior_hour_volume": 111,
+        "orders_with_unknown_prior_volume": 0,
+        "orders_with_historical_quote_proxy": 163,
+        "largest_prior_hour_volume_ratio": "1.349647336160037868195262172",
+        "not_future_probabilities": true
+      },
+      "macro_context": {
+        "flagged_paths": 2,
+        "total_paths": 4,
+        "btc_end_multiples": [
+          1.879099927572586,
+          1.194312887450668,
+          13.723520300929309,
+          10.230005709647296
+        ],
+        "eth_end_multiples": [
+          0.7599747280171385,
+          0.47156856677113945,
+          3.6767872022239345,
+          1.2539784613582206
+        ],
+        "context_heuristic_not_probability_or_rejection": true
+      }
+    },
+    "risk_on_bias": {
+      "current": {
+        "constructed_paths": 4,
+        "end_min": "64077.51564303437551979927971",
+        "end_median": "140292.0170197279654975153448",
+        "end_max": "285831.6334309589721350432927",
+        "worst_close_dd_pct": "51.54321433087194036333908386",
+        "median_close_dd_pct": "48.03113419180245385754079951",
+        "ending_below_start_paths": 0,
+        "orders": 2510,
+        "orders_over_1pct_prior_hour_volume": 603,
+        "orders_over_5pct_prior_hour_volume": 249,
+        "orders_with_unknown_prior_volume": 0,
+        "orders_with_historical_quote_proxy": 132,
+        "largest_prior_hour_volume_ratio": "5.229281186553510216549044148",
+        "not_future_probabilities": true
+      },
+      "stress": {
+        "constructed_paths": 4,
+        "end_min": "45542.90657860936627928299328",
+        "end_median": "124027.4784027010995407133905",
+        "end_max": "215983.2601989075471197727685",
+        "worst_close_dd_pct": "52.73249686436245361344956397",
+        "median_close_dd_pct": "51.24705428631461986257159315",
+        "ending_below_start_paths": 0,
+        "orders": 2478,
+        "orders_over_1pct_prior_hour_volume": 510,
+        "orders_over_5pct_prior_hour_volume": 194,
+        "orders_with_unknown_prior_volume": 0,
+        "orders_with_historical_quote_proxy": 142,
+        "largest_prior_hour_volume_ratio": "14.35503759862732674989342593",
+        "not_future_probabilities": true
+      },
+      "macro_context": {
+        "flagged_paths": 4,
+        "total_paths": 4,
+        "btc_end_multiples": [
+          87.26216841914255,
+          344.0812230319918,
+          96.08445850403191,
+          104.2080029117955
+        ],
+        "eth_end_multiples": [
+          9.538747424324367,
+          269.61240671064553,
+          47.97847156337836,
+          121.65033433789947
+        ],
+        "context_heuristic_not_probability_or_rejection": true
+      }
+    },
+    "winter_then_recovery": {
+      "current": {
+        "constructed_paths": 4,
+        "end_min": "1885.330049558247560318908818",
+        "end_median": "6771.478132742417602942937485",
+        "end_max": "11339.35743952959184883874976",
+        "worst_close_dd_pct": "79.66021633399325832810201108",
+        "median_close_dd_pct": "72.4338063638407219145396095",
+        "ending_below_start_paths": 0,
+        "orders": 2538,
+        "orders_over_1pct_prior_hour_volume": 226,
+        "orders_over_5pct_prior_hour_volume": 56,
+        "orders_with_unknown_prior_volume": 1,
+        "orders_with_historical_quote_proxy": 72,
+        "largest_prior_hour_volume_ratio": "15.13376392968108227816621643",
+        "not_future_probabilities": true
+      },
+      "stress": {
+        "constructed_paths": 4,
+        "end_min": "635.6953171082574565737108347",
+        "end_median": "3311.466485005715970356168615",
+        "end_max": "6834.858047170339000883248402",
+        "worst_close_dd_pct": "85.04712612604101545457209469",
+        "median_close_dd_pct": "81.78919029753168333230283335",
+        "ending_below_start_paths": 1,
+        "orders": 2522,
+        "orders_over_1pct_prior_hour_volume": 184,
+        "orders_over_5pct_prior_hour_volume": 40,
+        "orders_with_unknown_prior_volume": 1,
+        "orders_with_historical_quote_proxy": 72,
+        "largest_prior_hour_volume_ratio": "11.37722960637740539313522962",
+        "not_future_probabilities": true
+      },
+      "macro_context": {
+        "flagged_paths": 0,
+        "total_paths": 4,
+        "btc_end_multiples": [
+          1.5716361477605987,
+          0.8230514030168679,
+          0.5263866784380734,
+          1.0786060335110341
+        ],
+        "eth_end_multiples": [
+          0.05699717559372329,
+          0.6617276492080482,
+          0.05408880379181646,
+          0.42196429523412105
+        ],
+        "context_heuristic_not_probability_or_rejection": true
+      }
+    },
+    "noisy_range": {
+      "current": {
+        "constructed_paths": 4,
+        "end_min": "591.6377967960093668784126594",
+        "end_median": "808.764615953116848032770625",
+        "end_max": "1232.829294354751875873162712",
+        "worst_close_dd_pct": "68.38906135801893766933507290",
+        "median_close_dd_pct": "65.8128488518480836948721318",
+        "ending_below_start_paths": 3,
+        "orders": 2704,
+        "orders_over_1pct_prior_hour_volume": 382,
+        "orders_over_5pct_prior_hour_volume": 107,
+        "orders_with_unknown_prior_volume": 0,
+        "orders_with_historical_quote_proxy": 190,
+        "largest_prior_hour_volume_ratio": "42.55863536224780971568350987",
+        "not_future_probabilities": true
+      },
+      "stress": {
+        "constructed_paths": 4,
+        "end_min": "311.8530033048583326717535475",
+        "end_median": "462.8396513702230191872275887",
+        "end_max": "874.4286102915961257275597816",
+        "worst_close_dd_pct": "77.22919779500323230780908345",
+        "median_close_dd_pct": "72.99628312917847605932577655",
+        "ending_below_start_paths": 4,
+        "orders": 2718,
+        "orders_over_1pct_prior_hour_volume": 314,
+        "orders_over_5pct_prior_hour_volume": 77,
+        "orders_with_unknown_prior_volume": 0,
+        "orders_with_historical_quote_proxy": 192,
+        "largest_prior_hour_volume_ratio": "27.27154040002779141424067805",
+        "not_future_probabilities": true
+      },
+      "macro_context": {
+        "flagged_paths": 1,
+        "total_paths": 4,
+        "btc_end_multiples": [
+          1.9506755947464822,
+          3.9938378655438993,
+          1.6428300343044617,
+          1.899663014755423
+        ],
+        "eth_end_multiples": [
+          0.03050161441727685,
+          0.5594048986918555,
+          0.1164758288116705,
+          0.15670307195059754
+        ],
+        "context_heuristic_not_probability_or_rejection": true
+      }
+    },
+    "rotation_dispersion": {
+      "current": {
+        "constructed_paths": 4,
+        "end_min": "7227.282968504473738180620842",
+        "end_median": "33258.43424728818329939592100",
+        "end_max": "177966.9584775425382353982412",
+        "worst_close_dd_pct": "61.98203640475585723116245410",
+        "median_close_dd_pct": "52.13936877830794259991267665",
+        "ending_below_start_paths": 0,
+        "orders": 2482,
+        "orders_over_1pct_prior_hour_volume": 478,
+        "orders_over_5pct_prior_hour_volume": 178,
+        "orders_with_unknown_prior_volume": 0,
+        "orders_with_historical_quote_proxy": 217,
+        "largest_prior_hour_volume_ratio": "4.092538727169073879535766090",
+        "not_future_probabilities": true
+      },
+      "stress": {
+        "constructed_paths": 4,
+        "end_min": "4197.125261297053205028670222",
+        "end_median": "18703.85732195007838464225451",
+        "end_max": "158788.1694348433459013377558",
+        "worst_close_dd_pct": "66.57689994141964235959002920",
+        "median_close_dd_pct": "61.4849908539126673338818421",
+        "ending_below_start_paths": 0,
+        "orders": 2454,
+        "orders_over_1pct_prior_hour_volume": 365,
+        "orders_over_5pct_prior_hour_volume": 133,
+        "orders_with_unknown_prior_volume": 0,
+        "orders_with_historical_quote_proxy": 208,
+        "largest_prior_hour_volume_ratio": "5.014630491176403406674505868",
+        "not_future_probabilities": true
+      },
+      "macro_context": {
+        "flagged_paths": 3,
+        "total_paths": 4,
+        "btc_end_multiples": [
+          26.492869516440773,
+          25.307610606568915,
+          14.217486191142257,
+          3.550181204421715
+        ],
+        "eth_end_multiples": [
+          2.430068525945802,
+          4.973732553301258,
+          1.139181366080913,
+          1.5913139807744774
+        ],
+        "context_heuristic_not_probability_or_rejection": true
+      }
+    },
+    "common_shocks": {
+      "current": {
+        "constructed_paths": 4,
+        "end_min": "1194.260521264097082973178568",
+        "end_median": "3008.354426069430284379267380",
+        "end_max": "12070.60712709722385304847730",
+        "worst_close_dd_pct": "77.33463149989429765764980946",
+        "median_close_dd_pct": "56.5634278210259535868011843",
+        "ending_below_start_paths": 0,
+        "orders": 2270,
+        "orders_over_1pct_prior_hour_volume": 407,
+        "orders_over_5pct_prior_hour_volume": 121,
+        "orders_with_unknown_prior_volume": 0,
+        "orders_with_historical_quote_proxy": 90,
+        "largest_prior_hour_volume_ratio": "4.820772310906271576746085521",
+        "not_future_probabilities": true
+      },
+      "stress": {
+        "constructed_paths": 4,
+        "end_min": "519.9005478073344822174850440",
+        "end_median": "1745.540359244624302082885120",
+        "end_max": "5735.266588650168619717883300",
+        "worst_close_dd_pct": "88.00885750581842007166286994",
+        "median_close_dd_pct": "58.8142434343387530520811362",
+        "ending_below_start_paths": 1,
+        "orders": 2272,
+        "orders_over_1pct_prior_hour_volume": 319,
+        "orders_over_5pct_prior_hour_volume": 91,
+        "orders_with_unknown_prior_volume": 0,
+        "orders_with_historical_quote_proxy": 90,
+        "largest_prior_hour_volume_ratio": "3.048764995115095913153640199",
+        "not_future_probabilities": true
+      },
+      "tail50": {
+        "constructed_paths": 4,
+        "end_min": "403.1499632248081209783153092",
+        "end_median": "1407.256980015133044812927932",
+        "end_max": "4572.681729939204825751333765",
+        "worst_close_dd_pct": "90.14740895728817561132991801",
+        "median_close_dd_pct": "60.6221025099914152475038228",
+        "ending_below_start_paths": 2,
+        "orders": 2276,
+        "orders_over_1pct_prior_hour_volume": 283,
+        "orders_over_5pct_prior_hour_volume": 80,
+        "orders_with_unknown_prior_volume": 0,
+        "orders_with_historical_quote_proxy": 90,
+        "largest_prior_hour_volume_ratio": "2.666603077947303925392858608",
+        "not_future_probabilities": true
+      },
+      "macro_context": {
+        "flagged_paths": 0,
+        "total_paths": 4,
+        "btc_end_multiples": [
+          3.0836348671250655,
+          0.9420526226887036,
+          5.246898314498229,
+          0.5699761269220396
+        ],
+        "eth_end_multiples": [
+          1.0746360939398505,
+          0.11612551963243643,
+          3.647685849793509,
+          0.2777424489469244
+        ],
+        "context_heuristic_not_probability_or_rejection": true
+      }
+    }
+  },
+  "baseline_normal": {
+    "constructed_paths": 24,
+    "end_min": "591.6377967960093668784126594",
+    "end_median": "7125.33308286163623355734251",
+    "end_max": "285831.6334309589721350432927",
+    "worst_close_dd_pct": "79.66021633399325832810201108",
+    "median_close_dd_pct": "57.2739904735106275919827657",
+    "ending_below_start_paths": 3,
+    "orders": 14824,
+    "orders_over_1pct_prior_hour_volume": 2533,
+    "orders_over_5pct_prior_hour_volume": 854,
+    "orders_with_unknown_prior_volume": 1,
+    "orders_with_historical_quote_proxy": 864,
+    "largest_prior_hour_volume_ratio": "42.55863536224780971568350987",
+    "not_future_probabilities": true
+  },
+  "baseline_stress": {
+    "constructed_paths": 24,
+    "end_min": "311.8530033048583326717535475",
+    "end_median": "3993.203078961672384547303356",
+    "end_max": "215983.2601989075471197727685",
+    "worst_close_dd_pct": "88.00885750581842007166286994",
+    "median_close_dd_pct": "63.84872801634330450556302685",
+    "ending_below_start_paths": 7,
+    "orders": 14778,
+    "orders_over_1pct_prior_hour_volume": 2054,
+    "orders_over_5pct_prior_hour_volume": 646,
+    "orders_with_unknown_prior_volume": 1,
+    "orders_with_historical_quote_proxy": 867,
+    "largest_prior_hour_volume_ratio": "27.27154040002779141424067805",
+    "not_future_probabilities": true
+  },
+  "baseline_normal_without_macro_flag_descriptive_only": {
+    "constructed_paths": 14,
+    "end_min": "807.9074848285857890901541192",
+    "end_median": "3008.354426069430284379267380",
+    "end_max": "12070.60712709722385304847730",
+    "worst_close_dd_pct": "79.66021633399325832810201108",
+    "median_close_dd_pct": "67.64941317524581056361304325",
+    "ending_below_start_paths": 2,
+    "orders": 8711,
+    "orders_over_1pct_prior_hour_volume": 1198,
+    "orders_over_5pct_prior_hour_volume": 335,
+    "orders_with_unknown_prior_volume": 1,
+    "orders_with_historical_quote_proxy": 440,
+    "largest_prior_hour_volume_ratio": "42.55863536224780971568350987",
+    "not_future_probabilities": true
+  },
+  "worst_normal_end_result": "runs\\discovery\\3-251001\\current-current\\Result.json",
+  "worst_normal_dd_result": "runs\\discovery\\2-251002\\current-current\\Result.json",
+  "discovery_winner": "one_per_symbol",
+  "validation_decision": "NO_CHANGE",
+  "validation_comparison": {
+    "current": {
+      "current": {
+        "constructed_paths": 12,
+        "end_min": "807.9074848285857890901541192",
+        "end_median": "7125.33308286163623355734251",
+        "end_max": "215141.7702372794606208081831",
+        "worst_close_dd_pct": "72.27082924752088764856277044",
+        "median_close_dd_pct": "57.2739904735106275919827657",
+        "ending_below_start_paths": 2,
+        "orders": 7260,
+        "orders_over_1pct_prior_hour_volume": 1203,
+        "orders_over_5pct_prior_hour_volume": 386,
+        "orders_with_unknown_prior_volume": 0,
+        "orders_with_historical_quote_proxy": 399,
+        "largest_prior_hour_volume_ratio": "26.62316694230736948207587549",
+        "not_future_probabilities": true
+      },
+      "one_per_symbol": {
+        "constructed_paths": 12,
+        "end_min": "567.4031275098197551517722888",
+        "end_median": "5550.13357094658778585092200",
+        "end_max": "126440.5031444210325439064461",
+        "worst_close_dd_pct": "75.76502532995057339678697065",
+        "median_close_dd_pct": "55.4111125350958147082088110",
+        "ending_below_start_paths": 3,
+        "orders": 8919,
+        "orders_over_1pct_prior_hour_volume": 934,
+        "orders_over_5pct_prior_hour_volume": 274,
+        "orders_with_unknown_prior_volume": 0,
+        "orders_with_historical_quote_proxy": 365,
+        "largest_prior_hour_volume_ratio": "25.24633943961931501275556244",
+        "not_future_probabilities": true
+      }
+    },
+    "stress": {
+      "current": {
+        "constructed_paths": 12,
+        "end_min": "448.7958058932082361128442478",
+        "end_median": "3993.203078961672384547303356",
+        "end_max": "199899.5905450664882345068771",
+        "worst_close_dd_pct": "83.25938800359512046967867554",
+        "median_close_dd_pct": "63.84872801634330450556302685",
+        "ending_below_start_paths": 3,
+        "orders": 7251,
+        "orders_over_1pct_prior_hour_volume": 950,
+        "orders_over_5pct_prior_hour_volume": 280,
+        "orders_with_unknown_prior_volume": 0,
+        "orders_with_historical_quote_proxy": 399,
+        "largest_prior_hour_volume_ratio": "16.78321414633766624200955059",
+        "not_future_probabilities": true
+      },
+      "one_per_symbol": {
+        "constructed_paths": 12,
+        "end_min": "369.2862717026870136655398839",
+        "end_median": "3286.211827611246896797810321",
+        "end_max": "119989.5999324996161211056256",
+        "worst_close_dd_pct": "82.69868809846072205358737129",
+        "median_close_dd_pct": "59.0963057242688367486466461",
+        "ending_below_start_paths": 4,
+        "orders": 8967,
+        "orders_over_1pct_prior_hour_volume": 736,
+        "orders_over_5pct_prior_hour_volume": 199,
+        "orders_with_unknown_prior_volume": 0,
+        "orders_with_historical_quote_proxy": 368,
+        "largest_prior_hour_volume_ratio": "16.96081721501571815755966985",
+        "not_future_probabilities": true
+      }
+    },
+    "tail50": {
+      "current": {
+        "constructed_paths": 2,
+        "end_min": "906.2702102023423665407939380",
+        "end_median": "1407.256980015133044812927932",
+        "end_max": "1908.243749827923723085061925",
+        "worst_close_dd_pct": "62.90523265696768326977324196",
+        "median_close_dd_pct": "60.6221025099914152475038228",
+        "ending_below_start_paths": 1,
+        "orders": 1054,
+        "orders_over_1pct_prior_hour_volume": 96,
+        "orders_over_5pct_prior_hour_volume": 26,
+        "orders_with_unknown_prior_volume": 0,
+        "orders_with_historical_quote_proxy": 41,
+        "largest_prior_hour_volume_ratio": "1.727837394265190958890176024",
+        "not_future_probabilities": true
+      },
+      "one_per_symbol": {
+        "constructed_paths": 2,
+        "end_min": "435.0501673922974337193528923",
+        "end_median": "1254.145033431921641882529588",
+        "end_max": "2073.239899471545850045706284",
+        "worst_close_dd_pct": "76.57052161913379165233001544",
+        "median_close_dd_pct": "69.3615219788107008223455751",
+        "ending_below_start_paths": 1,
+        "orders": 1386,
+        "orders_over_1pct_prior_hour_volume": 91,
+        "orders_over_5pct_prior_hour_volume": 22,
+        "orders_with_unknown_prior_volume": 0,
+        "orders_with_historical_quote_proxy": 39,
+        "largest_prior_hour_volume_ratio": "15.08365567540117321508150683",
+        "not_future_probabilities": true
+      }
+    }
+  },
+  "discovery_selected_paired_normal": {
+    "better": 5,
+    "worse": 7,
+    "equal": 0,
+    "median_net_advantage": "-180.1799381632841813663660300",
+    "descriptive_only_not_a_changed_selection_rule": true
+  },
+  "baseline_normal_dd_exceeds_30pct_paths": 24,
+  "minimum_equity_across_normal_paths": "240.0975208567085055215286829",
+  "worst_initial_capital_return_pct": "-77.88690854255670006390011115",
+  "selection_sha256": "df50da6921f19ceda07142591df26f35a8b24057fd971a762f8bb308b568ff30",
+  "validation_sha256": "76051e01fc2291c704d7420b9b2b2135bd4817bbe1087713d6402b056f44b4dd",
+  "all_native_technical_checks_pass": true,
+  "product_changed": false,
+  "synthetic_model_not_forecast_or_unseen_real_data": true
+}

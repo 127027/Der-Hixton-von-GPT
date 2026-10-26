@@ -113,6 +113,13 @@ Der gespeicherte UI-Schalter „Zwischenfüller mit Core-Vorrang“ (`gap_filler
 
 ## Backtests und Forschung
 
+Die [Fünfjahres-Szenarienstudie vom 25.–26.10.2026](docs/research/fiveyear-20261025/README.md)
+dokumentiert 156 native Vergleichs- und Prüfläufe. Die ausgewählte Änderung
+scheiterte in der getrennten Prüfung: **NO_CHANGE**, keine Übernahme in den Bot.
+Die konstruierten Szenarien belegen keine verlässliche 30-%-Verlustgrenze und
+keine erwartbare zukünftige Rendite. Bericht, Diagramme, Methoden und vollständige
+synthetische Ergebnistabellen sind dort verlinkt.
+
 Es gibt zwei getrennte Sichtweisen:
 
 1. **15×250 isoliert**: Laborvergleich mit einem separaten 250-USDC-Konto je Coin. Das ist kein 3.750-USDC-Hauptkonto.
