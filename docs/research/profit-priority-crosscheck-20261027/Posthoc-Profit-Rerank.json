@@ -1,0 +1,349 @@
+{
+  "reviewer": "A09 independent mechanical post-hoc rerank",
+  "at_utc": "2026-10-27T07:07:10.284187+00:00",
+  "decision": "POST_HOC_RERANK_COMPLETE_NOT_PRODUCT_APPROVAL",
+  "ranking_rule": "All24 technical cases must pass saved integrity/ledger checks; highest current-cost net profit first, max-DD only an exact-profit tie-break. No DD nonregression gate.",
+  "method_change_disclosure": "Requested on27Oct after26Oct outcomes were known. This supersedes neither the frozen26Oct protocol nor its historical NO_CHANGE record; it corrects the economic decision lens to owner preference.",
+  "historical_rule_misalignment": "The additional strict DD-nonworse eligibility requirement used26Oct excluded a higher-profit candidate despite the owner allowing higher DD for higher profit.",
+  "source_sha256": "fb9c47bf2ffe2de8464fbfb083a3bcc3e94ad1fa6cb1259a86e8281a5c5e5efe",
+  "original_contract_sha256": "5b47c08446e0a4bea6ce42ca08f4de5ed9be44651ca259c33d53235989124089",
+  "original_selection_sha256": "60b780f5c5a86b80c52e0f84365154729d773af4f6f92db60732d9f5fd50b55d",
+  "original_case_review_sha256": "a6df2bb3360f73d177046d5a4c6aee7660af6351656f064fe2f5b2ff2d33bd40",
+  "old_summary_sha256": "41dde29866cdb315beefa67eda7cbafc73f91eea7efb6ceb2723d8c4c6c9a41b",
+  "saved_cases": 24,
+  "rechecked_saved_file_hashes": 144,
+  "normal_profit_rank": [
+    "loss_cooldown24",
+    "current",
+    "liquidity5",
+    "dd_step",
+    "cmo20",
+    "daily5_flat",
+    "daily5_flat24",
+    "combined"
+  ],
+  "normal_stress_profit_nonregression_rank": [
+    "loss_cooldown24",
+    "current"
+  ],
+  "all3_profit_nonregression_rank": [
+    "loss_cooldown24",
+    "current"
+  ],
+  "mechanical_winner": "loss_cooldown24",
+  "winner_same_with_normal_stress_or_all3_profit_nonregression": true,
+  "rows": {
+    "current": {
+      "current": {
+        "starting_equity": "1085.77093944",
+        "ending_equity": "11004.17713294658555000000",
+        "net_pnl": "9918.40619350658555000000",
+        "max_drawdown_pct": "38.23110102621364667771478231",
+        "total_fees": "1075.11429575141215000000",
+        "modeled_spread_slippage": "537.55989178325000000",
+        "net_pnl_delta_vs_baseline": "0E-20",
+        "dd_delta_pp_vs_baseline": "0E-26",
+        "net_pnl_nonworse_vs_baseline": true
+      },
+      "stress": {
+        "starting_equity": "1085.77093944",
+        "ending_equity": "7568.8547546147393000000",
+        "net_pnl": "6483.0838151747393000000",
+        "max_drawdown_pct": "47.74892343293275145276331188",
+        "total_fees": "854.0480758045120000000",
+        "modeled_spread_slippage": "2562.2293191906000000",
+        "net_pnl_delta_vs_baseline": "0E-19",
+        "dd_delta_pp_vs_baseline": "0E-26",
+        "net_pnl_nonworse_vs_baseline": true
+      },
+      "impact": {
+        "starting_equity": "1085.77093944",
+        "ending_equity": "9215.814517717409177641053448",
+        "net_pnl": "8130.043578277409177641053448",
+        "max_drawdown_pct": "42.15813097613838677230974382",
+        "total_fees": "957.8017160694609011406349545",
+        "modeled_spread_slippage": "1346.863793974047395486372267",
+        "net_pnl_delta_vs_baseline": "0E-24",
+        "dd_delta_pp_vs_baseline": "0E-26",
+        "net_pnl_nonworse_vs_baseline": true
+      }
+    },
+    "daily5_flat": {
+      "current": {
+        "starting_equity": "1085.77093944",
+        "ending_equity": "3642.59768711949405000000",
+        "net_pnl": "2556.82674767949405000000",
+        "max_drawdown_pct": "37.25003079112027758356729669",
+        "total_fees": "535.59433035074835000000",
+        "modeled_spread_slippage": "267.79793093645000000",
+        "net_pnl_delta_vs_baseline": "-7361.57944582709150000000",
+        "dd_delta_pp_vs_baseline": "-0.98107023509336909414748562",
+        "net_pnl_nonworse_vs_baseline": false
+      },
+      "stress": {
+        "starting_equity": "1085.77093944",
+        "ending_equity": "2401.3852834959957000000",
+        "net_pnl": "1315.6143440559957000000",
+        "max_drawdown_pct": "47.01996644056641018413223657",
+        "total_fees": "422.3891324153739000000",
+        "modeled_spread_slippage": "1267.1922946653000000",
+        "net_pnl_delta_vs_baseline": "-5167.4694711187436000000",
+        "dd_delta_pp_vs_baseline": "-0.72895699236634126863107531",
+        "net_pnl_nonworse_vs_baseline": false
+      },
+      "impact": {
+        "starting_equity": "1085.77093944",
+        "ending_equity": "3155.947707897911668497087636",
+        "net_pnl": "2070.176768457911668497087636",
+        "max_drawdown_pct": "39.74934914403675987828808949",
+        "total_fees": "487.6718095234086178134640141",
+        "modeled_spread_slippage": "542.1328990617649050487047089",
+        "net_pnl_delta_vs_baseline": "-6059.866809819497509143965812",
+        "dd_delta_pp_vs_baseline": "-2.40878183210162689402165433",
+        "net_pnl_nonworse_vs_baseline": false
+      }
+    },
+    "daily5_flat24": {
+      "current": {
+        "starting_equity": "1085.77093944",
+        "ending_equity": "3446.47391587413910000000",
+        "net_pnl": "2360.70297643413910000000",
+        "max_drawdown_pct": "36.85738792666207963946722264",
+        "total_fees": "512.85330106529275000000",
+        "modeled_spread_slippage": "256.42736197095000000",
+        "net_pnl_delta_vs_baseline": "-7557.70321707244645000000",
+        "dd_delta_pp_vs_baseline": "-1.37371309955156703824755967",
+        "net_pnl_nonworse_vs_baseline": false
+      },
+      "stress": {
+        "starting_equity": "1085.77093944",
+        "ending_equity": "2257.7449372649084000000",
+        "net_pnl": "1171.9739978249084000000",
+        "max_drawdown_pct": "46.68256317480532647631986766",
+        "total_fees": "398.5858623796104000000",
+        "modeled_spread_slippage": "1195.7804350272000000",
+        "net_pnl_delta_vs_baseline": "-5311.1098173498309000000",
+        "dd_delta_pp_vs_baseline": "-1.06636025812742497644344422",
+        "net_pnl_nonworse_vs_baseline": false
+      },
+      "impact": {
+        "starting_equity": "1085.77093944",
+        "ending_equity": "2943.577618114530185167313777",
+        "net_pnl": "1857.806678674530185167313777",
+        "max_drawdown_pct": "39.29457336467388205583126360",
+        "total_fees": "460.3920133442394286132197504",
+        "modeled_spread_slippage": "510.2269588650826418469998368",
+        "net_pnl_delta_vs_baseline": "-6272.236899602878992473739671",
+        "dd_delta_pp_vs_baseline": "-2.86355761146450471647848022",
+        "net_pnl_nonworse_vs_baseline": false
+      }
+    },
+    "dd_step": {
+      "current": {
+        "starting_equity": "1085.77093944",
+        "ending_equity": "7155.97880061397190000000",
+        "net_pnl": "6070.20786117397190000000",
+        "max_drawdown_pct": "30.35784242968091925676380276",
+        "total_fees": "516.37204174111855000000",
+        "modeled_spread_slippage": "258.18766266235000000",
+        "net_pnl_delta_vs_baseline": "-3848.19833233261365000000",
+        "dd_delta_pp_vs_baseline": "-7.87325859653272742095097955",
+        "net_pnl_nonworse_vs_baseline": false
+      },
+      "stress": {
+        "starting_equity": "1085.77093944",
+        "ending_equity": "4885.2257239796216000000",
+        "net_pnl": "3799.4547845396216000000",
+        "max_drawdown_pct": "35.15414193540909938913765380",
+        "total_fees": "372.8404018980172000000",
+        "modeled_spread_slippage": "1118.5669586604000000",
+        "net_pnl_delta_vs_baseline": "-2683.6290306351177000000",
+        "dd_delta_pp_vs_baseline": "-12.59478149752365206362565808",
+        "net_pnl_nonworse_vs_baseline": false
+      },
+      "impact": {
+        "starting_equity": "1085.77093944",
+        "ending_equity": "6896.977660006529700518816114",
+        "net_pnl": "5811.206720566529700518816114",
+        "max_drawdown_pct": "30.95601966811178302807632147",
+        "total_fees": "496.0139329646465215146861326",
+        "modeled_spread_slippage": "568.4962640005973373925370854",
+        "net_pnl_delta_vs_baseline": "-2318.836857710879477122237334",
+        "dd_delta_pp_vs_baseline": "-11.20211130802660374423342235",
+        "net_pnl_nonworse_vs_baseline": false
+      }
+    },
+    "loss_cooldown24": {
+      "current": {
+        "starting_equity": "1085.77093944",
+        "ending_equity": "11131.71164575720715000000",
+        "net_pnl": "10045.94070631720715000000",
+        "max_drawdown_pct": "38.23134877776178650496527620",
+        "total_fees": "1074.78030076535845000000",
+        "modeled_spread_slippage": "537.39292637275000000",
+        "net_pnl_delta_vs_baseline": "127.53451281062160000000",
+        "dd_delta_pp_vs_baseline": "0.00024775154813982725049389",
+        "net_pnl_nonworse_vs_baseline": true
+      },
+      "stress": {
+        "starting_equity": "1085.77093944",
+        "ending_equity": "7669.2720422493731000000",
+        "net_pnl": "6583.5011028093731000000",
+        "max_drawdown_pct": "47.75140428050922348000950904",
+        "total_fees": "854.4763665215041000000",
+        "modeled_spread_slippage": "2563.5151021503000000",
+        "net_pnl_delta_vs_baseline": "100.4172876346338000000",
+        "dd_delta_pp_vs_baseline": "0.00248084757647202724619716",
+        "net_pnl_nonworse_vs_baseline": true
+      },
+      "impact": {
+        "starting_equity": "1085.77093944",
+        "ending_equity": "9323.821417647430020871604404",
+        "net_pnl": "8238.050478207430020871604404",
+        "max_drawdown_pct": "42.17112132760742506286962162",
+        "total_fees": "957.7582907347385636768188130",
+        "modeled_spread_slippage": "1350.596158478640017298635501",
+        "net_pnl_delta_vs_baseline": "108.006899930020843230550956",
+        "dd_delta_pp_vs_baseline": "0.01299035146903829055987780",
+        "net_pnl_nonworse_vs_baseline": true
+      }
+    },
+    "liquidity5": {
+      "current": {
+        "starting_equity": "1085.77093944",
+        "ending_equity": "10787.35374721970170000000",
+        "net_pnl": "9701.58280777970170000000",
+        "max_drawdown_pct": "39.74648266618009519775662177",
+        "total_fees": "997.92712602584720000000",
+        "modeled_spread_slippage": "498.96623305060000000",
+        "net_pnl_delta_vs_baseline": "-216.82338572688385000000",
+        "dd_delta_pp_vs_baseline": "1.51538163996644852004183946",
+        "net_pnl_nonworse_vs_baseline": false
+      },
+      "stress": {
+        "starting_equity": "1085.77093944",
+        "ending_equity": "7523.7465042026512000000",
+        "net_pnl": "6437.9755647626512000000",
+        "max_drawdown_pct": "48.32664404184778799282718561",
+        "total_fees": "810.0016434262580000000",
+        "modeled_spread_slippage": "2430.0882113604000000",
+        "net_pnl_delta_vs_baseline": "-45.1082504120881000000",
+        "dd_delta_pp_vs_baseline": "0.57772060891503654006387373",
+        "net_pnl_nonworse_vs_baseline": false
+      },
+      "impact": {
+        "starting_equity": "1085.77093944",
+        "ending_equity": "9817.893072663611711218651879",
+        "net_pnl": "8732.122133223611711218651879",
+        "max_drawdown_pct": "42.65935362889061541170978877",
+        "total_fees": "956.5252625066979467444618652",
+        "modeled_spread_slippage": "1170.282476237908269543889120",
+        "net_pnl_delta_vs_baseline": "602.078554946202533577598431",
+        "dd_delta_pp_vs_baseline": "0.50122265275222863940004495",
+        "net_pnl_nonworse_vs_baseline": true
+      }
+    },
+    "cmo20": {
+      "current": {
+        "starting_equity": "1085.77093944",
+        "ending_equity": "6458.91374633688080000000",
+        "net_pnl": "5373.14280689688080000000",
+        "max_drawdown_pct": "43.84586091560721729424837891",
+        "total_fees": "673.60744628259180000000",
+        "modeled_spread_slippage": "336.80522955340000000",
+        "net_pnl_delta_vs_baseline": "-4545.26338660970475000000",
+        "dd_delta_pp_vs_baseline": "5.61475988939357061653359660",
+        "net_pnl_nonworse_vs_baseline": false
+      },
+      "stress": {
+        "starting_equity": "1085.77093944",
+        "ending_equity": "4550.3012230092864000000",
+        "net_pnl": "3464.5302835692864000000",
+        "max_drawdown_pct": "52.17810284515782712218215590",
+        "total_fees": "549.2840917819587000000",
+        "modeled_spread_slippage": "1647.9005616315000000",
+        "net_pnl_delta_vs_baseline": "-3018.5535316054529000000",
+        "dd_delta_pp_vs_baseline": "4.42917941222507566941884402",
+        "net_pnl_nonworse_vs_baseline": false
+      },
+      "impact": {
+        "starting_equity": "1085.77093944",
+        "ending_equity": "5802.908737989878985193887042",
+        "net_pnl": "4717.137798549878985193887042",
+        "max_drawdown_pct": "46.52166132234760779083099018",
+        "total_fees": "633.9279212147917795506469972",
+        "modeled_spread_slippage": "748.9074697201852176396092668",
+        "net_pnl_delta_vs_baseline": "-3412.905779727530192447166406",
+        "dd_delta_pp_vs_baseline": "4.36353034620922101852124636",
+        "net_pnl_nonworse_vs_baseline": false
+      }
+    },
+    "combined": {
+      "current": {
+        "starting_equity": "1085.77093944",
+        "ending_equity": "3155.48380626906015000000",
+        "net_pnl": "2069.71286682906015000000",
+        "max_drawdown_pct": "32.39792268148437410625520426",
+        "total_fees": "263.62014596468660000000",
+        "modeled_spread_slippage": "131.81065040690000000",
+        "net_pnl_delta_vs_baseline": "-7848.69332667752540000000",
+        "dd_delta_pp_vs_baseline": "-5.83317834472927257145957805",
+        "net_pnl_nonworse_vs_baseline": false
+      },
+      "stress": {
+        "starting_equity": "1085.77093944",
+        "ending_equity": "2455.7460154694346000000",
+        "net_pnl": "1369.9750760294346000000",
+        "max_drawdown_pct": "37.55457640313830794208555755",
+        "total_fees": "204.5967039637254000000",
+        "modeled_spread_slippage": "613.8086579946000000",
+        "net_pnl_delta_vs_baseline": "-5113.1087391453047000000",
+        "dd_delta_pp_vs_baseline": "-10.19434702979444351067775433",
+        "net_pnl_nonworse_vs_baseline": false
+      },
+      "impact": {
+        "starting_equity": "1085.77093944",
+        "ending_equity": "2834.613213753358851411080778",
+        "net_pnl": "1748.842274313358851411080778",
+        "max_drawdown_pct": "33.20636392091126262442612131",
+        "total_fees": "240.7963401074467569313449222",
+        "modeled_spread_slippage": "208.4487273082218810637786477",
+        "net_pnl_delta_vs_baseline": "-6381.201303964050326229972670",
+        "dd_delta_pp_vs_baseline": "-8.95176705522712414788362251",
+        "net_pnl_nonworse_vs_baseline": false
+      }
+    }
+  },
+  "completion_evidence_sha256": {
+    "current-current": "fdc1d68eb1ea0a375266d2758f479dc750406fefee92edbe749f974752abe39c",
+    "current-stress": "498a85d0f4e5202fc12d0f3c0af66e1ecc0387ee2c34a2000ec4a8f2a7bac005",
+    "current-impact": "86c6ee15e06ff250149472d3a8eae51d29c35107a51b38a621c7432f4925ef4f",
+    "daily5_flat-current": "270b5fc0cbcfd3159d897544e68e7e73c39ec14449609e6249fac1acc77e924a",
+    "daily5_flat-stress": "5688d046bb7c07ef87ebd992f42e13b089347a81b59f0506da59f4bd3651ca52",
+    "daily5_flat-impact": "9aaab7a8c94899de1c10485c61c43e81b6650b490434f8db914a32402b97be09",
+    "daily5_flat24-current": "f77a4d859a31141602ee2eaafd60d046346285f71e32130dce9ee92acfd38686",
+    "daily5_flat24-stress": "f3bf03061b346492151bf354b752f8aa395dd116dc14dc28bbd554f85a3f5f40",
+    "daily5_flat24-impact": "23cb3333de17f7eb61194595b1b6b49303c7e4123e58f6b40a5c15e1ee963856",
+    "dd_step-current": "af5d741293a51fd082082944f11a0c5c1f98144e4088186333547d4b9e07db6a",
+    "dd_step-stress": "95ee4f15510095bf36b3e55248412d40a53ed3458746c43b30e4d75e3a9e51df",
+    "dd_step-impact": "5d23c40dd7422a87929bc0091f3518060a13cfbad715b428763ab983a99498be",
+    "loss_cooldown24-current": "21456655076d60c8fdf13bb9e881314a7521017906c2d88770c676672d0f7d73",
+    "loss_cooldown24-stress": "f68f817e3002158eaa9890e9080477e87cf65a0982dab6c8c083075b9c9df54e",
+    "loss_cooldown24-impact": "52112250c32045c65efe94c414971b5d292619123e2575b6198ea033a1119e34",
+    "liquidity5-current": "143fd34f662c05bc24c90cca309e8e7adef3983936ea9425081aa107f35eb21f",
+    "liquidity5-stress": "e64b2d6d320aaf4cde68d044f08c8c32c6c1883756a27116c3ef1dc4c8d2f779",
+    "liquidity5-impact": "41ed0dedee9dd135376a4f862e2933ac05cb27b2bd0cb290506ffbf13d0e2746",
+    "cmo20-current": "2e5a90afa783341018eb8e7250c350d0476f87bc9878bd04600f1078eefc6851",
+    "cmo20-stress": "1670f8fe22b6804c9a92d096a0fdae8c249e1b12bc41977daf7b0bc19e900e92",
+    "cmo20-impact": "c8b4c19c961257b471eda3b1a4fdc3cb5c9ad745e9e9c832fa118fd2df964e65",
+    "combined-current": "94694052e5c0f25864e79bab59e31a58002eb8fdd45ba7cbfa754f4d02fbb18b",
+    "combined-stress": "5e8524294a9d1b79214a25f23b1a1edfa9a44d8312e41e3e6c6656200a7da42d",
+    "combined-impact": "1e00259d14d21cf2475b69cf7ec9fdb39a844a0445977b2c0b14dd46682fc677"
+  },
+  "limits": [
+    "Historical same-window result only, post-hoc selection with known outcomes, no unseen validation.",
+    "Costs are modeled, impact is explicitly uncalibrated and not order-book proof.",
+    "No new native runs, production change, execution-parity approval, activation, orders or restart.",
+    "Original24-case directory is read-only and remains immutable."
+  ]
+}

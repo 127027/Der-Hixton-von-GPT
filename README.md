@@ -1,5 +1,13 @@
 # Der Hixton
 
+**Kreuzprüfung 27.10.2026:** Auf den ursprünglichen 32k-Daten ergeben die heutigen
+unveränderten Regeln **33.867,80 USDC / 30,48 % DD** gegenüber 32.469,39 / 39,13 %.
+Auf dem neueren 26Oct-Fenster liegen beide Regelstände dagegen um 11k.
+[Direkter Vergleich mit gleichem Kapital, Daten, Filtern und Kosten](docs/research/profit-priority-crosscheck-20261027/README.md).
+Die Eigentümerrangfolge ist erneut klargestellt: Netto-USDC zuerst, Drawdown danach;
+ein zusätzlicher wirtschaftlicher DD-Nichtschlechter-Ausschluss wird nicht fortgeführt.
+Es wurden keine neuen Handelsregeln oder Echtgeldfreigaben aktiviert.
+
 **Prüfstand 26.10.2026:** Der aktive gemeinsame Vertrag ist
 `HIXTON-V8-LINK8-ATR075-DOGE50-DD10-ETH8-DIV32-CLOSECAP-PAPER-6`.
 Der neue [Vergleich von Schutzregeln auf denselben letzten drei Jahren](docs/research/risk-controls-20261026/README.md)

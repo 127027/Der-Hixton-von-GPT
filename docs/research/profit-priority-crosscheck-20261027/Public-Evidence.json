@@ -1,0 +1,38 @@
+{
+  "source_commit": "48a3cd9264c41be730254a33b04d20c8f2e6c64b",
+  "source_sha256": "fb9c47bf2ffe2de8464fbfb083a3bcc3e94ad1fa6cb1259a86e8281a5c5e5efe",
+  "original_contract_sha256": "cb3bda086c841f7b6c6d7deaa50a85d0b99f4c960e4a543773dbc110a7570f51",
+  "original_results_sha256": "d7ec211e6b0c2a0c4c2583dfbce0435554ba6419f622015cae8f83cc50b40115",
+  "original_interpretation_sha256": "8656a37675c206a967610c08943cb322ee314573b94ac1b24f5a5a5c4ef16937",
+  "posthoc_rerank_sha256": "e9f0c5a97f7bfe9d36bc4c9e6380d2a3c59db598d2fed41355e81ec4310c946b",
+  "case_complete_sha256": {
+    "original_32k--original_doge50--current": "e09b73c06315e56fae9cd21424c8589f7963e354e3b88d7c30a6f7063b36aee0",
+    "original_32k--original_doge50--stress": "6ef2a547185f809ce8ca9c04a2085e84b4dc4f6a0e12a0be5a9f031620493c8e",
+    "original_32k--current_v6--current": "2e5987651dfd06f62ecdf63c41cfdcd08306939bf850aaa401e2ec67b7c48311",
+    "original_32k--current_v6--stress": "b4120804b2e94fabdccc43096a0c71d5bba9a5e67beaf9c1e8c48736dc489105",
+    "current_26oct--original_doge50--current": "ada7e3e141f1c58f94f7c3a9c3f348b27be8e30895df990c7012b63ccf380e03",
+    "current_26oct--original_doge50--stress": "34074793151838dd18259232ad3aa29276ee62d51a4cf30737eee3dfcf34f8e7",
+    "current_26oct--current_v6--current": "2c567714223376f2d0befef8adc1cf227ea354f9ae94594b66d1e474f61b5a81",
+    "current_26oct--current_v6--stress": "da8392307f3176ff26c8d3dbe75f3bc03aa7fce8fd24afd19206e9cf9a04e88b",
+    "control-original32k": "1ea2ac31f6a7d6295bd1cb8c8010de949b7cdd985b3cbbc2ad0a409ae53a207b",
+    "control-known11k": "f07354a255f661c53e6c5c9d94dfe615aefb741f0ac21be6894b2a33c49cb293"
+  },
+  "files_sha256": {
+    ".gitattributes": "89241d31f22840cd97aa7018af098287249fa9fc222d80316e4504fc2a77bfd8",
+    "Comparison-Specification.json": "8f4609664e42ee9573421c60fc51233b51b2eb602be0b378460bdc4ec9e12205",
+    "Comparison.csv": "044613da3f5c42b5a9054f5a63a725a7b36126afa5bf8719063558b59e9c4316",
+    "Methoden-Code.zip": "ab9cc5fef3c3db5a1dbefe71c186262a50f420f2eebc9450da626377f2d8401e",
+    "Posthoc-Profit-Rerank.json": "e9f0c5a97f7bfe9d36bc4c9e6380d2a3c59db598d2fed41355e81ec4310c946b",
+    "README.md": "437bafa51ef0c5378f37671f6242ce0e3cbc1dc691f3da3e50ade4c2fedc1c14",
+    "Results.json": "d7ec211e6b0c2a0c4c2583dfbce0435554ba6419f622015cae8f83cc50b40115"
+  },
+  "method_sources_sha256": {
+    "crosscheck.py": "36aba5021390254750833c931ac7de32c6f64478fa88ebc4daf23eb960e2dac2",
+    "publish.py": "a973878f80c935047506bf6d12cc42a8e9e78addd1ea885af5c41f10cd697b78"
+  },
+  "raw_market_and_execution_artifacts_remain_local": true,
+  "no_private_account_status_or_credentials_published": true,
+  "trading_rules_changed": false,
+  "orders_sent": false,
+  "not_a_new_performance_or_live_release": true
+}

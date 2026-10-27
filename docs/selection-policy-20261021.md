@@ -1,5 +1,31 @@
 # Auswahl und gemeinsamer aktueller Regelstand
 
+## Erneute Eigentümerklarstellung vom 27.10.2026
+
+Die wirtschaftliche Rangfolge lautet **höchster Netto-USDC-Ertrag zuerst,
+niedrigerer Drawdown erst danach**. Mehr Drawdown ist zulässig, wenn damit
+belegter Mehrertrag verbunden ist. Die genannten fünf DD-Prozentpunkte sind
+ein Beispiel, keine neu eingeführte feste Risikotoleranz. Drawdown wird nicht
+um seiner selbst willen maximiert.
+
+Eine zusätzliche wirtschaftliche Zulässigkeitsbedingung „Drawdown darf unter
+keinem Kostenmodell schlechter sein als die Baseline“ entspricht dieser
+Rangfolge nicht. Die Schutzstudie vom 26.10.2026 hatte diese strengere Bedingung
+vorab festgelegt und damit eine leicht ertragreichere Coinpause ausgeschlossen.
+Die damaligen eingefrorenen Ergebnisse und ihre NO_CHANGE-Auswahl bleiben als
+historischer Nachweis unverändert. Ihre Auswahlbedingung wird jedoch nicht als
+Eigentümervorgabe fortgeführt. Eine Neusortierung bereits bekannter Resultate
+nach der ausdrücklich bestätigten Gewinnpriorität ist als nachträgliche
+Auswertung zu kennzeichnen; sie ist keine neue unabhängige Validierung.
+
+Technische und Ausführungsprüfungen, kausale Datenverwendung, Kosten-/Stressprüfung,
+Kontenabgleich und die separate ausdrückliche Handelsfreigabe bleiben Pflicht.
+Ein höherer historischer Betrag erlaubt weder ihr Abschalten noch die
+automatische Übernahme einer ungeprüften Variante. Laufende und eingefrorene
+Altverträge dürfen nicht nachträglich umgeschrieben werden.
+
+## Gemeinsamer Vergleichs- und Ausführungsvertrag
+
 Ausdrückliche Eigentümervorgabe vom 21.10.2026: Bei der Auswahl geprüfter,
 technisch zulässiger Varianten steht der höchste Netto-Portfoliogewinn an erster
 Stelle, der niedrigere maximale Drawdown an zweiter. Ein gewichteter Score darf
