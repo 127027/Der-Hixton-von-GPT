@@ -1,0 +1,139 @@
+{
+  "status": "NO_GUARD_PROMOTION",
+  "winner": null,
+  "all_candidates": [
+    {
+      "candidate": "R0",
+      "catalogue_order": 0,
+      "eligible": false,
+      "ineligibility_reasons": [
+        "CONTROL_NOT_A_NEW_GUARD",
+        "WINTER_DD_REDUCTION_BOTH_COSTS_FAILED"
+      ],
+      "technical_checks_pass": true,
+      "normal_historical_floor_pass_by_window": {
+        "original_32k": true,
+        "current_26oct": true
+      },
+      "normal_historical_mean_net_usdc": "26023.54552221367802500000",
+      "stress_historical_mean_net_usdc": "16590.0453776117637500000",
+      "stress_mean_floor_usdc": "14483.7445276561732000000",
+      "normal_historical_worst_maxdd_pct": "41.62754182332575892066073053",
+      "winter_maxdd_reduction_pp": {
+        "current": "0E-26",
+        "stress": "0E-26"
+      },
+      "winter_threshold_pp": "10",
+      "pareto_on_normal_profit_and_winter_worst_improvement": true
+    },
+    {
+      "candidate": "R1",
+      "catalogue_order": 1,
+      "eligible": false,
+      "ineligibility_reasons": [
+        "HISTORICAL_NORMAL_SOURCE6_EACH_WINDOW_FLOOR_FAILED",
+        "HISTORICAL_STRESS_SOURCE6_MEAN_FLOOR_FAILED",
+        "WINTER_DD_REDUCTION_BOTH_COSTS_FAILED"
+      ],
+      "technical_checks_pass": true,
+      "normal_historical_floor_pass_by_window": {
+        "original_32k": false,
+        "current_26oct": false
+      },
+      "normal_historical_mean_net_usdc": "12271.22329115582300000000",
+      "stress_historical_mean_net_usdc": "8354.3735799940739000000",
+      "stress_mean_floor_usdc": "14483.7445276561732000000",
+      "normal_historical_worst_maxdd_pct": "57.21762400379895695026308456",
+      "winter_maxdd_reduction_pp": {
+        "current": "8.48109792025702294878302965",
+        "stress": "4.40039095398913914340443812"
+      },
+      "winter_threshold_pp": "10",
+      "pareto_on_normal_profit_and_winter_worst_improvement": true
+    },
+    {
+      "candidate": "R2",
+      "catalogue_order": 2,
+      "eligible": false,
+      "ineligibility_reasons": [
+        "HISTORICAL_NORMAL_SOURCE6_EACH_WINDOW_FLOOR_FAILED",
+        "HISTORICAL_STRESS_SOURCE6_MEAN_FLOOR_FAILED",
+        "WINTER_DD_REDUCTION_BOTH_COSTS_FAILED"
+      ],
+      "technical_checks_pass": true,
+      "normal_historical_floor_pass_by_window": {
+        "original_32k": false,
+        "current_26oct": false
+      },
+      "normal_historical_mean_net_usdc": "11053.28857211997042500000",
+      "stress_historical_mean_net_usdc": "7444.5540980581443500000",
+      "stress_mean_floor_usdc": "14483.7445276561732000000",
+      "normal_historical_worst_maxdd_pct": "57.16036920503062137365404019",
+      "winter_maxdd_reduction_pp": {
+        "current": "4.59135743134960830242973755",
+        "stress": "1.94971114514925136699371980"
+      },
+      "winter_threshold_pp": "10",
+      "pareto_on_normal_profit_and_winter_worst_improvement": false
+    },
+    {
+      "candidate": "R3",
+      "catalogue_order": 3,
+      "eligible": false,
+      "ineligibility_reasons": [
+        "HISTORICAL_NORMAL_SOURCE6_EACH_WINDOW_FLOOR_FAILED",
+        "HISTORICAL_STRESS_SOURCE6_MEAN_FLOOR_FAILED",
+        "WINTER_DD_REDUCTION_BOTH_COSTS_FAILED"
+      ],
+      "technical_checks_pass": true,
+      "normal_historical_floor_pass_by_window": {
+        "original_32k": false,
+        "current_26oct": false
+      },
+      "normal_historical_mean_net_usdc": "10592.78924843063117500000",
+      "stress_historical_mean_net_usdc": "7145.1748089318732500000",
+      "stress_mean_floor_usdc": "14483.7445276561732000000",
+      "normal_historical_worst_maxdd_pct": "57.15980874809126243475029962",
+      "winter_maxdd_reduction_pp": {
+        "current": "4.59135743134960830242973755",
+        "stress": "1.94971114514925136699371980"
+      },
+      "winter_threshold_pp": "10",
+      "pareto_on_normal_profit_and_winter_worst_improvement": false
+    },
+    {
+      "candidate": "R4",
+      "catalogue_order": 4,
+      "eligible": false,
+      "ineligibility_reasons": [
+        "HISTORICAL_NORMAL_SOURCE6_EACH_WINDOW_FLOOR_FAILED",
+        "HISTORICAL_STRESS_SOURCE6_MEAN_FLOOR_FAILED",
+        "WINTER_DD_REDUCTION_BOTH_COSTS_FAILED"
+      ],
+      "technical_checks_pass": true,
+      "normal_historical_floor_pass_by_window": {
+        "original_32k": false,
+        "current_26oct": false
+      },
+      "normal_historical_mean_net_usdc": "10000.87795793315887500000",
+      "stress_historical_mean_net_usdc": "6641.3336898263388000000",
+      "stress_mean_floor_usdc": "14483.7445276561732000000",
+      "normal_historical_worst_maxdd_pct": "53.51993953387851618279971966",
+      "winter_maxdd_reduction_pp": {
+        "current": "9.22732652978830424737695497",
+        "stress": "4.30851959833896248352896570"
+      },
+      "winter_threshold_pp": "10",
+      "pareto_on_normal_profit_and_winter_worst_improvement": false
+    }
+  ],
+  "eligible_ranking": [],
+  "fictional_profit_gate_applied": false,
+  "whipsaw_in_score": false,
+  "live_or_product_promotion_authorized": false,
+  "known_not_unseen_historical_windows": true,
+  "contract_sha256": "fbb3fb8db985dcd13940ae82b93d98f8d36a628f88fd798250b03f1f3ca10695",
+  "method_sha256": "78479ce039ee5399f20c9a0ec1a01adce09d1bfedfe2da4c9d9f757b966136e1",
+  "results_sha256": "83979e6b485b433733b1f5496c90fb14e2da99c261e3fbaf7c645a08d06af28b",
+  "selector_sha256": "27842d2d2094fc5ea4340bef1936e354ce5506ae83c207c623bab8495e52c622"
+}

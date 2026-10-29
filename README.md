@@ -1,5 +1,21 @@
 # Der Hixton
 
+**Prüfstand 29.10.2026:** Die Handelsregeln bleiben beim bisherigen gemeinsamen
+Vertrag `HIXTON-V8-LINK8-ATR075-DOGE50-DD10-ETH8-DIV32-CLOSECAP-PAPER-6`.
+Alle 70 Vergleiche der vier Winter-Regeln sind abgeschlossen; keine hält die
+beiden historischen Referenzerträge. Sie werden nicht übernommen. Auch der
+ertragreichere Wachstumsentwurf ist hier als Forschung gekennzeichnet und erfüllt
+das kombinierte Winterziel nicht.
+[Alle sieben Verläufe, normale und erhöhte Kosten, mit Vorher/Nachher-Zahlen](docs/research/winter-guard-20261029/README.md).
+
+Eine getrennte Ausführungsreparatur erhält bestätigte, noch nicht lokal
+verbuchte Käufe bei Stopp, Wiederanlauf und Quellwechsel im Abgleich.
+Nachweislich ungesendete Käufe werden mit dem Stopp atomar verworfen;
+ungeklärte Ausführungen bleiben erhalten.
+[Fehlerbild, Tests und Grenzen](docs/pending-live-fill-stop-20261029.md).
+Diese Änderung aktiviert weder einen Test noch Live und installiert nichts in
+einer bereits laufenden Bot-Kopie.
+
 **Kreuzprüfung 27.10.2026:** Auf den ursprünglichen 32k-Daten ergeben die heutigen
 unveränderten Regeln **33.867,80 USDC / 30,48 % DD** gegenüber 32.469,39 / 39,13 %.
 Auf dem neueren 26Oct-Fenster liegen beide Regelstände dagegen um 11k.

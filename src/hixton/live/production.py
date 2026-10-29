@@ -1067,39 +1067,54 @@ class LivePortfolioController:
             )
 
     def disable_entries(self) -> None:
-        with self.lock:
-            pending = self._pending()
+        with self.lock, self.journal._connect() as connection:
+            connection.execute("BEGIN IMMEDIATE")
+            pending = connection.execute(
+                "SELECT * FROM live_events WHERE status IN ('ORDER_PENDING','RECONCILING') "
+                "ORDER BY occurred_at_utc LIMIT 1"
+            ).fetchone()
             if pending is not None and pending["action"] == "ENTER_LONG":
-                try:
-                    _intent, state = self.journal.load(str(pending["intent_id"]))
-                except KeyError:
-                    state = "CREATED"
-                if state == "CREATED" and self.journal.abandon_created(
-                    str(pending["intent_id"]), "ENTRIES_DISABLED"
+                identity = str(pending["intent_id"])
+                intent = connection.execute(
+                    "SELECT state FROM live_intents WHERE intent_id=?", (identity,)
+                ).fetchone()
+                # A missing intent or a still-CREATED intent proves no submission
+                # was claimed. The proof, cancellation and stop commit together.
+                if pending["status"] == "ORDER_PENDING" and (
+                    intent is None or intent["state"] == "CREATED"
                 ):
-                    with self.journal._connect() as connection:
+                    if intent is not None:
                         connection.execute(
-                            "UPDATE live_events SET status='BLOCKED',reason='ENTRIES_DISABLED' "
-                            "WHERE signal_id=?",
-                            (pending["signal_id"],),
+                            "UPDATE live_intents SET state='CANCELED',updated_at=? "
+                            "WHERE intent_id=? AND state='CREATED'",
+                            (datetime.now(UTC).isoformat(), identity),
                         )
-            with self.journal._connect() as connection:
-                positions = int(
-                    connection.execute("SELECT COUNT(*) FROM live_positions").fetchone()[0]
-                )
-                unresolved = bool(self.journal.unresolved_ids())
-                state = "EXIT_ONLY" if positions or unresolved else "LIVE_DISABLED"
-                connection.execute(
-                    "UPDATE live_control SET state=?,entries_enabled=0,updated_at=? "
-                    "WHERE singleton=1",
-                    (state, datetime.now(UTC).isoformat()),
-                )
+                        self.journal._audit(connection, identity, "LOCAL_CANCEL_ENTRIES_DISABLED")
+                    connection.execute(
+                        "UPDATE live_events SET status='BLOCKED',reason='ENTRIES_DISABLED' "
+                        "WHERE signal_id=? AND action='ENTER_LONG' "
+                        "AND status IN ('ORDER_PENDING','RECONCILING')",
+                        (pending["signal_id"],),
+                    )
+            positions = connection.execute("SELECT 1 FROM live_positions LIMIT 1").fetchone()
+            unresolved = connection.execute(
+                "SELECT 1 FROM live_intents WHERE state NOT IN "
+                "('FILLED','CANCELED','REJECTED','EXPIRED','EXPIRED_IN_MATCH') LIMIT 1"
+            ).fetchone()
+            remaining_event = connection.execute(
+                "SELECT 1 FROM live_events WHERE status IN ('ORDER_PENDING','RECONCILING') LIMIT 1"
+            ).fetchone()
+            state = "EXIT_ONLY" if positions or unresolved or remaining_event else "LIVE_DISABLED"
+            connection.execute(
+                "UPDATE live_control SET state=?,entries_enabled=0,updated_at=? WHERE singleton=1",
+                (state, datetime.now(UTC).isoformat()),
+            )
 
     def _normalize_disabled_state(self) -> None:
         control = self._control()
         if control is None or control["state"] != "EXIT_ONLY":
             return
-        if self._positions() or self.journal.unresolved_ids():
+        if self._positions() or self.journal.unresolved_ids() or self._pending() is not None:
             return
         with self.journal._connect() as connection:
             connection.execute(
@@ -2148,7 +2163,11 @@ class LivePortfolioController:
                 positions = self._positions()
                 unresolved = self.journal.unresolved_ids()
                 with self.journal._connect() as connection:
-                    state = "EXIT_ONLY" if positions or unresolved else "LIVE_DISABLED"
+                    state = (
+                        "EXIT_ONLY"
+                        if positions or unresolved or self._pending() is not None
+                        else "LIVE_DISABLED"
+                    )
                     reason = (
                         "PATCH_SOURCE_CHANGED_EXIT_ONLY"
                         if state == "EXIT_ONLY"

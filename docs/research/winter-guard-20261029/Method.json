@@ -1,0 +1,163 @@
+{
+  "study": "FINITE_CAUSAL_WINTER_GUARD_20261028",
+  "status": "LOCKED_PENDING_ROOT_AND_A09_HASH_APPROVAL",
+  "catalogue": {
+    "R0": "Exact frozen late_limits010, detector observations have no financial effect",
+    "R1": "R0 plus block every new Core and filler entry while risk-off",
+    "R2": "R1 plus full regular managed-position exits at next executable open; retain failed obligations",
+    "R3": "R2 plus immediate BTC24H stress trigger",
+    "R4": "R2 plus exactly one recovery-close fresh entry window for then-flat UP Core candidates; original signals take priority and unchanged policy gates apply"
+  },
+  "catalogue_order": [
+    "R0",
+    "R1",
+    "R2",
+    "R3",
+    "R4"
+  ],
+  "winter": {
+    "core_up_at_most": 2,
+    "core_count": 10,
+    "btc_close_below_sma_hours": 240,
+    "sma_includes_current_finalized_close": true,
+    "btc_return_hours": 120,
+    "btc_return_at_most": "-0.05",
+    "consecutive_finalized_bars": 12
+  },
+  "reentry": {
+    "core_up_at_least": 5,
+    "btc_close_above_sma_hours": 240,
+    "minimum_off_hours": 24,
+    "requires_exit_obligations_resolved_for_entries": true
+  },
+  "stress_R3_only": {
+    "btc_return_hours": 24,
+    "btc_return_at_most": "-0.10",
+    "core_up_at_most": 2,
+    "consecutive_bars": 1
+  },
+  "recovery_R4_only": {
+    "trigger": "Only the exact finalized close that changes R2 risk-off to recovered",
+    "eligible": "Flat Core symbols in UP, current close strictly above upper band, no original real signal, valid point and all unchanged original CMO/slope/profile/risk/exchange/budget/liquidity gates",
+    "one_shot": "Fresh deterministic RECOVERY_ENTER|R4|symbol|close ID; consume window even when blocked; never replay",
+    "gate_history": "Clone already-updated original gate, remove only current appended VIDYA, call unchanged decide on synthetic flip-up; assert resulting history equals original and never mutate original gate",
+    "priority": "Original real signals override recovery synthesis for same coin; Core/filler handoff and ranking unchanged",
+    "ranking_strength": "Strictly positive (current finalized close - current upper band)/current ATR; original descending strength and symbol tie-break",
+    "outstanding_exit": "If any regime obligation is unresolved at recovery close, consume window without emitting recovery entries",
+    "R0_R1_R2_R3": "Original fresh-flip-only rule remains"
+  },
+  "causality": {
+    "input": "Finalized aligned hourly Core IndicatorPoints and BTC close history only",
+    "observe_warmup": true,
+    "warmup_bars_unchanged": 400,
+    "return_denominator": "Finalized BTC close exactly 120/24 hours before current finalized close",
+    "execution": "After decision close, at next executable open; never backdate",
+    "forbidden_inputs": [
+      "scenario labels",
+      "future candles",
+      "news",
+      "unrelated Binance holdings"
+    ],
+    "forced_exit_priority": "Original regular exits before appended regime exits; one pending exit per owned symbol; all exit attempts before growth reductions and entries",
+    "retry": "Original failed exit signal persists until owned position closes, including after regime recovery",
+    "no_same_boundary_rebuy": true,
+    "no_permanent_self_modification": true
+  },
+  "base": {
+    "candidate": "late_limits010",
+    "old_method_sha256": "58881e9651e6a61add6aab133615c81383b58eefcdb3a0780644037eb94fe2b5",
+    "old_contract_sha256": "870181761632571ca2cf690d5842189d4a0e074d420289d0a766ff7a14bf3094",
+    "old_winner_sha256": "95b00669b866669b8c96eec98fd84d4d98f2d3583f922df1cb43aadd159f2746",
+    "pinned_git_commit": "906431d",
+    "full_python_source_sha256": "fb9c47bf2ffe2de8464fbfb083a3bcc3e94ad1fa6cb1259a86e8281a5c5e5efe"
+  },
+  "cases": {
+    "historical": [
+      "original_32k",
+      "current_26oct"
+    ],
+    "fictional": [
+      "cycles",
+      "winter",
+      "whipsaw",
+      "rotation",
+      "tail"
+    ],
+    "costs": [
+      "current",
+      "stress"
+    ],
+    "total": 70,
+    "seed_usdc": "1092.05773944",
+    "reinvest_profits": true,
+    "autonomous_spot": true,
+    "gap_fillers_enabled": true,
+    "normal_fee_spread_slip_bp_per_side": [
+      10,
+      2,
+      3
+    ],
+    "stress_fee_spread_slip_bp_per_side": [
+      10,
+      10,
+      20
+    ],
+    "rules": "Exact fresh26Oct exchange filters from old frozen crosscheck contract",
+    "original_fictional_seed": 22101,
+    "original_fictional_report_hours": 43824,
+    "original_fictional_warmup_bars": 400
+  },
+  "selection": {
+    "normal_floor": "SOURCE6_EACH_WINDOW",
+    "stress_floor": "SOURCE6_TWO_WINDOW_MEAN_NET",
+    "winter_maxdd_reduction_min_pp_both_costs": "10",
+    "ranking": [
+      "historical_normal_mean_net_desc",
+      "historical_normal_worst_maxdd_asc_on_exact_profit_tie",
+      "finite_catalogue_order"
+    ],
+    "eligible_candidates": [
+      "R1",
+      "R2",
+      "R3",
+      "R4"
+    ],
+    "fictional_profit_veto": false,
+    "whipsaw_in_score": false,
+    "if_none": "NO_GUARD_PROMOTION",
+    "no_posthoc_threshold_rescue": true
+  },
+  "r0_acceptance": "All14 control cases reproduce stored late010 fills, trades, signals, every hourly cash/equity/position-value, all metrics and data hashes exactly; explicit metadata projection only",
+  "technical_gates": [
+    "all70_complete_and_bound",
+    "R0_exact_financial_reproduction_all14",
+    "raw_ledger_cash_quantity_equity_chronology",
+    "raw_original_growth_cap_constraints",
+    "no_buy_during_prior_finalized_riskoff_or_required_exit",
+    "no_duplicate_regime_sells",
+    "normal_exit_priority_and_no_same_boundary_rebuy",
+    "failed_exit_obligation_survives_recovery_and_serialization",
+    "warmup_and_prefix_causality",
+    "all_loaded_hixton_modules_under_frozen_tree",
+    "R4_one_shot_recovery_real_signal_priority_gate_history_unchanged_and_full_normal_filters"
+  ],
+  "limits": [
+    "Same two overlapping known historical windows; not independent unseen validation",
+    "USDT proxy and26Oct filter assumptions retained; no invented prelisting history",
+    "Fictional quote volume assumed1M/hour except known event; not actual future orderbook liquidity",
+    "Old721k whipsaw outcome is an idealized sine artifact, never forecast or target",
+    "Guard can miss early losses, exit into gaps, churn, miss recovery, stay paused, and lose in every world",
+    "No guaranteed drawdown ceiling, profitability or unattended operational availability",
+    "No fictional-positive-return veto; preservation diagnostics do not authorize changing profit-first ranking",
+    "Old frozen NO_PROMOTION disposition stays unchanged"
+  ],
+  "allowed_before_lock": [
+    "pin_dependencies",
+    "structural_overlay_checks",
+    "nonfinancial_controller_unit_tests",
+    "bind_inputs",
+    "method_review"
+  ],
+  "financial_execution_gate": "Method.json plus Contract.json plus Root-Method-GO.json and A09-Method-GO.json, both approved and exact hashes; R1-R4 additionally need all14 R0 exact controls first",
+  "post_outcome_changes": "Any mechanism, parameter, window, warmup, seed, cost, selection or technical gate change requires a separately named study; no repairs hidden under this contract"
+}

@@ -1,0 +1,97 @@
+{
+  "status": "RESEARCH_QA_PASS",
+  "economic_disposition": "NO_GUARD_PROMOTION",
+  "at_utc": "2026-10-29T07:21:34.124752+00:00",
+  "scope": "Independent final audit of exact preregistered70 offline research cases and reports; no actual product or trading promotion.",
+  "contract_sha256": "fbb3fb8db985dcd13940ae82b93d98f8d36a628f88fd798250b03f1f3ca10695",
+  "method_sha256": "78479ce039ee5399f20c9a0ec1a01adce09d1bfedfe2da4c9d9f757b966136e1",
+  "results_sha256": "83979e6b485b433733b1f5496c90fb14e2da99c261e3fbaf7c645a08d06af28b",
+  "selection_sha256": "1742e8f3ad9ab2fff0cf66fe5d9b0c68d7494e2361c04a18b8dc731df9cf07d5",
+  "run_completion_sha256": "0e36c4f0fedc8e86cd1601b95b9eb37e72c92fc579d61d1e3aad87c8e1f693d7",
+  "pinned_research_base_commit": "906431dcb1ff3ae7dfec582d6b7b7fc71cb43d7a",
+  "effective_frozen_source_sha256": "fb9c47bf2ffe2de8464fbfb083a3bcc3e94ad1fa6cb1259a86e8281a5c5e5efe",
+  "frozen_input_file_hashes_checked": 243,
+  "counts": {
+    "raw_hashes": 560,
+    "cases": 70,
+    "hours": 2717280,
+    "fills": 49230,
+    "trades": 24619,
+    "signals": 1036473,
+    "postcap_buys": 795
+  },
+  "max_money_error_usdc": "0",
+  "evidence_sha256": {
+    "Final-Method-Review.json": "34357900f35f524fe537bac8004693f171d62fd48a328f560656b2aaad6a1b20",
+    "Final-Nonfinancial.xml": "91d2dab263028d9daefd4bc9d76b8f9bfdfd6788ae4f0766dba030acfabb45c5",
+    "R0-Control-Review.json": "97f1ca35fd549a6925ed70fa6590651716537c4b9ad043520d2c199bd79163b0",
+    "All70-Raw-Review.json": "baa63b65d6def2461a76f95872995c424d7014bc695c79167a16361ed50166f9",
+    "All70-Report-Review.json": "eab77c44b3d1d8b66905475541fe6b0776c95a6e87adb6222e2570431d7d70f1",
+    "audit_all70.py": "30f5ac655c1511cd41e6d8ba20a37fa01f27f47f5da7a144e6f9cd22b9e2f2db",
+    "audit_report70.py": "53580d057e57fc38da861f5bce31a80faf524ab58c099a8d5fed7d80274cb294"
+  },
+  "final_outputs_sha256": {
+    "Results.json": "83979e6b485b433733b1f5496c90fb14e2da99c261e3fbaf7c645a08d06af28b",
+    "Selection.json": "1742e8f3ad9ab2fff0cf66fe5d9b0c68d7494e2361c04a18b8dc731df9cf07d5",
+    "Before-After.json": "95b74c25c80bf4bf978c3f21771058255c424014ace5adada51c939a09d0ae7a",
+    "Before-After.md": "9a33e89d7a2423563e75dec6aae3923789ef1d043ee921e9604c67900f82ab37",
+    "Before-After.csv": "1d456831f98b3cf71e0e9afaea5e84e590dc38e1146576ccf24370cfc8f7e985",
+    "Causal-Diagnostics.json": "46d647743619bdd405412fbc2ca4362cb9a57759ce0641bce7255e99a613d8dc",
+    "Causal-Diagnostics.md": "9e3bb2df7a94b588dd5a0e3d47e4fd933918fa05ba2db6299b6db00e02a0b915",
+    "Causal-Diagnostics.csv": "7e0c82c1f99374251256be3be47af9d6a0eb575ce79566b70fd9d26f724e04e3",
+    "Causal-Analysis.md": "ce2274f5dffac9f0eeb053a76c86b0adab10700f1b3dc4dbf47a84f1e860db7d",
+    "R0-Parity.json": "d6722632da14add6a2b2647dfbfb1297111a72c05e8dfa29be4388b916a5e804"
+  },
+  "independent_review": [
+    "Exact5candidate\u00d77world\u00d72costmatrix; all70Complete identities/eightartifactsetsand560rawhashesmatch.",
+    "Eachfillhaspositiveownedqty, signalbeforefill, exactnextOpenprice+costmodel, marketstep/min/maxnotional, correctbasebuyfeeandquotesellfee.",
+    "Everyhourcash/ownedcoin/dust/positionvalue/endEquityandDDrecomputed; 24619realizedlegscostbasis/PNLmatch.",
+    "795postcapBUYsrespectowned-mark/C/turnover/probeallowances; currentbudgetcontractnotinventedfromfinalequity.",
+    "BTC/SMA240/24h/120hreturnsanddeclaredwinter/recoveryautomatonrecomputedusingrecordednativeCorebreadth; noBUYwhilepriorfinalizedrisk-off/pendingfullExit,noduplicatesameOpenSELL,fullclosureproofneededbeforeclear.",
+    "14R0fullsavedledgers/Signals/Interventions/Metrics/everyhourmatcholdlate010control; no newnativefinancialrunsbyreviewer.",
+    "All70JSON/CSVrowsand14MarkdownnumericmatrixrowswithseparateSource6referencechecked; postrundiagnosticcounts/recoveryIDs/actualcontrolbuysduringpausechecked.",
+    "Profit-firsteligibilityandfourrejectionsindependentlyrecomputedwithoutselectorimport."
+  ],
+  "economic_conclusion": {
+    "winner": null,
+    "eligible_guards": [],
+    "historical_source6_each_normal_floor_fail_all4": true,
+    "historical_source6_stress_mean_fail_all4": true,
+    "winter10pp_both_costs_fail_all4": true,
+    "no_rescue_or_parameter_change": true,
+    "fictional_profit_veto_applied": false,
+    "whipsaw_optimization_objective": false,
+    "all_candidate_negative_worlds": [
+      {
+        "window": "winter",
+        "cost": "current"
+      },
+      {
+        "window": "winter",
+        "cost": "stress"
+      },
+      {
+        "window": "tail",
+        "cost": "current"
+      },
+      {
+        "window": "tail",
+        "cost": "stress"
+      }
+    ]
+  },
+  "claim_limits": [
+    "Corebreadthcomesfromrecordednativeindicators; independentrawauditdidnotrerunallindicatorsanddoesnotclaimthat.",
+    "Knownoverlappinghistoricalwindowsareinformedcomparisons,notunseenholdout.",
+    "Inventedpaths/fixedquotevolumes/costmodelsandUSDTproxiesarenotforecastorrealorderbookproof; no30%DDguarantee.",
+    "R0buysduringpauseareobservedopportunityoverlaps; theirPnLisnotaddedascounterfactualforegoneprofit.",
+    "Cashfractionsarenotcapitalguarantees; changedtimingandledgercapitalpathaffectwholeportfolio.",
+    "Growth7baseengineeringandallfourwinterguardsremainunreleased; combinedownerwintergoalwasnotmet.",
+    "Stable6stopACKsafetybackportisseparateengineeringworkandrequiresitsownexactcommitQA/CI; thisresearchdoesnotcertifydeployment."
+  ],
+  "reviewer_actions": {
+    "new_financial_engine_runs": 0,
+    "source_parameter_or_method_edits": 0,
+    "real_orders_or_keys_or_runtimeDB_or_restart": 0
+  }
+}

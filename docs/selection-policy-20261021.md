@@ -1,5 +1,38 @@
 # Auswahl und gemeinsamer aktueller Regelstand
 
+## Eigentümerklarstellung und Wintervergleich vom 28.10.2026
+
+Die zwei historischen Dreijahresfenster und die fünf erfundenen Fünfjahrespfade
+haben unterschiedliche Aufgaben. Die historischen Kurse liefern den gemeinsamen
+wirtschaftlichen Vergleich. Die erfundenen Verläufe prüfen Verhalten und Risiken;
+ihre Gewinne sind weder Prognosen noch zusätzliches historisches Marktmaterial.
+Insbesondere ist der stark regelmäßige Seitwärtspfad keine belastbare Erwartung
+an zukünftige Erträge.
+
+Eine zusätzliche Bedingung, wonach die neue Variante auch einen positiven
+Median-Mehrgewinn über die erfundenen Pfade erzielen muss, wird nach dieser
+Klarstellung nicht als Eigentümervorgabe fortgeführt. Die frühere eingefrorene
+Studie mit dieser Bedingung und ihrem negativen Auswahlentscheid bleibt
+unverändert erhalten. Eine spätere Bewertung muss ihren geänderten Maßstab und
+die bereits bekannten Ergebnisse ausdrücklich nennen.
+
+Für den neuen, vor Ergebnissichtung begrenzten Wintervergleich gilt die inzwischen
+ausdrücklich bestätigte Eigentümervorgabe: beide bisherigen historischen
+Normalerträge mindestens erhalten und das Winterrisiko wesentlich reduzieren.
+Die Entwicklungsseite setzt als offenes Vergleichskriterium eine
+Senkung des simulierten Winter-Maximaldrawdowns um mindestens zehn
+Prozentpunkte unter beiden Kostenmodellen an. Das ist keine vom Eigentümer
+genannte künftige Verlustgrenze. Hinzu kommen der bisherige durchschnittliche
+historische Stressertrag und die unveränderten technischen Prüfungen.
+
+Unter zulässigen Varianten entscheidet weiterhin der höchste historische
+Netto-USDC-Ertrag, bei exakt gleichem Ertrag der niedrigere historische Drawdown.
+Alle fünf erfundenen Pfade und Nachteile wie verpasste Erholungen bleiben sichtbar.
+Erfüllt keine geprüfte Variante die Kombination, wird keine Winterregel übernommen;
+Schwellen oder Maßstäbe werden nicht nachträglich passend zum Ergebnis verschoben.
+Eine Übernahme verlangt anschließend dieselbe Regel in Backtest, Paper und neuen
+Echtgeldverträgen sowie vollständige Ausführungs- und Neustartprüfungen.
+
 ## Erneute Eigentümerklarstellung vom 27.10.2026
 
 Die wirtschaftliche Rangfolge lautet **höchster Netto-USDC-Ertrag zuerst,
