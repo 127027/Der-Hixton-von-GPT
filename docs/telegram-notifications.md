@@ -92,6 +92,49 @@ Hixton muss laufen und eine Internetverbindung haben. Bei geschlossenem Bot oder
 ausgeschaltetem Laptop gibt es keinen unabhängigen externen Wächter. Ausstehende
 Meldungen können nach dem nächsten regulären Start nachgeholt werden.
 
+## IPv4-Wechsel und Binance-Zugriff
+
+Mit **Störungen, IPv4-Wechsel und Wiederverbindung melden** prüft ein eigener
+Beobachter ungefähr alle 30 Sekunden den Kontozugriff und die öffentliche IPv4.
+Die Prüfung läuft unabhängig von einer geöffneten Einstellungsseite und löst
+weder Orders noch eine Live-Freigabe aus. Die bestehenden Guthaben-Abfrage- und
+Fehlerwartezeiten gelten weiter. Der Beobachter liest nur; die Handelslogik
+bleibt für Ausstiege und deren Bestätigung zuständig.
+
+Die erste gültige IPv4 ist die Ausgangsbasis. Bei einer anderen Adresse meldet
+Telegram die neue gemessene IPv4. Bei Binance-Code **-2015** fordert die Meldung
+zur Prüfung/Aktualisierung der IP-Freigabe des bestehenden Schlüssels auf. Dieser
+Code kann laut [Binance-Fehlerdokumentation](https://developers.binance.com/en/docs/products/spot/errors)
+auch durch Schlüssel oder Berechtigungen entstehen; ein IP-Wechsel allein
+beweist diese Ursache nicht. Bei lokal noch vorhandener Echtgeldposition weist
+die Meldung ausdrücklich auf einen möglicherweise blockierten Ausstieg hin.
+Danach die **Binance-Verbindung im Bot prüfen**. Der Beobachter ändert keine
+Binance-IP-Liste, ersetzt keinen Schlüssel und behauptet keinen Verkauf.
+
+Die IPv4-Abfrage nutzt den festen öffentlichen HTTPS-Endpunkt von
+[ipify](https://www.ipify.org/). Dorthin gehen keine Binance-/Telegram-Schlüssel
+oder Kontodaten. HTTP-Proxys und Weiterleitungen werden ebenso wie beim
+Binance-Transport nicht verwendet. VPN, Mobilfunk-Routing oder unterschiedliche
+Ausgangswege können dennoch bewirken, dass Binance eine andere Adresse sieht.
+Die Meldung nennt deshalb eine gemessene Adresse, keine von Binance bestätigte
+Allowlist-Adresse. Eine nicht erreichbare oder ungültige IP-Antwort ist keine
+Entwarnung; der letzte gültige Wert bleibt gespeichert.
+
+Eine frische erfolgreiche signierte Kontoabfrage **nach** dem gemeldeten
+IP-/Zugriffsproblem, mit demselben Schlüsselbezug, erzeugt eine getrennte
+Bestätigung des Kontozugriffs. Alte Cachewerte, Netzwerk-/Telegram-Erreichbarkeit
+oder das Verschwinden einer Position reichen nicht. Auch diese Bestätigung
+belegt weder einen Verkauf noch einen abgeschlossenen Kontenabgleich.
+
+Ausfälle und Meldungen werden in der lokalen Versanddatenbank gespeichert und
+nach Neustart weiterbehandelt. Derselbe Zustand erzeugt keine laufend neuen
+Warnungen. Eine neue IP, eine erstmals konkret gemessene IP oder eine Eskalation
+von unbekanntem zu abgelehntem Zugriff kann eine weitere Meldung erfordern.
+Kontaktwechsel oder Abschalten der Störungsmeldungen beendet diese Beobachtung
+und verwirft die zugehörigen ausstehenden Nachrichten. Ohne Internet kann auch
+Telegram erst nach Wiederherstellung erreicht werden; bei ausgeschaltetem Bot
+gibt es weiterhin keinen externen Wächter.
+
 ## Kosten und recherchierte Anbieterbedingungen
 
 Telegram bietet einen kostenlosen normalen Botversand innerhalb seiner

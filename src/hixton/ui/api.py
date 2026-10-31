@@ -32,6 +32,7 @@ from hixton.domain.capital import (
 from hixton.domain.satellite_layer import SATELLITE_PROFILE_BY_SYMBOL, satellite_entry_point
 from hixton.domain.versions import strategy_definition
 from hixton.live.credentials import Vault
+from hixton.notifications.network import NetworkMonitor
 from hixton.paper.engine import load_paper_portfolio
 from hixton.paper.models import PaperSettings
 from hixton.paper.storage import PaperStore
@@ -461,12 +462,14 @@ def create_app(
         else:
             session.start(supervisor)
         app.state.notifications.start()
+        app.state.network_monitor.start()
         try:
             yield
         finally:
             if session is not None:
                 await session.close()
             await app.state.notifications.stop()
+            await app.state.network_monitor.stop()
             await supervisor.stop()
 
     app = FastAPI(
@@ -506,6 +509,13 @@ def create_app(
         app.state.live_preparation.credentials, base_url=config.binance_base_url
     )
     app.state.account_balance = account_balance
+    network_monitor = NetworkMonitor(
+        enabled=app.state.notifications.monitoring_enabled,
+        account_read=account_balance.read,
+        account_health=account_balance.health_observation,
+    )
+    app.state.network_monitor = network_monitor
+    app.state.notifications.network_provider = network_monitor.snapshot
     if session is not None:
         session.install(app)
 

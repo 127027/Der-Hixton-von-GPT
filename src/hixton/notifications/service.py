@@ -17,6 +17,12 @@ from hixton.domain.markets import split_market
 from hixton.live.credentials import Vault, VaultError
 from hixton.notifications.compact import balance_line, compact_message
 from hixton.notifications.events import Notice, collect_notices
+from hixton.notifications.network import (
+    NetworkObservation,
+    evaluate_network,
+    initialize_network,
+    reset_network,
+)
 from hixton.notifications.operations import (
     evaluate_operations,
     initialize_operations,
@@ -44,12 +50,14 @@ class NotificationService:
         clock: Callable[[], datetime] = lambda: datetime.now(UTC),
         balance_provider: Callable[[str], dict[str, object]] | None = None,
         operations_provider: Callable[[], tuple[str, ...]] | None = None,
+        network_provider: Callable[[], NetworkObservation] | None = None,
     ) -> None:
         self.path, self.live_database, self.vault = path, live_database, vault
         self.client = client or TelegramClient()
         self.collector, self.clock = collector, clock
         self.balance_provider = balance_provider
         self.operations_provider = operations_provider
+        self.network_provider = network_provider
         self._lock = RLock()
         self._task: asyncio.Task[None] | None = None
         self._stopping = False
@@ -87,6 +95,7 @@ class NotificationService:
                     "ALTER TABLE notification_control ADD COLUMN operations_enabled INTEGER "
                     "NOT NULL DEFAULT 0"
                 )
+            initialize_network(connection)
             initialize_operations(connection)
 
     @contextmanager
@@ -193,6 +202,7 @@ class NotificationService:
                 )
                 if new_generation or operations_enabled != bool(row["operations_enabled"]):
                     reset_operations(connection)
+                    reset_network(connection)
                     connection.execute(
                         "UPDATE notification_outbox SET state='CANCELED' "
                         "WHERE state='PENDING' AND kind LIKE 'operation_%'"
@@ -211,6 +221,7 @@ class NotificationService:
                 # Remove local financial message copies when contact is explicitly removed.
                 connection.execute("DELETE FROM notification_outbox")
                 reset_operations(connection)
+                reset_network(connection)
         return self.status(True)
 
     def discover(self, secret: str) -> list[dict[str, str]]:
@@ -246,6 +257,12 @@ class NotificationService:
         with self._connect() as connection:
             connection.execute("UPDATE notification_control SET last_error=?", (message,))
 
+    def monitoring_enabled(self) -> bool:
+        """No vault/session access: existing Telegram operations opt-in only."""
+        with self._connect() as connection:
+            row = connection.execute("SELECT * FROM notification_control").fetchone()
+            return bool(row and row["configured"] and row["enabled"] and row["operations_enabled"])
+
     def cycle(self) -> None:
         # Only this delivery worker uses the lock. No lock/transaction on the trading database
         # is held during provider requests, and delivery never controls entries or exits.
@@ -266,6 +283,17 @@ class NotificationService:
                     # Local observation failed, never interpret that as recovery or echo it.
                     codes = ("OBSERVATION_UNAVAILABLE", "ACCOUNT_UNOBSERVED")
             order_evidence = getattr(codes, "order_evidence", None)
+            owned_real = getattr(codes, "owned_real", None)
+            network = None
+            if control["operations_enabled"] and self.network_provider is not None:
+                with suppress(Exception):
+                    network = self.network_provider()  # Passive immutable snapshot only.
+            if (network is not None and network.account_code == -2015
+                and network.account_at is not None
+                and 0 <= (now - network.account_at).total_seconds() <= 90):
+                # The detailed IP/access notice supersedes the generic rejection.
+                # Preserve independent unknown-order and market-data obligations.
+                codes = tuple(code for code in codes if code != "BINANCE_ACCESS")
             try:
                 notices = self.collector(self.live_database)
             except (ValueError, OSError, sqlite3.DatabaseError):
@@ -281,6 +309,10 @@ class NotificationService:
                     notices = (*notices, *evaluate_operations(
                         connection, control["generation"], codes, now,
                         order_evidence=order_evidence,
+                    ))
+                if network is not None:
+                    notices = (*notices, *evaluate_network(
+                        connection, control["generation"], network, now, owned_real=owned_real,
                     ))
                 for notice in notices:
                     if notice.occurred_at < enabled_at:

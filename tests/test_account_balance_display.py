@@ -1,3 +1,4 @@
+from datetime import datetime
 from decimal import Decimal
 from types import SimpleNamespace
 
@@ -106,9 +107,11 @@ def test_health_observation_is_passive_fresh_and_redacted():
     assert not calls
     response[0] = ExchangeRequestError(code=-2015, http_status=400)
     display.read()
-    assert display.health_observation() == {
-        "state": "UNAVAILABLE", "code": -2015, "fresh": True,
-    }
+    observation = display.health_observation()
+    assert observation["state"] == "UNAVAILABLE" and observation["code"] == -2015
+    assert observation["fresh"] is True
+    assert observation["account_scope"] is not None
+    assert datetime.fromisoformat(observation["observed_at_utc"]).tzinfo is not None
     now[0] = 91
     assert display.health_observation()["fresh"] is False
     assert len(calls) == 1  # Sampling must not retry or bypass account throttling.

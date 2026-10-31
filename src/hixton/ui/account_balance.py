@@ -40,7 +40,8 @@ class AccountBalanceDisplay:
             return {"state": "UNKNOWN", "code": None, "fresh": False}
         try:
             age = self.clock() - self._health_at if self._health_at is not None else -1
-            return {**self._health, "fresh": 0 <= age <= 90}
+            return {**self._health, "fresh": 0 <= age <= 90,
+                    "account_scope": self._fingerprint}
         finally:
             self._lock.release()
 
@@ -49,7 +50,8 @@ class AccountBalanceDisplay:
             try:
                 credentials = self.credentials.load()
                 if credentials is None:
-                    self._health = {"state": "KEY_MISSING", "code": None}
+                    self._health = {"state": "KEY_MISSING", "code": None,
+                                    "observed_at_utc": datetime.now(UTC).isoformat()}
                     self._health_at = self.clock()
                     self._fingerprint = None
                     self._payload = None
@@ -94,12 +96,14 @@ class AccountBalanceDisplay:
                     "message": "Spot-USDC; bestehende Coins sind nicht enthalten.",
                 }
                 self._until = self.clock() + self.refresh_seconds
-                self._health = {"state": "CURRENT", "code": None}
+                self._health = {"state": "CURRENT", "code": None,
+                                "observed_at_utc": self._payload["observed_at_utc"]}
                 self._health_at = self.clock()
             except Exception as error:
                 code = error.code if isinstance(error, ExchangeRequestError) else None
                 self._health = {
                     "state": "UNAVAILABLE", "code": code if code in {-2015, -1021} else None,
+                    "observed_at_utc": datetime.now(UTC).isoformat(),
                 }
                 self._health_at = self.clock()
                 self._payload = self._unavailable(

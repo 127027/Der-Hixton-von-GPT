@@ -99,12 +99,14 @@ class OperationsObservation(tuple[str, ...]):
     """
 
     order_evidence: Mapping[str, bool]
+    owned_real: bool
 
     def __new__(
-        cls, codes: tuple[str, ...], order_evidence: Mapping[str, bool]
+        cls, codes: tuple[str, ...], order_evidence: Mapping[str, bool], owned_real: bool = False
     ) -> OperationsObservation:
         value = super().__new__(cls, codes)
         value.order_evidence = MappingProxyType(dict(order_evidence))
+        value.owned_real = owned_real
         return value
 
 
@@ -213,11 +215,15 @@ def sample_operations(
             if not required <= available:
                 raise sqlite3.DatabaseError("Operational execution journal is incomplete")
         active = False
+        owned_real = False
         if "signal_trial" in tables:
             for row in _rows(connection, "signal_trial"):
                 state = row["state"]
                 owned = _quantity(row["owned_quantity"] or "0")
                 residual = _quantity(row["residual_quantity"] or "0")
+                owned_real = owned_real or residual > 0 or (
+                    state not in {"COMPLETED", "CANCELED"} and owned > 0
+                )
                 # COMPLETED retains historical bought quantity, not current exposure.
                 active = active or state in _ACTIVE_TRIAL or residual > 0 or (
                     state not in {"COMPLETED", "CANCELED"} and owned > 0
@@ -232,9 +238,10 @@ def sample_operations(
                 if row["state"] == "NEEDS_REVIEW":
                     codes.add("EXECUTION_REVIEW")
         if "live_positions" in tables:
-            active = active or any(
+            owned_real = owned_real or any(
                 _quantity(row["quantity"]) > 0 for row in _rows(connection, "live_positions")
             )
+            active = active or owned_real
         evidence = {key: value for prefix in ("trial", "live")
                     for key, value in _order_evidence(connection, prefix).items()}
         if any(not complete for complete in evidence.values()):
@@ -259,7 +266,7 @@ def sample_operations(
                 codes.add("BINANCE_CLOCK")
             elif state == "UNAVAILABLE":
                 codes.add("BINANCE_CONNECTION")
-    return OperationsObservation(tuple(sorted(codes)), evidence)
+    return OperationsObservation(tuple(sorted(codes)), evidence, owned_real)
 
 
 def initialize_operations(connection: sqlite3.Connection) -> None:
