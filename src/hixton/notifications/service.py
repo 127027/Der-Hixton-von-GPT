@@ -317,6 +317,16 @@ class NotificationService:
                 for notice in notices:
                     if notice.occurred_at < enabled_at:
                         continue
+                    if notice.kind == "operation_network_alert":
+                        # A newer IP/rejection supersedes unsent network advice.
+                        # Keep its audit row, never deliver stale instructions after
+                        # a newer incident/recovery. Other alerts/trades are untouched.
+                        connection.execute(
+                            "UPDATE notification_outbox SET state='CANCELED' "
+                            "WHERE generation=? AND state='PENDING' "
+                            "AND kind IN ('operation_network_alert','operation_network_recovery')",
+                            (control["generation"],),
+                        )
                     title, body = compact_message(notice)
                     connection.execute(
                         "INSERT OR IGNORE INTO notification_outbox"
@@ -345,7 +355,8 @@ class NotificationService:
                     "AND earlier.kind NOT LIKE 'operation_%' AND "
                     "(earlier.occurred_at<q.occurred_at OR "
                     "(earlier.occurred_at=q.occurred_at AND earlier.event_key<q.event_key)))) "
-                    "AND (q.kind!='operation_recovery' OR NOT EXISTS ("
+                    "AND (q.kind NOT IN ('operation_recovery','operation_network_recovery') "
+                    "OR NOT EXISTS ("
                     "SELECT 1 FROM notification_outbox alert "
                     "WHERE alert.generation=q.generation AND alert.state='PENDING' "
                     "AND alert.event_key=substr(q.event_key,1,length(q.event_key)-8)||'alert')) "

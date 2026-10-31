@@ -217,7 +217,7 @@ def evaluate_network(
                 f"IP-Freigabe auf Binance prüfen.\n{exposure}"
             )
             notices.append(Notice(
-                f"operation:{identity}-{new_level}:alert", "operation_alert", now,
+                f"operation:{identity}-{new_level}:alert", "operation_network_alert", now,
                 "⚠ Hixton · IPv4 zur Binance-Zugriffsprüfung" if ip_became_known and rejected else
                 "⚠ Hixton · Binance-Zugriff abgelehnt" if rejected else
                 "⚠ Hixton · Öffentliche IPv4 geändert", body,
@@ -225,7 +225,7 @@ def evaluate_network(
             level = new_level
         if recovered:
             notices.append(Notice(
-                f"operation:{identity}-{level}:recovery", "operation_recovery", now,
+                f"operation:{identity}-{level}:recovery", "operation_network_recovery", now,
                 "✅ Hixton · Binance-Kontozugriff wieder bestätigt",
                 "Frische signierte Kontoabfrage erfolgreich.\n"
                 "Offene Positionen und Ausstiege werden separat abgeglichen; "

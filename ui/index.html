@@ -247,7 +247,7 @@
                   <legend>Mit demselben lokalen Hixton-Passwort oben entsperren</legend>
                   <label class="settings-toggle"><input id="notification-enabled" type="checkbox" /> Telegram-Handelsmeldungen aktivieren</label>
                   <label class="settings-toggle"><input id="notification-operations" type="checkbox" /> Störungen, IPv4-Wechsel und Wiederverbindung melden</label>
-                  <small>Prüft alle 30 s den Binance-Kontozugriff und die öffentliche IPv4 über ipify (ohne Schlüssel). Bei Ablehnung nennt Telegram die gemessene IP zur Prüfung der Binance-Freigabe. Keine Paper-Meldungen. Bot und Internet müssen verfügbar sein; bei Ausfällen wartet der Versand. Telegram-Meldungen müssen oben aktiviert sein.</small>
+                  <small>Prüft etwa alle 30 s die öffentliche IPv4 über ipify (ohne Konto-/Schlüsseldaten) und separat lesend den Binance-Kontozugriff. Bei Ablehnung nennt Telegram die gemessene IP zur Prüfung der Binance-Freigabe. Keine Paper-Meldungen. Bot und Internet müssen verfügbar sein; bei Ausfällen wartet der Versand. Telegram-Meldungen müssen oben aktiviert sein.</small>
                   <label>Bot-Token<input id="notification-secret" type="password" maxlength="256" autocomplete="off" spellcheck="false" aria-describedby="notification-secret-help" /></label>
                   <button id="notification-token-save" type="button" class="button secondary">1 · Bot-Token speichern</button>
                   <small id="notification-secret-help">Nur lokal sicher speichern. Leer lassen, um ein bereits gespeichertes Token zu behalten.</small>
