@@ -632,6 +632,14 @@ class LiveBalanceReconciler:
                 "singleton INTEGER PRIMARY KEY CHECK(singleton=1),account TEXT NOT NULL,"
                 "observed_at TEXT NOT NULL,balances_json TEXT NOT NULL)"
             )
+            # Stable exchange fill identities survive VACUUM and journal reloads.
+            # An existing baseline starts with no included fills: legacy history
+            # must still be replayed until an explicitly permitted new epoch.
+            connection.execute(
+                "CREATE TABLE IF NOT EXISTS live_baseline_included_fills("
+                "account TEXT NOT NULL,symbol TEXT NOT NULL,trade_id TEXT NOT NULL,"
+                "PRIMARY KEY(account,symbol,trade_id))"
+            )
 
     def has_baseline(self) -> bool:
         with self.journal._connect() as connection:
@@ -669,14 +677,76 @@ class LiveBalanceReconciler:
                 if existing["account"] != snapshot.account:
                     raise RuntimeError("Live account identity changed")
                 if allow_refresh:
+                    tables = {
+                        str(row["name"])
+                        for row in connection.execute(
+                            "SELECT name FROM sqlite_master WHERE type='table'"
+                        )
+                    }
+                    control = (
+                        connection.execute(
+                            "SELECT state,entries_enabled FROM live_control WHERE singleton=1"
+                        ).fetchone()
+                        if "live_control" in tables else None
+                    )
+                    if control is not None and (
+                        control["state"] != "LIVE_DISABLED" or control["entries_enabled"]
+                    ):
+                        raise RuntimeError("cannot refresh an active Live baseline")
+                    if "live_positions" in tables and connection.execute(
+                        "SELECT 1 FROM live_positions LIMIT 1"
+                    ).fetchone():
+                        raise RuntimeError("cannot refresh a Live baseline with owned positions")
+                    if "live_events" in tables and connection.execute(
+                        "SELECT 1 FROM live_events WHERE status IN "
+                        "('ORDER_PENDING','RECONCILING') LIMIT 1"
+                    ).fetchone():
+                        raise RuntimeError("cannot refresh an unsettled Live baseline")
+                    if connection.execute(
+                        "SELECT 1 FROM live_intents WHERE state NOT IN "
+                        "('FILLED','CANCELED','REJECTED','EXPIRED','EXPIRED_IN_MATCH') LIMIT 1"
+                    ).fetchone():
+                        raise RuntimeError("cannot refresh an unsettled Live baseline")
+                    history = connection.execute(
+                        "SELECT account,updated_at FROM live_intents"
+                    ).fetchall()
+                    if history and control is None:
+                        raise RuntimeError("cannot refresh Live history without disabled control")
+                    if any(row["account"] != snapshot.account for row in history):
+                        raise RuntimeError("Live account history identity changed")
+                    if connection.execute(
+                        "SELECT 1 FROM live_fills f LEFT JOIN live_intents i "
+                        "ON i.intent_id=f.intent_id WHERE f.account<>? "
+                        "OR i.intent_id IS NULL OR i.account<>f.account "
+                        "OR i.symbol<>f.symbol LIMIT 1",
+                        (snapshot.account,),
+                    ).fetchone():
+                        raise RuntimeError("Live fill account/history identity changed")
+                    # A fresh-looking snapshot can predate a fast completed
+                    # roundtrip. Never mark that newer history as included in it.
+                    observed = _utc(snapshot.observed_at)
+                    if any(
+                        _utc(datetime.fromisoformat(row["updated_at"])) > observed
+                        for row in history
+                    ):
+                        raise RuntimeError("Live snapshot predates recorded order history")
                     connection.execute(
                         "UPDATE live_account_baseline SET observed_at=?,balances_json=? "
                         "WHERE singleton=1",
                         (snapshot.observed_at.isoformat(), encoded),
                     )
+                    connection.execute("DELETE FROM live_baseline_included_fills")
+                    connection.execute(
+                        "INSERT INTO live_baseline_included_fills(account,symbol,trade_id) "
+                        "SELECT account,symbol,trade_id FROM live_fills"
+                    )
                 return
             if connection.execute("SELECT 1 FROM live_intents LIMIT 1").fetchone():
                 raise RuntimeError("cannot capture Live baseline after order history exists")
+            if connection.execute(
+                "SELECT 1 FROM live_baseline_included_fills LIMIT 1"
+            ).fetchone():
+                raise RuntimeError("Live baseline inclusion history has no baseline")
             connection.execute(
                 "INSERT INTO live_account_baseline VALUES(1,?,?,?)",
                 (snapshot.account, snapshot.observed_at.isoformat(), encoded),
@@ -691,9 +761,26 @@ class LiveBalanceReconciler:
     ) -> dict[str, object]:
         snapshot.validate(now)
         with self.journal._connect() as connection:
+            # Baseline and its included-fill set belong to the same epoch.
+            # Reading them through different connections can mix concurrent
+            # captures and double-count or omit otherwise confirmed movements.
+            connection.execute("BEGIN")
             baseline = connection.execute(
                 "SELECT * FROM live_account_baseline WHERE singleton=1"
             ).fetchone()
+            movements = connection.execute(
+                "SELECT f.*,i.side FROM live_fills f JOIN live_intents i USING(intent_id) "
+                "WHERE NOT EXISTS(SELECT 1 FROM live_baseline_included_fills b "
+                "WHERE b.account=f.account AND b.symbol=f.symbol AND b.trade_id=f.trade_id)"
+            ).fetchall()
+            unresolved = tuple(
+                str(row["intent_id"])
+                for row in connection.execute(
+                    "SELECT intent_id FROM live_intents WHERE state NOT IN "
+                    "('FILLED','CANCELED','REJECTED','EXPIRED','EXPIRED_IN_MATCH')"
+                )
+                if row["intent_id"] != ignore_intent_id
+            )
         if baseline is None:
             raise RuntimeError("Live baseline missing")
         if baseline["account"] != snapshot.account:
@@ -701,7 +788,9 @@ class LiveBalanceReconciler:
         expected = {
             asset: Decimal(value) for asset, value in json.loads(baseline["balances_json"]).items()
         }
-        for fill in self.journal.fill_movements():
+        for fill in movements:
+            if fill["account"] != baseline["account"]:
+                raise RuntimeError("Live fill account identity mismatch")
             symbol = str(fill["symbol"])
             base = symbol.removesuffix("USDC")
             sign = Decimal(1) if fill["side"] == "BUY" else Decimal(-1)
@@ -717,7 +806,6 @@ class LiveBalanceReconciler:
             for asset in sorted(expected.keys() | snapshot.balances.keys())
             if expected.get(asset, ZERO) != sum(snapshot.balances.get(asset, (ZERO, ZERO)))
         ]
-        unresolved = self.journal.unresolved_ids(ignore=ignore_intent_id)
         locked = any(value != ZERO for _, value in snapshot.balances.values())
         return {
             "balances_match": not mismatches,
