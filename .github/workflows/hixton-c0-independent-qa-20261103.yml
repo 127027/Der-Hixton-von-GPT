@@ -1,0 +1,83 @@
+name: Hixton C0 Independent Ledger Audit
+on:
+  push:
+    branches: [research/hixton-native-baseline-proof-20261103]
+    paths:
+      - ".github/workflows/hixton-c0-independent-qa-20261103.yml"
+  workflow_dispatch:
+permissions:
+  contents: read
+  actions: read
+jobs:
+  parity:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    env:
+      GH_TOKEN: ${{ github.token }}
+      GH_REPO: ${{ github.repository }}
+    steps:
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Download frozen C0 and existing six-case replay artifact
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p input replay audit
+          gh release download research-data-20261103-five-dot-inputs -R "$GH_REPO" -p Hixton-Loss-Handoff-20261102.zip -D input
+          echo "d1d1cde8347665d74da71f9e44bb3876dc6662bfe4bfc9e34dcab1dfecd84308  input/Hixton-Loss-Handoff-20261102.zip" | sha256sum -c
+          gh run download 41624952024 -R "$GH_REPO" -n hixton-native-c0-evidence-41624952024 -D replay
+      - name: Independently compare original and replay ledgers without rerunning engine
+        shell: bash
+        run: |
+          python - <<'PY'
+          import gzip,hashlib,json,pathlib,zipfile
+          root=pathlib.Path.cwd();old=root/"original";old.mkdir(exist_ok=True)
+          with zipfile.ZipFile(root/"input/Hixton-Loss-Handoff-20261102.zip") as archive:
+            for item in archive.infolist():
+              target=(old/item.filename).resolve()
+              if not target.is_relative_to(old.resolve()):raise RuntimeError("unsafe archive path")
+            archive.extractall(old)
+          new=root/"replay"
+          ref_results=[x for x in old.rglob("Result.json")]
+          print("ORIGINAL_RESULT_PATHS",json.dumps([str(x.relative_to(old)) for x in ref_results][:50]))
+          print("REPLAY_COMPLETE_PATHS",json.dumps([str(x.relative_to(new)) for x in new.rglob("Complete.json")][:10]))
+          contract=list(old.rglob("Input-Contract.json"))
+          if contract:
+            body=json.loads(contract[0].read_text())
+            print("INPUT_CONTRACT_KEYS",list(body))
+          report={"source_sha256":"d1d1cde8347665d74da71f9e44bb3876dc6662bfe4bfc9e34dcab1dfecd84308","replay_run_id":41624952024,"results":{},"verdict":"PENDING"}
+          for window in ("original_32k","current_26oct","latest_long"):
+            for cost in ("current","stress"):
+              key=window+"__"+cost
+              dirs=[x.parent for x in new.rglob("Complete.json") if x.parent.name==key]
+              if len(dirs)!=1:
+                report["results"][key]={"state":"REPLAY_OUTPUT_NOT_FOUND","count":len(dirs)}
+                continue
+              folder=dirs[0]
+              cands=[x for x in ref_results if (key in str(x) or window in str(x) and cost in str(x))]
+              q={"state":"MAPPING_NOT_FOUND","original_candidates":[str(x.relative_to(old)) for x in cands],"replay_files":[x.name for x in folder.iterdir() if x.is_file()]}
+              q["validation"]=json.loads((folder/"Validation.json").read_text())
+              q["complete"]=json.loads((folder/"Complete.json").read_text())
+              if len(cands)==1:
+                orig=cands[0];ref=json.loads(orig.read_text());actual=json.loads((folder/"Result.json").read_text())
+                q["result_equal"]=(ref==actual)
+                q["state"]="MATCH" if q["result_equal"] else "MISMATCH"
+                for fname in ("Trades.json","Fills.json","Signals.json","Equity.csv.gz"):
+                  a=folder/fname;b=orig.parent/fname
+                  if a.is_file() and b.is_file():
+                    q[fname+"_equal"]=(gzip.decompress(a.read_bytes())==gzip.decompress(b.read_bytes())) if fname.endswith(".gz") else (json.loads(a.read_text())==json.loads(b.read_text()))
+              report["results"][key]=q
+          fields=("Trades.json","Fills.json","Signals.json","Equity.csv.gz")
+          report["verdict"]="FULL_LEDGER_MATCH" if len(report["results"])==6 and all(v.get("state")=="MATCH" and all(v.get(f+"_equal") for f in fields) for v in report["results"].values()) else "REQUIRES_MAPPING_OR_REVIEW"
+          (root/"audit/qa-evidence.json").write_text(json.dumps(report,indent=2,ensure_ascii=False)+"\n")
+          print("RESULT",json.dumps({"verdict":report["verdict"],"cases":{k:{x:y for x,y in v.items() if x in ("state","result_equal","original_candidates","Trades.json_equal","Fills.json_equal","Signals.json_equal","Equity.csv.gz_equal")} for k,v in report["results"].items()}},ensure_ascii=False))
+          PY
+      - name: Save independent QA evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: hixton-independent-qa-${{ github.run_id }}
+          path: audit/
+          retention-days: 30
+          if-no-files-found: warn
