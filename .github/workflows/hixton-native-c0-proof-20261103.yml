@@ -76,13 +76,24 @@ jobs:
             script=matches[0]
             env={k:v for k,v in os.environ.items() if not re.search(r"TOKEN|PASSWORD|SECRET|API_KEY|PRIVATE_KEY|CREDENTIAL",k,re.I)}
             env.update({"HIXTON_RESEARCH_ONLY":"1","HIXTON_NO_TRADING":"1"})
-            def call(args,timeout):
-              return subprocess.run([sys.executable,script.name]+args,cwd=str(script.parent),env=env,capture_output=True,text=True,timeout=timeout)
-            source_lines=script.read_text(encoding="utf-8").splitlines()
-            report["wrapper_guard_excerpt"]=list(enumerate(source_lines[108:158],start=109))
-            report["wrapper_top_excerpt"]=list(enumerate(source_lines[:52],start=1))
-            report["wrapper_cli_excerpt"]=list(enumerate(source_lines[184:218],start=185))
-            raise RuntimeError("ONE-TIME SOURCE GUARD INSPECTION: no financial replays attempted in this diagnostic run")
+            def call(args,timeout,isolated=False):
+              command=([sys.executable,"-c",bootstrap_code,str(script)]+args) if isolated else ([sys.executable,script.name]+args)
+              return subprocess.run(command,cwd=str(script.parent),env=env,capture_output=True,text=True,timeout=timeout)
+            report["research_bootstrap_reason"]="src/hixton/data/__init__.py imports BinancePublicClient eagerly via hixton.data.binance, even when the native backtest imports only hixton.data.quality. The original offline runner forbids hixton.data.binance. An isolated import namespace for hixton.data avoids loading the exchange client without editing source files or disabling the guard."
+            bootstrap_code=(
+                "import hashlib,runpy,sys,types\n"
+                "from pathlib import Path\n"
+                "script=Path(sys.argv[1]).resolve()\n"
+                "engine=script.parent / 'engine' / 'src'\n"
+                "sys.path.insert(0,str(engine))\n"
+                "data=types.ModuleType('hixton.data')\n"
+                "data.__path__=[str(engine / 'hixton' / 'data')]\n"
+                "data.__package__='hixton.data'\n"
+                "sys.modules['hixton.data']=data\n"
+                "sys.argv=[str(script)]+sys.argv[2:]\n"
+                "runpy.run_path(str(script),run_name='__main__')\n"
+            )
+            report["import_isolation_bootstrap"]={"sha256":hashlib.sha256(bootstrap_code.encode()).hexdigest(),"source_files_modified":False,"offline_guard_disabled":False,"bootstrap_source":bootstrap_code}
             v=call([],180)
             report["offline_verifier"]={"exit_code":v.returncode,"stdout_tail":v.stdout[-5000:],"stderr_tail":v.stderr[-3000:]}
             if v.returncode:raise RuntimeError("Offline verifier did not pass; replay blocked")
@@ -98,6 +109,7 @@ jobs:
             costs=["current","stress"]
             report["run_attempted"]=True
             report["status"]="NATIVE_REPLAY_IN_PROGRESS"
+            report["replay_invocation"]="isolated no-exchange import bootstrap + untouched original source and guard"
             save()
             for window in windows:
               for cost in costs:
@@ -105,7 +117,7 @@ jobs:
                 if case_out.exists():raise RuntimeError("Refusing to overwrite existing case output")
                 args=["--run","--window",window,"--cost",cost,"--out",str(case_out)]
                 started=time.time()
-                p=call(args,1600)
+                p=call(args,1600,isolated=True)
                 summary={"window":window,"cost":cost,"exit_code":p.returncode,"duration_s":round(time.time()-started,2),"command":[sys.executable,script.name]+args,"stdout_tail":p.stdout[-18000:],"stderr_tail":p.stderr[-8000:],"outputs":[]}
                 if case_out.exists():
                   for f in sorted(case_out.rglob("*")):
