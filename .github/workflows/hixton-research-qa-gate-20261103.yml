@@ -66,6 +66,7 @@ jobs:
           report["status"]="C0_BASELINES_AND_ORIGINAL_BOOLEAN_CHECKS_PASS_DIAGNOSTIC_RECOMPUTATION_PENDING" if report["baseline_preconditions_pass"] else "ORIGINAL_SAFETY_DIAGNOSTIC_FAILURE"
           pathlib.Path("audit/qa-contract-status.json").write_text(json.dumps(report,indent=2,ensure_ascii=False)+"\n")
           print("QA_CONSOLIDATION",json.dumps({k:report[k] for k in ("status","original_boolean_checks_pass","original_method_fingerprint_consistent","baseline_preconditions_pass","unresolved","candidate_qa_signoff")}),flush=True)
+          print("QA_ORIGINAL_CHECK_DETAIL",json.dumps(report["original_checks_cases"],ensure_ascii=False),flush=True)
           if not report["baseline_preconditions_pass"]:sys.exit(1)
           PY
       - name: Upload evidence without falsely granting candidate signoff
