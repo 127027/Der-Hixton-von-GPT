@@ -30,7 +30,7 @@ jobs:
           python - <<'PY'
           import datetime,json,os,pathlib,time,urllib.request
           repo=os.environ["GH_REPO"];token=os.environ["GH_TOKEN"];selfid=int(os.environ["GH_RUN_ID"])
-          prior=None;out=pathlib.Path("audit")
+          prior=None;out=pathlib.Path("audit");out.mkdir(parents=True,exist_ok=True)
           def read(path):
             r=urllib.request.Request("https://api.github.com/repos/"+repo+path,headers={"Authorization":"Bearer "+token,"Accept":"application/vnd.github+json","User-Agent":"Hixton-Observer"})
             try:
