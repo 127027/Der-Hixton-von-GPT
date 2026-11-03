@@ -1,0 +1,78 @@
+name: Hixton Research QA Gate Evidence Consolidation
+on:
+  push:
+    branches: [research/hixton-native-baseline-proof-20261103]
+    paths: [".github/workflows/hixton-research-qa-gate-20261103.yml"]
+  workflow_dispatch:
+permissions:
+  contents: read
+  actions: read
+jobs:
+  baseline-readiness:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    env:
+      GH_TOKEN: ${{ github.token }}
+      GH_REPO: ${{ github.repository }}
+    steps:
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Fetch already computed C0, HWM and independent financial QA evidence
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p historic synth hwm economics audit
+          gh run download 41625998843 -R "$GH_REPO" -n hixton-independent-qa-41625998843 -D historic
+          gh run download 41684371923 -R "$GH_REPO" -n hixton-five-year-c0-evidence-41684371923 -D synth
+          gh run download 41684592052 -R "$GH_REPO" -n hixton-original-hwm-evidence-41684592052 -D hwm
+          gh run download 41685491562 -R "$GH_REPO" -n hixton-five-year-economic-summary-41685491562 -D economics
+      - name: Prove baseline QA prerequisites and identify unresolved frozen diagnostics
+        shell: bash
+        run: |
+          python - <<'PY'
+          import json,pathlib,sys
+          def load(root,name):
+            matches=list(pathlib.Path(root).rglob(name))
+            if len(matches)!=1:raise RuntimeError("Missing exact evidence "+root+"/"+name)
+            return json.loads(matches[0].read_text())
+          h=load("historic","qa-evidence.json")
+          s=load("synth","five-year-c0-reproduction.json")
+          d=load("hwm","hwm-original-qa.json")
+          e=load("economics","synthetic-c0-economics.json")
+          assert h.get("verdict")=="FINANCIAL_LEDGER_PARITY_PASS_WITH_FROZEN_EXTRA_RESULT_FIELDS"
+          assert len(h.get("results",{}))==6
+          assert s.get("status")=="TEN_SYNTHETIC_C0_FINANCIAL_PARITY_PASS"
+          assert len(s.get("cases",[]))==10 and all(c.get("status")=="PARITY_PASS" for c in s["cases"])
+          assert e.get("status")=="TEN_PROVEN_FIVE_YEAR_C0_ECONOMICS_COMPUTED"
+          assert len(e.get("cases",{}))==10
+          assert len(d.get("cases",{}))==6
+          report={"historical_c0_financial_parity":"PASS_6_OF_6","synthetic_5y_c0_financial_parity":"PASS_10_OF_10","five_year_start_usdc":"1092.05773944","original_checks_cases":{},"frozen_extra_result_fields_classification":{},"unresolved":["recompute specific execution_diagnostics from primary trade/fill source","verify H1/H2/H-ECO-15 causal formulas and their C0-compatible insertion points","independent pre-candidate Dot4 signoff"],"candidate_qa_signoff":False,"candidate_research_backtests_run":0,"owner_million_goal_proven":False}
+          all_bool_checks=True;methods=set()
+          for key,r in d["cases"].items():
+            checks=r.get("original_checks",{})
+            if not isinstance(checks,dict):raise RuntimeError("Original checks is not a dictionary")
+            fail=[k for k,v in checks.items() if not isinstance(v,bool) or v is False]
+            if fail:all_bool_checks=False
+            method=r.get("other_original_result_fields",{}).get("method_sha256")
+            methods.add(str(method))
+            exact=r.get("other_original_result_fields",{}).get("control_exact")
+            report["original_checks_cases"][key]={"checks":len(checks),"nontrue_or_nonbool":fail,"control_exact":exact,"execution_diagnostics_fields":sorted(r.get("original_execution_diagnostics",{}))}
+          report["original_boolean_checks_pass"]=all_bool_checks
+          report["original_method_fingerprint_consistent"]=len(methods)==1
+          report["original_method_fingerprints"]=sorted(methods)
+          report["frozen_extra_result_fields_classification"]={"checks":"frozen safety/ledger assertions: observed true, individual independent re-computation PENDING","control_exact":"frozen exactness flag; observed value as recorded in original","method_sha256":"frozen attribution/method identity; ensure same across contexts","execution_diagnostics":"economic execution counters; independent regeneration pending","seconds":"nonfinancial wall-clock duration, not a strategy invariant","strategy":"descriptive version/parameter snapshot, validate immutability and SHA separately","research_only_not_installed":"frozen runtime/reporting provenance marker, not performance","event_counts":"frozen event-counter diagnostic, separate regeneration pending","events":"frozen event observational report, separate regeneration pending"}
+          report["baseline_preconditions_pass"]=all_bool_checks and len(methods)==1 and all(x["control_exact"] is True for x in report["original_checks_cases"].values())
+          report["status"]="C0_BASELINES_AND_ORIGINAL_BOOLEAN_CHECKS_PASS_DIAGNOSTIC_RECOMPUTATION_PENDING" if report["baseline_preconditions_pass"] else "ORIGINAL_SAFETY_DIAGNOSTIC_FAILURE"
+          pathlib.Path("audit/qa-contract-status.json").write_text(json.dumps(report,indent=2,ensure_ascii=False)+"\n")
+          print("QA_CONSOLIDATION",json.dumps({k:report[k] for k in ("status","original_boolean_checks_pass","original_method_fingerprint_consistent","baseline_preconditions_pass","unresolved","candidate_qa_signoff")}),flush=True)
+          if not report["baseline_preconditions_pass"]:sys.exit(1)
+          PY
+      - name: Upload evidence without falsely granting candidate signoff
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: hixton-qa-contract-${{ github.run_id }}
+          path: audit/
+          retention-days: 30
+          if-no-files-found: warn
