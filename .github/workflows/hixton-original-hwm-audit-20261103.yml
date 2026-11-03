@@ -1,0 +1,104 @@
+name: Hixton Original Drawdown and Safety-Field Audit
+on:
+  push:
+    branches: [research/hixton-native-baseline-proof-20261103]
+    paths: [".github/workflows/hixton-original-hwm-audit-20261103.yml"]
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  historical-loss-audit:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    env:
+      GH_TOKEN: ${{ github.token }}
+      GH_REPO: ${{ github.repository }}
+    steps:
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Verify original source, reconstruct HWM drawdowns and retain frozen diagnostics
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p archive audit
+          gh release download research-data-20261103-five-dot-inputs -R "$GH_REPO" -p Hixton-Loss-Handoff-20261102.zip -D archive
+          echo "d1d1cde8347665d74da71f9e44bb3876dc6662bfe4bfc9e34dcab1dfecd84308  archive/Hixton-Loss-Handoff-20261102.zip" | sha256sum -c
+          python - <<'PY'
+          import csv,gzip,io,json,pathlib,zipfile
+          from decimal import Decimal,InvalidOperation
+          f=pathlib.Path("archive/Hixton-Loss-Handoff-20261102.zip")
+          report={"input_sha256":"d1d1cde8347665d74da71f9e44bb3876dc6662bfe4bfc9e34dcab1dfecd84308","source_commit":"f56d48536525830dd6ea50bf5bc174a6f9aeff8c","trading_changes":False,"cases":{}}
+          with zipfile.ZipFile(f) as z:
+            paths=z.namelist()
+            for window in ("original_32k","current_26oct","latest_long"):
+              for cost in ("current","stress"):
+                key=window+"__"+cost
+                base=next((name.rsplit("/Result.json",1)[0] for name in paths if name.endswith("/baseline/"+window+"/"+cost+"/Result.json")),None)
+                if base is None:raise RuntimeError("Frozen Result.json missing "+key)
+                original=json.loads(z.read(base+"/Result.json"))
+                eqpath=base+"/Equity.csv.gz"
+                if eqpath not in paths:raise RuntimeError("Frozen Equity.csv.gz missing "+key)
+                def load_rows():
+                  return csv.DictReader(io.StringIO(gzip.decompress(z.read(eqpath)).decode("utf-8-sig")))
+                csv_reader=load_rows()
+                headers=csv_reader.fieldnames or []
+                ek=next((k for k in headers if "equity" in k.lower() and all(x not in k.lower() for x in ("unreal","realized","delta","change","drawdown"))),None)
+                if ek is None:raise RuntimeError("Unknown equity column "+key+" fields:"+repr(headers))
+                tk=next((k for k in headers if k.lower() in ("timestamp_utc","timestamp","time_utc","datetime_utc","time","datetime","ts","hour_utc","hour","t")),None)
+                if tk is None:tk=next((k for k in headers if "time" in k.lower() or "date" in k.lower()),None)
+                peak=Decimal("-Infinity");max_dd=Decimal(0);peak_date=None;max_peak_date=None;trough_date=None;max_peak_equity=Decimal(0)
+                bars=0;valid=0;trough_index=-1;first_samples=[]
+                for index,row in enumerate(csv_reader):
+                  bars+=1
+                  if index<2:first_samples.append({k:row.get(k) for k in headers[:8]})
+                  try:value=Decimal(str(row[ek]))
+                  except (InvalidOperation,TypeError):continue
+                  valid+=1;date=row.get(tk,str(index)) if tk else str(index)
+                  if value>peak:
+                    peak=value;peak_date=date
+                  dd=peak-value
+                  if dd>max_dd:
+                    max_dd=dd;max_peak_date=peak_date;trough_date=date;max_peak_equity=peak;trough_index=index
+                if not valid:raise RuntimeError("No valid equity row for "+key)
+                recovery=None;recovery_bars=None
+                if trough_index>=0:
+                  for index,row in enumerate(load_rows()):
+                    if index<=trough_index:continue
+                    try:value=Decimal(str(row[ek]))
+                    except (InvalidOperation,TypeError):continue
+                    if value>=max_peak_equity:
+                      recovery=row.get(tk,str(index)) if tk else str(index)
+                      recovery_bars=index-trough_index
+                      break
+                checks=original.get("checks",{})
+                diag=original.get("execution_diagnostics",{})
+                report["cases"][key]={
+                  "equity_csv_header":headers,"equity_field":ek,"time_field":tk,
+                  "row_count":bars,"valid_equity_count":valid,"sample_rows":first_samples,
+                  "max_absolute_hwm_drawdown_usdc":str(max_dd),
+                  "hwm_peak_equity_usdc":str(max_peak_equity),
+                  "hwm_peak_time":max_peak_date,"trough_time":trough_date,
+                  "max_absolute_hwm_drawdown_pct":str((max_dd/max_peak_equity*100) if max_peak_equity>0 else 0),
+                  "time_of_recovery":recovery,"recovery_bars_after_trough":recovery_bars,
+                  "at_least_10000_usdc_loss":max_dd>=Decimal("10000"),
+                  "original_checks":checks,
+                  "checks_with_boolean_false":[k for k,v in checks.items() if isinstance(v,bool) and v is False] if isinstance(checks,dict) else "not-dict",
+                  "original_execution_diagnostics":diag,
+                  "other_original_result_fields":{k:original.get(k) for k in ("control_exact","method_sha256","event_counts","research_only_not_installed","strategy") if k in original},
+                  "original_report_only_fields":sorted([k for k in ("checks","control_exact","event_counts","events","execution_diagnostics","method_sha256","research_only_not_installed","seconds","strategy") if k in original])
+                }
+                print("HWM_EVIDENCE",json.dumps({k:v for k,v in report["cases"][key].items() if k in ("max_absolute_hwm_drawdown_usdc","hwm_peak_equity_usdc","hwm_peak_time","trough_time","max_absolute_hwm_drawdown_pct","time_of_recovery","recovery_bars_after_trough","at_least_10000_usdc_loss","checks_with_boolean_false")} | {"case":key},ensure_ascii=False),flush=True)
+            report["loss_over_10000_confirmed_cases"]=[k for k,v in report["cases"].items() if v["at_least_10000_usdc_loss"]]
+            report["status"]="HWM_LEDGER_RECONSTRUCTED_AWAITING_COIN_ATTRIBUTION"
+          pathlib.Path("audit/hwm-original-qa.json").write_text(json.dumps(report,indent=2,ensure_ascii=False)+"\n")
+          print("HWM_SUMMARY",json.dumps({"cases":len(report["cases"]),"loss_over_10k_cases":report["loss_over_10000_confirmed_cases"],"status":report["status"]}),flush=True)
+          PY
+      - name: Save raw HWM and frozen-diagnostics source observations
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: hixton-original-hwm-evidence-${{ github.run_id }}
+          path: audit/
+          retention-days: 30
+          if-no-files-found: warn
