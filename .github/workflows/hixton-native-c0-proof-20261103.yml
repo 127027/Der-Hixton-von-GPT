@@ -1,0 +1,129 @@
+# Research-only, isolated one-time native C0 baseline reproduction.
+# Never changes product code, paper/live configs or credentials.
+name: Hixton Native C0 Baseline Proof
+on:
+  push:
+    branches: [research/hixton-native-baseline-proof-20261103]
+    paths:
+      - ".github/workflows/hixton-native-c0-proof-20261103.yml"
+  workflow_dispatch:
+permissions:
+  contents: read
+  actions: read
+jobs:
+  replay-original-historical-baseline:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 45
+    env:
+      GH_TOKEN: ${{ github.token }}
+      GH_REPO: ${{ github.repository }}
+      HIXTON_RESEARCH_ONLY: "1"
+      HIXTON_NO_TRADING: "1"
+    steps:
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Download original historical research archive, verify SHA256 and attempt exactly one native replay
+        shell: bash
+        run: |
+          python - <<'PY'
+          import hashlib, json, os, pathlib, re, subprocess, sys, time, traceback, zipfile
+          work=pathlib.Path.cwd()
+          audit=work/"audit"
+          audit.mkdir(exist_ok=True)
+          raw=work/"inputs"
+          raw.mkdir(exist_ok=True)
+          report={
+            "product_sha":"f56d48536525830dd6ea50bf5bc174a6f9aeff8c",
+            "research_release":"research-data-20261103-five-dot-inputs",
+            "environment":"GitHub Actions ubuntu-24.04 Python 3.11",
+            "candidate_strategy_changes":False,
+            "paper_live_changes":False,
+            "run_attempted":False,
+            "native_replay_completed":False,
+            "original_results_parity_proven":False,
+            "status":"NOT_STARTED",
+          }
+          def save():
+            (audit/"native-replay-evidence.json").write_text(json.dumps(report,indent=2,ensure_ascii=False)+"\n")
+          def sha256(path):
+            h=hashlib.sha256()
+            with path.open("rb") as f:
+              for chunk in iter(lambda:f.read(4*1024*1024),b""):h.update(chunk)
+            return h.hexdigest()
+          try:
+            asset="Hixton-Loss-Handoff-20261102.zip"
+            expected="d1d1cde8347665d74da71f9e44bb3876dc6662bfe4bfc9e34dcab1dfecd84308"
+            cmd=["gh","release","download","research-data-20261103-five-dot-inputs","-R",os.environ["GH_REPO"],"-p",asset,"-D",str(raw)]
+            d=subprocess.run(cmd,capture_output=True,text=True,timeout=300)
+            report["download"]={"command":cmd[:4]+cmd[5:],"exit_code":d.returncode,"stderr_tail":d.stderr[-2000:]}
+            if d.returncode:raise RuntimeError("GitHub release archive download unsuccessful")
+            archive=raw/asset
+            actual=sha256(archive)
+            report["archive"]={"size":archive.stat().st_size,"sha256":actual,"expected_sha256":expected,"verified":actual==expected}
+            if actual!=expected:raise RuntimeError("Original historical ZIP SHA256 mismatch")
+            dest=work/"extracted-historical"
+            dest.mkdir(exist_ok=True)
+            with zipfile.ZipFile(archive) as z:
+              for item in z.infolist():
+                target=(dest/item.filename).resolve()
+                if not target.is_relative_to(dest.resolve()):
+                  raise RuntimeError("Archive contains unsafe path")
+              z.extractall(dest)
+            matches=list(dest.rglob("run_baseline.py"))
+            report["script_matches"]=[str(x.relative_to(dest)) for x in matches]
+            if len(matches)!=1:raise RuntimeError("Expected exactly one historical native runner")
+            script=matches[0]
+            env={k:v for k,v in os.environ.items() if not re.search(r"TOKEN|PASSWORD|SECRET|API_KEY|PRIVATE_KEY|CREDENTIAL",k,re.I)}
+            env.update({"HIXTON_RESEARCH_ONLY":"1","HIXTON_NO_TRADING":"1"})
+            def call(args,timeout):
+              return subprocess.run([sys.executable,script.name]+args,cwd=str(script.parent),env=env,capture_output=True,text=True,timeout=timeout)
+            v=call([],180)
+            report["offline_verifier"]={"exit_code":v.returncode,"stdout_tail":v.stdout[-5000:],"stderr_tail":v.stderr[-3000:]}
+            if v.returncode:raise RuntimeError("Offline verifier did not pass; replay blocked")
+            h=call(["--help"],90)
+            helptext=(h.stdout+"\n"+h.stderr)
+            report["help"]={"exit_code":h.returncode,"text":helptext[-8000:]}
+            if h.returncode!=0 or "--run" not in helptext:
+              raise RuntimeError("Cannot verify explicit native --run option")
+            out=(work/"native-out").resolve()
+            out.mkdir(exist_ok=True)
+            flags=["--output-dir","--out-dir","--output-root","--out-root","--output","--out","--run-dir"]
+            option=next((f for f in flags if re.search(r"(?<![a-zA-Z0-9_-])"+re.escape(f)+r"(?![a-zA-Z0-9_-])",helptext)),None)
+            if option is None:
+              raise RuntimeError("No explicit output-directory option in --help; will not risk overwriting bundled C0 ledgers")
+            args=["--run",option,str(out)]
+            report["replay_command"]=[sys.executable,script.name]+args
+            report["run_attempted"]=True
+            report["status"]="NATIVE_REPLAY_IN_PROGRESS"
+            save()
+            start=time.time()
+            p=call(args,1800)
+            report["native_replay"]={"exit_code":p.returncode,"elapsed_s":round(time.time()-start,2),"stdout_tail":p.stdout[-20000:],"stderr_tail":p.stderr[-10000:]}
+            report["generated_files"]=[]
+            for f in sorted(out.rglob("*")):
+              if f.is_file():
+                report["generated_files"].append({"path":str(f.relative_to(out)),"bytes":f.stat().st_size,"sha256":sha256(f)})
+            report["native_replay_completed"]=p.returncode==0 and len(report["generated_files"])>0
+            report["status"]="COMPLETED_PARITY_PENDING_INDEPENDENT_QA" if report["native_replay_completed"] else "REPLAY_FAILED_OR_NO_OUTPUT"
+            if not report["native_replay_completed"]:raise RuntimeError("Native runner failed or produced no independent outputs")
+          except Exception as exc:
+            report["error"]=str(exc)
+            report["status"]="BLOCKED" if not report["run_attempted"] else "REPLAY_FAILED_OR_NO_OUTPUT"
+            report["traceback_tail"]=traceback.format_exc()[-3500:]
+          finally:
+            save()
+            print(json.dumps(report,indent=2,ensure_ascii=False),flush=True)
+          if not report["native_replay_completed"]:
+            sys.exit(1)
+          PY
+      - name: Preserve native reproduction evidence for independent Dot4 and Dot5 review
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: hixton-native-c0-evidence-${{ github.run_id }}
+          path: |
+            audit/**
+            native-out/**
+          retention-days: 30
+          if-no-files-found: warn
