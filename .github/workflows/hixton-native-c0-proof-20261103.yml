@@ -88,25 +88,37 @@ jobs:
               raise RuntimeError("Cannot verify explicit native --run option")
             out=(work/"native-out").resolve()
             out.mkdir(exist_ok=True)
-            flags=["--output-dir","--out-dir","--output-root","--out-root","--output","--out","--run-dir"]
-            option=next((f for f in flags if re.search(r"(?<![a-zA-Z0-9_-])"+re.escape(f)+r"(?![a-zA-Z0-9_-])",helptext)),None)
-            if option is None:
-              raise RuntimeError("No explicit output-directory option in --help; will not risk overwriting bundled C0 ledgers")
-            args=["--run",option,str(out)]
-            report["replay_command"]=[sys.executable,script.name]+args
+            report["native_replays"]=[]
+            windows=["original_32k","current_26oct","latest_long"]
+            costs=["current","stress"]
             report["run_attempted"]=True
             report["status"]="NATIVE_REPLAY_IN_PROGRESS"
             save()
-            start=time.time()
-            p=call(args,1800)
-            report["native_replay"]={"exit_code":p.returncode,"elapsed_s":round(time.time()-start,2),"stdout_tail":p.stdout[-20000:],"stderr_tail":p.stderr[-10000:]}
+            for window in windows:
+              for cost in costs:
+                case_out=out/(window+"__"+cost)
+                if case_out.exists():raise RuntimeError("Refusing to overwrite existing case output")
+                args=["--run","--window",window,"--cost",cost,"--out",str(case_out)]
+                started=time.time()
+                p=call(args,1600)
+                summary={"window":window,"cost":cost,"exit_code":p.returncode,"duration_s":round(time.time()-started,2),"command":[sys.executable,script.name]+args,"stdout_tail":p.stdout[-18000:],"stderr_tail":p.stderr[-8000:],"outputs":[]}
+                if case_out.exists():
+                  for f in sorted(case_out.rglob("*")):
+                    if f.is_file():
+                      summary["outputs"].append({"path":str(f.relative_to(case_out)),"size":f.stat().st_size,"sha256":sha256(f)})
+                summary["case_success"]=p.returncode==0 and bool(summary["outputs"])
+                report["native_replays"].append(summary)
+                report["completed_cases"]=sum(x["case_success"] for x in report["native_replays"])
+                save()
+                if not summary["case_success"]:
+                  raise RuntimeError("Native --run failed or emitted no output for "+window+"/"+cost)
             report["generated_files"]=[]
             for f in sorted(out.rglob("*")):
               if f.is_file():
                 report["generated_files"].append({"path":str(f.relative_to(out)),"bytes":f.stat().st_size,"sha256":sha256(f)})
-            report["native_replay_completed"]=p.returncode==0 and len(report["generated_files"])>0
-            report["status"]="COMPLETED_PARITY_PENDING_INDEPENDENT_QA" if report["native_replay_completed"] else "REPLAY_FAILED_OR_NO_OUTPUT"
-            if not report["native_replay_completed"]:raise RuntimeError("Native runner failed or produced no independent outputs")
+            report["native_replay_completed"]=len(report["native_replays"])==6 and all(x["case_success"] for x in report["native_replays"])
+            report["status"]="SIX_C0_REPLAYS_COMPLETED_PARITY_PENDING_INDEPENDENT_QA" if report["native_replay_completed"] else "REPLAY_FAILED_OR_NO_OUTPUT"
+            if not report["native_replay_completed"]:raise RuntimeError("Not all six original historical C0 cases reproduced")
           except Exception as exc:
             report["error"]=str(exc)
             report["status"]="BLOCKED" if not report["run_attempted"] else "REPLAY_FAILED_OR_NO_OUTPUT"
