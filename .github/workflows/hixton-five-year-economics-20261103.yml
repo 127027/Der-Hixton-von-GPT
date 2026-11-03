@@ -1,0 +1,74 @@
+name: Hixton Five-Year C0 Economic Summary
+on:
+  push:
+    branches: [research/hixton-native-baseline-proof-20261103]
+    paths: [".github/workflows/hixton-five-year-economics-20261103.yml"]
+  workflow_dispatch:
+permissions:
+  contents: read
+  actions: read
+jobs:
+  compute-metrics-from-existing-ledgers:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    env:
+      GH_TOKEN: ${{ github.token }}
+      GH_REPO: ${{ github.repository }}
+    steps:
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Read already calculated 10 five-year runs and compute actual HWM and final equity
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p c0 audit
+          gh run download 41684371923 -R "$GH_REPO" -n hixton-five-year-c0-evidence-41684371923 -D c0
+          python - <<'PY'
+          import csv,gzip,io,json,pathlib,hashlib
+          from decimal import Decimal
+          folder=pathlib.Path("c0")
+          manifest=list(folder.rglob("five-year-c0-reproduction.json"))
+          if len(manifest)!=1:raise RuntimeError("Original native proof manifest missing")
+          m=json.loads(manifest[0].read_text())
+          if m["status"]!="TEN_SYNTHETIC_C0_FINANCIAL_PARITY_PASS" or len(m["cases"])!=10 or any(c["status"]!="PARITY_PASS" for c in m["cases"]):
+            raise RuntimeError("Refuse unverified C0 native output")
+          report={"upstream_run":41684371923,"upstream_status":m["status"],"unmodified_C0":True,"cases":{},"target_usdc":"1000000"}
+          for world in ("cycles","winter","whipsaw","rotation","tail"):
+            for cost in ("current","stress"):
+              key=world+"__"+cost
+              arr=list(folder.rglob(key+"/Equity.csv.gz"))
+              if len(arr)!=1:raise RuntimeError("Unique frozen-backed equity curve not found for "+key)
+              file=arr[0]
+              reader=csv.DictReader(io.StringIO(gzip.decompress(file.read_bytes()).decode("utf-8-sig")))
+              cols=reader.fieldnames or []
+              ek=next((v for v in cols if "equity" in v.lower() and not any(b in v.lower() for b in ("delta","unreal","drawdown","change"))),None)
+              if not ek:raise RuntimeError("No equity column "+key+": "+str(cols))
+              tk=next((v for v in cols if "time" in v.lower() or v.lower() in ("ts","hour","date")),None)
+              peak=Decimal(0);max_abs=Decimal(0);max_pct=Decimal(0);max_abs_peak=Decimal(0);final=Decimal(0);first=None;bars=0;peak_dt=None;trough_dt=None
+              for i,row in enumerate(reader):
+                eq=Decimal(row[ek]);bars+=1
+                if first is None:first=eq
+                t=row.get(tk,str(i)) if tk else str(i)
+                if eq>peak:peak=eq;peak_dt=t
+                diff=peak-eq
+                if diff>max_abs:
+                  max_abs=diff;max_abs_peak=peak;trough_dt=t
+                if peak>0:max_pct=max(max_pct,diff/peak*100)
+                final=eq
+              if bars<30000:raise RuntimeError("Synthetic 5-year hourly ledger too short: "+key+" bars "+str(bars))
+              report["cases"][key]={"scenario":world,"cost":cost,"bars":bars,"starting_equity_first_record":str(first),"ending_equity":str(final),"highest_equity_hwm":str(peak),"max_absolute_hwm_drawdown_usdc":str(max_abs),"pct_loss_at_max_absolute_hwm_drawdown":str((max_abs/max_abs_peak*100) if max_abs_peak>0 else 0),"max_percent_hwm_drawdown":str(max_pct),"max_absolute_hwm_trough_time":trough_dt,"meets_1m_at_five_year_end":final>=Decimal("1000000"),"eq_file_sha256":hashlib.sha256(file.read_bytes()).hexdigest()}
+              print("FIVE_YEAR_C0_ECONOMICS",json.dumps({"case":key,"starting_equity_first_record":str(first),"ending_equity":str(final),"max_abs_dd":str(max_abs),"max_pct_dd":str(max_pct),"million_end":final>=Decimal("1000000")}),flush=True)
+          report["cases_reaching_million"]= [name for name,val in report["cases"].items() if val["meets_1m_at_five_year_end"]]
+          report["status"]="TEN_PROVEN_FIVE_YEAR_C0_ECONOMICS_COMPUTED"
+          pathlib.Path("audit/synthetic-c0-economics.json").write_text(json.dumps(report,indent=2,ensure_ascii=False)+"\n")
+          print("ECONOMIC_SUMMARY",json.dumps({"status":report["status"],"case_count":len(report["cases"]),"million_c0_cases":report["cases_reaching_million"]}),flush=True)
+          PY
+      - name: Preserve economic summary, no engine rerun
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: hixton-five-year-economic-summary-${{ github.run_id }}
+          path: audit/
+          retention-days: 30
+          if-no-files-found: warn
