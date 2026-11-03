@@ -1,0 +1,106 @@
+name: Hixton Five-Year Native C0 Reproduction
+on:
+  push:
+    branches: [research/hixton-native-baseline-proof-20261103]
+    paths: [".github/workflows/hixton-synthetic-c0-parity-20261103.yml"]
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  reproduce:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 55
+    env:
+      GH_TOKEN: ${{ github.token }}
+      GH_REPO: ${{ github.repository }}
+      HIXTON_RESEARCH_ONLY: "1"
+      HIXTON_NO_TRADING: "1"
+    steps:
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Install deterministic offline numeric dependency
+        run: python -m pip install --disable-pip-version-check numpy==2.3.5
+      - name: Execute ten real 5-year native baseline replays and compare original ledgers
+        shell: bash
+        run: |
+          python - <<'PY'
+          import gzip,hashlib,json,os,pathlib,re,subprocess,sys,time,traceback,zipfile
+          root=pathlib.Path.cwd();audit=root/"audit";audit.mkdir(exist_ok=True)
+          inp=root/"input";inp.mkdir(exist_ok=True)
+          evidence={"product_sha":"f56d48536525830dd6ea50bf5bc174a6f9aeff8c","archive_sha_expected":"5262f12bef7182ae10e2c85fe5b790263404764e98e759196dbdfb7d0970d278","candidate_changed":False,"originals_changed":False,"network_or_live_enabled":False,"cases":[],"status":"STARTED"}
+          def sha(f):
+            h=hashlib.sha256()
+            with f.open("rb") as t:
+              for chunk in iter(lambda:t.read(4*1024*1024),b""):h.update(chunk)
+            return h.hexdigest()
+          def save():
+            (audit/"five-year-c0-reproduction.json").write_text(json.dumps(evidence,indent=2,ensure_ascii=False)+"\n")
+          try:
+            name="Hixton-Five-Synthetic-Worlds-20261103.zip"
+            d=subprocess.run(["gh","release","download","research-data-20261103-five-dot-inputs","-R",os.environ["GH_REPO"],"-p",name,"-D",str(inp)],capture_output=True,text=True,timeout=300)
+            if d.returncode:raise RuntimeError("release download: "+d.stderr[-1000:])
+            z=inp/name;evidence["archive_sha_observed"]=sha(z)
+            if evidence["archive_sha_observed"]!=evidence["archive_sha_expected"]:raise RuntimeError("synthetic original SHA mismatch")
+            folder=root/"original";folder.mkdir(exist_ok=True)
+            with zipfile.ZipFile(z) as archive:
+              for entry in archive.infolist():
+                if not (folder/entry.filename).resolve().is_relative_to(folder.resolve()):raise RuntimeError("unsafe zip path")
+              archive.extractall(folder)
+            found=list(folder.rglob("run_synthetic_baseline.py"))
+            if len(found)!=1:raise RuntimeError("expected unique original native synthetic runner")
+            script=found[0];bundle=script.parent;evidence["runner_original_sha256"]=sha(script)
+            bootstrap=("import runpy,sys,types\nfrom pathlib import Path\nscript=Path(sys.argv[1]).resolve()\nengine=script.parent/'engine'/'src'\nsys.path.insert(0,str(engine))\ndata=types.ModuleType('hixton.data')\ndata.__path__=[str(engine/'hixton'/'data')]\ndata.__package__='hixton.data'\nsys.modules['hixton.data']=data\nsys.argv=[str(script)]+sys.argv[2:]\nrunpy.run_path(str(script),run_name='__main__')\n")
+            evidence["offline_import_bootstrap_sha256"]=hashlib.sha256(bootstrap.encode()).hexdigest()
+            evidence["bootstrap_source"]=bootstrap
+            env={k:v for k,v in os.environ.items() if not re.search("TOKEN|PASSWORD|SECRET|API_KEY|PRIVATE_KEY|CREDENTIAL",k,re.I)}
+            env.update({"HIXTON_RESEARCH_ONLY":"1","HIXTON_NO_TRADING":"1"})
+            def command(args,isolated=False,timeout=1400):
+              c=([sys.executable,"-c",bootstrap,str(script)]+args) if isolated else ([sys.executable,str(script)]+args)
+              return subprocess.run(c,cwd=bundle,env=env,capture_output=True,text=True,timeout=timeout)
+            verifier=command([],timeout=180)
+            evidence["offline_verifier"]={"exit_code":verifier.returncode,"stdout":verifier.stdout[-2200:],"stderr":verifier.stderr[-2200:]}
+            if verifier.returncode:raise RuntimeError("source and input offline verifier did not pass")
+            output=root/"native-five-year";output.mkdir(exist_ok=True)
+            for window in ("cycles","winter","whipsaw","rotation","tail"):
+              for cost in ("current","stress"):
+                case_id=window+"__"+cost;dest=output/case_id
+                if dest.exists():raise RuntimeError("output overwrite refused")
+                t=time.monotonic();p=command(["--run","--window",window,"--cost",cost,"--out",str(dest)],isolated=True)
+                case={"id":case_id,"exit_code":p.returncode,"seconds":round(time.monotonic()-t,2),"stdout_tail":p.stdout[-1800:],"stderr_tail":p.stderr[-3200:],"status":"NATIVE_RUN_FAILED"}
+                if p.returncode==0 and (dest/"Result.json").is_file():
+                  frozen=bundle/"baseline"/window/cost
+                  expected=json.loads((frozen/"Result.json").read_text());actual=json.loads((dest/"Result.json").read_text())
+                  case["result_subset_parity"]=all(k in expected and expected[k]==v for k,v in actual.items())
+                  case["frozen_only_result_fields"]=sorted(set(expected)-set(actual))
+                  case["ledger_parity"]={}
+                  for fname in ("Trades.json","Fills.json","Signals.json","Equity.csv.gz"):
+                    a=dest/fname;b=frozen/fname
+                    if not a.is_file() or not b.is_file():case["ledger_parity"][fname]="MISSING"
+                    elif fname.endswith(".gz"):case["ledger_parity"][fname]=gzip.decompress(a.read_bytes())==gzip.decompress(b.read_bytes())
+                    else:case["ledger_parity"][fname]=json.loads(a.read_text())==json.loads(b.read_text())
+                  case["status"]="PARITY_PASS" if case["result_subset_parity"] and all(v is True for v in case["ledger_parity"].values()) else "PARITY_MISMATCH"
+                  case["original_summary"]={k:expected[k] for k in ("ending_equity","max_drawdown","starting_cash") if k in expected}
+                  case["files_sha256"]={f.name:sha(f) for f in dest.iterdir() if f.is_file()}
+                evidence["cases"].append(case)
+                evidence["passing_cases"]=sum(k["status"]=="PARITY_PASS" for k in evidence["cases"])
+                save()
+                print("NATIVE_C0_CASE",json.dumps({k:case.get(k) for k in ("id","status","exit_code","seconds","original_summary","result_subset_parity","ledger_parity")}),flush=True)
+                if case["status"]!="PARITY_PASS":raise RuntimeError(case_id+" did not exactly reproduce frozen original financial ledger")
+            evidence["status"]="TEN_SYNTHETIC_C0_FINANCIAL_PARITY_PASS" if len(evidence["cases"])==10 else "INCOMPLETE"
+          except Exception as err:
+            evidence["status"]="BLOCKED_OR_FAILED";evidence["error"]=str(err);evidence["traceback"]=traceback.format_exc()[-3300:]
+          finally:
+            save();print("C0_SUMMARY",json.dumps({"status":evidence["status"],"passed":evidence.get("passing_cases",0),"error":evidence.get("error")}),flush=True)
+          if evidence["status"]!="TEN_SYNTHETIC_C0_FINANCIAL_PARITY_PASS":sys.exit(1)
+          PY
+      - name: Preserve all ten native five-year output ledgers and audit manifest
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: hixton-five-year-c0-evidence-${{ github.run_id }}
+          path: |
+            audit/**
+            native-five-year/**
+          retention-days: 30
+          if-no-files-found: warn
