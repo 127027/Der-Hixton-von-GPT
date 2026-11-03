@@ -78,6 +78,11 @@ jobs:
             env.update({"HIXTON_RESEARCH_ONLY":"1","HIXTON_NO_TRADING":"1"})
             def call(args,timeout):
               return subprocess.run([sys.executable,script.name]+args,cwd=str(script.parent),env=env,capture_output=True,text=True,timeout=timeout)
+            source_lines=script.read_text(encoding="utf-8").splitlines()
+            report["wrapper_guard_excerpt"]=list(enumerate(source_lines[108:158],start=109))
+            report["wrapper_top_excerpt"]=list(enumerate(source_lines[:52],start=1))
+            report["wrapper_cli_excerpt"]=list(enumerate(source_lines[184:218],start=185))
+            raise RuntimeError("ONE-TIME SOURCE GUARD INSPECTION: no financial replays attempted in this diagnostic run")
             v=call([],180)
             report["offline_verifier"]={"exit_code":v.returncode,"stdout_tail":v.stdout[-5000:],"stderr_tail":v.stderr[-3000:]}
             if v.returncode:raise RuntimeError("Offline verifier did not pass; replay blocked")
