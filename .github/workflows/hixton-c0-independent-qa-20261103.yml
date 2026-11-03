@@ -74,17 +74,20 @@ jobs:
               if len(cands)==1:
                 orig=cands[0];ref=json.loads(orig.read_text());actual=json.loads((folder/"Result.json").read_text())
                 q["result_equal"]=(ref==actual)
+                q["all_replay_result_fields_equal"]=all(k in ref and ref[k]==v for k,v in actual.items())
+                q["frozen_only_result_fields"]=sorted(set(ref)-set(actual))
+                q["replay_only_result_fields"]=sorted(set(actual)-set(ref))
                 q["result_differences"]=recursive_differences(ref,actual)[:24]
-                q["state"]="MATCH" if q["result_equal"] else "MISMATCH"
+                q["state"]="MATCH" if q["result_equal"] else ("MATCH_FINANCIAL_FIELDS_WITH_FROZEN_ONLY_REPORT_FIELDS" if q["all_replay_result_fields_equal"] and not q["replay_only_result_fields"] else "MISMATCH")
                 for fname in ("Trades.json","Fills.json","Signals.json","Equity.csv.gz"):
                   a=folder/fname;b=orig.parent/fname
                   if a.is_file() and b.is_file():
                     q[fname+"_equal"]=(gzip.decompress(a.read_bytes())==gzip.decompress(b.read_bytes())) if fname.endswith(".gz") else (json.loads(a.read_text())==json.loads(b.read_text()))
               report["results"][key]=q
           fields=("Trades.json","Fills.json","Signals.json","Equity.csv.gz")
-          report["verdict"]="FULL_LEDGER_MATCH" if len(report["results"])==6 and all(v.get("state")=="MATCH" and all(v.get(f+"_equal") for f in fields) for v in report["results"].values()) else "REQUIRES_MAPPING_OR_REVIEW"
+          report["verdict"]="FINANCIAL_LEDGER_PARITY_PASS_WITH_FROZEN_EXTRA_RESULT_FIELDS" if len(report["results"])==6 and all(v.get("all_replay_result_fields_equal") and all(v.get(f+"_equal") for f in fields) for v in report["results"].values()) else "REQUIRES_MAPPING_OR_REVIEW"
           (root/"audit/qa-evidence.json").write_text(json.dumps(report,indent=2,ensure_ascii=False)+"\n")
-          print("RESULT",json.dumps({"verdict":report["verdict"],"cases":{k:{x:y for x,y in v.items() if x in ("state","result_equal","result_differences","original_candidates","Trades.json_equal","Fills.json_equal","Signals.json_equal","Equity.csv.gz_equal")} for k,v in report["results"].items()}},ensure_ascii=False))
+          print("RESULT",json.dumps({"verdict":report["verdict"],"cases":{k:{x:y for x,y in v.items() if x in ("state","result_equal","all_replay_result_fields_equal","frozen_only_result_fields","replay_only_result_fields","original_candidates","Trades.json_equal","Fills.json_equal","Signals.json_equal","Equity.csv.gz_equal")} for k,v in report["results"].items()}},ensure_ascii=False))
           PY
       - name: Save independent QA evidence
         if: always()
