@@ -47,6 +47,18 @@ jobs:
             body=json.loads(contract[0].read_text())
             print("INPUT_CONTRACT_KEYS",list(body))
           report={"source_sha256":"d1d1cde8347665d74da71f9e44bb3876dc6662bfe4bfc9e34dcab1dfecd84308","replay_run_id":41624952024,"results":{},"verdict":"PENDING"}
+          def recursive_differences(a,b,path=""):
+            differences=[]
+            if isinstance(a,dict) and isinstance(b,dict):
+              for k in sorted(set(a)|set(b)):
+                if k not in a or k not in b: differences.append({"field":path+"."+k,"original":repr(a.get(k,"<MISSING>"))[:200],"replay":repr(b.get(k,"<MISSING>"))[:200]})
+                else:differences.extend(recursive_differences(a[k],b[k],path+"."+k))
+            elif isinstance(a,list) and isinstance(b,list):
+              if len(a)!=len(b):differences.append({"field":path+".length","original":len(a),"replay":len(b)})
+              for i in range(min(len(a),len(b))):differences.extend(recursive_differences(a[i],b[i],path+"["+str(i)+"]"))
+            elif a!=b:
+              differences.append({"field":path,"original":repr(a)[:200],"replay":repr(b)[:200]})
+            return differences
           for window in ("original_32k","current_26oct","latest_long"):
             for cost in ("current","stress"):
               key=window+"__"+cost
@@ -55,13 +67,14 @@ jobs:
                 report["results"][key]={"state":"REPLAY_OUTPUT_NOT_FOUND","count":len(dirs)}
                 continue
               folder=dirs[0]
-              cands=[x for x in ref_results if (key in str(x) or window in str(x) and cost in str(x))]
+              cands=[x for x in ref_results if x.parent.name==cost and x.parent.parent.name==window]
               q={"state":"MAPPING_NOT_FOUND","original_candidates":[str(x.relative_to(old)) for x in cands],"replay_files":[x.name for x in folder.iterdir() if x.is_file()]}
               q["validation"]=json.loads((folder/"Validation.json").read_text())
               q["complete"]=json.loads((folder/"Complete.json").read_text())
               if len(cands)==1:
                 orig=cands[0];ref=json.loads(orig.read_text());actual=json.loads((folder/"Result.json").read_text())
                 q["result_equal"]=(ref==actual)
+                q["result_differences"]=recursive_differences(ref,actual)[:24]
                 q["state"]="MATCH" if q["result_equal"] else "MISMATCH"
                 for fname in ("Trades.json","Fills.json","Signals.json","Equity.csv.gz"):
                   a=folder/fname;b=orig.parent/fname
@@ -71,7 +84,7 @@ jobs:
           fields=("Trades.json","Fills.json","Signals.json","Equity.csv.gz")
           report["verdict"]="FULL_LEDGER_MATCH" if len(report["results"])==6 and all(v.get("state")=="MATCH" and all(v.get(f+"_equal") for f in fields) for v in report["results"].values()) else "REQUIRES_MAPPING_OR_REVIEW"
           (root/"audit/qa-evidence.json").write_text(json.dumps(report,indent=2,ensure_ascii=False)+"\n")
-          print("RESULT",json.dumps({"verdict":report["verdict"],"cases":{k:{x:y for x,y in v.items() if x in ("state","result_equal","original_candidates","Trades.json_equal","Fills.json_equal","Signals.json_equal","Equity.csv.gz_equal")} for k,v in report["results"].items()}},ensure_ascii=False))
+          print("RESULT",json.dumps({"verdict":report["verdict"],"cases":{k:{x:y for x,y in v.items() if x in ("state","result_equal","result_differences","original_candidates","Trades.json_equal","Fills.json_equal","Signals.json_equal","Equity.csv.gz_equal")} for k,v in report["results"].items()}},ensure_ascii=False))
           PY
       - name: Save independent QA evidence
         if: always()
