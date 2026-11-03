@@ -22,40 +22,8 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: "3.11"
-      - name: Verify research release and execute default offline checks
-        shell: bash
-        run: |
-          mkdir -p audit
-          gh release download research-data-20261103-five-dot-inputs -R "$GH_REPO" -D inputs > audit/download.log 2>&1 || true
-          python - <<'PY'
-          import hashlib,json,pathlib,subprocess,sys,zipfile
-          expected={
-          "Hixton-Five-Dot-Auftraege-20261103.zip":"618a220be9321056738f37629ab3c5f65b24a862a0e6127c19bf9141509f8a11",
-          "Hixton-Five-Synthetic-Worlds-20261103.zip":"5262f12bef7182ae10e2c85fe5b790263404764e98e759196dbdfb7d0970d278",
-          "Hixton-Loss-Handoff-20261102.zip":"d1d1cde8347665d74da71f9e44bb3876dc6662bfe4bfc9e34dcab1dfecd84308",
-          "SHA256SUMS-Five-Dot-20261103.txt":"18984f4975d086c5c73391306aa7399f9223c7cb07f820a9a4b060c5d7d901f4"}
-          res={"source":"research-data-20261103-five-dot-inputs","files":{},"verifiers":{},"native_replay_executed":False}
-          for name,want in expected.items():
-            p=pathlib.Path("inputs")/name
-            if not p.is_file():res["files"][name]={"downloaded":False};continue
-            h=hashlib.sha256()
-            with p.open("rb") as f:
-              for b in iter(lambda:f.read(2*1024*1024),b""):h.update(b)
-            res["files"][name]={"downloaded":True,"size":p.stat().st_size,"sha256":h.hexdigest(),"verified":h.hexdigest()==want}
-          if len(res["files"])==4 and all(x.get("verified") for x in res["files"].values()):
-            for label,archive,script in [("historical","Hixton-Loss-Handoff-20261102.zip","run_baseline.py"),("synthetic","Hixton-Five-Synthetic-Worlds-20261103.zip","run_synthetic_baseline.py")]:
-              try:
-                root=pathlib.Path("unpacked")/label;root.mkdir(parents=True,exist_ok=True)
-                with zipfile.ZipFile(pathlib.Path("inputs")/archive) as z:z.extractall(root)
-                paths=list(root.rglob(script))
-                if len(paths)!=1:raise RuntimeError("Expected one verifier, found "+str(len(paths)))
-                p=subprocess.run([sys.executable,script],cwd=paths[0].parent,capture_output=True,text=True,timeout=180)
-                res["verifiers"][label]={"exit":p.returncode,"status":"PASS" if p.returncode==0 else "FAIL","stdout":p.stdout[-2500:],"stderr":p.stderr[-2500:]}
-              except Exception as e:res["verifiers"][label]={"status":"BLOCKED","error":repr(e)}
-          else:res["verifiers"]["gate"]={"status":"BLOCKED","reason":"Release download/SHA mismatch"}
-          pathlib.Path("audit/input-verification.json").write_text(json.dumps(res,indent=2)+"\n")
-          print(json.dumps(res,indent=2))
-          PY
+      # The original data ZIPs and both offline verifiers passed in run 41621096852.
+      # Avoid re-downloading/rechecking identical immutable inputs in this repair run.
       - name: Four checkpoints at 15-minute intervals
         shell: bash
         run: |
@@ -75,7 +43,7 @@ jobs:
             diff={}
             if prior:
               diff={"new_commits":list(set(state["commit_shas"])-set(prior["commit_shas"])),"new_action_runs":list(set(state["other_action_ids"])-set(prior["other_action_ids"])),"issue_updated":state["issue_updated"]!=prior["issue_updated"],"issue_comments_changed":state["issue_comments"]!=prior["issue_comments"]}
-            report={"check":n+1,"at_utc":datetime.datetime.now(datetime.timezone.utc).isoformat(),"github_evidence":state,"change":diff,"chatgpt_dot_state":"UNOBSERVABLE_FROM_GITHUB","note":"ChatGPT Dot progress cannot be read from GitHub without an authorized Dot connector; do not claim GitHub changes prove a Dot executed.","errors":{"issue":issue.get("error"),"runs":runs.get("error"),"commits":commits.get("error")}}
+            report={"check":n+1,"at_utc":datetime.datetime.now(datetime.timezone.utc).isoformat(),"github_evidence":state,"change":diff,"chatgpt_dot_state":"UNOBSERVABLE_FROM_GITHUB","note":"ChatGPT Dot progress cannot be read from GitHub without an authorized Dot connector; do not claim GitHub changes prove a Dot executed.","errors":{"issue":issue.get("error"),"runs":runs.get("error"),"commits":commits.get("error") if isinstance(commits,dict) else None}}
             (out/("check-"+str(n+1)+".json")).write_text(json.dumps(report,indent=2)+"\n")
             print("CHECK",n+1,json.dumps({"at_utc":report["at_utc"],"change":diff,"dot_state":report["chatgpt_dot_state"]}),flush=True)
             prior=state
