@@ -1,0 +1,57 @@
+# One-time research-only inspection of frozen five-year synthetic baseline runner.
+# No candidate optimization, no strategy or trading changes.
+name: Hixton Synthetic C0 Discovery
+on:
+  push:
+    branches: [research/hixton-native-baseline-proof-20261103]
+    paths: [".github/workflows/hixton-synthetic-c0-discovery-20261103.yml"]
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  inspect-synthetic-runner:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    env:
+      GH_TOKEN: ${{ github.token }}
+      GH_REPO: ${{ github.repository }}
+      HIXTON_RESEARCH_ONLY: "1"
+      HIXTON_NO_TRADING: "1"
+    steps:
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Download and verify frozen five-year inputs
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p input audit
+          gh release download research-data-20261103-five-dot-inputs -R "$GH_REPO" -p Hixton-Five-Synthetic-Worlds-20261103.zip -D input
+          echo "5262f12bef7182ae10e2c85fe5b790263404764e98e759196dbdfb7d0970d278  input/Hixton-Five-Synthetic-Worlds-20261103.zip" | sha256sum -c
+          python - <<'PY'
+          import json,pathlib,zipfile,hashlib
+          z=pathlib.Path("input/Hixton-Five-Synthetic-Worlds-20261103.zip")
+          with zipfile.ZipFile(z) as f:
+            m=f.namelist()
+            runners=[n for n in m if n.endswith("/run_synthetic_baseline.py") or n=="run_synthetic_baseline.py"]
+            frozen=[n for n in m if n.endswith("/Result.json") or n.endswith("/Complete.json") or n.endswith("/Input-Contract.json")]
+            print("SYNTHETIC_RUNNER_CANDIDATES",json.dumps(runners))
+            print("FROZEN_REFERENCE_FILES",json.dumps(frozen[:90]))
+            print("ARCHIVE_ENTRY_COUNT",len(m))
+            if len(runners)!=1:raise RuntimeError("expected one synthetic runner")
+            src=f.read(runners[0]).decode("utf-8")
+            print("RUNNER_SHA256",hashlib.sha256(src.encode()).hexdigest())
+            print("RUNNER_LINE_COUNT",len(src.splitlines()))
+            for i,l in enumerate(src.splitlines(),1):
+              if any(x in l for x in ("add_argument(","run_native","--scenario","--world","--cost","--out","hixton.data","network_allowed","sys.addaudithook","subprocess","import_module")):
+                print(f"RUNNER_SOURCE_LINE {i}: {l[:320]}")
+            pathlib.Path("audit/synthetic-runner-discovery.json").write_text(json.dumps({"runner":runners[0],"source_sha256":hashlib.sha256(src.encode()).hexdigest(),"frozen_reference_files":frozen,"entry_count":len(m)},indent=2))
+          PY
+      - name: Preserve audit manifest
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: synthetic-c0-discovery-${{ github.run_id }}
+          path: audit/
+          retention-days: 30
+          if-no-files-found: warn
