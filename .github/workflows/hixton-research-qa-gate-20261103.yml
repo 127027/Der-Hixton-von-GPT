@@ -52,16 +52,17 @@ jobs:
           for key,r in d["cases"].items():
             checks=r.get("original_checks",{})
             if not isinstance(checks,dict):raise RuntimeError("Original checks is not a dictionary")
-            fail=[k for k,v in checks.items() if not isinstance(v,bool) or v is False]
+            fail=[k for k,v in checks.items() if isinstance(v,bool) and v is False]
+            numeric_or_descriptive={k:v for k,v in checks.items() if not isinstance(v,bool)}
             if fail:all_bool_checks=False
             method=r.get("other_original_result_fields",{}).get("method_sha256")
             methods.add(str(method))
             exact=r.get("other_original_result_fields",{}).get("control_exact")
-            report["original_checks_cases"][key]={"checks":len(checks),"nontrue_or_nonbool":fail,"control_exact":exact,"execution_diagnostics_fields":sorted(r.get("original_execution_diagnostics",{}))}
+            report["original_checks_cases"][key]={"checks":len(checks),"false_boolean_assertions":fail,"numeric_or_descriptive_diagnostics":numeric_or_descriptive,"control_exact":exact,"execution_diagnostics_fields":sorted(r.get("original_execution_diagnostics",{}))}
           report["original_boolean_checks_pass"]=all_bool_checks
           report["original_method_fingerprint_consistent"]=len(methods)==1
           report["original_method_fingerprints"]=sorted(methods)
-          report["frozen_extra_result_fields_classification"]={"checks":"frozen safety/ledger assertions: observed true, individual independent re-computation PENDING","control_exact":"frozen exactness flag; observed value as recorded in original","method_sha256":"frozen attribution/method identity; ensure same across contexts","execution_diagnostics":"economic execution counters; independent regeneration pending","seconds":"nonfinancial wall-clock duration, not a strategy invariant","strategy":"descriptive version/parameter snapshot, validate immutability and SHA separately","research_only_not_installed":"frozen runtime/reporting provenance marker, not performance","event_counts":"frozen event-counter diagnostic, separate regeneration pending","events":"frozen event observational report, separate regeneration pending"}
+          report["frozen_extra_result_fields_classification"]={"checks":"hybrid: five boolean assertions plus nine numeric diagnostics. Boolean-false causes failure; raw numeric values retained for separate quantitative independent QA","control_exact":"frozen exactness flag; observed value as recorded in original","method_sha256":"frozen attribution/method identity; ensure same across contexts","execution_diagnostics":"economic execution counters; independent regeneration pending","seconds":"nonfinancial wall-clock duration, not a strategy invariant","strategy":"descriptive version/parameter snapshot, validate immutability and SHA separately","research_only_not_installed":"frozen runtime/reporting provenance marker, not performance","event_counts":"frozen event-counter diagnostic, separate regeneration pending","events":"frozen event observational report, separate regeneration pending"}
           report["baseline_preconditions_pass"]=all_bool_checks and len(methods)==1 and all(x["control_exact"] is True for x in report["original_checks_cases"].values())
           report["status"]="C0_BASELINES_AND_ORIGINAL_BOOLEAN_CHECKS_PASS_DIAGNOSTIC_RECOMPUTATION_PENDING" if report["baseline_preconditions_pass"] else "ORIGINAL_SAFETY_DIAGNOSTIC_FAILURE"
           pathlib.Path("audit/qa-contract-status.json").write_text(json.dumps(report,indent=2,ensure_ascii=False)+"\n")
