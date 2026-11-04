@@ -1,8 +1,8 @@
 """Read-only event-time exposure audit on frozen native historical C0 ledgers.
 
-This is diagnostic-only; neither an exit strategy simulation nor proof that a
-specific EMA/ATR/cost-basis feature was present. It uses at most the original
-fills and closed hourly equity values already available at each timestamp.
+This is diagnostic-only; neither an exit strategy simulation nor proof of
+regular, active or sellable held positions, as native fills can leave non-tradable
+dust behind. It uses only historical fills and closed hourly equity values.
 Historical original windows overlap and must not be counted as independent OOS.
 """
 import csv,gzip,json,pathlib,sys,hashlib
@@ -31,8 +31,11 @@ def holdings_snapshot(t,curve,qty,peak,drawdown):
             "cash_usdc":str(curve["cash"]),
             "marked_position_value_usdc":str(curve["position_value"]),
             "portfolio_drawdown_pct":str(drawdown*D(100)),
-            "owned_symbols":list(held),
-            "open_regular_coin_quantities":held,
+            "nonzero_balance_symbols_including_possible_dust":list(held),
+            "nonzero_coin_quantities_including_possible_dust":held,
+            "native_regular_held_positions":"NOT_RECONSTRUCTED",
+            "native_occupied_slots":"NOT_RECONSTRUCTED",
+            "tradable_minimums_at_event_time":"NOT_PROVEN",
             "actual_native_order_reservations":"NOT_PROVEN",
             "held_cost_basis_at_close":"NOT_PROVEN",
             "EMA72_from_original_candles":"NOT_YET_COMPUTED",
@@ -55,8 +58,8 @@ def inspect_case(bundle,window,cost,contract):
             raise RuntimeError("FUTURE_OR_NON_NATIVE_FILL")
     cashpos=[];qty={};k=0
     first_at={str(c):None for c in CUTS}
-    first_held_at={str(c):None for c in CUTS}
-    hours_by_threshold={str(c):{"hours":0,"hours_with_held_positions":0,"hours_without_held_positions":0} for c in CUTS}
+    first_nonzero_balance_at={str(c):None for c in CUTS}
+    hours_by_threshold={str(c):{"hours":0,"hours_with_nonzero_coin_balance":0,"hours_without_nonzero_coin_balance":0} for c in CUTS}
     last_t=None;peak=START;peak_snapshot=None;deepest=None;max_dd=D(0)
     curve_len=0
     with gzip.open(base/"Equity.csv.gz","rt",encoding="utf-8-sig") as h:
@@ -93,9 +96,9 @@ def inspect_case(bundle,window,cost,contract):
                 if dd>=cut:
                     if snap is None:snap=holdings_snapshot(at,curve,qty,peak,dd)
                     if first_at[field] is None:first_at[field]=snap
-                    if first_held_at[field] is None and snap["owned_symbols"]:first_held_at[field]=snap
+                    if first_nonzero_balance_at[field] is None and snap["nonzero_balance_symbols_including_possible_dust"]:first_nonzero_balance_at[field]=snap
                     hours_by_threshold[field]["hours"]+=1
-                    hours_by_threshold[field]["hours_with_held_positions" if snap["owned_symbols"] else "hours_without_held_positions"]+=1
+                    hours_by_threshold[field]["hours_with_nonzero_coin_balance" if snap["nonzero_balance_symbols_including_possible_dust"] else "hours_without_nonzero_coin_balance"]+=1
             if dd>max_dd:
                 max_dd=dd
                 deepest=holdings_snapshot(at,curve,qty,peak,dd)
@@ -103,15 +106,15 @@ def inspect_case(bundle,window,cost,contract):
             curve_len+=1
     if k!=len(fills):raise RuntimeError("UNPROCESSED_NATIVE_FILL")
     return {"window":window,"cost":cost,"source_branch":"frozen owner original archive",
-            "scope":"historical C0 closed-bar equity and filled native position quantities only",
+            "scope":"historical C0 closed-bar equity and remaining filled coin balances including possible nontradable dust; native regular positions and slots NOT established",
             "total_hours":curve_len,"total_fills":len(fills),"final_equity_usdc":str(equity),
             "deepest_hwm_drawdown_pct":str(max_dd*D(100)),
-            "deepest_drawdown_current_positions":deepest,
+            "deepest_drawdown_nonzero_coin_balances_unverified_as_native_positions":deepest,
             "first_at_portfolio_dd_threshold":first_at,
-            "first_at_threshold_while_any_coin_actually_held":first_held_at,
+            "first_at_threshold_with_any_nonzero_coin_balance_including_dust":first_nonzero_balance_at,
             "hours_spent_at_drawdown_thresholds":hours_by_threshold,
             "no_new_strategy_financial_backtest":True,
-            "feature_time_availability_limit":"EMA72/ATR24, native costbasis and pending order reservations must be independently joined with original candle/position records before treating S01 pre-warning as proven"}
+            "feature_time_availability_limit":"Positive quantities from executed fills do NOT prove that a native regular tradable position remains held. MUST reconstruct native position/dust/slot events and OHLC EMA72/ATR24, native costbasis and pending order reservations before treating S01 warning as present."}
 
 def main(bundle,out):
     bundle=pathlib.Path(bundle).resolve(strict=True)
@@ -125,9 +128,9 @@ def main(bundle,out):
             checks[case]=inspect_case(bundle,window,cost,contract)
             print("NATIVE_C0_EXPOSURE_CASE",json.dumps({"case":case,
                    "hours":checks[case]["total_hours"],
-                   "first_dd15_held":checks[case]["first_at_threshold_while_any_coin_actually_held"].get("0.15") is not None,
-                   "max_dd_held_coins":checks[case]["deepest_drawdown_current_positions"]["owned_symbols"]}),flush=True)
-    result={"status":"HISTORICAL_C0_POSITION_EXPOSURE_DIAG_PASS",
+                   "first_dd15_nonzero_coin_balance_including_dust":checks[case]["first_at_threshold_with_any_nonzero_coin_balance_including_dust"].get("0.15") is not None,
+                   "max_dd_nonzero_coin_balances_including_dust":checks[case]["deepest_drawdown_nonzero_coin_balances_unverified_as_native_positions"]["nonzero_balance_symbols_including_possible_dust"]}),flush=True)
+    result={"status":"C0_FILLED_BALANCE_EXPOSURE_ONLY_SLOT_NOT_VERIFIED",
         "frozen_product":FROZEN,"case_count":len(checks),
         "all_historical_windows_overlap":True,
         "not_a_historical_OOS_test":True,
