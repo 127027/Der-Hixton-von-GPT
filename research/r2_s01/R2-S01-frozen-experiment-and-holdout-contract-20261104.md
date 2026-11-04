@@ -1,0 +1,58 @@
+# HIXTON R2 — bindender Pre-Economic-Vertrag R2-D3-S01
+
+**Erstellt und vor der ersten S01-Finanzsimulation eingefroren:** 2026-11-04. **Status:** PREREGISTERED / METHODOLOGY_QA_PENDING / ECONOMIC_TEST_NOT_STARTED. Ausschließlich Research, nicht als Produktregel genehmigt.
+
+## Beweiskette und abgeschlossene Entwicklungsrunden
+
+- Original Dot-3-Vorregistrierung: `research/dot3/R2-S01-held-trend-deterioration-prereg-20261104.md` auf `research/dot3-ohlc-event-audit-20261104`, feststehender Blob-SHA `ca3b02d6f1995225cbb733619002446c8a79771a`. R2-D3-S01 ist ein **vorhandener eigener Kandidat**, keine Kombination oder Nachoptimierung von HOLD-001/002/003. Die andere Dot-3-Regel `R2-D3-001` bleibt separat.
+- Baseline: produktiver, unveränderter `f56d48536525830dd6ea50bf5bc174a6f9aeff8c`, Source-SHA `5cf39658dc6b1ee827ec0daefd73b2384a9edd0ff116ba0203f9ab8bb7737797`. Original-Input-Contract und nativer GZIP-/NPZ-Loader müssen exakt wiederverwendet und per Symbol-Snapshot-Hash verifiziert werden. Keine neuen aktiven Handelsprofile, keine Coin-Freigabeänderung; 15 beobachtete Märkte ≠ 15 aktive.
+- Unveränderter Eigentümer-Methodenvertrag aus `Hixton-GPT-Pruefuebergabe-20261104.zip` SHA256 `7008224237a81422acce03186cbcf27b10991fb8f8b10aa216b32ccb8822f57a`, `h123/Method.json` SHA256 `e7cba4bc5b1adfa193df192ca6d205a5685ceeb831d60e314c9e7160de551796`, `h123/A02/Selection.json` SHA256 `6448973037cef84bb435cf9c207fb4b65634578653e6cd5c1960d90f745ac2bf`.
+- Die R1-Kontrollen 16/16 und H1–H3 48/48 sind erledigt und alle drei Varianten verworfen. Die 200 synthetischen C0-Quartale und ihre unabhängige Grenz-/Equity-QA sind abgeschlossen. R2-HOLD-001, -002 und -003 besitzen je 16 native Entwicklungsvergleiche und beschränkte unabhängige Finanz-QA; keiner qualifiziert zur Produktübernahme. Quellen: `research/r2/20261104-hold001-hold003-independent-findings.json`; `41842494971` für HOLD-003.
+
+## Festgeschriebene, kausale S01-Hypothese — keine nachträgliche Crash-Sonderbehandlung
+
+**Hypothese:** Ein bestätigter Abwärtstrend bei einer gerade tatsächlich gehaltenen Spot-Long-Position zusammen mit mindestens 4% netto unrealisiertem Verlust kann das weitere Verlustrisiko verringern, ohne die Einsteigerlaubnis anderer Coins zu beschädigen. Dies ist eine **zu prüfende** Annahme und keine bestätigte Wirkung.
+
+**Entscheidungszeitpunkt:** Am Schluss einer vollständig abgeschlossenen stündlichen Originalkerze; ausschließlich bis zu diesem Close verfügbare, in `Input-Contract.json` referenzierte Daten, gültige Original-Listing-/Market-Rule-Informationen und zu diesem Schlusszeitpunkt bestehende, nicht durch reguläre Native-Exits geschlossene Positionen. Kein Candle-Open-Preis der darauffolgenden Stunde im Entscheidungstrigger.
+
+**Featureberechnung und Unschärfenabschluss:**
+1. Pro gehaltenem, aktiv freigegebenem Coin EMA72 der Stundenschlusskurse; EMA-Initialwert = arithmetisches Mittel der ersten 72 gültigen abgeschlossenen Kurs-Candles in der echten, chronologischen Originaldatenserie, danach rekursiv `EMA_t=alpha*close_t+(1-alpha)*EMA_(t-1)`, `alpha=2/73`. Mindestens die Original-400h-Warmup-Anforderung; keine Signale vor vollständig verfügbarem 72h-EMA und sechs vollständigen Vergleichsstunden. Fehlende oder verspätete Kerze => fail-closed. ATR24 (Wilder-Initialisierung aus 24 vollständigen True Ranges einschließlich vorherigem Close) kann als **diagnostisches Beifeld** berechnet werden, ist aber **keine zusätzliche Handelsbedingung** in S01.
+2. `P` = Anzahl der letzten sechs **abgeschlossenen** Stunden, in denen `close < zeitgleich berechnete EMA72`; `P >= 5` erforderlich. Keine Zukunftsbar, kein nachträglich etikettierter Verlustabschnitt als Trading-Input.
+3. Die native verbliebene `position.cost_basis` nach Käufen und etwaigen proportional verbuchten Teilverkäufen ist der Einstand der **aktuell gehaltenen** Menge, nicht die historische volle Einstandssumme. `estimated_net_close_liquidation = held_quantity * last_completed_close * (1 - original_cost.adverse_price_rate) * (1 - original_cost.fee_rate)`. Signalbedingung `estimated_net_close_liquidation / remaining_native_cost_basis - 1 <= -0.04`; Gebühren nur einmal, keine neue Buchbasisdefinition. Ungültige/fehlende Basis oder unverfügbare Originalkerzen => keine Order und konkreter belegter Blocker.
+4. Sobald **P>=5 UND Netto-Buchverlust<=-4% UND Position tatsächlich gehalten**: **einmalige** regulär handelbare Vollausstiegsorder für diesen Coin. Normaler nativer Exit hat Vorrang; kein doppelter Verkauf. Preis/Fills nur zum nächsten tatsächlich zulässigen nativen Open mit denselben Gebühren, Spread/Slippage, Rundungs-/MinNotional-/Liquidity-/Dust- und Kostenbasisregeln; fehlschlagender Filter wird protokolliert, nicht stündlich mehrfach retryed. Slotfreigabe erst nach tatsächlich vollständiger nativer Positionsschließung. 15 beobachtete Märkte werden nicht pauschal freigeschaltet.
+5. Nach bestätigtem Schließen des regulär handelbaren Bestands durch S01 im Coin **24 vollständig abgeschlossene Folge-Stunden** keine neuen regulären BUYs für **diesen** Coin; übrige Märkte und C0-Entry-Gates unverändert. Nach Ablauf nur native Kaufberechtigung, kein erzwungener Rückkauf. Scheitert der Exit oder verbleibt ein nicht normal handelbarer Rest, native Kapazitäts-/Dust-Logik unverändert; Cooldown-Definition anhand echter Fill-/Positionsereignisse im Methodiktest nachweisen und notfalls als `BLOCKED_NATIVE_SEMANTICS` melden.
+
+**Keine Parameter-Nachoptimierung:** Die ursprünglichen Alternativvorschläge `P>=4/6` und `P=6/6` sind lediglich protokollierte spätere Nachbarhypothesen. Keine automatische Ausführung, kein Retuning nach dem schlechtesten bekannten Quartal oder einem bekannten Crash.
+
+## Verbindliche unveränderte Erfolgsschranken — aus dem echten Eigentümer-Method.json, keine neuen Floors
+
+Ein Kandidat darf **nur dann** als methodisch und wirtschaftlich qualifiziert diskutiert werden, wenn **sämtliche** folgenden harten Gates bestanden sind:
+1. `ending_equity(candidate, normal) >= ending_equity(C0, normal)` in **jedem** der drei historischen Originalfenster `original_32k`, `current_26oct` und `latest_long` (überlappende Entwicklungsfenster, keine drei unabhängigen Beweise).
+2. Mittelwert der drei historischen gepaarten **Stress-Rendite-Differenzen** `candidate_return_pct - C0_return_pct` >= 0; exakt die Definition des eingefrorenen Methodenvertrags wiederverwenden.
+3. In `winter` **und** `tail` müssen unter **normalen und erhöhten Kosten** jeweils `candidate.end_equity >= C0.end_equity` **und** `candidate.max_drawdown_pct < C0.max_drawdown_pct` gelten. Striktes kleiner: Gleichstand im Drawdown ist **kein** Erfolg.
+4. Sämtliche technische und unabhängige Methodik-/Finanzprüfungen bestanden: Zeitkausalität, korrekter nativer Loader samt Snapshot-Hashes, Positionsbestände, Teilverkaufs-/Kostenbasis, Fill/Fees/Slippage/Dust und Slot-/Cooldown-Konservation, HWM, Quartals- und Drawdown-Phasen.
+
+Wenn irgendein Gate scheitert: `NO_STRATEGY_PROMOTION`, unabhängig davon, ob die synthetische Million erzielt wird. Keine Grenzlockerung. Auch bei Gate-PASS keine automatische Produktfreigabe: anschließend unabhängiger Holdout und ausdrücklicher Eigentümerentscheid; Codex erhält erst danach den konkreten Kandidaten.
+
+**Zusätzlicher offener Pareto-Bericht:** pro Kontext Endkapital/Netto-PnL, absolutes und relatives HWM-Drawdown mit getrennten Peak/Trough/Recovery-Zeiten, Handelskosten und entgangene Gewinne, schlechtestes Drei-Monats-Quartal (bei 5J exakt 20 ohne Reset), schlechtester Monat/Jahr, Cash/Positionswerte/Slots/Orderreserven getrennt. Gegen C0 16 Kontexte = 3 ursprüngliche historische + 5 ausdrücklich **künstliche** Welten, jeweils `current` und `stress`. Die künstlichen Szenarien sind keine Renditeprognose, die historischen Entwicklungsfenster überlappen.
+
+## Event-Time-Ausgangsdiagnose vor Finanzvergleich
+
+Anhand der bestehenden C0-/R1-HWM-Attribution und der bereits emittierten nativen Equity/Fills/Trades: Erzeuge zunächst eine **rein diagnostische** Zeitreihe (kein Kandidaten-Backtest) für alle vorhandenen untersuchten Kontexte und dokumentiere an jeder bekannten Verlustphase, ob **vor** dem Preisrückgang ein originaler Coinbestand gehalten wurde, welche bis zur Stunde verfügbaren Closes/EMA/Verlustmerkmale vorlagen, welche Orders schon schwebten und ob native Ausführungsregeln einen tatsächlichen Exit zugelassen hätten. Nicht den später bekannten Tiefpunkt zur Entscheidungsauswahl benutzen. Dokumentiere auch verpasste Gewinner/false positives im unveränderten Zeitraum. Fehlen Positions- oder Orderereignisse, als `NOT_PROVEN` statt als 0 kennzeichnen.
+
+## Neue echte Holdout-Verpflichtung (vor jedem neuen Preis-/Ergebniseinblick)
+
+- Alle acht bekannten Entwicklungsfenster und sämtliche bisherigen Original-/Synthetikzahlen sind **Development**. Es gibt aus diesen 16 Ergebnissen keine unabhängige Out-of-Sample-Bestätigung.
+- **Vorgeschlagener, vorab zeitlich fixierter unbenutzter historischer Holdout:** UTC `2020-10-11T00:00:00Z` bis exklusiv `2023-10-11T00:00:00Z`; **nur**, sofern dieser Zeitbereich außerhalb aller originalen historischen Entwicklungsfenster liegt und genügend *echte* chronologische Original-Spot-Kerzen inklusive mindestens 400 Warmup-Stunden, authentischer Asset-Listing-Termine, Ausführungs- und Kostendaten erhältlich sind. Die Datenquelle, genaue Fenstergrenzen, Assetverfügbarkeit, Originalhashes und neutrale Datenqualitätsregeln müssen **vor erster Outcome-Sichtung** dokumentiert werden. Kein rückwirkender Zeitscheibenwechsel, Auffüllen nicht existierender Coin-Historie oder nachträgliches Ausschließen schlechter Coins/Monate. Wenn unbrauchbar: `HOLDOUT_UNAVAILABLE` mit Beleg; **kein** künstlicher Ersatz als echte Historie.
+- Zusätzliche nie verwendete, deterministisch vorab gebundene synthetische Stresspfade können nur als **neue synthetische Robustheitschecks** dienen, nicht als unabhängige Zukunftsprognose. Generatoralgorithmus, Seeds und Hashes müssen vor Ergebnisrechnung fixiert sein; keine Nachoptimierung nach Sichtung.
+- Ein echter Holdout wird **nur einmal nach Einfrieren des Kandidaten** zu Evaluierungszwecken geöffnet. Nach Holdout-Sichtung sind nachfolgende Hypothesen neue Experimente; diese Daten bleiben dann verbraucht. Keine automatische Candidate-Promotion durch eine Million in einer künstlichen Welt.
+
+## Ausführungsreihenfolge und Zuständigkeit
+
+1. Dot1/Dot2: event-time Exposition/Orderverfügbarkeit an den bereits bekannten Verlustphasen anhand vollständiger Originalpositionen prüfen.
+2. Dot3: diese genau eingefrorene S01-Hypothese in isolierter Forschungs-Engine mit nativer Loaderidentität/Originaldata-Provenienz und Negativtests implementieren, keine Produktion/Live/Paper Änderung.
+3. Dot4: diese Vorregistrierung, Eigentümer-Gates, genuine Prefix-Invariance, Cooldown/Native-Exit-Konkurrenz, Handelskosten sowie event-time Exposition prüfen und **vor** Finanz-A/B als PASS oder konkreten BLOCKED kennzeichnen.
+4. Erst nach Methodik-PASS: **ein** voller 16-Kontext-nativer C0-Vergleich; danach separate unabhängige Resultat-/Wirtschaftlichkeits-QA, Ursachenanalyse, bei Misserfolg nächste neue vorregistrierte **andere** Hypothese.
+5. Dot5: gemeinsame Journalstatus `PREREGISTERED > METHOD_PASS > FINANCE_PASS > INDEPENDENT_QA_PASS > ECONOMIC_GATE_PASS > HOLDOUT_LOCKED > HOLDOUT_PASS > OWNER_REVIEW` eindeutig führen; unbekannte oder fehlende Schritte als OPEN/BLOCKED und nicht als abgeschlossen ausgeben. Wiederholte Blockerberichte vermeiden.
+
+**Sicherheit:** Produktbot, echte Orderwege, API-Keys, Paper-/Live-Freigaben, Profile und Original-C0-Baseline unverändert. Codex nur mit vollständig belegtem Eigentümer-Übernahmekandidaten.
