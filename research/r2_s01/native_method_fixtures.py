@@ -14,7 +14,7 @@ def run(bundle):
     src=(root/"engine/src/hixton/backtest/portfolio.py").read_text()
     patched=instrument(src)
     assert "R2_S01.at_open" in patched and "execute_exit=execute_exit" in patched
-    assert patched.index("for signal in exits:") < patched.index("R2_S01.at_open") < patched.index("            entries.sort(\\n")
+    assert patched.index("for signal in exits:") < patched.index("R2_S01.at_open") < patched.index("            entries.sort(")
     assert "if signal.symbol in positions:" in src
     assert "positions[signal.symbol] = _OpenTrade(" in src
     assert "del positions[signal.symbol]" in src
