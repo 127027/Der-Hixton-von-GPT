@@ -1,0 +1,75 @@
+name: Hixton R2 Dot1 Exit-Only 002 Preregistered Method QA
+on:
+  push:
+    branches: [research/hixton-native-baseline-proof-20261103]
+    paths: [".github/workflows/hixton-r2-hold002-method-qa-20261104.yml"]
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  check-one-variable-ablation:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 16
+    env:
+      GH_TOKEN: ${{ github.token }}
+      GH_REPO: ${{ github.repository }}
+      HIXTON_NO_TRADING: "1"
+    steps:
+      - uses: actions/checkout@v4
+      - name: Extract unchanged original f56 native model
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p data audit
+          gh release download research-data-20261103-five-dot-inputs -R "$GH_REPO" -p Hixton-Five-Synthetic-Worlds-20261103.zip -D data
+          echo "5262f12bef7182ae10e2c85fe5b790263404764e98e759196dbdfb7d0970d278  data/Hixton-Five-Synthetic-Worlds-20261103.zip" | sha256sum -c
+          python3 - <<'PY'
+          import zipfile,pathlib
+          with zipfile.ZipFile("data/Hixton-Five-Synthetic-Worlds-20261103.zip") as z:
+            base="Hixton-Five-Synthetic-Worlds-20261103/engine/src/"
+            for member in z.namelist():
+              if member.startswith(base+"hixton/") and member.endswith(".py"):
+                p=pathlib.Path("data/native")/member[len(base):]
+                p.parent.mkdir(parents=True,exist_ok=True)
+                p.write_bytes(z.read(member))
+          PY
+      - name: Independently enforce exact one-variable change and run frozen, negative and positive fixtures
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          import pathlib,types,sys,hashlib,json,importlib.util,unittest
+          root=pathlib.Path.cwd();sys.path.insert(0,str(root));sys.path.insert(0,str(root/"data/native"))
+          m=types.ModuleType("hixton.data");m.__package__="hixton.data";m.__path__=[str(root/"data/native/hixton/data")];sys.modules["hixton.data"]=m
+          a=(root/"research/r2_hold001/held_policy.py").read_text()
+          b=(root/"research/r2_hold002/held_policy.py").read_text()
+          expected=a.replace("R2-D1-HOLD-001","R2-D1-HOLD-002").replace("return not self.enabled or not self.defensive","return True").replace("BLOCK_UNTIL_168_CLOSED_HOURS_WITH_DD_LT_10_PERCENT","UNCHANGED_NATIVE_BUY_RULES").replace("NATIVE_ALLOWED_AFTER_NEXT_OPEN","NATIVE_BUYS_ALWAYS_ALLOWED")
+          if b!=expected:raise RuntimeError("HOLD002_IS_NOT_FROZEN_ONE_VARIABLE_ABLATION_OF_HOLD001")
+          ar=(root/"research/r2_hold001/run_native.py").read_text()
+          br=(root/"research/r2_hold002/run_native.py").read_text()
+          if br!=ar.replace("R2-D1-HOLD-001","R2-D1-HOLD-002").replace("research.r2_hold001.held_policy","research.r2_hold002.held_policy"):
+            raise RuntimeError("HOLD002_RUNNER_DIFF_UNEXPECTED")
+          spec=importlib.util.spec_from_file_location("hold002_method_tests",root/"research/r2_hold002/test_hold002.py")
+          mod=importlib.util.module_from_spec(spec);sys.modules[spec.name]=mod;spec.loader.exec_module(mod)
+          result=unittest.TextTestRunner(verbosity=2).run(unittest.defaultTestLoader.loadTestsFromModule(mod))
+          from research.r2_hold002.held_policy import instrument
+          original=(root/"data/native/hixton/backtest/portfolio.py").read_text()
+          source_sha=hashlib.sha256(original.encode()).hexdigest()
+          if source_sha!="06da08bf4e63613a5c655eaa34a3361d0b192645e1d128cf545e4075c0401dfd":raise RuntimeError("NATIVE_F56_SOURCE_MISMATCH")
+          patch=instrument(original)
+          report={"candidate":"R2-D1-HOLD-002","status":"PASS" if result.wasSuccessful() and result.testsRun==5 else "FAIL",
+           "tests":result.testsRun,"failed":len(result.failures),"errors":len(result.errors),
+           "policy_exactly_expected_single_variable_ablation":True,"runner_exact_native_loader_identity":True,
+           "original_native_source_sha256":source_sha,"isolated_instrumented_engine_sha256":hashlib.sha256(patch.encode()).hexdigest(),
+           "first_financial_cases_run_by_this_job":0,"live_product_unchanged":True}
+          (root/"audit/hold002-pre-economic-method-qa.json").write_text(json.dumps(report,indent=2)+"\n")
+          print("HOLD002_METHOD_QA",json.dumps(report),flush=True)
+          if report["status"]!="PASS":sys.exit(1)
+          PY
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: hixton-r2-hold002-method-qa-${{ github.run_id }}
+          path: audit/
+          retention-days: 30
+          if-no-files-found: warn
