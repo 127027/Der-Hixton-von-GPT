@@ -1,0 +1,6 @@
+FINISHED_UNPROMOTED_R2_RESEARCH_OUTPUT
+candidate=R2-D1-HOLD-001
+native_actions_run=41830599331
+pre_economic_qa_run=41829473862
+native_disabled_C0_parity_run=41830094478
+independent_result_audit_only=true
