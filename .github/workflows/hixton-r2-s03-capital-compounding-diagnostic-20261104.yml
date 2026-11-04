@@ -2,7 +2,7 @@ name: Hixton R2-S03 Exact Native Capital Utilization and Compounding Audit
 on:
   push:
     branches: [research/hixton-native-baseline-proof-20261103]
-    paths: [".github/workflows/hixton-r2-s03-capital-compounding-diagnostic-20261104.yml"]
+    paths: [".github/workflows/hixton-r2-s03-capital-compounding-diagnostic-20261104.yml", "research/r2_s01/s03_growth_capital_diagnostic.py"]
   workflow_dispatch:
 permissions:
   contents: read
