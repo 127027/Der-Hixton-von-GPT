@@ -1,0 +1,37 @@
+name: Hixton R2 Dot1 Independent Financial Result QA
+on:
+  push:
+    branches: [research/hixton-native-baseline-proof-20261103]
+    paths: ["research/r2_hold001/QA_READY_41830599331.txt"]
+  workflow_dispatch:
+permissions:
+  contents: read
+  actions: read
+jobs:
+  independent-financial-reconciliation:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 25
+    env:
+      GH_TOKEN: ${{ github.token }}
+      GH_REPO: ${{ github.repository }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Download sealed candidate full native financial ledgers (not a second strategy replay)
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p input audit
+          test "$(gh run view 41830599331 -R "$GH_REPO" --json conclusion --jq .conclusion)" = success
+          gh run download 41830599331 -R "$GH_REPO" -n hixton-r2-hold001-native-ledgers-41830599331 -D input
+      - name: Independently recompute 16 native cash/fill, fee, futures-safe, absolute/relative HWM and quarter invariants
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 research/r2_hold001/independent_results_qa.py --input input --out audit/independent-r2-d1-hold001-16-case-qa.json
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: hixton-r2-hold001-independent-financial-qa-${{ github.run_id }}
+          path: audit/
+          retention-days: 30
+          if-no-files-found: warn
