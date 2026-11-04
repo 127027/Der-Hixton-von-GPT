@@ -58,6 +58,8 @@ def run(args):
     reference=json.loads((baseline_path/"Result.json").read_text())
     assert_native(result,reference,window=args.window,cost=args.cost,bundle=bundle,
                   spath=baseline_path,control=args.mode=="control")
+    from research.r2_s01.native_ledger_independent_audit import audit_s01_native_result
+    ledger_audit = audit_s01_native_result(result=result, policy=policy, costs=costs)
     absdd,pctdd=episodes(result)
     record=dict(
         id="R2-D3-S01",research_only=True,product_unchanged=True,
@@ -80,6 +82,7 @@ def run(args):
         absolute_drawdown_episode=absdd,percentage_drawdown_episode=pctdd,
         synthetic_20_quarters=quarters(result,spec),
         s01_events=policy.events,
+        native_s01_fill_trade_ledger_audit=ledger_audit,
         s01_executed_count=sum(x["kind"]=="FILLED_NATIVE_FULL_EXIT" for x in policy.events),
         native_execution_semantics="UNCHANGED_F56_EXECUTE_EXIT_CLOSURE",
         partial_live_fill_semantics="NOT_MODELED_IN_FROZEN_NATIVE_BACKTEST",
