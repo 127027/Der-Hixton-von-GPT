@@ -65,6 +65,56 @@ def run(bundle):
     pref=S01Policy(features=future,costs=cost)
     pref.on_close(close_time=t,positions={"BTCUSDC":p})
     assert pref.pending==policy2.pending
+
+    # Native-callback integration: original SELL priority, no duplicate,
+    # no cooldown on a rejected/no-fill order, only on a confirmed fill.
+    from dataclasses import dataclass
+    from unittest.mock import patch
+    from hixton.domain.models import SignalAction
+    from research.r2_s01 import native_s01_policy as module
+    @dataclass
+    class Pt:
+        candle: object
+        flip_down: bool = False
+        flip_up: bool = False
+    @dataclass
+    class Sig:
+        action: object
+        signal_id: str = "native-template"
+    prev={"BTCUSDC":Pt(NS(closed=True,close_time_utc=t))}
+    def trigger():
+        q=S01Policy(features=prices,costs=cost)
+        q.on_close(close_time=t,positions={"BTCUSDC":p})
+        return q
+    at=t+timedelta(milliseconds=1)
+    with patch.object(module.HixtonStrategy,"signal_for",return_value=Sig(SignalAction.EXIT_LONG)):
+        gone=trigger()
+        hit=[]
+        gone.at_open(open_time=at,positions={},previous_points=prev,
+            execute_exit=lambda sig:hit.append(sig),signals=[],fills=[],blocked=[])
+        assert not hit and not gone.cooldown_until
+        assert gone.events[-1]["kind"]=="SKIPPED_REGULAR_EXIT"
+
+        rejected=trigger()
+        held={"BTCUSDC":NS(quantity=D(".5"),cost_basis=D(50),slots=1)}
+        sigs=[];fills=[];blocked=[]
+        rejected.at_open(open_time=at,positions=held,previous_points=prev,
+            execute_exit=lambda sig:blocked.append("MARKET_MINIMUM"),
+            signals=sigs,fills=fills,blocked=blocked)
+        assert "BTCUSDC" in held and not rejected.cooldown_until and not fills
+        assert rejected.events[-1]["kind"]=="NO_TRADEABLE_EXIT_FILL"
+
+        filled=trigger()
+        held={"BTCUSDC":NS(quantity=D(".5"),cost_basis=D(50),slots=1)}
+        sigs=[];fills=[];blocked=[]
+        def native_full_exit(sig):
+            del held["BTCUSDC"]
+            fills.append(NS(signal_id=sig.signal_id,base_quantity=D(".499")))
+        filled.at_open(open_time=at,positions=held,previous_points=prev,
+            execute_exit=native_full_exit,signals=sigs,fills=fills,blocked=blocked)
+        assert len(sigs)==len(fills)==1 and filled.events[-1]["kind"]=="FILLED_NATIVE_FULL_EXIT"
+        assert not filled.entry_allowed("BTCUSDC",at+timedelta(hours=23))
+        assert filled.entry_allowed("BTCUSDC",at+timedelta(hours=24))
     print("S01_PRE_ECONOMIC_PREDICATE_AND_NATIVE_STRUCTURE_FIXTURES_PASS")
 if __name__=="__main__":
     import sys
