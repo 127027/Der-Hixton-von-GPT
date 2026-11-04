@@ -1,0 +1,98 @@
+name: Hixton R2 Twenty-Quarter Independent Ledger QA
+on:
+  push:
+    branches: [research/hixton-native-baseline-proof-20261103]
+    paths: [".github/workflows/hixton-r2-quarter-independent-qa-20261104.yml"]
+  workflow_dispatch:
+permissions:
+  contents: read
+  actions: read
+jobs:
+  verify:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    env:
+      GH_TOKEN: ${{ github.token }}
+      GH_REPO: ${{ github.repository }}
+    steps:
+      - name: Fetch immutable native hourly ledger and separately produced R2 quarter report
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p native reports qa
+          gh run download 41684371923 -R "$GH_REPO" -n hixton-five-year-c0-evidence-41684371923 -D native
+          gh run download 41801314884 -R "$GH_REPO" -n hixton-r2-20-quarter-diagnostics-41801314884 -D reports
+      - name: Independently verify every quarter closing balance and strict continuous UTC timeline
+        shell: bash
+        run: |
+          python3 - <<'PY'
+          import bisect,csv,gzip,json,pathlib,sys,traceback
+          from datetime import datetime,timedelta
+          from decimal import Decimal
+          report=json.loads(next(pathlib.Path("reports").rglob("r2-20-quarter-report.json")).read_text())
+          qa={"source_c0":41684371923,"source_quarters":41801314884,"passed_cases":[],"checked_quarters":0,"checked_hours":0,"status":"STARTED","errors":[]}
+          try:
+            if report.get("status")!="TEN_NATIVE_FIVE_YEAR_BASELINES_X_20_QUARTERS_REPORTED" or len(report.get("cases",{}))!=10:raise ValueError("Rejected source status")
+            summary=list(csv.DictReader(next(pathlib.Path("reports").rglob("r2-200-quarter-rows.csv")).open()))
+            if len(summary)!=200:raise ValueError("CSV missing 200 quarterly rows")
+            for key,case in sorted(report["cases"].items()):
+              quarters=case["quarterly"]
+              if len(quarters)!=20:raise ValueError("Not exactly 20 quarters "+key)
+              path=list(pathlib.Path("native").rglob(key+"/Equity.csv.gz"))
+              if len(path)!=1:raise ValueError("Original native hourly ledger not unique "+key)
+              with gzip.open(path[0],"rt",encoding="utf-8-sig") as f:
+                reader=csv.DictReader(f);rows=list(reader)
+              if len(rows)!=43824:raise ValueError("Unexpected native hour count "+key)
+              start=datetime.fromisoformat(case["start_utc"]);end=datetime.fromisoformat(case["end_exclusive_utc"])
+              if end!=start.replace(year=start.year+5):raise ValueError("Five-year endpoint mismatch")
+              b=[datetime.fromisoformat(q["period_start_utc"]) for q in quarters]+[datetime.fromisoformat(quarters[-1]["period_end_exclusive_utc"])]
+              if b[0]!=start or b[-1]!=end or any(b[i]>=b[i+1] for i in range(20)):raise ValueError("Quarter bounds invalid")
+              for i in range(20):
+                if b[i+1]!=datetime.fromisoformat(quarters[i]["period_end_exclusive_utc"]):raise ValueError("Overlap/gap "+key)
+              qrows=[[] for _ in range(20)];last_dt=None
+              for r in rows:
+                dt=datetime.fromisoformat(r["time_utc"])
+                if last_dt is not None and dt-last_dt!=timedelta(hours=1):raise ValueError("Noncontinuous native hours "+key)
+                last_dt=dt
+                eq=Decimal(r["equity"]);cash=Decimal(r["cash"]);marked=Decimal(r["position_value"])
+                if not all(v.is_finite() for v in (eq,cash,marked)):raise ValueError("Invalid finance value")
+                if eq!=cash+marked:raise ValueError("True hourly cash/position reconciliation failed "+key)
+                i=bisect.bisect_right(b,dt)-1
+                if not (0<=i<20):raise ValueError("Out of range hour")
+                qrows[i].append(r)
+              if rows[0]["time_utc"][:10] != start.date().isoformat():raise ValueError("Bad first day")
+              if last_dt!=end-timedelta(milliseconds=1):raise ValueError("Bad last close")
+              previous=Decimal("1092.05773944")
+              for idx,(q,actual) in enumerate(zip(quarters,qrows)):
+                if not actual:raise ValueError("Empty quarter "+key+" "+str(idx))
+                last=actual[-1];observed=Decimal(last["equity"])
+                if q["quarter"]!=idx+1:raise ValueError("Quarter order wrong")
+                if int(q["hours"])!=len(actual):raise ValueError("Quarter hour count wrong")
+                if Decimal(q["start_equity_usdc"])!=previous:raise ValueError("Capital reset in "+key)
+                if Decimal(q["end_equity_usdc"])!=observed:raise ValueError("Quarter equity does not match native ledger")
+                if Decimal(q["net_equity_change_usdc"])!=observed-previous:raise ValueError("Bad quarter net gain")
+                if Decimal(q["end_cash_usdc"])!=Decimal(last["cash"]):raise ValueError("Quarter cash ledger diverges")
+                if Decimal(q["end_marked_positions_usdc"])!=Decimal(last["position_value"]):raise ValueError("Quarter position ledger diverges")
+                row=next((z for z in summary if z["scenario"]==case["scenario"] and z["cost"]==case["cost"] and int(z["quarter"])==idx+1),None)
+                if row is None or Decimal(row["end_equity_usdc"])!=observed:raise ValueError("CSV/JSON output disagreement")
+                previous=observed
+                qa["checked_quarters"]+=1
+              if str(previous)!=str(Decimal(case["ending_equity_usdc"])):raise ValueError("End capital differs")
+              qa["checked_hours"]+=len(rows);qa["passed_cases"].append(key)
+            if qa["checked_quarters"]!=200 or qa["checked_hours"]!=438240:raise ValueError("Not all 200 quarters / 438240 hours checked")
+            qa["qa_scope"]="independent date-boundary, monotonic hours, equity cash position, quarter starting/ending balances and PnL delta, CSV/JSON consistency. Does NOT independently reproduce fees, realized-vs-unrealized PnL, coin concentration or capacity reservations"
+            qa["status"]="TWENTY_QUARTER_LEDGER_BOUNDARY_AND_BALANCE_QA_PASS"
+          except Exception as exc:
+            qa["status"]="FAILED";qa["errors"].append(str(exc));qa["traceback"]=traceback.format_exc()[-2400:]
+          finally:
+            pathlib.Path("qa/independent-20-quarter-ledger-qa.json").write_text(json.dumps(qa,indent=2)+"\n")
+            print("INDEPENDENT_QUARTER_QA",json.dumps({k:qa[k] for k in ("status","checked_quarters","checked_hours","passed_cases","errors")}),flush=True)
+          if qa["status"]!="TWENTY_QUARTER_LEDGER_BOUNDARY_AND_BALANCE_QA_PASS":sys.exit(1)
+          PY
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: hixton-r2-20-quarter-independent-qa-${{ github.run_id }}
+          path: qa/
+          retention-days: 30
+          if-no-files-found: warn
