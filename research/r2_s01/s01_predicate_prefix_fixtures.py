@@ -19,7 +19,7 @@ def predicates(closes, quantity, basis, adverse, fee):
 def test():
     prices=[D(100)]*80+[D(90)]*12
     qty=[D(1)]*len(prices);basis=[D(100)]*len(prices)
-    f=lambda p:predicates(p,qty[:len(p)],basis[:len(p)],D(".0005"),D(".001"))
+    f=lambda p:predicates(p,[D(1)]*len(p),[D(100)]*len(p),D(".0005"),D(".001"))
     original=f(prices)
     assert any(v for _,v in original)
     assert original==f(prices+[D(1000000)])[:len(original)]
