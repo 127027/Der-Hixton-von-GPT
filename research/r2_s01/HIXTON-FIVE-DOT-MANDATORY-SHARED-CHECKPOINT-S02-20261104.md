@@ -1,0 +1,25 @@
+# HIXTON FIVE-DOT MANDATORY SHARED CHECKPOINT — S02
+Date: 2026-11-04, updated while S02 hourly paired native observation is underway.
+
+## READ FIRST, APPLIES TO DOT 1,2,3,4,5
+This file is the **common current research context**, superseding obsolete individual S01 'not implemented / no active test / queued' assertions. Earlier R1/HOLD evidence remains completed and immutable. Read this file and the central journal before any new research step. Require actual current GitHub status, never rely on historical queued labels.
+
+**Only original frozen production**: commit `f56d48536525830dd6ea50bf5bc174a6f9aeff8c`, normalized original fingerprint `5cf39658dc6b1ee827ec0daefd73b2384a9edd0ff116ba0203f9ab8bb7737797`. Original historical archive SHA256 `d1d1cde8347665d74da71f9e44bb3876dc6662bfe4bfc9e34dcab1dfecd84308`; synthetic original archive SHA256 `5262f12bef7182ae10e2c85fe5b790263404764e98e759196dbdfb7d0970d278`. Production and live keys/orders unchanged.
+
+**S01-A is economically REJECTED; no product promotion.** Original_32k/current normal cost: C0 `33867.796992897484`, frozen S01-A `10967.6813976152497`, delta `-22900.1155952822343` USDC. Last same-version genuine enabled native runs `41873929231`, `41874027300` both SUCCESS with 52 genuine S01 full exits, native Fill/Trade/fees/basis/dust/slot audit passed. Older original run `41862289840` has identical ending wealth. Disabled all 16 original C0 exact parity `41862977181` passed. Independent general Dot4 S01 METHOD_PASS not recorded; **does NOT block read-only forensic investigation of already failed candidate**. No 15-case active S01 finance duplication to reprove violated hard AND-gate.
+
+**S02 first read-only cost/flow diagnosis** run `41874768728` succeeded: S01 423 native fills, C0 361; S01 211 closed trades, C0 180; S01 fees 1737.87067614658085 vs C0 2246.86176813631745 (508.9910919897366 lower), modeled adverse execution 868.93672168025 vs C0 1123.43545868545 (254.4987370052 lower). Thus HIGHER AGGREGATE FEES not why the ending wealth is lower. 52 confirmed S01 sells, 17 priority regular native exits. Original reported blocked-cooldown event count is not complete, do not claim no cooldown impact. No standalone event sums as missed profit, compounding and competing trades are path dependent.
+
+**S02 trajectory contract** `research/r2_s01/R2-S02-DIAG-002-next-trajectory-audit-prereg-20261104.md`, frozen before its execution. 26,304 true native hourly rows for matched C0 and S01, actual remaining basis/quantities/cash/equity/dust/slots/fills/blocked original signal IDs, first divergence, 52 native exit matched observations, full native blocked entry reasons, fee/trade differences, no trading rule changes. Observer code lives `research/r2_s01/s02_hourly_trace.py`, shared original runner optional `--trace`, separate descriptive analysis `research/r2_s01/s02_paired_hourly_analyze.py`; Github workflow `.github/workflows/hixton-r2-s02-hourly-paired-native-20261104.yml`. First run **41889629161**. All source under research branch only; no new tradable hypothesis before S02 is measured and independently checked.
+
+## SPECIFIC OWNERSHIP AND NON-DUPLICATE DELIVERABLES
+1. Dot 1: analyze first actual native difference, matched original-held entries, actual post-sale exposure and rebound; explicitly do not call any later price gain a proven error or additive forgone PnL.
+2. Dot 2: verify all native blocked BUY signal reasons under 24h coin cooldown (signal-generation + next-open), cash, position sizes, other coin slot competition, base-asset dust and native fees/spread/turnover; no fee-only explanation.
+3. Dot 3: maintain read-only observer/test implementation in ONE frozen f56 native engine, no additional strategy, no implicit retune or second competing overlay; develop a separate prospective diagnostic ablation registration only if mechanisms cannot be distinguished observationally.
+4. Dot 4: inspect the ACTUAL hourly raw native ledgers and paired report, independently verify exact 26304 C0/S01 UTC rows and prior reference terminal metrics/fills/trades, source/data hashes and all 52 native sale links; issue **DIAGNOSTIC_QA_PASS_LIMITED_DESCRIPTIVE** or specific failing raw evidence, not fake full S01 METHOD_PASS.
+5. Dot 5: journal actual latest commit, run IDs, artifact names, QA status, real blockers and next demonstrably new question. **No status-only reports; no redundant C0/old S01 repetitions.**
+
+S01 rejected results remain development data. Original original/overlapping windows and invented 5yr worlds are not holdouts. Any new protective strategy must be preregistered and separately 16-context QA-tested only after distinct method gate, plus new untouched holdout provenance. Longer-term portfolio allocation, compounding, entry selection and growth as well as loss protection must be researched. Million USDC is unverified wish, not a target to backfit.
+
+## CURRENT EVIDENCE ANCHOR
+Canonical journal: `research/r2_s01/CENTRAL-FIVE-DOT-R2-RESEARCH-JOURNAL-20261104.md`. S02 study run `https://github.com/127027/Der-Hixton-von-GPT/actions/runs/41889629161` initially queued/in-progress; **always check its actual state**.
