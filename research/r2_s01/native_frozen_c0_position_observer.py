@@ -10,7 +10,9 @@ import argparse,collections,hashlib,json,pathlib,runpy,sys,types
 from datetime import datetime,timedelta
 from decimal import Decimal as D,ROUND_DOWN
 from research.r2_hold003.run_native import snapshot_loader,assert_native,digest,FROZEN_NATIVE_PORTFOLIO_SHA,FROZEN
-from hixton.backtest.models import ONE,ZERO
+# Native engine is injected only after verifying and loading frozen original archive.
+ONE=D(1)
+ZERO=D(0)
 
 def dec(x):
     v=D(str(x))
