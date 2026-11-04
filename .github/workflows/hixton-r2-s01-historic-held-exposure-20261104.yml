@@ -1,0 +1,54 @@
+name: Hixton R2 S01 Historical C0 Held-Position Decision-Time Audit
+on:
+  push:
+    branches: [research/hixton-native-baseline-proof-20261103]
+    paths: [".github/workflows/hixton-r2-s01-historic-held-exposure-20261104.yml"]
+  workflow_dispatch:
+permissions:
+  contents: read
+  actions: read
+jobs:
+  diagnostic-no-trading:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    env:
+      GH_TOKEN: ${{ github.token }}
+      GH_REPO: ${{ github.repository }}
+      HIXTON_RESEARCH_ONLY: "1"
+      HIXTON_NO_TRADING: "1"
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: Download and verify sealed original historical C0 archive, not a candidate strategy
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p archive extracted audit
+          gh release download research-data-20261103-five-dot-inputs -R "$GH_REPO" -p Hixton-Loss-Handoff-20261102.zip -D archive
+          echo "d1d1cde8347665d74da71f9e44bb3876dc6662bfe4bfc9e34dcab1dfecd84308  archive/Hixton-Loss-Handoff-20261102.zip" | sha256sum -c
+          python3 - <<'PY'
+          import pathlib,zipfile
+          root=pathlib.Path("extracted").resolve()
+          with zipfile.ZipFile("archive/Hixton-Loss-Handoff-20261102.zip") as z:
+            for member in z.infolist():
+              if not (root/member.filename).resolve().is_relative_to(root):
+                raise RuntimeError("ARCHIVE_PATH_ESCAPE")
+            z.extractall(root)
+          assert (root/"Hixton-Loss-Handoff-20261102/Input-Contract.json").is_file()
+          PY
+      - name: Track real held Coin quantities at closed-hour HWM warning states across all 3 historical windows and both costs
+        shell: bash
+        run: |
+          set -euo pipefail
+          export PYTHONDONTWRITEBYTECODE=1
+          python3 research/r2_s01/historical_c0_exposure_audit.py \
+            --bundle extracted/Hixton-Loss-Handoff-20261102 \
+            --output audit/r2-s01-original-historical-c0-actual-held-positions.json
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: hixton-r2-s01-original-c0-exposure-diagnostic-${{ github.run_id }}
+          path: audit/
+          retention-days: 30
+          if-no-files-found: warn
