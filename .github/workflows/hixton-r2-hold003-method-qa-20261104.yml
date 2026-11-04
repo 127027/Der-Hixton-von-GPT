@@ -1,0 +1,85 @@
+name: Hixton R2 HOLD-003 Frozen Underwater Methodology Gate
+on:
+  push:
+    branches: [research/hixton-native-baseline-proof-20261103]
+    paths: [".github/workflows/hixton-r2-hold003-method-qa-20261104.yml"]
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  preregistered-method:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 18
+    env:
+      GH_TOKEN: ${{ github.token }}
+      GH_REPO: ${{ github.repository }}
+      HIXTON_NO_TRADING: "1"
+      HIXTON_RESEARCH_ONLY: "1"
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: Verify unchanged original native domain against frozen archive SHA
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p archive audit
+          gh release download research-data-20261103-five-dot-inputs -R "$GH_REPO" -p Hixton-Five-Synthetic-Worlds-20261103.zip -D archive
+          echo "5262f12bef7182ae10e2c85fe5b790263404764e98e759196dbdfb7d0970d278  archive/Hixton-Five-Synthetic-Worlds-20261103.zip" | sha256sum -c
+          python3 - <<'PY'
+          import pathlib,zipfile
+          with zipfile.ZipFile("archive/Hixton-Five-Synthetic-Worlds-20261103.zip") as z:
+            base="Hixton-Five-Synthetic-Worlds-20261103/engine/src/"
+            for n in z.namelist():
+              if n.startswith(base+"hixton/") and n.endswith(".py"):
+                p=pathlib.Path("archive/native")/n[len(base):]
+                p.parent.mkdir(parents=True,exist_ok=True)
+                p.write_bytes(z.read(n))
+          PY
+      - name: Exact policy one-variable difference, native runner identity and all negative fixtures
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          import pathlib,hashlib,sys,types,unittest,importlib.util,json
+          root=pathlib.Path.cwd()
+          sys.path.insert(0,str(root));sys.path.insert(0,str(root/"archive/native"))
+          m=types.ModuleType("hixton.data");m.__package__="hixton.data";m.__path__=[str(root/"archive/native/hixton/data")];sys.modules["hixton.data"]=m
+          a=(root/"research/r2_hold002/held_policy.py").read_text()
+          b=(root/"research/r2_hold003/held_policy.py").read_text()
+          allowed_guard="            # Eligibility is frozen from the completed signal candle, never from the next open.\n            if p.cost_basis <= 0 or p.quantity <= 0:\n                raise RuntimeError(\"R2_HOLD_NONPOSITIVE_LOT_BASIS\")\n            last_close = D(str(point.candle.close))\n            if not last_close.is_finite() or last_close <= 0:\n                raise RuntimeError(\"R2_HOLD_INVALID_LAST_CLOSED_PRICE\")\n            net_liquidation_at_closed_bar = (\n                p.quantity * last_close * (ONE-costs.adverse_price_rate) * (ONE-costs.fee_rate))\n            if net_liquidation_at_closed_bar >= p.cost_basis:\n                self.events.append({\"kind\":\"TRIM_SKIPPED_NOT_UNDERWATER\",\"symbol\":symbol,\n                                    \"episode\":self.episode,\"signal_close_utc\":close_time.isoformat(),\n                                    \"last_closed_price\":str(last_close),\n                                    \"estimated_net_liquidation\":str(net_liquidation_at_closed_bar),\n                                    \"remaining_native_cost_basis\":str(p.cost_basis)})\n                continue\n"
+          normalized=b.replace(allowed_guard,"")
+          normalized=normalized.replace("R2-D1-HOLD-003","R2-D1-HOLD-002")
+          normalized=normalized.replace('"""R2-D1-HOLD-002: loss-only held-position reduction, pre-registered.', '"""R2-D1-HOLD-002: isolated, predeclared held-position risk reduction.')
+          if b.count(allowed_guard)!=1 or normalized!=a:
+            raise RuntimeError("HOLD003_POLICY_NOT_SINGLE_PREREGISTERED_ELIGIBILITY_ABLATION")
+          ar=(root/"research/r2_hold002/run_native.py").read_text()
+          br=(root/"research/r2_hold003/run_native.py").read_text()
+          expected=ar.replace("R2-D1-HOLD-002","R2-D1-HOLD-003").replace("research.r2_hold002","research.r2_hold003").replace("r2_hold001_isolated","r2_hold003_isolated").replace('"TRIM_SKIPPED_NATIVE_EXIT","REARM")','"TRIM_SKIPPED_NATIVE_EXIT","TRIM_SKIPPED_NOT_UNDERWATER","REARM")')
+          if br!=expected:
+            raise RuntimeError("HOLD003_RUNNER_NOT_EXACT_SAME_NATIVE_LOADER_AND_EXECUTION")
+          spec=importlib.util.spec_from_file_location("hold003_pre_qa",root/"research/r2_hold003/test_hold003.py")
+          mod=importlib.util.module_from_spec(spec);sys.modules[spec.name]=mod;spec.loader.exec_module(mod)
+          res=unittest.TextTestRunner(verbosity=2).run(unittest.defaultTestLoader.loadTestsFromModule(mod))
+          from research.r2_hold003.held_policy import instrument
+          source=(root/"archive/native/hixton/backtest/portfolio.py").read_text()
+          sha=hashlib.sha256(source.encode()).hexdigest()
+          if sha!="06da08bf4e63613a5c655eaa34a3361d0b192645e1d128cf545e4075c0401dfd":
+            raise RuntimeError("FROZEN_F56_NATIVE_SOURCE_MISMATCH")
+          compiled=instrument(source)
+          report={"candidate":"R2-D1-HOLD-003","status":"PASS" if res.wasSuccessful() and res.testsRun==11 else "FAILED",
+            "tests":res.testsRun,"failures":len(res.failures),"errors":len(res.errors),
+            "one_variable_policy_diff":True,"original_input_loader_unchanged":True,
+            "native_source_sha256":sha,"isolated_instrumented_sha256":hashlib.sha256(compiled.encode()).hexdigest(),
+            "no_candidate_finance_run_in_this_job":True,"live_product_unchanged":True}
+          (root/"audit/hold003-pre-economic-method-qa.json").write_text(json.dumps(report,indent=2)+"\n")
+          print("HOLD003_METHOD_QA",json.dumps(report),flush=True)
+          if report["status"]!="PASS":sys.exit(1)
+          PY
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: hixton-r2-hold003-pre-economic-method-qa-${{ github.run_id }}
+          path: audit/
+          retention-days: 30
+          if-no-files-found: warn
