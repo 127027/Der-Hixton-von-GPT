@@ -1,0 +1,65 @@
+name: Hixton R2-S03 Exact Native Capital Utilization and Compounding Audit
+on:
+  push:
+    branches: [research/hixton-native-baseline-proof-20261103]
+    paths: [".github/workflows/hixton-r2-s03-capital-compounding-diagnostic-20261104.yml"]
+  workflow_dispatch:
+permissions:
+  contents: read
+  actions: read
+jobs:
+  read-only-c0-versus-s01-portfolio-growth:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 35
+    env:
+      GH_TOKEN: ${{ github.token }}
+      GH_REPO: ${{ github.repository }}
+      HIXTON_RESEARCH_ONLY: "1"
+      HIXTON_NO_TRADING: "1"
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - run: python -m pip install numpy==2.3.5
+      - name: Verify original frozen history and prior paired native trace
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -s research/r2_s01/R2-S03-CAP-001-preregister-capital-compounding-20261104.md
+          mkdir -p archive extracted prior output
+          gh release download research-data-20261103-five-dot-inputs -R "$GH_REPO" -p Hixton-Loss-Handoff-20261102.zip -D archive
+          echo "d1d1cde8347665d74da71f9e44bb3876dc6662bfe4bfc9e34dcab1dfecd84308  archive/Hixton-Loss-Handoff-20261102.zip" | sha256sum -c
+          gh run download 41889629161 -R "$GH_REPO" -n hixton-r2-s02-paired-native-41889629161 -D prior
+          python - <<'PY'
+          import pathlib,zipfile
+          root=pathlib.Path("extracted").resolve()
+          with zipfile.ZipFile("archive/Hixton-Loss-Handoff-20261102.zip") as z:
+              if not all((root/x.filename).resolve().is_relative_to(root) for x in z.infolist()):
+                  raise RuntimeError("ZIP_PATH_ESCAPE")
+              z.extractall(root)
+          PY
+      - name: Exact original closed candle marked capital/coin concentration/monthly growth, no replay
+        run: |
+          python -m research.r2_s01.s03_growth_capital_diagnostic --control prior/C0-native-hourly.json.gz --candidate prior/S01-native-hourly.json.gz --bundle extracted/Hixton-Loss-Handoff-20261102 --output output/S03-CAP-001-capital-growth.json
+      - name: Check invariant scope of descriptive capital analysis
+        run: |
+          python - <<'PY'
+          import json,pathlib
+          a=json.loads(pathlib.Path("output/S03-CAP-001-capital-growth.json").read_text())
+          assert a["total_hours"]==26304 and a["zero_hourly_coin_mark_residuals"]
+          assert a["C0"]["month_count"]==a["S01"]["month_count"]
+          assert a["C0"]["ending_equity_usdc"]=="33867.79699289748400000000"
+          assert a["S01"]["ending_equity_usdc"]=="10967.68139761524970000000"
+          assert a["observation_not_causal_portfolio_parameter_recommendation"]
+          print("S03_CAP_001_NATIVE_CAPITAL_DESCRIPTIVE_AUDIT_PASS",a["C0"]["month_count"])
+          PY
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: hixton-r2-s03-capital-compounding-${{ github.run_id }}
+          path: output/
+          retention-days: 30
+          if-no-files-found: warn
