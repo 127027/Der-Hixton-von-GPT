@@ -22,6 +22,26 @@ def run(bundle):
     assert "realized_basis = open_trade.cost_basis * basis_fraction" in src
     assert "dust[signal.symbol] += residual" in src
 
+    # Dot3 auxiliary-branch consolidation: compare the actual native feature
+    # builder with a 400-closed-hour prefix; do NOT add a second strategy engine.
+    from research.r2_s01.native_frozen_c0_position_observer import s01_features_from_closed_candles
+    origin=datetime(2024,1,1,tzinfo=timezone.utc)
+    synthetic=[NS(closed=True,close=(100.0 if i<400 else 94.0),
+                  close_time_utc=origin+timedelta(hours=i)) for i in range(406)]
+    before=s01_features_from_closed_candles({"BTCUSDC":synthetic})["BTCUSDC"]
+    assert before[origin+timedelta(hours=405)][2]==6
+    append=synthetic+[NS(closed=True,close=100000.0,
+                  close_time_utc=origin+timedelta(hours=406))]
+    after=s01_features_from_closed_candles({"BTCUSDC":append})["BTCUSDC"]
+    assert all(after[when]==values for when,values in before.items())
+    try:
+        s01_features_from_closed_candles({"BTCUSDC":synthetic[:300]+
+            [NS(closed=True,close=100.0,close_time_utc=origin+timedelta(hours=301))]})
+    except RuntimeError as exc:
+        assert "NONCONTIGUOUS_OHLC" in str(exc)
+    else:
+        raise AssertionError("missing original closed candle not rejected")
+
     t=datetime(2024,1,1,tzinfo=timezone.utc)
     cost=NS(adverse_price_rate=D("0.001"),fee_rate=D("0.001"))
     prices={"BTCUSDC":{t:(D("90"),D("94"),6)}}
