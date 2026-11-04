@@ -1,0 +1,73 @@
+name: Hixton R2 20-Quarter Input Contract Discovery
+on:
+  push:
+    branches: [research/hixton-native-baseline-proof-20261103]
+    paths: [".github/workflows/hixton-r2-quarter-discovery-20261104.yml"]
+  workflow_dispatch:
+permissions:
+  contents: read
+  actions: read
+jobs:
+  discover:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    env:
+      GH_TOKEN: ${{ github.token }}
+      GH_REPO: ${{ github.repository }}
+      HIXTON_RESEARCH_ONLY: "1"
+      HIXTON_NO_TRADING: "1"
+    steps:
+      - name: Download verified native outputs and frozen input package
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p native original audit
+          gh run download 41684371923 -R "$GH_REPO" -n hixton-five-year-c0-evidence-41684371923 -D native
+          gh release download research-data-20261103-five-dot-inputs -R "$GH_REPO" -p Hixton-Five-Synthetic-Worlds-20261103.zip -D original
+          echo "5262f12bef7182ae10e2c85fe5b790263404764e98e759196dbdfb7d0970d278  original/Hixton-Five-Synthetic-Worlds-20261103.zip" | sha256sum -c
+      - name: Identify exact input window timestamps and output ledger columns
+        shell: bash
+        run: |
+          python3 - <<'PY'
+          import zipfile,gzip,csv,io,json,pathlib
+          out={"schema_only":True,"cases":[]}
+          arch=pathlib.Path("original/Hixton-Five-Synthetic-Worlds-20261103.zip")
+          with zipfile.ZipFile(arch) as z:
+            names=z.namelist()
+            contracts=[k for k in names if k.endswith("/Input-Contract.json")]
+            if len(contracts)!=1:raise RuntimeError("Unique Input-Contract.json not found")
+            c=json.loads(z.read(contracts[0]))
+            out["input_contract"]=c
+            out["input_contract_path"]=contracts[0]
+            src=[n for n in names if n.endswith("/run_synthetic_baseline.py")]
+            if len(src)==1:
+              t=z.read(src[0]).decode().splitlines()
+              out["runner_time_references"]=[str(i+1)+":"+line[:260] for i,line in enumerate(t) if any(k in line for k in ("report_start","report_end","start_utc","end_utc","window_start","window_end"))][:35]
+          for name in ("cycles","winter","whipsaw","rotation","tail"):
+            for cost in ("current","stress"):
+              key=name+"__"+cost
+              f=list(pathlib.Path("native").rglob(key+"/Equity.csv.gz"))
+              if len(f)!=1:raise RuntimeError("Missing unique native equity "+key)
+              p=f[0]
+              with gzip.open(p,"rt",encoding="utf-8-sig") as h:
+                reader=csv.DictReader(h)
+                hdr=reader.fieldnames;first=None;last=None;count=0
+                for row in reader:
+                  if first is None:first=row
+                  last=row;count+=1
+              data=list(pathlib.Path("native").rglob(key+"/Result.json"))
+              rr=json.loads(data[0].read_text()) if len(data)==1 else {}
+              out["cases"].append({"case":key,"row_count":count,"headers":hdr,"first":first,"last":last,"result_keys":list(rr)[:70],"result_start_end":{k:v for k,v in rr.items() if "start" in k.lower() or "end" in k.lower() or "period" in k.lower() or "window" in k.lower()}})
+          pathlib.Path("audit/r2-quarter-source-discovery.json").write_text(json.dumps(out,indent=2,default=str)+"\n")
+          print("INPUT_CONTRACT",json.dumps(out["input_contract"],default=str)[:4000],flush=True)
+          print("RUNNER_TIME_REFERENCES",json.dumps(out.get("runner_time_references")),flush=True)
+          print("LEDGER_EXAMPLE",json.dumps(out["cases"][0],default=str)[:6000],flush=True)
+          print("ALL_CASES",json.dumps([{"case":x["case"],"count":x["row_count"],"first":x["first"],"last":x["last"]} for x in out["cases"]])[:12500],flush=True)
+          PY
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: hixton-r2-quarter-contract-discovery-${{ github.run_id }}
+          path: audit/
+          retention-days: 30
+          if-no-files-found: warn
