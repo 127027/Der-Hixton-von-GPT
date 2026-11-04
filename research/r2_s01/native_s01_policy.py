@@ -30,6 +30,8 @@ class S01Policy:
         self.cooldown_until = {}
         self.events = []
         self.last_close = None
+        self.expected_cash_delta = D("0")
+        self.native_fill_events = []
 
     def on_close(self, *, close_time, positions):
         """Evaluate only genuine held quantities and completed native OHLC."""
@@ -65,6 +67,7 @@ class S01Policy:
             return
         queued = self.pending
         self.pending = {}
+        self.expected_cash_delta = D("0")
         for symbol, close_time in sorted(queued.items()):
             if open_time != close_time + timedelta(milliseconds=1):
                 raise RuntimeError("S01_WRONG_NATIVE_EXECUTION_OPEN")
@@ -84,6 +87,9 @@ class S01Policy:
             signals.append(forced)
             before = len(fills)
             original_slots = positions[symbol].slots
+            previous_quantity = positions[symbol].quantity
+            previous_basis = positions[symbol].cost_basis
+            previous_occupied_slots = sum(x.slots for x in positions.values())
             execute_exit(forced)
             actual_fills = [f for f in fills[before:] if f.signal_id == ident]
             if len(actual_fills) > 1:
@@ -91,16 +97,32 @@ class S01Policy:
             if len(actual_fills) == 1:
                 if symbol in positions:
                     raise RuntimeError("S01_NATIVE_FILL_LEFT_OPEN_POSITION")
+                fill = actual_fills[0]
+                if fill.base_quantity <= 0 or fill.quote_value <= 0 or fill.fee_quote_equivalent < 0:
+                    raise RuntimeError("S01_INVALID_NATIVE_CONFIRMED_FILL")
+                if sum(x.slots for x in positions.values()) != previous_occupied_slots - original_slots:
+                    raise RuntimeError("S01_NATIVE_SLOT_RELEASE_NOT_CONSERVED")
+                self.expected_cash_delta += fill.quote_value - fill.fee_quote_equivalent
                 self.cooldown_until[symbol] = open_time + COOLDOWN
                 self.events.append(dict(kind="FILLED_NATIVE_FULL_EXIT", symbol=symbol,
                     fill_utc=open_time.isoformat(), cooldown_until_utc=self.cooldown_until[symbol].isoformat(),
                     native_fill_signal_id=ident, freed_native_slots=original_slots,
-                    sold_quantity=str(actual_fills[0].base_quantity)))
+                    sold_quantity=str(fill.base_quantity), estimated_prior_held_quantity=str(previous_quantity),
+                    native_prior_remaining_basis=str(previous_basis),
+                    native_quote_value=str(fill.quote_value),native_fee_quote=str(fill.fee_quote_equivalent),
+                    native_net_cash_delta=str(fill.quote_value-fill.fee_quote_equivalent)))
             else:
-                self.events.append(dict(kind="NO_TRADEABLE_EXIT_FILL", symbol=symbol,
-                    open_utc=open_time.isoformat(), still_regular_held=symbol in positions))
+                self.events.append(dict(kind="REJECTED_OR_DUST_NO_FILL", symbol=symbol,
+                    open_utc=open_time.isoformat(), still_regular_held=symbol in positions,
+                    cooldown_activated=False, native_cash_delta="0"))
                 # Native market rules may convert an untradeable position to dust.
                 # Do not claim a filled exit, successful cooldown, or recoverable cash.
+
+    def verify_cash_after(self, *, before, after):
+        if not self.enabled:
+            return
+        if after-before != self.expected_cash_delta:
+            raise RuntimeError(f"S01_NATIVE_CASH_DELTA_MISMATCH:{after-before}:{self.expected_cash_delta}")
 
     def entry_allowed(self, symbol, at):
         return not self.enabled or at >= self.cooldown_until.get(symbol, at)
@@ -124,9 +146,11 @@ def instrument(original):
         ("        if in_report and pending:\n",
          "        if in_report and (pending or R2_S01.pending):\n"),
         ("            entries.sort(\n",
-         """            R2_S01.at_open(open_time=open_time, positions=positions,
+         """            _s01_native_cash_before = cash
+            R2_S01.at_open(open_time=open_time, positions=positions,
                 previous_points=previous_points, execute_exit=execute_exit,
                 signals=signals, fills=fills, blocked=blocked)
+            R2_S01.verify_cash_after(before=_s01_native_cash_before, after=cash)
             entries = R2_S01.filter_entries(entries, open_time, blocked)
             entries.sort(
 """),
