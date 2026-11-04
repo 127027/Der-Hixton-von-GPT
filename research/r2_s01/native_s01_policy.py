@@ -86,6 +86,7 @@ class S01Policy:
             forced = replace(native_signal, signal_id=ident)
             signals.append(forced)
             before = len(fills)
+            blocked_before = len(blocked)
             original_slots = positions[symbol].slots
             previous_quantity = positions[symbol].quantity
             previous_basis = positions[symbol].cost_basis
@@ -112,11 +113,18 @@ class S01Policy:
                     native_quote_value=str(fill.quote_value),native_fee_quote=str(fill.fee_quote_equivalent),
                     native_net_cash_delta=str(fill.quote_value-fill.fee_quote_equivalent)))
             else:
-                self.events.append(dict(kind="REJECTED_OR_DUST_NO_FILL", symbol=symbol,
-                    open_utc=open_time.isoformat(), still_regular_held=symbol in positions,
-                    cooldown_activated=False, native_cash_delta="0"))
-                # Native market rules may convert an untradeable position to dust.
-                # Do not claim a filled exit, successful cooldown, or recoverable cash.
+                native_rejections = [reason for reason in blocked[blocked_before:]
+                                     if reason.startswith(ident + ":")]
+                if not native_rejections:
+                    self.events.append(dict(kind="UNKNOWN_NATIVE_EXECUTION",symbol=symbol,
+                        open_utc=open_time.isoformat(),still_regular_held=symbol in positions,
+                        cooldown_activated=False))
+                    raise RuntimeError("S01_UNRESOLVED_NATIVE_EXECUTION_NO_FILL_OR_REJECTION")
+                self.events.append(dict(kind="REJECTED_OR_DUST_NO_FILL",symbol=symbol,
+                    open_utc=open_time.isoformat(),still_regular_held=symbol in positions,
+                    native_rejections=native_rejections,cooldown_activated=False,
+                    native_cash_delta="0"))
+                # Explicit rejection or dust only; no confirmed sale, no cooldown.
 
     def verify_cash_after(self, *, before, after):
         if not self.enabled:
