@@ -1,0 +1,22 @@
+# R2-S04-CONCENTRATION-001 — PRE-OUTCOME DIAGNOSTIC CONTRACT
+Registration 2026-11-04, before any S04 measurement. Research-only observational analysis, no strategy tweak.
+
+## Fixed inputs and provenance
+- Original frozen native f56 product `f56d48536525830dd6ea50bf5bc174a6f9aeff8c`, normalized source `5cf39658dc6b1ee827ec0daefd73b2384a9edd0ff116ba0203f9ab8bb7737797`, historical native input ZIP SHA256 `d1d1cde8347665d74da71f9e44bb3876dc6662bfe4bfc9e34dcab1dfecd84308`.
+- Matched original_32k/current 26,304-hour C0 and rejected S01-A (same native engine, input, costs) existing trace **41889629161** artifact `13353475540`; accepted native-raw QA **41890109945**. S03 native close-valuations and 37-month continuity **41891428521**, independent raw QA **41891627728**. No repeated native replays.
+- C0 ending 33867.796992897484 USDC, S01-A ending 10967.6813976152497 USDC, S01-A REJECTED. Both are DEVELOPMENT histories and cannot be promoted or treated as independent forecasts.
+
+## Definitions (fixed before computation)
+At each UTC completed closed hour t, original frozen native decimal close is price_s(t).
+- Native whole equity E=Cash+sum_s((regular_qty_s+dust_qty_s)*price_s), exact original decimal valuation. Regular invested value I=sum_s(regular_qty_s*price_s). Dust marked D=sum_s(dust_qty_s*price_s). Check E=Cash+I+D, and native position_value=I+D exactly; fail closed on mismatch.
+- Largest regular held coin L=max_s(regular_qty_s*price_s), excluding dust. **Whole-equity concentration L/E**, **invested capital concentration L/I** only when I>0. Explicit undefined/null on hours with no active regular positions; never dilute invested-only averages with zero-valued cash-only hours. Report largest coin identification, episode max and selected hour.
+- `cash_only_hours`: no regular held quantity AND no positive dust (all equity cash), `dust_only_no_regular_hours`: no regular positions but residual positive dust, `any_regular_position_hours`: at least one open regular coin. Three categories mutually exclusive and exhaustive; report **ratio averages conditional on active positions**, cash fraction averages all hours AND active-only separately.
+- Drawdown from actual continuing native global high-water equity since start (no resets). Track **max dollar DD** and separately **max percent DD**, each with its own peak UTC/equity and trough UTC/equity (can be different). For a path P, define its two episode peak-to-trough intervals inclusive, include all hours for each. Summaries at BOTH episode types compare C0 and S01 at **identical UTC hours** (C0 episode window is primary, also S01 native episode window). Report cumulative cash ratio, regular investment ratio, concentration L/E, conditional concentration L/I, zero-regular/dust-only counts, largest coin identity at trough, native HWM DD amount/percent at trough, actual ending equity, and matched portfolio-equity difference.
+- Also report the 52 S01 sale immediate UTC snapshots using both paths at identical closes, and their 24 subsequent completed hours. These are *associations*, not profits saved or lost. No sum of individual sale 'missed gains', no future data in signal calculations.
+
+## QA and gating
+- Exact original closed candle-to-native value per hour, cost-baseline references, 26304 paired hour times, 52 previously proven native sale links. Report absolute max DD and percentage max DD independently, and distinguish native Cash/Dust from held positions.
+- Independent separate QA must verify sums and selected episode windows, sample raw-hour closes and full-hour continuity against original inputs. A green workflow is not a separately autonomous Dot4 reviewer.
+- This is DIAGNOSTIC QA ONLY; never infer that lower concentration alone raises return or protects drawdown. Next allocation hypothesis must be uniquely preregistered before any economic candidate trial. Existing losing coin-limit and fixed 4/6-slot experiments must not be re-run unchanged.
+- All original historical (3) and synthetic (5) windows × normal/stress =16 separate candidates for any later trading experiment after method QA; original gates unchanged (historical each normal >= C0, mean historical paired stress >=0, winter/tail each cost end>=C0 and maxDD% strictly less). Original five invented synthetic worlds are not forecasts; future holdout requires verified genuinely unused native historical source/listing provenance.
+- Live, product, paper, keys, orders untouched.
