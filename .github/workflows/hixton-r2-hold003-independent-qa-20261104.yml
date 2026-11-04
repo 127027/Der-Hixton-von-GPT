@@ -1,0 +1,54 @@
+name: Hixton R2 HOLD003 Independent Financial QA and C0/HOLD002 Economic Review
+on:
+  push:
+    branches: [research/hixton-native-baseline-proof-20261103]
+    paths: [".github/workflows/hixton-r2-hold003-independent-qa-20261104.yml"]
+  workflow_dispatch:
+permissions:
+  contents: read
+  actions: read
+jobs:
+  reconcile-and-evaluate:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    env:
+      GH_TOKEN: ${{ github.token }}
+      GH_REPO: ${{ github.repository }}
+      HIXTON_RESEARCH_ONLY: "1"
+      HIXTON_NO_TRADING: "1"
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: Obtain immutable candidate, precedent and prior independent C0 review
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p candidate predecessor prior audit
+          gh run download 41841602489 -R "$GH_REPO" -n hixton-r2-hold003-native-ledgers-41841602489 -D candidate
+          gh run download 41832693761 -R "$GH_REPO" -n hixton-r2-hold002-native-ledgers-41832693761 -D predecessor
+          gh run download 41840399091 -R "$GH_REPO" -n hixton-r2-hold002-independent-qa-and-economics-41840399091 -D prior
+          test -f prior/hold002-economic-differences.json
+          test -f candidate/original_32k__current/Complete.json
+          test -f predecessor/original_32k__current/Complete.json
+      - name: Independent recomputation of 16 candidate ledgers, fill cash, fees, continuous time and HWM episodes
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 research/r2_hold003/independent_results_qa.py --input candidate --out audit/hold003-independent-financial-16-case-qa.json
+      - name: Independent 16-case C0 and HOLD002 comparison without candidate promotion
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 research/r2_hold003/independent_economics.py \
+            --candidate candidate --previous predecessor \
+            --prior-economic-report prior/hold002-economic-differences.json \
+            --output audit/hold003-financial-economic-tradeoffs.json
+      - name: Preserve both independent audit results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: hixton-r2-hold003-independent-financial-qa-${{ github.run_id }}
+          path: audit/
+          retention-days: 30
+          if-no-files-found: warn
