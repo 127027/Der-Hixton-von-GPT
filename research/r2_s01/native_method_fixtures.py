@@ -25,14 +25,19 @@ def run(bundle):
     t=datetime(2024,1,1,tzinfo=timezone.utc)
     cost=NS(adverse_price_rate=D("0.001"),fee_rate=D("0.001"))
     prices={"BTCUSDC":{t:(D("90"),D("94"),6)}}
-    p=NS(quantity=D("0.5"),cost_basis=D("50"),slots=1)
+    p=NS(quantity=D("0.5"),cost_basis=D("50"),slots=1,signal=NS(signal_id="lot-1"))
     policy=S01Policy(features=prices,costs=cost)
     policy.on_close(close_time=t,positions={"BTCUSDC":p})
     assert list(policy.pending)==["BTCUSDC"]
+    # Same native entry may request one exit only; no hourly retry after rejection.
+    policy.pending.clear()
+    policy.features["BTCUSDC"][t+timedelta(hours=1)] = policy.features["BTCUSDC"][t]
+    policy.on_close(close_time=t+timedelta(hours=1),positions={"BTCUSDC":p})
+    assert not policy.pending
     assert len(policy.events)==1 and policy.events[0]["remaining_native_basis"]=="50"
     # The equivalent 1-unit / 100-USDC lot must have identical signal semantics.
     policy2=S01Policy(features=prices,costs=cost)
-    policy2.on_close(close_time=t,positions={"BTCUSDC":NS(quantity=D(1),cost_basis=D(100),slots=2)})
+    policy2.on_close(close_time=t,positions={"BTCUSDC":NS(quantity=D(1),cost_basis=D(100),slots=2,signal=NS(signal_id="lot-1"))})
     assert list(policy2.pending)==["BTCUSDC"]
     # No signal for non-held positions, no signal on 4/6.
     policy3=S01Policy(features=prices,costs=cost)
@@ -96,7 +101,7 @@ def run(bundle):
         assert gone.events[-1]["kind"]=="SKIPPED_REGULAR_EXIT"
 
         rejected=trigger()
-        held={"BTCUSDC":NS(quantity=D(".5"),cost_basis=D(50),slots=1)}
+        held={"BTCUSDC":NS(quantity=D(".5"),cost_basis=D(50),slots=1,signal=NS(signal_id="lot-1"))}
         sigs=[];fills=[];blocked=[]
         rejected.at_open(open_time=at,positions=held,previous_points=prev,
             execute_exit=lambda sig:blocked.append("MARKET_MINIMUM"),
