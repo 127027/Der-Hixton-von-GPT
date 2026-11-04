@@ -1,0 +1,42 @@
+name: Dot3 OHLC Original Archive Inventory (Research Only)
+on:
+  push:
+    branches: [research/dot3-ohlc-event-audit-20261104]
+    paths: [.github/workflows/dot3-ohlc-inventory-20261104.yml]
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  inventory:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - name: Fetch immutable historical handoff
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          mkdir -p input output
+          gh release download research-data-20261103-five-dot-inputs -R 127027/Der-Hixton-von-GPT -p Hixton-Loss-Handoff-20261102.zip -D input
+          sha256sum input/Hixton-Loss-Handoff-20261102.zip
+      - name: Read-only inventory and status gate
+        run: |
+          python research/dot3/inventory_ohlc_header_gate_20261104.py input/Hixton-Loss-Handoff-20261102.zip --sha256 d1d1cde8347665d74da71f9e44bb3876dc6662bfe4bfc9e34dcab1dfecd84308 --out output/ohlc_inventory.json
+          python - <<'PY'
+          import json
+          p='output/ohlc_inventory.json'
+          d=json.load(open(p))
+          if d['archive_sha256']!='d1d1cde8347665d74da71f9e44bb3876dc6662bfe4bfc9e34dcab1dfecd84308': raise SystemExit('BLOCKED_ARCHIVE_HASH')
+          found=[c for c,v in d['coins'].items() if v]
+          print('OHLC_SCHEMA_CANDIDATES:',found)
+          print('MISSING_SCHEMA:',d['missing_coin_schema'])
+          print('SCHEMA_ONLY_NOT_ORIGINAL_OHLC_QA')
+          PY
+      - name: Upload immutable research evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: dot3-ohlc-inventory-20261104
+          path: output/
+          if-no-files-found: warn
+          retention-days: 14
