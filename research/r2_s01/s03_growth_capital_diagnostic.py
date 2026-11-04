@@ -128,7 +128,7 @@ def run(a):
       "C0_concentration_average_pct":ref_c["time_average_largest_regular_coin_pct_of_equity"],
       "S01_concentration_average_pct":ref_s["time_average_largest_regular_coin_pct_of_equity"],
       "C0_cash_gt_50pct_hours":ref_c["hours_cash_gt_50pct"],
-      "S01_cash_gt_50pct_hours":ref_s["hours_cash_gt_50pct"]},flush=True))
+      "S01_cash_gt_50pct_hours":ref_s["hours_cash_gt_50pct"]}),flush=True)
 if __name__=="__main__":
     p=argparse.ArgumentParser()
     for n in ("control","candidate","bundle","output"):p.add_argument("--"+n,required=True)
