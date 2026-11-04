@@ -1,6 +1,5 @@
 """Research-only S01 causal predicate fixtures. Not a native finance engine."""
 from decimal import Decimal as D
-from copy import deepcopy
 
 ALPHA=D(2)/D(73)
 def ema72(closes):
@@ -28,7 +27,6 @@ def tests():
     assert not next_open_decision(base,p,costs)
     falling=base+[D(94)]*6
     assert next_open_decision(falling,p,costs)
-    assert next_open_decision(falling,p,costs)==next_open_decision(falling+[D(200)],p,costs) if False else True
     # Prefix invariance: the decision for hour t must not change after appending future candles.
     saved=next_open_decision(falling,p,costs)
     future=falling+[D(200)]*10
