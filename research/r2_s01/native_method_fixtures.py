@@ -104,10 +104,23 @@ def run(bundle):
         held={"BTCUSDC":NS(quantity=D(".5"),cost_basis=D(50),slots=1,signal=NS(signal_id="lot-1"))}
         sigs=[];fills=[];blocked=[]
         rejected.at_open(open_time=at,positions=held,previous_points=prev,
-            execute_exit=lambda sig:blocked.append("MARKET_MINIMUM"),
+            execute_exit=lambda sig:blocked.append(f"{sig.signal_id}:EXIT_FILTER_MIN_NOTIONAL"),
             signals=sigs,fills=fills,blocked=blocked)
         assert "BTCUSDC" in held and not rejected.cooldown_until and not fills
         assert rejected.events[-1]["kind"]=="REJECTED_OR_DUST_NO_FILL"
+        unresolved=trigger()
+        unresolved_held={"BTCUSDC":NS(quantity=D(".5"),cost_basis=D(50),slots=1,
+                                   signal=NS(signal_id="lot-1"))}
+        try:
+            unresolved.at_open(open_time=at,positions=unresolved_held,
+                previous_points=prev,execute_exit=lambda sig:None,
+                signals=[],fills=[],blocked=[])
+        except RuntimeError as exc:
+            assert "S01_UNRESOLVED_NATIVE_EXECUTION" in str(exc)
+        else:
+            raise AssertionError("unknown execution was not fail-closed")
+        assert not unresolved.cooldown_until
+
 
         filled=trigger()
         held={"BTCUSDC":NS(quantity=D(".5"),cost_basis=D(50),slots=1)}
