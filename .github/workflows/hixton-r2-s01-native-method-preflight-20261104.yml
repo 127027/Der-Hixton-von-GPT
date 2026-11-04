@@ -48,12 +48,31 @@ jobs:
       - name: Dot2/Dot4 native deterministic fixtures (NOT independent QA signoff)
         run: |
           PYTHONPATH="extracted/Hixton-Loss-Handoff-20261102/engine/src:." python -m research.r2_s01.native_method_fixtures extracted/Hixton-Loss-Handoff-20261102
-      - name: C0 original_32k current native full ledger/equity parity with disabled S01
+      - name: Activated current S01-A native full-exit and separate accounting audit
         run: |
           python -m research.r2_s01.run_native_s01 \
             --bundle extracted/Hixton-Loss-Handoff-20261102 \
-            --window original_32k --cost current --mode control \
-            --output audit/s01-disabled-original32k-current-c0-parity.json
+            --window original_32k --cost current --mode candidate \
+            --output audit/s01-current-activated-native-ledger.json
+      - name: Inspect current-code true fills, ledger, and comparison with older diagnostic
+        run: |
+          python - <<'PY'
+          import json,pathlib,decimal
+          x=json.loads(pathlib.Path("audit/s01-current-activated-native-ledger.json").read_text())
+          qa=x["native_s01_fill_trade_ledger_audit"]
+          assert qa["status"]=="NATIVE_EVENT_LEDGER_RECONCILED",qa
+          assert qa["native_confirmed_s01_exits"]>0
+          assert qa["native_confirmed_s01_exits"]==x["s01_executed_count"]
+          result={"code":"CURRENT_S01_A","scope":"original_32k/current","ledger":qa["status"],
+                  "confirmed_native_s01_exits":qa["native_confirmed_s01_exits"],
+                  "current_ending_usdc":x["candidate_ending_equity_usdc"],
+                  "older_ending_usdc":"10967.68139761524970000000",
+                  "same_terminal_equity_as_older":decimal.Decimal(str(x["candidate_ending_equity_usdc"]))==decimal.Decimal("10967.68139761524970000000"),
+                  "independent_Dot4_method_signoff":"NOT_ASSUMED_FROM_CI_PASS",
+                  "product_or_live_change":False}
+          pathlib.Path("audit/current-s01-method-summary.json").write_text(json.dumps(result,indent=2)+"\n")
+          print("CURRENT_S01_NATIVE_LEDGER_CHECK",json.dumps(result),flush=True)
+          PY
       - uses: actions/upload-artifact@v4
         if: always()
         with:
