@@ -1,0 +1,93 @@
+name: Hixton R2 Dot1 Exit-Only 002 Second 16 Native Financial Comparisons
+on:
+  push:
+    branches: [research/hixton-native-baseline-proof-20261103]
+    paths: [".github/workflows/hixton-r2-hold002-16-native-20261104.yml"]
+  workflow_dispatch:
+permissions:
+  contents: read
+  actions: read
+jobs:
+  finite-native-research:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 58
+    env:
+      GH_TOKEN: ${{ github.token }}
+      GH_REPO: ${{ github.repository }}
+      HIXTON_RESEARCH_ONLY: "1"
+      HIXTON_NO_TRADING: "1"
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Require successful pre-economic fixture QA and exactly identical native frozen C0
+        shell: bash
+        run: |
+          set -euo pipefail
+          for run in 41832539186 41830094478; do
+            actual="$(gh run view "$run" -R "$GH_REPO" --json conclusion --jq .conclusion)"
+            test "$actual" = success || { echo "PRECONDITION_FAILED $run $actual"; exit 1; }
+          done
+          echo R2_PRE_ECONOMIC_FIXTURES_8_OF_8_AND_DISABLED_C0_PARITY_PASS
+      - run: python -m pip install --disable-pip-version-check numpy==2.3.5
+      - name: Verify and extract both immutable original data source archives
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p bundle extracted output
+          gh release download research-data-20261103-five-dot-inputs -R "$GH_REPO" -p Hixton-Loss-Handoff-20261102.zip -p Hixton-Five-Synthetic-Worlds-20261103.zip -D bundle
+          echo "d1d1cde8347665d74da71f9e44bb3876dc6662bfe4bfc9e34dcab1dfecd84308  bundle/Hixton-Loss-Handoff-20261102.zip" | sha256sum -c
+          echo "5262f12bef7182ae10e2c85fe5b790263404764e98e759196dbdfb7d0970d278  bundle/Hixton-Five-Synthetic-Worlds-20261103.zip" | sha256sum -c
+          python3 - <<'PY'
+          import pathlib,zipfile
+          root=pathlib.Path("extracted").resolve()
+          for archive in pathlib.Path("bundle").glob("*.zip"):
+            with zipfile.ZipFile(archive) as z:
+              if not all((root/x.filename).resolve().is_relative_to(root) for x in z.infolist()):raise RuntimeError("ZIP_PATH_ESCAPE")
+              z.extractall(root)
+          print("IMMUTABLE_NATIVE_INPUTS_EXTRACTED",flush=True)
+          PY
+      - name: Compute ALL first sixteen R2-D1-HOLD-002 financial outcomes without native product changes
+        shell: bash
+        run: |
+          set -euo pipefail
+          export PYTHONDONTWRITEBYTECODE=1
+          for window in original_32k current_26oct latest_long; do
+            for cost in current stress; do
+              outdir="$(printf '%s__%s' "$window" "$cost")"
+              echo "START_R2_FIRST_NATIVE_FINANCIAL_CASE $outdir"
+              python3 -m research.r2_hold002.run_native --bundle extracted/Hixton-Loss-Handoff-20261102 --kind historical --window "$window" --cost "$cost" --mode candidate --out "output/$outdir"
+            done
+          done
+          for window in cycles winter whipsaw rotation tail; do
+            for cost in current stress; do
+              outdir="$(printf '%s__%s' "$window" "$cost")"
+              echo "START_R2_FIRST_NATIVE_FINANCIAL_CASE $outdir"
+              python3 -m research.r2_hold002.run_native --bundle extracted/Hixton-Five-Synthetic-Worlds-20261103 --kind synthetic --window "$window" --cost "$cost" --mode candidate --out "output/$outdir"
+            done
+          done
+          python3 - <<'PY'
+          import json,pathlib,hashlib
+          wins=("original_32k","current_26oct","latest_long","cycles","winter","whipsaw","rotation","tail")
+          results={}
+          for name in wins:
+            for cost in ("current","stress"):
+              key=name+"__"+cost
+              p=pathlib.Path("output")/key
+              case=json.loads((p/"Result.json").read_text())
+              seal=json.loads((p/"Complete.json").read_text())
+              assert seal["complete"] and case["candidate"]=="R2-D1-HOLD-002"
+              for filename,expected in seal["files_sha256"].items():
+                assert hashlib.sha256((p/filename).read_bytes()).hexdigest()==expected
+              results[key]={"C0_end":case["baseline_ending_equity_usdc"],"R2_end":case["candidate_ending_equity_usdc"],"delta":case["ending_equity_delta_vs_C0_usdc"],"max_dd_pct":case["candidate_max_drawdown_pct"],"fees":case["native_total_fill_fees_usdc"],"slippage":case["native_modeled_adverse_spread_slippage_usdc"],"events":case["event_counts"],"worst_quarter_usdc":case["worst_quarter_net_usdc"],"max_abs":case["maximum_absolute_drawdown_episode"],"max_pct":case["maximum_percentage_drawdown_episode"]}
+          pathlib.Path("output/Summary-16-contexts.json").write_text(json.dumps({"status":"FINANCIAL_RESEARCH_RESULTS_AWAIT_INDEPENDENT_QA","candidate":"R2-D1-HOLD-002","product_unchanged":True,"results":results},indent=2)+"\n")
+          print("FIRST_R2_16_CASE_FINANCIAL_SUMMARY",json.dumps(results),flush=True)
+          PY
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: hixton-r2-hold002-native-ledgers-${{ github.run_id }}
+          path: output/
+          retention-days: 30
+          if-no-files-found: warn
