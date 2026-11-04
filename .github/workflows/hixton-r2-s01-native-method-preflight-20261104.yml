@@ -6,6 +6,7 @@ on:
       - "research/r2_s01/native_s01_policy.py"
       - "research/r2_s01/run_native_s01.py"
       - "research/r2_s01/native_method_fixtures.py"
+      - "research/r2_s01/s01_predicate_prefix_fixtures.py"
       - ".github/workflows/hixton-r2-s01-native-method-preflight-20261104.yml"
   workflow_dispatch:
 permissions:
