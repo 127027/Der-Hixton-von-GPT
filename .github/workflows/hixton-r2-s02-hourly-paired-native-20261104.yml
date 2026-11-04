@@ -1,0 +1,72 @@
+name: Hixton R2-S02 Paired Native 26304h C0 Versus S01 Exposure and Cooldown Forensics
+on:
+  push:
+    branches: [research/hixton-native-baseline-proof-20261103]
+    paths: [".github/workflows/hixton-r2-s02-hourly-paired-native-20261104.yml"]
+  workflow_dispatch:
+permissions:
+  contents: read
+  actions: read
+jobs:
+  two-existing-fixed-policies-hourly-observation:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 55
+    env:
+      GH_TOKEN: ${{ github.token }}
+      GH_REPO: ${{ github.repository }}
+      HIXTON_NO_TRADING: "1"
+      HIXTON_RESEARCH_ONLY: "1"
+      PYTHONDONTWRITEBYTECODE: "1"
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - run: python -m pip install numpy==2.3.5
+      - name: Frozen original archives and prior actual results; SHA validation
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p archive extracted output existing
+          gh release download research-data-20261103-five-dot-inputs -R "$GH_REPO" -p Hixton-Loss-Handoff-20261102.zip -D archive
+          echo "d1d1cde8347665d74da71f9e44bb3876dc6662bfe4bfc9e34dcab1dfecd84308  archive/Hixton-Loss-Handoff-20261102.zip" | sha256sum -c
+          gh run download 41873929231 -R "$GH_REPO" -n hixton-r2-s01-a-current-ledger-evidence-41873929231 -D existing
+          python - <<'PY'
+          import pathlib,zipfile
+          root=pathlib.Path("extracted").resolve()
+          with zipfile.ZipFile("archive/Hixton-Loss-Handoff-20261102.zip") as z:
+              if not all((root/x.filename).resolve().is_relative_to(root) for x in z.infolist()):
+                  raise RuntimeError("ZIP_PATH_ESCAPE")
+              z.extractall(root)
+          PY
+      - name: Execute unchanged control C0 solely for observation and prove exact native identity
+        run: |
+          python -m research.r2_s01.run_native_s01 --bundle extracted/Hixton-Loss-Handoff-20261102 --window original_32k --cost current --mode control --trace output/C0-native-hourly.json.gz --output output/C0-native-summary.json
+      - name: Execute frozen rejected S01-A solely for observation and validate 52 genuine native sells
+        run: |
+          python -m research.r2_s01.run_native_s01 --bundle extracted/Hixton-Loss-Handoff-20261102 --window original_32k --cost current --mode candidate --trace output/S01-native-hourly.json.gz --output output/S01-native-summary.json
+      - name: Dot 1 and 2 paired hourly event-exposure-slot-cash-fee/cooldown assessment
+        run: |
+          python -m research.r2_s01.s02_paired_hourly_analyze --control output/C0-native-hourly.json.gz --candidate output/S01-native-hourly.json.gz --current-s01 existing/S01-A-current-active-native.json --output output/S02-DIAG-002-Report.json
+      - name: Separate QA for original frozen native paths and limited descriptive scope
+        run: |
+          python - <<'PY'
+          import json,pathlib
+          a=json.loads(pathlib.Path("output/S02-DIAG-002-Report.json").read_text())
+          assert a["rows"]==26304 and a["confirmed_sale_events_linked_to_C0"] and len(a["confirmed_sale_events_linked_to_C0"])==52
+          assert a["full_path_terminal_delta_usdc"]=="-22900.11559528223430000000"
+          assert a["observed_relationship_not_causal_apportionment"] and a["causal_interaction_terms"] is None
+          assert a["first_observed_path_difference"]["hour_index"] >=0
+          assert a["native_book"]["C0"]["native_fills"]==361
+          assert a["native_book"]["S01"]["native_fills"]==423
+          print("DOT4_S02_LIMITED_SCOPE_HOURLY_MATCHED_NATIVE_AUDIT_PASS",a["first_observed_path_difference"]["utc"])
+          PY
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: hixton-r2-s02-paired-native-${{ github.run_id }}
+          path: output/
+          retention-days: 30
+          if-no-files-found: warn
