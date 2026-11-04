@@ -26,6 +26,7 @@ class S01Policy:
         self.costs = costs
         self.enabled = enabled
         self.pending = {}
+        self.attempted_entries = set()
         self.cooldown_until = {}
         self.events = []
         self.last_close = None
@@ -50,7 +51,9 @@ class S01Policy:
                 raise RuntimeError("S01_INVALID_CLOSED_PRICE")
             net = p.quantity * close * (ONE - self.costs.adverse_price_rate) * (ONE - self.costs.fee_rate)
             net_return = net / p.cost_basis - ONE
-            if below >= 5 and net_return <= THRESHOLD:
+            marker = (symbol, p.signal.signal_id)
+            if below >= 5 and net_return <= THRESHOLD and marker not in self.attempted_entries:
+                self.attempted_entries.add(marker)
                 self.pending[symbol] = close_time
                 self.events.append(dict(kind="TRIGGER", symbol=symbol, signal_close_utc=close_time.isoformat(),
                     native_quantity=str(p.quantity), remaining_native_basis=str(p.cost_basis),
