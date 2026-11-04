@@ -1,0 +1,114 @@
+name: Hixton R2 HOLD-002 Independent Ledger and Economic Comparison
+on:
+  push:
+    branches: [research/hixton-native-baseline-proof-20261103]
+    paths: [".github/workflows/hixton-r2-hold002-independent-economic-qa-20261104.yml"]
+  workflow_dispatch:
+permissions:
+  contents: read
+  actions: read
+jobs:
+  independently-audit:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    env:
+      GH_TOKEN: ${{ github.token }}
+      GH_REPO: ${{ github.repository }}
+      HIXTON_RESEARCH_ONLY: "1"
+      HIXTON_NO_TRADING: "1"
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: Fetch immutable HOLD002 and original C0 native ledgers
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p input native-c0 audit
+          gh run download 41832693761 -R "$GH_REPO" -n hixton-r2-hold002-native-ledgers-41832693761 -D input
+          gh run download 41684371923 -R "$GH_REPO" -n hixton-five-year-c0-evidence-41684371923 -D native-c0
+      - name: Independently reconstruct all 16 HOLD002 financial ledgers, fills, fees and HWM
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 research/r2_hold002/independent_results_qa.py --input input --out audit/independent-hold002-native-qa.json
+      - name: Independently compare all original C0 synthetic 5Y hourly risks and all 16 equity outcomes
+        shell: bash
+        run: |
+          python3 - <<'PY'
+          import csv,gzip,hashlib,json,pathlib,sys
+          from decimal import Decimal
+          from datetime import datetime,timedelta
+          inp=pathlib.Path("input")
+          native=pathlib.Path("native-c0")
+          output=pathlib.Path("audit/hold002-economic-differences.json")
+          qa=json.loads(pathlib.Path("audit/independent-hold002-native-qa.json").read_text())
+          result={"candidate":"R2-D1-HOLD-002","source_run":41832693761,"frozen_c0_run":41684371923,"qa_run_local":qa["status"],"cases":{},"hist_current_non_degradation":None,"stress_non_degradation":None,"synthetic_dd_non_worsening":None,"product_change":False,"promotion_allowed":False,"errors":[]}
+          D=lambda z: Decimal(str(z))
+          try:
+            if qa["status"]!="R2_SECOND_16_NATIVE_LEDGER_QA_PASS_WITH_LIMITED_MARK_TO_MARKET_SCOPE" or qa["passed"]!=16:
+              raise RuntimeError("Independent HOLD002 audit incomplete")
+            winning=[];losing=[];same=[]
+            ddworse=[];ddbetter=[]
+            current_historical=[]
+            for key in sorted(qa["cases"]):
+              cp=inp/key
+              r=json.loads((cp/"Result.json").read_text())
+              c0=D(r["baseline_ending_equity_usdc"]);end=D(r["candidate_ending_equity_usdc"]);delta=end-c0
+              if delta>0:winning.append(key)
+              elif delta<0:losing.append(key)
+              else:same.append(key)
+              row={"world":key.split("__")[0],"cost":key.split("__")[1],"C0_end_usdc":str(c0),"R2_end_usdc":str(end),"delta_usdc":str(delta),"relative_end_change_pct":str(delta/c0*100) if c0>0 else None,"R2_max_dd_pct":str(D(r["candidate_max_drawdown_pct"])),"protective_trim_count":r["event_counts"].get("TRIM_EXECUTED"),"trigger_count":r["event_counts"].get("TRIGGER"),"R2_fee_total_usdc":r["native_total_fill_fees_usdc"],"R2_adverse_slippage_total_usdc":r["native_modeled_adverse_spread_slippage_usdc"],"R2_worst_quarter_net_usdc":r["worst_quarter_net_usdc"],"R2_max_abs_episode":r["maximum_absolute_drawdown_episode"],"R2_max_pct_episode":r["maximum_percentage_drawdown_episode"]}
+              if row["world"] in ("cycles","winter","whipsaw","rotation","tail"):
+                f=list(native.rglob(key+"/Equity.csv.gz"))
+                if len(f)!=1:raise RuntimeError("No unique C0 native hourly file: "+key)
+                peak=None;start=D("1092.05773944");peak=start
+                absmax=D(0);pctmax=D(0);prev=None;last=None;count=0;endcash=None
+                with gzip.open(f[0],"rt") as g:
+                  reader=csv.DictReader(g)
+                  for v in reader:
+                    t=datetime.fromisoformat(v["time_utc"])
+                    if prev is not None and t-prev!=timedelta(hours=1):raise RuntimeError("Nonmonotonic native C0 equity")
+                    prev=t
+                    equity=D(v["equity"]);cash=D(v["cash"]);positions=D(v["position_value"])
+                    if equity!=cash+positions:raise RuntimeError("Nonconserved original C0 native equity")
+                    if equity>peak:peak=equity
+                    dd=peak-equity;ddpct=dd/peak*100
+                    absmax=max(dd,absmax);pctmax=max(ddpct,pctmax)
+                    last=equity;count+=1
+                if count!=43824 or last!=c0:raise RuntimeError("C0 native hourly path / reported baseline end mismatch "+key)
+                row["C0_max_dd_pct"]=str(pctmax)
+                row["C0_max_abs_dd_usdc"]=str(absmax)
+                row["R2_minus_C0_max_dd_percentage_points"]=str(D(row["R2_max_dd_pct"])-pctmax)
+                if D(row["R2_minus_C0_max_dd_percentage_points"])>0:ddworse.append(key)
+                elif D(row["R2_minus_C0_max_dd_percentage_points"])<0:ddbetter.append(key)
+                row["C0_hour_count"]=count
+              else:
+                row["C0_max_dd_pct"]=None
+                row["R2_minus_C0_max_dd_percentage_points"]=None
+                if row["cost"]=="current":current_historical.append((key,delta))
+              result["cases"][key]=row
+            if len(result["cases"])!=16:raise RuntimeError("Expected all 16 independently audited cases")
+            result["summary"]={"R2_end_better_than_C0_cases":winning,"R2_end_worse_than_C0_cases":losing,"R2_end_identical_cases":same,
+               "five_year_R2_dd_worse_than_C0":ddworse,"five_year_R2_dd_better_than_C0":ddbetter,
+               "historical_current_end_changes":{k:str(v) for k,v in current_historical},
+               "note":"These are in-sample development worlds, not independent out-of-sample forecasts. Do not promote candidate automatically."}
+            result["hist_current_non_degradation"]=all(d>=0 for _,d in current_historical) and len(current_historical)==3
+            result["stress_non_degradation"]=all(D(x["delta_usdc"])>=0 for x in result["cases"].values() if x["cost"]=="stress")
+            result["synthetic_dd_non_worsening"]=not ddworse
+            result["status"]="HOLD002_16_NATIVE_LEDGER_QA_AND_C0_ECONOMIC_COMPARISON_PASS"
+            result["promotion_allowed"]=False
+          except Exception as exc:
+            result["status"]="FAILED";result["errors"].append(str(exc))
+          finally:
+            output.write_text(json.dumps(result,indent=2,ensure_ascii=False)+"\n")
+            print("HOLD002_ECONOMIC_SUMMARY",json.dumps({k:result.get(k) for k in ("status","hist_current_non_degradation","stress_non_degradation","synthetic_dd_non_worsening","summary","errors")},default=str),flush=True)
+          if result["status"]!="HOLD002_16_NATIVE_LEDGER_QA_AND_C0_ECONOMIC_COMPARISON_PASS":sys.exit(1)
+          PY
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: hixton-r2-hold002-independent-qa-and-economics-${{ github.run_id }}
+          path: audit/
+          retention-days: 30
+          if-no-files-found: warn
