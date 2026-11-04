@@ -23,8 +23,8 @@ def test():
     original=f(prices)
     assert any(v for _,v in original)
     assert original==f(prices+[D(1000000)])[:len(original)]
-    assert not any(v for _,v in predicates(prices,[D(0)]*len(prices),basis,D(".0005"),D(".001"))
-    assert not any(v for _,v in predicates([D(100)]*len(prices),qty,basis,D(".0005"),D(".001"))
+    assert not any(v for _,v in predicates(prices,[D(0)]*len(prices),basis,D(".0005"),D(".001")))
+    assert not any(v for _,v in predicates([D(100)]*len(prices),qty,basis,D(".0005"),D(".001")))
     assert predicates(prices[:71],qty[:71],basis[:71],D(".0005"),D(".001"))==[]
     assert [v for _,v in original]==[v for _,v in predicates(prices,[D(".5")]*len(prices),[D(50)]*len(prices),D(".0005"),D(".001"))]
     print("S01_PREDICATE_FIXTURES_PASS (NOT NATIVE_METHOD_QA)")
