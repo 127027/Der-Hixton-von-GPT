@@ -19,7 +19,6 @@ SYNTH=("cycles","winter","whipsaw","rotation","tail")
 COSTS=("current","stress")
 
 def run(args):
-    from research.r2_s01.native_s01_policy import S01Policy,instrument
     bundle=pathlib.Path(args.bundle).resolve(strict=True)
     output=pathlib.Path(args.output).resolve()
     if output.exists():raise RuntimeError("S01_NO_RESULT_OVERWRITE")
@@ -29,6 +28,7 @@ def run(args):
     verified=runpy.run_path(str(bundle/wrapper),run_name="s01_original_verification")
     frozen_contract,_=verified["verify"]()
     data,spec,contract,base,rules,CostModel=snapshot_loader(bundle=bundle,kind=kind,window=args.window)
+    from research.r2_s01.native_s01_policy import S01Policy,instrument
     if contract != frozen_contract:raise RuntimeError("S01_CONTRACT_VERIFICATION_MISMATCH")
     if contract["source_commit"]!=FROZEN or contract["source_sha256_normalized"]!=FROZEN_SOURCE:
         raise RuntimeError("S01_ORIGINAL_PRODUCT_DRIFT")
