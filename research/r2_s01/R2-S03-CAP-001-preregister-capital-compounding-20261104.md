@@ -1,0 +1,18 @@
+# R2-S03-CAP-001 — CAPITAL UTILIZATION AND COMPOUNDING DIAGNOSTIC PREREG
+
+Registered 2026-11-04 before S03 measurements, in response to S02-DIAG-002 and S02-ABL-001. No trading strategy, parameter, rebalancing or product modification.
+
+## Fixed evidence and question
+S02-DIAG-002 run 41889629161 generated matched original_32k/current 26304 true native C0/S01-A hourly states, including cash, gross marked position value, qty and remaining cost basis of each held asset, native slots, dust, real fills and blocked reasons. Source and original frozen input archive hashes are registered in `HIXTON-FIVE-DOT-MANDATORY-SHARED-CHECKPOINT-S02-20261104.md`. Candidate S01-A is economically REJECTED. Additional no-S01-coin-cooldown counterfactual run 41890504643 was method/ledger-checked and separately audited in 41890805491; its terminal equity is lower by 684.72636899363825 USDC conditional on S01 forced exits.
+
+**Question:** Which observable patterns of cash fraction, deployed marked assets, occupied slots, coin concentration, and compounding differ between the untouched native baseline C0 and failed S01-A? Can this guide a separate future capital-allocation or entry-quality hypothesis without automatically adding SELL rules?
+
+## Predeclared descriptive metrics
+1. Reuse the 26304 original UTC-aligned hourly C0/S01-A rows from run 41889629161, **do not execute another strategy backtest**. Compare native per-hour cash and position_value against equity exactly. Mean/min/max cash/equity ratio, hours cash/equity >25% and >50%, time in zero regular positions, time with 1/2/3+ regular native positions, occupied native slot-hours, marked asset USDC-hours, and cumulative gross fees/turnover (same accounting conventions as S02).
+2. Rebind the frozen SHA256 original historical Input-Contract and data sources. Use original **already closed candle** close quotes to value each active coin and dust by UTC. For each hour require the sum of per-coin marked regular positions + marked dust equals the native `position_value`; abort rather than quietly adjust if it does not. Then per hour report maximum coin marked exposure / whole portfolio equity (concentration) and top coin concentration; note Dust is separate not an open trade.
+3. Compute chronological UTC calendar-month start/end equity, net change, mean cash and investment fraction, earliest/latest UTC and counts. This is observation on ONE continuous original history, not backtests with a monthly reset.
+4. For the 52 known S01 forced exits record immediate and following 24 completed hours cash/slot/coin concentration versus matched C0 at same timestamps; these are DESCRIPTIVE conditional comparisons; changes in later trade paths introduce endogeneity.
+5. Record paired time-average ratio and time distribution; no fitted trading threshold, no claim that high cash is always bad, no per-trade additive missed profit, no use of known future prices as decision-time input.
+
+## Success / QA
+Exact 26304 matched hours and original frozen reference endings, zero per-hour valuation residuals (or report concrete explanation if f56 rules use different marking precision), all original input SHA verified, no futures beyond hour; annual and monthly paths are uninterrupted, 52 matched forced events, output actual row-level or monthly data plus summary. Separate read-only QA must independently verify time alignment, original ledger and valuation logic and label limited observational scope. Only after these figures specify any new candidate with separate preregistration and method gate; never use this same development history as independent holdout.
