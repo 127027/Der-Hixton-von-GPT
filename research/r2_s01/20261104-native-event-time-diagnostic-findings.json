@@ -1,0 +1,39 @@
+{
+  "document_id": "R2-S01-C0-EVENT-TIME-NATIVE-POSITION-OBSERVATION-20261104",
+  "source": "f56d48536525830dd6ea50bf5bc174a6f9aeff8c",
+  "research_only": true,
+  "live_product_mutated": false,
+  "experiment_class": "READ_ONLY_UNCHANGED_NATIVE_C0_SIGNAL_AVAILABILITY_DIAGNOSTIC",
+  "status": "BASELINE_IDENTITY_AND_REAL_POSITION_OBSERVER_PASS__S01_METHOD_QA_STILL_PENDING",
+  "original_dataset": "Hixton-Loss-Handoff-20261102.zip",
+  "original_archive_sha256": "d1d1cde8347665d74da71f9e44bb3876dc6662bfe4bfc9e34dcab1dfecd84308",
+  "original_3y_context": "original_32k__current",
+  "original_c0_identity_check": "Frozen f56 metrics, original fills, trades, signals and every hourly cash/equity/position-value row exact equality",
+  "github_run": 41848583275,
+  "github_url": "https://github.com/127027/Der-Hixton-von-GPT/actions/runs/41848583275",
+  "artifact_id": 13331708780,
+  "observed": {
+    "examined_original_closed_hours": 26304,
+    "native_regular_held_position_hours": 21234,
+    "hours_only_nontradeable_dust": 4963,
+    "hours_with_no_position_or_dust": 107,
+    "unique_native_entry_identifiers_with_preregistered_s01_warning": 66,
+    "max_percent_drawdown_trough_native_regular_positions": 3
+  },
+  "limitations": [
+    "The 66 warnings were computed as closed-bar hypothetical criteria while actual C0 positions were present; no S01 exits were executed and no candidate economic benefit shown.",
+    "The EMA72/6h predicate's prefix-invariance has not yet received an independent Dot4 method audit.",
+    "These samples are from an already-used historical development window, not genuine OOS.",
+    "A single cost/window is not an independent 16-case strategy comparison, and not proof that later execution, minimum order rules and 24h cooldown succeed.",
+    "Native C0 fills alone can leave dust balances even when regular native positions are absent; older fill-only audit 41847643611 was deliberately qualified.",
+    "Never use future known crash trough timestamps as per-coin exit rules."
+  ],
+  "followup_required": [
+    "Dot1 and Dot2 review the genuine native position snapshots and signal-time opportunities at observed historical drawdown episodes",
+    "Dot3 implements only frozen R2-D3-S01 using original native loader and verified candidate chronology",
+    "Dot4 independently tests time-prefix invariance, costbasis-after-partial-sale, cooldown, native order priority and original profit/stress/tail success gates BEFORE any finance",
+    "Dot5 confirms unused historical holdout provenance, disjoint chronology and original listing/warmup coverage before first outcome access",
+    "Only after Method QA PASS run candidate vs original C0 in all 16 DEVELOPMENT cases, followed by independent native financial QA and later new truly held-out evaluation."
+  ],
+  "product_promotion": false
+}
