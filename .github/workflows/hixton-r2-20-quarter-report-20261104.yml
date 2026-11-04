@@ -1,0 +1,181 @@
+name: Hixton R2 Actual Twenty-Quarter C0 Diagnostics
+on:
+  push:
+    branches: [research/hixton-native-baseline-proof-20261103]
+    paths: [".github/workflows/hixton-r2-20-quarter-report-20261104.yml"]
+  workflow_dispatch:
+permissions:
+  contents: read
+  actions: read
+jobs:
+  financial-diagnostic:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 25
+    env:
+      GH_TOKEN: ${{ github.token }}
+      GH_REPO: ${{ github.repository }}
+      HIXTON_RESEARCH_ONLY: "1"
+      HIXTON_NO_TRADING: "1"
+    steps:
+      - name: Download the independently reproduced native hourly C0 ledgers
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p native audit
+          gh run download 41684371923 -R "$GH_REPO" -n hixton-five-year-c0-evidence-41684371923 -D native
+      - name: Calculate 20 anchored 3-month segments without re-running or resetting engine
+        shell: bash
+        run: |
+          python3 - <<'PY'
+          import calendar,csv,gzip,hashlib,io,json,pathlib,sys
+          from datetime import datetime,timedelta,timezone
+          from decimal import Decimal
+          native=pathlib.Path("native");audit=pathlib.Path("audit")
+          status={"status":"STARTED","source_run":41684371923,"frozen_product":"f56d48536525830dd6ea50bf5bc174a6f9aeff8c","source_is_verified_native_C0":True,"economic_candidate_replay":False,"quarterly_ledger_count":0,"failures":[],"cases":{}}
+          def save(): (audit/"r2-20-quarter-report.json").write_text(json.dumps(status,indent=2,ensure_ascii=False)+"\n")
+          def D(v):
+            z=Decimal(str(v))
+            if not z.is_finite():raise ValueError("Non-finite financial number")
+            return z
+          def T(s):
+            d=datetime.fromisoformat(str(s).replace("Z","+00:00"))
+            if d.utcoffset()!=timedelta(0):raise ValueError("Non UTC timestamp")
+            return d
+          def addmonths(anchor,n):
+            y=anchor.year+(anchor.month-1+n)//12
+            m=(anchor.month-1+n)%12+1
+            return anchor.replace(year=y,month=m,day=min(anchor.day,calendar.monthrange(y,m)[1]))
+          def unique(prefix,key):
+            q=list(native.rglob(key+"/"+prefix))
+            if len(q)!=1:raise RuntimeError("Expected exactly one "+prefix+" in "+key+"; got "+str(len(q)))
+            return q[0]
+          def readjson(path,category):
+            v=json.loads(path.read_text())
+            if isinstance(v,dict):
+              v=next((v[k] for k in (category,"items","records") if isinstance(v.get(k),list)),None)
+            if not isinstance(v,list):raise RuntimeError("Expected list for "+str(path))
+            return v
+          def ddresult(event,rows):
+            if event is None:return None
+            p=event["peak_equity"]
+            after=event["trough_row"]+1
+            recovery=next((j for j in range(after,len(rows)) if rows[j]["equity"]>=p),None)
+            return {"peak_utc":event["peak_utc"],"peak_equity_usdc":str(p),"trough_utc":event["trough_utc"],"trough_equity_usdc":str(event["trough_equity"]),"loss_usdc":str(event["loss"]),"loss_pct":str(event["pct"]),"recovered":recovery is not None,"recovered_utc":rows[recovery]["time"].isoformat() if recovery is not None else None,"recovery_hours_after_trough":round((rows[recovery]["time"]-rows[event["trough_row"]]["time"]).total_seconds()/3600) if recovery is not None else None}
+          try:
+            manifest=list(native.rglob("five-year-c0-reproduction.json"))
+            if len(manifest)!=1:raise RuntimeError("Missing exact independent reproduction manifest")
+            m=json.loads(manifest[0].read_text())
+            if m.get("status")!="TEN_SYNTHETIC_C0_FINANCIAL_PARITY_PASS" or len(m.get("cases",[]))!=10 or any(v.get("status")!="PARITY_PASS" for v in m["cases"]):
+              raise RuntimeError("Refuse unverified input ledgers")
+            allrecords=[]
+            for world in ("cycles","winter","whipsaw","rotation","tail"):
+              for cost in ("current","stress"):
+                key=world+"__"+cost
+                p=unique("Equity.csv.gz",key)
+                with gzip.open(p,"rt",encoding="utf-8-sig") as f:
+                  stream=csv.DictReader(f)
+                  if set(stream.fieldnames or [])!={"time_utc","equity","cash","position_value"}:raise RuntimeError("Unrecognized native hourly equity headers")
+                  rows=[];previous=None;max_balance_resid=Decimal(0)
+                  for v in stream:
+                    t=T(v["time_utc"]);equity=D(v["equity"]);cash=D(v["cash"]);pos=D(v["position_value"])
+                    if previous is not None and t-previous!=timedelta(hours=1):
+                      raise RuntimeError("Noncontinuous hour or duplicate in "+key+" "+str(t))
+                    previous=t
+                    if min(equity,cash,pos)<0:raise RuntimeError("Negative balance in "+key)
+                    resid=abs(equity-(cash+pos))
+                    max_balance_resid=max(max_balance_resid,resid)
+                    if resid>Decimal("0.00000001"):raise RuntimeError("Cash + position value unequal equity in "+key)
+                    rows.append({"time":t,"equity":equity,"cash":cash,"position":pos})
+                if len(rows)!=43824:raise RuntimeError("Unexpected five-year hourly row count "+key+" "+str(len(rows)))
+                anchor=rows[0]["time"].replace(minute=0,second=0,microsecond=0)
+                if rows[0]["time"]!=anchor+timedelta(hours=1)-timedelta(milliseconds=1):
+                  raise RuntimeError("First closed hourly bar not aligned "+key)
+                bounds=[addmonths(anchor,3*i) for i in range(21)]
+                if len(set(bounds))!=21 or bounds[-1]!=anchor.replace(year=anchor.year+5):
+                  raise RuntimeError("Not exactly 20 anchored continuous 3mo segments "+key)
+                if rows[-1]["time"]!=bounds[-1]-timedelta(milliseconds=1):
+                  raise RuntimeError("Last closed bar not exactly at five-year endpoint "+key)
+                # Base capital must match the original ledger at its first reported close.
+                if rows[0]["equity"]!=Decimal("1092.05773944"):raise RuntimeError("Initial base equity not 1092.05773944")
+                peak=Decimal("1092.05773944");peak_time=anchor
+                events=[{"abs":None,"pct":None} for _ in range(20)]
+                global_max={"abs":None,"pct":None}
+                equity_in_case=rows[0]["equity"]
+                idx=0
+                for i,r in enumerate(rows):
+                  t=r["time"]
+                  while idx+1<20 and t>=bounds[idx+1]:idx+=1
+                  if not (bounds[idx]<=t<bounds[idx+1]):raise RuntimeError("Bar outside quarter or overlapping")
+                  equity=r["equity"];equity_in_case=equity
+                  if equity>peak:peak=equity;peak_time=t
+                  amount=peak-equity;pct=(amount/peak*100) if peak>0 else Decimal(0)
+                  if amount>0:
+                    e={"peak_utc":peak_time.isoformat(),"peak_equity":peak,"trough_utc":t.isoformat(),"trough_equity":equity,"loss":amount,"pct":pct,"trough_row":i}
+                    for slot in (events[idx],global_max):
+                      if slot["abs"] is None or amount>slot["abs"]["loss"]:slot["abs"]=e
+                      if slot["pct"] is None or pct>slot["pct"]["pct"]:slot["pct"]=e
+                # PnL and fee observations are references, not a synthetic independent
+                # unrealized-PnL reconciliation; that requires per-lot carrying bases.
+                trades=readjson(unique("Trades.json",key),"trades")
+                fills=readjson(unique("Fills.json",key),"fills")
+                real=[Decimal(0)]*20;fees=[Decimal(0)]*20
+                real_n=[0]*20;fill_n=[0]*20
+                for trade in trades:
+                  t=T(trade["exit_time_utc"])
+                  k=next((i for i in range(20) if bounds[i]<=t<bounds[i+1]),None)
+                  if k is not None:
+                    real[k]+=D(trade["realized_pnl"]);real_n[k]+=1
+                for fill in fills:
+                  t=T(fill["fill_time_utc"])
+                  k=next((i for i in range(20) if bounds[i]<=t<bounds[i+1]),None)
+                  if k is not None:
+                    fees[k]+=D(fill["fee_quote_equivalent"]);fill_n[k]+=1
+                grouped=[[] for _ in range(20)]
+                months={};years={}
+                for r in rows:
+                  q=next((i for i in range(20) if bounds[i]<=r["time"]<bounds[i+1]),None)
+                  if q is None:raise RuntimeError("Hour has no anchored quarter "+key)
+                  grouped[q].append(r)
+                  mm=r["time"].strftime("%Y-%m");yy=r["time"].strftime("%Y")
+                  if mm not in months:months[mm]={"first":r,"last":r}
+                  else:months[mm]["last"]=r
+                  if yy not in years:years[yy]={"first":r,"last":r}
+                  else:years[yy]["last"]=r
+                if any(not g for g in grouped):raise RuntimeError("Empty quarter")
+                quarters=[];prior=Decimal("1092.05773944")
+                for i,g in enumerate(grouped):
+                  last=g[-1];end=last["equity"];pnl=end-prior
+                  if last["cash"]+last["position"]!=end:raise RuntimeError("Quarter ending balance mismatch")
+                  quarter={"quarter":i+1,"period_start_utc":bounds[i].isoformat(),"period_end_exclusive_utc":bounds[i+1].isoformat(),"hours":len(g),"start_equity_usdc":str(prior),"end_equity_usdc":str(end),"net_equity_change_usdc":str(pnl),"net_return_pct":str((pnl/prior*100) if prior else 0),"end_cash_usdc":str(last["cash"]),"end_marked_positions_usdc":str(last["position"]),"end_cash_pct_of_total":str(last["cash"]/end*100 if end else 0),"end_invested_pct_of_total":str(last["position"]/end*100 if end else 0),"closed_trade_realized_pnl_usdc":str(real[i]),"closed_trades":real_n[i],"observed_fill_fees_quote_usdc":str(fees[i]),"fill_count":fill_n[i],"equity_change_less_closed_trade_pnl_usdc":str(pnl-real[i]),"note_pnl_reconciliation":"Residual is NOT independently verified unrealized PnL. Includes change in open-position valuation and other effects of fills/fee/basis. Cannot claim full realized/unrealized reconciliation without lot/cost basis.","actual_order_reservation_usdc":None,"capacity_slots_occupied":None,"coin_concentration":None,"ex_ante_warn_indicators":None,"largest_absolute_drawdown_episode":ddresult(events[i]["abs"],rows),"largest_percentage_drawdown_episode":ddresult(events[i]["pct"],rows)}
+                  quarters.append(quarter);allrecords.append({"scenario":world,"cost":cost,**quarter})
+                  prior=end
+                if prior!=rows[-1]["equity"]:raise RuntimeError("Quarter carryover final equity mismatch")
+                def monthyearstats(obj):
+                  out=[];prev=Decimal("1092.05773944")
+                  for period,v in sorted(obj.items()):
+                    last=v["last"]["equity"]
+                    out.append({"period":period,"net_pnl_usdc":str(last-prev),"net_return_pct":str((last-prev)/prev*100) if prev else None,"end_equity_usdc":str(last)})
+                    prev=last
+                  return {"worst_by_net_pnl_usdc":min(out,key=lambda z:Decimal(z["net_pnl_usdc"])),"worst_by_return_pct":min(out,key=lambda z:Decimal(z["net_return_pct"])),"full_periods":out}
+                state={"scenario":world,"cost":cost,"original_equity_sha256":hashlib.sha256(p.read_bytes()).hexdigest(),"start_utc":anchor.isoformat(),"end_exclusive_utc":bounds[-1].isoformat(),"hour_count":len(rows),"quartal_count":len(quarters),"quarter_intervals_continuous":True,"capital_or_strategy_reset":False,"ending_equity_usdc":str(prior),"max_hourly_cash_position_equity_residual_usdc":str(max_balance_resid),"largest_absolute_HWM_episode":ddresult(global_max["abs"],rows),"largest_percentage_HWM_episode":ddresult(global_max["pct"],rows),"worst_months":monthyearstats(months),"worst_years":monthyearstats(years),"quarterly":quarters}
+                status["cases"][key]=state;status["quarterly_ledger_count"]+=len(quarters)
+                save()
+                print("QUARTER_CASE",json.dumps({"case":key,"quarters":len(quarters),"hours":len(rows),"start":anchor.isoformat(),"end":bounds[-1].isoformat(),"final":str(prior),"max_reconciliation_residual":str(max_balance_resid),"max_abs":state["largest_absolute_HWM_episode"],"max_pct":state["largest_percentage_HWM_episode"]})[:2500],flush=True)
+            if status["quarterly_ledger_count"]!=200 or len(status["cases"])!=10:raise RuntimeError("Not all 200 quarter records")
+            with (audit/"r2-200-quarter-rows.csv").open("w",newline="") as f:
+              columns=["scenario","cost","quarter","period_start_utc","period_end_exclusive_utc","hours","start_equity_usdc","end_equity_usdc","net_equity_change_usdc","net_return_pct","end_cash_usdc","end_marked_positions_usdc","end_cash_pct_of_total","end_invested_pct_of_total","closed_trade_realized_pnl_usdc","observed_fill_fees_quote_usdc"]
+              wr=csv.DictWriter(f,fieldnames=columns,extrasaction="ignore");wr.writeheader();wr.writerows(allrecords)
+            status["status"]="TEN_NATIVE_FIVE_YEAR_BASELINES_X_20_QUARTERS_REPORTED"
+          except Exception as exc:
+            status["status"]="FAIL_CLOSED";status["failures"].append(str(exc))
+          finally:
+            save();print("R2_QUARTER_SUMMARY",json.dumps({"status":status["status"],"cases":len(status["cases"]),"rows":status["quarterly_ledger_count"],"failures":status["failures"]}),flush=True)
+          if status["status"]!="TEN_NATIVE_FIVE_YEAR_BASELINES_X_20_QUARTERS_REPORTED":sys.exit(1)
+          PY
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: hixton-r2-20-quarter-diagnostics-${{ github.run_id }}
+          path: audit/
+          retention-days: 30
+          if-no-files-found: warn
