@@ -1,0 +1,42 @@
+name: Hixton R2-S02 Independent Native Cooldown Ablation QA
+on:
+  push:
+    branches: [research/hixton-native-baseline-proof-20261103]
+    paths: [".github/workflows/hixton-r2-s02-cooldown-ablation-independent-qa-20261104.yml"]
+  workflow_dispatch:
+permissions:
+  contents: read
+  actions: read
+jobs:
+  audit-preregistered-native-one-variable-diagnostic:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    env:
+      GH_TOKEN: ${{ github.token }}
+      GH_REPO: ${{ github.repository }}
+      HIXTON_NO_TRADING: "1"
+      HIXTON_RESEARCH_ONLY: "1"
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: Download only original S02 and cooldown ablation raw artifacts
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p locked unlocked audit
+          gh run download 41889629161 -R "$GH_REPO" -n hixton-r2-s02-paired-native-41889629161 -D locked
+          gh run download 41890504643 -R "$GH_REPO" -n hixton-r2-s02-one-factor-cooldown-ablation-41890504643 -D unlocked
+          test -s locked/S01-native-hourly.json.gz
+          test -s unlocked/native-no-cooldown-hourly.json.gz
+          test -s unlocked/S02-ABL-001-Results.json
+      - name: Independently compare exact native hourly ledgers and first changed action
+        run: |
+          python -m research.r2_s01.s02_ablation_independent_qa --locked locked/S01-native-hourly.json.gz --unlocked unlocked/native-no-cooldown-hourly.json.gz --ablation-summary unlocked/S02-ABL-001-Results.json --output audit/S02-ABL-001-independent-QA.json
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: hixton-r2-s02-ablation-independent-qa-${{ github.run_id }}
+          path: audit/
+          retention-days: 30
+          if-no-files-found: warn
