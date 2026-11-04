@@ -57,7 +57,13 @@ jobs:
           changed=instrument(original)
           assert changed!=original and original==(root/"input/native/hixton/backtest/portfolio.py").read_text()
           changed_sha=hashlib.sha256(changed.encode()).hexdigest()
-          suite=unittest.defaultTestLoader.discover(str(root/"research/r2_hold001"),"test_hold001.py",top_level_dir=str(root))
+          import importlib.util
+          test_path=root/"research/r2_hold001/test_hold001.py"
+          spec=importlib.util.spec_from_file_location("r2_hold001_qa_tests",test_path)
+          m=importlib.util.module_from_spec(spec)
+          sys.modules[spec.name]=m
+          spec.loader.exec_module(m)
+          suite=unittest.defaultTestLoader.loadTestsFromModule(m)
           tests=unittest.TextTestRunner(verbosity=2).run(suite)
           status={"candidate":"R2-D1-HOLD-001","status":"PRE_ECON_METHOD_FIXTURE_PASS" if tests.wasSuccessful() and tests.testsRun>=8 else "PRE_ECON_METHOD_FIXTURE_FAILED","tests":tests.testsRun,"failures":len(tests.failures),"errors":len(tests.errors),"product_unchanged":True,"normal_exit_precedence_tested":True,"one_trim_per_defensive_episode_tested":True,"native_model_and_filter_reused":True,"source_commit":"f56d48536525830dd6ea50bf5bc174a6f9aeff8c","native_portfolio_sha256":original_sha,"instrumented_research_sha256":changed_sha,"research_only":True,"financial_candidate_cases_run":0}
           (root/"qa/pre-economic-method-fixtures.json").write_text(json.dumps(status,indent=2)+"\n")
