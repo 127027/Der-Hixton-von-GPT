@@ -107,14 +107,14 @@ def run(bundle):
             execute_exit=lambda sig:blocked.append("MARKET_MINIMUM"),
             signals=sigs,fills=fills,blocked=blocked)
         assert "BTCUSDC" in held and not rejected.cooldown_until and not fills
-        assert rejected.events[-1]["kind"]=="NO_TRADEABLE_EXIT_FILL"
+        assert rejected.events[-1]["kind"]=="REJECTED_OR_DUST_NO_FILL"
 
         filled=trigger()
         held={"BTCUSDC":NS(quantity=D(".5"),cost_basis=D(50),slots=1)}
         sigs=[];fills=[];blocked=[]
         def native_full_exit(sig):
             del held["BTCUSDC"]
-            fills.append(NS(signal_id=sig.signal_id,base_quantity=D(".499")))
+            fills.append(NS(signal_id=sig.signal_id,base_quantity=D(".499"),quote_value=D("44.9"),fee_quote_equivalent=D("0.0449")))
         filled.at_open(open_time=at,positions=held,previous_points=prev,
             execute_exit=native_full_exit,signals=sigs,fills=fills,blocked=blocked)
         assert len(sigs)==len(fills)==1 and filled.events[-1]["kind"]=="FILLED_NATIVE_FULL_EXIT"
