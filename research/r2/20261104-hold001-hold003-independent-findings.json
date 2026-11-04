@@ -1,0 +1,102 @@
+{
+  "id": "R2-CONVERGENCE-20261104-HOLD001-003",
+  "created_date": "2026-11-04",
+  "frozen_product": "f56d48536525830dd6ea50bf5bc174a6f9aeff8c",
+  "sources": {
+    "C0_native": "https://github.com/127027/Der-Hixton-von-GPT/actions/runs/41684371923",
+    "20quarter_QA": "https://github.com/127027/Der-Hixton-von-GPT/actions/runs/41801720710"
+  },
+  "closed_R1": {
+    "controls": 16,
+    "h1_h2_h3_comparisons": 48,
+    "rejected": [
+      "H1",
+      "H2",
+      "H3"
+    ],
+    "loss_attribution": "completed in owner's SHA256-verified handoff"
+  },
+  "research_only": true,
+  "live_product_modified": false,
+  "automated_promotion": false,
+  "variants": [
+    {
+      "id": "R2-D1-HOLD-001",
+      "mode": "25% held-quantity partial trim after >=15% portfolio HWM DD for 72 hours PLUS entry block until 168 consecutive recovery hours",
+      "native_finance_run": 41830599331,
+      "independent_limited_ledger_QA_run": 41831765786,
+      "tested_contexts": 16,
+      "decision": "NOT_PROMOTABLE_SEVERE_HISTORIC_UPSIDE_LOSS",
+      "example_original_32k_current": {
+        "C0_end_usdc": "33867.796992897484",
+        "candidate_end_usdc": "3116.3257524557007"
+      },
+      "causal_followup": "Run HOLD002 one-variable no-entry-freeze ablation"
+    },
+    {
+      "id": "R2-D1-HOLD-002",
+      "mode": "same 25% trim, native entry gate always allowed",
+      "native_finance_run": 41832693761,
+      "method_qa_run": 41832539186,
+      "independent_limited_ledger_and_economic_QA_run": 41840399091,
+      "tested_contexts": 16,
+      "economic_case_end_comparison": {
+        "better": 8,
+        "worse": 5,
+        "equal": 3
+      },
+      "synthetic_DD_worse": [
+        "rotation__current",
+        "rotation__stress",
+        "winter__stress"
+      ],
+      "decision": "NOT_PROMOTABLE_INSUFFICIENT_PROVEN_CAPITAL_PROTECTION",
+      "causal_followup": "Evaluate loss-only selection of held positions"
+    },
+    {
+      "id": "R2-D1-HOLD-003",
+      "mode": "HOLD002 + one-variable last-closed-price underwater-only 25% trim selector",
+      "prereg_file": "research/r2_hold003/R2-D1-HOLD-003-prereg-20261104.md",
+      "pre_economic_method_qa_run": 41841468806,
+      "method_tests_passed": 11,
+      "native_finance_run": 41841602489,
+      "independent_limited_ledger_and_economic_QA_run": 41842494971,
+      "tested_contexts": 16,
+      "independently_checked_hourly_records": 603894,
+      "economic_case_end_comparison": {
+        "better": 4,
+        "worse": 5,
+        "equal": 7
+      },
+      "synthetic_DD_worse": [
+        "rotation__current",
+        "rotation__stress"
+      ],
+      "examples": {
+        "original_32k_current_end_delta_vs_C0_usdc": "+125.9265777494879",
+        "rotation_current_end_delta_vs_C0_usdc": "-2019.367766345536",
+        "rotation_stress_end_delta_vs_C0_usdc": "-2647.523908171917",
+        "winter_current": "unchanged from C0; no protective trim",
+        "tail_current": "unchanged from C0; no protective trim"
+      },
+      "decision": "NOT_PROMOTABLE_LOSS_ONLY_PORTFOLIO_TRIGGER_TOO_LATE_TO_PROTECT_CRASH_WORLD",
+      "causal_followup": "Shift new hypothesis trigger to actual held-position deterioration known before severe portfolio drawdown; do not retune existing 72h/15% rule based on individual quartile"
+    }
+  ],
+  "failure_mechanism": {
+    "HOLD001": "Freezing native BUY entries impairs compounding even when no 25% trim executes; HOLD002 one-variable ablation directly isolates this.",
+    "HOLD002": "Entry gate restored, but unconditional trims sometimes sell profitable positions and exacerbate DD in synthetic rotation; negligible catastrophic protection.",
+    "HOLD003": "Underwater-only filter prevents some winner trims, but at deep winter and joint tail DD trigger the target holdings may no longer be open, resulting in zero protective sells. Underlying causal risk occurs earlier while positions are held."
+  },
+  "next_research": {
+    "priority": "independent earlier actual-held-position risk hypothesis",
+    "candidate_source": "research/dot3/R2-S01-held-trend-deterioration-prereg-20261104.md on research/dot3-ohlc-event-audit-20261104",
+    "dot1": "study why portfolio HWM lag and open exposure at trigger fail; align positions with signal-time indicators",
+    "dot2": "reconcile cash/reserved order cash/held slots separately; do not claim a partial sell creates free slots",
+    "dot3": "bind existing original f56 Input-Contract and loader from HOLD003 runner, then implement and pre-QA its separately preregistered held-position risk signal without changing active profile gates",
+    "dot4": "validate causal per-coin held position decision, reentry, no-future, fill costs, partial execution and original profit floors before next 16-case financial run; independently review result QA",
+    "dot5": "sync definitive HOLD001-003 results in common journal, avoid duplicate expensive tests and unproven performance claims",
+    "proof_rule": "new candidate must be preregistered before financial data, run exactly 3 historical + 5 synthetic worlds x normal/stress (16), unchanged f56 and costs, no product/live changes",
+    "require_owner_for_promotion": true
+  }
+}
