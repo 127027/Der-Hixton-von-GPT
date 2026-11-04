@@ -63,11 +63,11 @@ class S01Policy:
 
     def at_open(self, *, open_time, positions, previous_points, execute_exit, signals, fills, blocked):
         """Use the existing native f56 execute_exit, never a synthetic Fill or Trade."""
+        self.expected_cash_delta = D("0")
         if not self.enabled or not self.pending:
             return
         queued = self.pending
         self.pending = {}
-        self.expected_cash_delta = D("0")
         for symbol, close_time in sorted(queued.items()):
             if open_time != close_time + timedelta(milliseconds=1):
                 raise RuntimeError("S01_WRONG_NATIVE_EXECUTION_OPEN")
