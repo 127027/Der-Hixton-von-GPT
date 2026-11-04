@@ -39,11 +39,18 @@ def run(args):
     if hashlib.sha256(orig.encode()).hexdigest()!=FROZEN_NATIVE_PORTFOLIO_SHA:
         raise RuntimeError("S01_FROZEN_NATIVE_PORTFOLIO_HASH_MISMATCH")
     isolated=instrument(orig)
+    trace=None
+    if getattr(args,"trace",None):
+        from research.r2_s01.s02_hourly_trace import Trace,instrument_trace
+        trace=Trace(args.mode)
+        isolated=instrument_trace(isolated)
     policy=S01Policy(features=features,costs=costs,enabled=args.mode=="candidate")
     mod=types.ModuleType("hixton.backtest.r2_s01_isolated")
     mod.__file__=str(pathlib.Path(__file__).resolve())
     mod.__package__="hixton.backtest"
     mod.R2_S01=policy
+    if trace is not None:
+        mod.R2_S02_TRACE=trace
     sys.modules[mod.__name__]=mod
     exec(compile(isolated,mod.__file__,"exec"),mod.__dict__)
     seed=D(spec["seed"])
@@ -61,6 +68,9 @@ def run(args):
     from research.r2_s01.native_ledger_independent_audit import audit_s01_native_result
     ledger_audit = audit_s01_native_result(result=result, policy=policy, costs=costs)
     absdd,pctdd=episodes(result)
+    if trace is not None:
+        # Compare with true native result before copying any observer data to disk.
+        trace.write(args.trace,result,frozen=FROZEN,hash_policy="b104854b95ecf1623dd6fcfbbba9d5303a8909fb")
     record=dict(
         id="R2-D3-S01",research_only=True,product_unchanged=True,
         mode=args.mode,window=args.window,cost=args.cost,
@@ -100,4 +110,5 @@ if __name__=="__main__":
     p.add_argument("--cost",required=True,choices=COSTS)
     p.add_argument("--mode",required=True,choices=("control","candidate"))
     p.add_argument("--output",required=True)
+    p.add_argument("--trace",help="S02 diagnostic-only hourly trace .json.gz; no trade changes")
     run(p.parse_args())
