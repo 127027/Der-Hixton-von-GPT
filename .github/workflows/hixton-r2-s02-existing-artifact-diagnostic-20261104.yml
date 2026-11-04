@@ -1,0 +1,53 @@
+name: Hixton R2-S02 Read-Only Existing-Artifact Mechanism Audit
+on:
+  push:
+    branches: [research/hixton-native-baseline-proof-20261103]
+    paths: [".github/workflows/hixton-r2-s02-existing-artifact-diagnostic-20261104.yml"]
+  workflow_dispatch:
+permissions:
+  contents: read
+  actions: read
+jobs:
+  only-existing-native-artifacts:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 25
+    env:
+      GH_TOKEN: ${{ github.token }}
+      GH_REPO: ${{ github.repository }}
+      HIXTON_RESEARCH_ONLY: "1"
+      HIXTON_NO_TRADING: "1"
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: Obtain exact old successful current active S01 evidence and original frozen baseline
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p archive extracted active audit
+          test "$(gh run view 41873929231 -R "$GH_REPO" --json conclusion --jq .conclusion)" = "success"
+          gh run download 41873929231 -R "$GH_REPO" -n hixton-r2-s01-a-current-ledger-evidence-41873929231 -D active
+          gh release download research-data-20261103-five-dot-inputs -R "$GH_REPO" -p Hixton-Loss-Handoff-20261102.zip -D archive
+          echo "d1d1cde8347665d74da71f9e44bb3876dc6662bfe4bfc9e34dcab1dfecd84308  archive/Hixton-Loss-Handoff-20261102.zip" | sha256sum -c
+          python - <<'PY'
+          import pathlib,zipfile
+          root=pathlib.Path("extracted").resolve()
+          with zipfile.ZipFile("archive/Hixton-Loss-Handoff-20261102.zip") as z:
+              if not all((root/x.filename).resolve().is_relative_to(root) for x in z.infolist()):
+                  raise RuntimeError("ZIP_PATH_ESCAPE")
+              z.extractall(root)
+          PY
+      - name: Compare only existing f56/S01 fills and fees without new finance or fitted parameters
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$(find active -name 'S01-A-current-active-native.json' | wc -l)" -eq 1
+          artifact="$(find active -name S01-A-current-active-native.json)"
+          python -m research.r2_s01.r2_s02_diag_existing_artifacts --artifact "$artifact" --bundle extracted/Hixton-Loss-Handoff-20261102 --output audit/r2-s02-failure-mechanisms-descriptive.json
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: hixton-r2-s02-existing-artifact-diagnostic-${{ github.run_id }}
+          path: audit/
+          retention-days: 30
+          if-no-files-found: warn
