@@ -41,6 +41,10 @@ class ClosedPrefixFixtures(unittest.TestCase):
             b.close=100000.
         self.assertEqual(result,decision(future))
         self.assertTrue(result)
+    def test_future_suffix_cannot_satisfy_400h_warmup(self):
+        bars=series(430)
+        self.assertFalse(decision(bars,expected_close_utc=bars[398].close_time_utc))
+        self.assertTrue(decision(bars,expected_close_utc=bars[399].close_time_utc))
     def test_stale_close_rejected(self):
         x=series()
         self.assertFalse(decision(x,expected_close_utc=x[-2].close_time_utc))
