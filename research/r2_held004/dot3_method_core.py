@@ -20,6 +20,7 @@ def eligible(*, closes, ema72, held_qty, remaining_basis, adverse_price_rate,
         q, basis = D(str(held_qty)), D(str(remaining_basis))
         price = D(str(closes[-1]))
         adverse, fee = D(str(adverse_price_rate)), D(str(fee_rate))
+        if not all(v.is_finite() for v in (q, basis, price, adverse, fee)): return False
         if q <= 0 or basis <= 0 or price <= 0 or not (D(0) <= adverse < 1) or not (D(0) <= fee < 1): return False
         c = [D(str(x)) for x in closes]
         e = [D(str(x)) for x in ema72]
