@@ -17,7 +17,8 @@ class Bar:
 def series(n=400):
     start=datetime(2024,1,1,tzinfo=timezone.utc)
     return [Bar(start+timedelta(hours=i),
-                start+timedelta(hours=i+1,milliseconds=-1)) for i in range(n)]
+                start+timedelta(hours=i+1,milliseconds=-1),
+                close=100. if i < 394 else 95.) for i in range(n)]
 
 def decision(bars, **changes):
     args=dict(candles=bars,held_qty='1',remaining_basis='100',
@@ -61,8 +62,16 @@ class ClosedPrefixFixtures(unittest.TestCase):
         self.assertFalse(decision(series(),regular_native_position=False))
     def test_exact_5_of_6(self):
         x=series()
-        for i in (395,):x[i].close=120.
+        for i in (394,):x[i].close=101.
         self.assertTrue(decision(x))
+    def test_constant_series_is_not_a_warning(self):
+        x=series()
+        for b in x:b.close=95.
+        self.assertFalse(decision(x))
+    def test_only_four_of_six_below_ema_is_rejected(self):
+        x=series()
+        for i in (394,395):x[i].close=101.
+        self.assertFalse(decision(x))
     def test_future_open_not_used(self):
         x=series()
         self.assertTrue(decision(x))
