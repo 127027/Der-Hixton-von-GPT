@@ -1,0 +1,44 @@
+{
+  "checked_at_utc": "2026-11-05T15:28:07.578619+00:00",
+  "source_commit": "04e8acbde9c8997172b767192f2a7db188448562",
+  "fetch_method": "Existing GitHub connector content field; no raw-domain DNS needed",
+  "python": "3.11.4",
+  "files": {
+    "dot3_method_core.py": {
+      "git_blob_sha1": "98edce8084f2a65bca641142b4a314c18838048a",
+      "sha256": "69e2127e531ed9de6d570d8a1996be919c7b3d9a82a4e103143bfcdcc1c4bf01"
+    },
+    "dot3_closed_bar_adapter.py": {
+      "git_blob_sha1": "0d5e65d3e92488ae3c738a5e6abde1db675dc154",
+      "sha256": "8f5b02925bb0f103ef8323cbff018ac5bb884ff92d9ab0e11af3589497cf351d"
+    },
+    "test_dot3_closed_bar_adapter.py": {
+      "git_blob_sha1": "fefe435ff48f920ad42632873837c916a248b219",
+      "sha256": "5094f88caa0f2d8ab60f820f3bf5587410584130ece3f386f0d2f3595e523d5e"
+    }
+  },
+  "command": "python -B -m unittest discover -s research/r2_held004 -p test_dot3_closed_bar_adapter.py -v",
+  "tests": 9,
+  "passed": 5,
+  "failed": 4,
+  "process_exit_code": 1,
+  "result": "ADAPTER_FIXTURES_FAIL_AND_PREFIX_WARMUP_CAUSALITY_FAIL",
+  "test_output_local_raw_sha256": "bce29752f7be869afd13d8e7d926b7856ad6201df5e7f1b8a3c543f3bd5b38ec",
+  "test_output_public_normalized": "test_exact_5_of_6 (test_dot3_closed_bar_adapter.ClosedPrefixFixtures.test_exact_5_of_6) ... FAIL\ntest_future_open_not_used (test_dot3_closed_bar_adapter.ClosedPrefixFixtures.test_future_open_not_used) ... FAIL\ntest_gap_rejected (test_dot3_closed_bar_adapter.ClosedPrefixFixtures.test_gap_rejected) ... ok\ntest_genuine_future_append_prefix_invariance (test_dot3_closed_bar_adapter.ClosedPrefixFixtures.test_genuine_future_append_prefix_invariance) ... FAIL\ntest_no_regular_position (test_dot3_closed_bar_adapter.ClosedPrefixFixtures.test_no_regular_position) ... ok\ntest_seeded_ema_400_hour_warmup (test_dot3_closed_bar_adapter.ClosedPrefixFixtures.test_seeded_ema_400_hour_warmup) ... FAIL\ntest_stale_close_rejected (test_dot3_closed_bar_adapter.ClosedPrefixFixtures.test_stale_close_rejected) ... ok\ntest_unclosed_rejected (test_dot3_closed_bar_adapter.ClosedPrefixFixtures.test_unclosed_rejected) ... ok\ntest_zero_volume_rejected (test_dot3_closed_bar_adapter.ClosedPrefixFixtures.test_zero_volume_rejected) ... ok\n\n======================================================================\nFAIL: test_exact_5_of_6 (test_dot3_closed_bar_adapter.ClosedPrefixFixtures.test_exact_5_of_6)\n----------------------------------------------------------------------\nTraceback (most recent call last):\n  File \"research/r2_held004\\test_dot3_closed_bar_adapter.py\", line 58, in test_exact_5_of_6\n    self.assertTrue(decision(x))\nAssertionError: False is not true\n\n======================================================================\nFAIL: test_future_open_not_used (test_dot3_closed_bar_adapter.ClosedPrefixFixtures.test_future_open_not_used)\n----------------------------------------------------------------------\nTraceback (most recent call last):\n  File \"research/r2_held004\\test_dot3_closed_bar_adapter.py\", line 61, in test_future_open_not_used\n    self.assertTrue(decision(x))\nAssertionError: False is not true\n\n======================================================================\nFAIL: test_genuine_future_append_prefix_invariance (test_dot3_closed_bar_adapter.ClosedPrefixFixtures.test_genuine_future_append_prefix_invariance)\n----------------------------------------------------------------------\nTraceback (most recent call last):\n  File \"research/r2_held004\\test_dot3_closed_bar_adapter.py\", line 40, in test_genuine_future_append_prefix_invariance\n    self.assertTrue(result)\nAssertionError: False is not true\n\n======================================================================\nFAIL: test_seeded_ema_400_hour_warmup (test_dot3_closed_bar_adapter.ClosedPrefixFixtures.test_seeded_ema_400_hour_warmup)\n----------------------------------------------------------------------\nTraceback (most recent call last):\n  File \"research/r2_held004\\test_dot3_closed_bar_adapter.py\", line 31, in test_seeded_ema_400_hour_warmup\n    self.assertTrue(decision(series()))\nAssertionError: False is not true\n\n----------------------------------------------------------------------\nRan 9 tests in 0.018s\n\nFAILED (failures=4)\n",
+  "redaction": "Only local absolute directory replaced by repository-relative directory",
+  "probe_source": "\"\"\"Reproduce future-dependent warmup; diagnostic, not a method PASS.\"\"\"\nimport json\nfrom test_dot3_closed_bar_adapter import series\nfrom dot3_closed_bar_adapter import closed_bar_warning\n\nbars = series(430)\nfor i, bar in enumerate(bars):\n    bar.close = 100.0 if i < 393 else 95.0\nargs = dict(held_qty='1', remaining_basis='100', adverse_price_rate='0',\n            fee_rate='0', regular_native_position=True,\n            expected_close_utc=bars[398].close_time_utc)\npast_only = closed_bar_warning(candles=bars[:399], **args)\nfuture_appended = closed_bar_warning(candles=bars, **args)\nprint(json.dumps({'eligible_prefix_bars': 399, 'input_with_future_bars': 430,\n                  'expected_both': False, 'past_only': past_only,\n                  'future_appended': future_appended,\n                  'result': 'PREFIX_WARMUP_CAUSALITY_FAIL_REPRODUCED'}))\nassert past_only is False and future_appended is True\n",
+  "probe_result": {
+    "eligible_prefix_bars": 399,
+    "input_with_future_bars": 430,
+    "expected_both": false,
+    "past_only": false,
+    "future_appended": true,
+    "result": "PREFIX_WARMUP_CAUSALITY_FAIL_REPRODUCED"
+  },
+  "finding": "len(candles)>=400 is checked before decision-time truncation; a 399-bar decision prefix becomes eligible merely by appending 31 future bars",
+  "required_correction": "Require at least400 bars after cutoff, correct positive fixtures without weakening strict5of6, test actual prefix-length boundary",
+  "native_integration_verified": false,
+  "METHOD_PASS_granted": false,
+  "economic_tests_started": false,
+  "product_modified": false
+}
