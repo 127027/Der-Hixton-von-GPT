@@ -27,6 +27,9 @@ def closed_bar_warning(*, candles, held_qty, remaining_basis, adverse_price_rate
         if len(matches) != 1:
             return False
         prefix = candles[:matches[0] + 1]
+        # Warmup is a property of the decision-time prefix, not the supplied future suffix.
+        if len(prefix) < 400:
+            return False
         closes = []
         previous = None
         from datetime import timedelta
