@@ -1,0 +1,25 @@
+{
+  "scope": "PURE_CLOSED_BAR_ADAPTER_FIXTURES_ONLY_NOT_NATIVE_METHOD_PASS",
+  "python": "3.11.4",
+  "source_reconstructed": false,
+  "source_blobs": {
+    "core": "98edce8084f2a65bca641142b4a314c18838048a",
+    "adapter": "18101f68a22f6f5d2faaf1e2a05a86706d190055",
+    "original_tests": "9551fbe3b2954bcf226cfbc5c00e412e3338c116",
+    "corrected_tests": "9714c6381393946d24b49c37e5cf47dc3c9928ce"
+  },
+  "test_fix_commit": "e799010ac94d72de0c9f57e87c74b63f544f2f70",
+  "original_result": {
+    "pass": 6,
+    "fail": 5
+  },
+  "corrected_result": {
+    "pass": 13,
+    "fail": 0
+  },
+  "command": "python -B -m unittest -v test_dot3_closed_bar_adapter",
+  "corrected_tests_sha256": "cc9e39ea73e994cb7c2416f5e67e5ad39bad25da182acea9e8656bab442f065e",
+  "fixture_fix": "394x100+6x95; exact5of6=394x100+[101,95,95,95,95,95]; constant and4of6 negative controls added",
+  "native_integration_proven": false,
+  "financial_improvement_proven": false
+}
