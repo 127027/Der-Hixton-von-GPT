@@ -181,7 +181,9 @@ def write_report_bundle(
         "backtest_version": strategy.backtest_version,
         "run_id": run_id,
         "created_at_utc": created_at.isoformat(),
-        "status": "VALID",
+        "status": "EXPLORATORY_DATA_GAPS"
+        if (history_data or {}).get("global_gap_hours_utc")
+        else "VALID",
         "validation_scope": {
             "kind": "HISTORICAL_SIMULATION",
             "application_version": __version__,

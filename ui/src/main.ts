@@ -521,6 +521,8 @@ async function refreshBacktests(): Promise<void> {
       const riskLabel = riskHalt ? `<strong class="negative">RISIKOHALT im Test · ${formatDate(String(riskHalt), true)}</strong>` : "";
       const window = manifest.data as Record<string, unknown> | undefined;
       const provenance = window?.provenance_by_symbol as Record<string, Record<string, unknown>> | undefined;
+      const gaps = window?.global_gap_hours_utc as string[] | undefined;
+      const gapWarning = gaps?.length ? `<details class="warning"><summary>Datenlückenmodell · ${gaps.length} fehlende Stunden</summary><p>In diesen Stunden keine Ausführung; Signale bis zum nächsten vollständigen realen Open verschoben. Bewertung zum letzten beobachteten Kurs. Drawdowns innerhalb der Lücken sind unbekannt. Kein vollständiger historischer Ausführungsnachweis.</p><small>${gaps.map(at => formatDate(at, true)).join(" · ")}</small></details>` : "";
       const unavailable = Object.entries(provenance ?? {}).filter(([, item]) => item.unavailable_until_utc);
       const availability = unavailable.length
         ? `<details><summary>Historie: ${unavailable.length} Coins später verfügbar</summary>${unavailable.map(([coin, item]) => `<small>${escapeHtml(coin)} · unhandelbar bis ${formatDate(String(item.unavailable_until_utc), true)} · ${item.availability_note === "NO_HISTORY" ? "keine Historie im Zeitraum" : "Datenbeginn und Aufwärmphase"}</small>`).join("")}</details>`
@@ -532,7 +534,7 @@ async function refreshBacktests(): Promise<void> {
         : capital?.kind === "BINANCE_SPOT_FREE_USDC"
           ? `Startkapital: ${formatNumber(String(capital.amount_usdc))} USDC · Binance-Abfrage ${formatDate(String(capital.observed_at_utc), true)}`
           : current?.portfolio ? "Kapital gemäß gespeicherten Einstellungen." : "Unabhängige Coin-Konten; aktuelle Handelsengine, keine gemeinsame Kapitalverteilung.";
-      return `<article class="run-card"><div><strong title="${escapeHtml(runId)}">${escapeHtml(runMode)} · Run ${escapeHtml(runId.slice(0, 8))}</strong><small>${escapeHtml(version)}</small><small>${escapeHtml(capitalNote)}</small><small>Testfenster: ${formatDate(window?.report_start_utc ? String(window.report_start_utc) : null)} – ${formatDate(window?.report_end_utc ? String(window.report_end_utc) : null)} (Ende exklusiv)</small><small>Erstellt: ${formatDate(manifest.created_at_utc ? String(manifest.created_at_utc) : null, true)} · ${escapeHtml(manifest.status)}</small>${availability}</div><span>Ergebnis: ${result}${riskLabel}</span></article>`;
+      return `<article class="run-card"><div><strong title="${escapeHtml(runId)}">${escapeHtml(runMode)} · Run ${escapeHtml(runId.slice(0, 8))}</strong><small>${escapeHtml(version)}</small><small>${escapeHtml(capitalNote)}</small><small>Testfenster: ${formatDate(window?.report_start_utc ? String(window.report_start_utc) : null)} – ${formatDate(window?.report_end_utc ? String(window.report_end_utc) : null)} (Ende exklusiv)</small><small>Erstellt: ${formatDate(manifest.created_at_utc ? String(manifest.created_at_utc) : null, true)} · ${escapeHtml(manifest.status)}</small>${availability}${gapWarning}</div><span>Ergebnis: ${result}${riskLabel}</span></article>`;
     });
     required("#backtest-runs").innerHTML = cards[0] ?? `<article class="run-card"><div><strong>Noch kein Backtest für diese Auswahl</strong><small>Version und Testart sind getrennt. Einen passenden Lauf hier starten.</small></div></article>`;
     required("#backtest-history-runs").innerHTML = "";

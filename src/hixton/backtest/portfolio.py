@@ -7,7 +7,7 @@ from dataclasses import dataclass, replace
 from datetime import datetime, timedelta
 from decimal import ROUND_DOWN, Decimal
 
-from hixton.backtest.availability import available_rows
+from hixton.backtest.availability import audit_observed, available_rows, global_gap_hours
 from hixton.backtest.engine import candle_snapshot_sha256
 from hixton.backtest.metrics import calculate_metrics
 from hixton.backtest.models import (
@@ -22,7 +22,6 @@ from hixton.backtest.models import (
     Trade,
 )
 from hixton.constants import SYMBOLS, TIMEFRAME_DELTA
-from hixton.data.quality import audit_candles
 from hixton.domain.allocation import ONE_PER_SYMBOL, RANKED_REPEAT, allocate_entry_slots
 from hixton.domain.capital import DEFAULT_MAX_CAPITAL_USDC, capital_plan
 from hixton.domain.diversification import (
@@ -218,17 +217,19 @@ def run_shared_portfolio_backtest(
             if warmup_start <= candle.open_time_utc < report_end_utc
         ]
         if selected or not allow_late_listings:
-            audit_candles(
+            audit_observed(
                 selected,
-                expected_symbol=symbol,
-                expected_start=(selected[0].open_time_utc if allow_late_listings else warmup_start),
-                expected_end_exclusive=report_end_utc,
-            ).require_valid()
+                symbol,
+                selected[0].open_time_utc if allow_late_listings else warmup_start,
+                report_end_utc,
+                allow_gaps=allow_late_listings,
+            )
         selected_by_symbol[symbol] = selected
         report_by_symbol[symbol] = [
             candle for candle in selected if candle.open_time_utc >= report_start_utc
         ]
 
+    outage_hours = set(global_gap_hours(selected_by_symbol)) if allow_late_listings else set()
     rows = (
         ()
         if allow_late_listings
@@ -244,6 +245,7 @@ def run_shared_portfolio_backtest(
             parameters=(strategy_parameters_by_symbol or {}).get(symbol, parameters),
             semantics=strategy.semantics_for(symbol) if strategy else strategy_semantics,
             strategy_version=strategy_version,
+            allow_time_gaps=bool(outage_hours),
         )
         for symbol in symbols
     }
@@ -304,6 +306,16 @@ def run_shared_portfolio_backtest(
             default=open_time + TIMEFRAME_DELTA - timedelta(milliseconds=1),
         )
         in_report = report_start_utc <= open_time < report_end_utc
+        if open_time in outage_hours:
+            # No indicators or execution. Valuation is explicitly stale here.
+            if in_report:
+                blocked.append(f"DATA_GAP:{open_time.isoformat()}:NO_EXECUTION_STALE_VALUATION")
+                blocked.extend(f"{s.signal_id}:DATA_GAP_DEFERRED" for s in pending)
+                if equity_curve:
+                    equity_curve.append(replace(equity_curve[-1], time_utc=close_time))
+                else:
+                    equity_curve.append(EquityPoint(close_time, cash, ZERO, cash, False))
+            continue
         candles = {candle.symbol: candle for candle in row}
 
         if (

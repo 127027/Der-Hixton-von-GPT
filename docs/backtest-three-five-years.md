@@ -10,9 +10,7 @@ Fünf Jahre verkürzen sich nicht auf den gemeinsamen Datenbeginn aller Coins.
 Ein später verfügbarer Coin erhält ausschließlich echte Kerzen und seine
 eigene vollständige Aufwärmphase. Davor gibt es für ihn keine Signale oder
 Käufe. Vollständig fehlende Märkte bleiben unhandelbar. Die Oberfläche und
-das Manifest nennen Datenlücken. Interne und nachlaufende Lücken nach Beginn
-einer Historie bleiben Fehler; sie dürfen bestehende Positionen nicht falsch
-bewerten. API-/Netzfehler gelten nicht als fehlende Historie.
+das Manifest nennen Datenlücken. Einzelne Marktlücken und fehlende letzte Stunden bleiben Fehler. Synchronisierte interne Ausfälle sämtlicher bereits verfügbarer Märkte erhalten im Fünfjahresmodus ein ausdrücklich als EXPLORATORY_DATA_GAPS gekennzeichnetes Lückenmodell: keine Ausführung oder Indikatoraktualisierung während der Lücke, ursprüngliche Pending-Signale zum ersten vollständigen realen Open verschoben, Bewertung zum letzten beobachteten Close fortgeschrieben. Kerzen und Signalzeiten werden nicht erfunden oder umgeschrieben. Unbekannte Bewegungen und Drawdowns innerhalb dieser Stunden sind damit nicht rekonstruiert. Das ist kein vollständiger historischer Paritätsnachweis; das Vergleichskennzeichen bleibt UNVERIFIED. API-/Netzfehler gelten nicht als fehlende Historie.
 
 Die bestehende historische USDT-Kursvertretung für ältere USDC-Zeiträume bleibt
 ausgewiesen. Sie belegt keine historische USDC-Liquidität. Aktuelle Filter,

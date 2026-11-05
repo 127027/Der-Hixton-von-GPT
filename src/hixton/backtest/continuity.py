@@ -14,9 +14,9 @@ from dataclasses import dataclass, replace
 from datetime import datetime, timedelta
 from pathlib import Path
 
+from hixton.backtest.availability import audit_observed, global_gap_hours
 from hixton.backtest.models import ExecutionRules
 from hixton.data.binance import BinanceApiError, BinancePublicClient
-from hixton.data.quality import audit_candles
 from hixton.data.storage import CandleStore
 from hixton.data.sync import _missing_ranges
 from hixton.domain.models import Candle
@@ -37,6 +37,7 @@ class ContinuityHistory:
     execution_rules: dict[str, ExecutionRules]
     provenance_by_symbol: dict[str, dict[str, object]]
     requested_years: int = 3
+    gap_hours: tuple[datetime, ...] = ()
 
 
 def proxy_symbol(usdc_symbol: str) -> str:
@@ -118,12 +119,13 @@ def load_continuity_history(
                     native += fetch_history(
                         target_symbol, native[-1].open_time_utc + BAR, report_end_utc
                     )
-                audit_candles(
+                audit_observed(
                     native,
-                    expected_symbol=target_symbol,
-                    expected_start=native[0].open_time_utc,
-                    expected_end_exclusive=report_end_utc,
-                ).require_valid()
+                    target_symbol,
+                    native[0].open_time_utc,
+                    report_end_utc,
+                    allow_gaps=allow_late,
+                )
         proxy_end = native[0].open_time_utc if native else report_end_utc
         proxy_candles: list[Candle] = []
         proxy_start = warmup_start
@@ -156,16 +158,18 @@ def load_continuity_history(
         if not adapted and not allow_late:
             raise ValueError(f"{target_symbol}: history does not reach {expected_last.isoformat()}")
         if adapted:
-            audit_candles(
+            audit_observed(
                 adapted,
-                expected_symbol=target_symbol,
-                expected_start=adapted[0].open_time_utc if allow_late else warmup_start,
-                expected_end_exclusive=report_end_utc,
-            ).require_valid()
+                target_symbol,
+                adapted[0].open_time_utc if allow_late else warmup_start,
+                report_end_utc,
+                allow_gaps=allow_late,
+            )
         first = adapted[0].open_time_utc if adapted else None
+        required_bars = strategy.parameters_for(target_symbol).warmup_bars
         tradable_from = (
-            max(report_start_utc, first + strategy.parameters_for(target_symbol).warmup_bars * BAR)
-            if first is not None
+            max(report_start_utc, adapted[required_bars - 1].open_time_utc + BAR)
+            if len(adapted) >= required_bars
             else None
         )
         candles_by_symbol[target_symbol] = adapted
@@ -205,6 +209,7 @@ def load_continuity_history(
         execution_rules=execution_rules,
         provenance_by_symbol=provenance_by_symbol,
         requested_years=requested_years,
+        gap_hours=global_gap_hours(candles_by_symbol) if allow_late else (),
     )
 
 
@@ -219,6 +224,14 @@ def continuity_manifest_data(history: ContinuityHistory) -> dict[str, object]:
         "requested_years": history.requested_years,
         "missing_history_policy": "UNTRADABLE_UNTIL_REAL_HISTORY_AND_WARMUP",
         "invented_candles": False,
+        "global_gap_hours_utc": [at.isoformat() for at in history.gap_hours],
+        "gap_model": "GLOBAL_OUTAGE_OBSERVED_BARS_V1" if history.gap_hours else None,
+        "gap_execution_assumption": (
+            "NO_EXECUTION; ORIGINAL_PENDING_DEFERRED_TO_FIRST_COMPLETE_REAL_OPEN; "
+            "LAST_OBSERVED_VALUATION; UNKNOWN_INTRAGAP_DRAWDOWN"
+            if history.gap_hours
+            else None
+        ),
         "runtime_quote": TARGET_QUOTE,
         "market_proxy_quote": PROXY_QUOTE,
         "proxy_scope": "HISTORICAL_MARKET_CANDLES_ONLY",
@@ -232,5 +245,15 @@ def continuity_manifest_data(history: ContinuityHistory) -> dict[str, object]:
             "ältere Historie, sofern native_usdc_candle_count dokumentiert ist. "
             "Strategie, Konto, Risiko, Kosten und aktuelle "
             "USDC-Ausfuehrungsregeln bleiben unveraendert."
+            + (
+                " Simulation mit Datenlückenmodell: Bei gemeinsamen fehlenden Stunden "
+                "pausieren Indikatoren und Ausführung. Ursprüngliche Signale werden zum "
+                "ersten vollständigen realen Open verschoben; Bewertungen stammen vom "
+                "letzten beobachteten Close. Kursbewegungen, Ausführungen und Drawdowns "
+                "innerhalb dieser Lücken sind unbekannt; keine vollständige historische "
+                "Ausführungsparität."
+                if history.gap_hours
+                else ""
+            )
         ),
     }

@@ -151,6 +151,8 @@ def compare_run(
     continuity = data.get("history_mode") == HISTORY_MODE or five_year
     if continuity and data.get("historical_usdc_liquidity_claimed") is not False:
         differences.append("Historische Proxy-Kennzeichnung ist unvollständig")
+    if data.get("global_gap_hours_utc"):
+        unknown.append("Datenlückenmodell: keine vollständige historische Ausführungsparität")
 
     status = "DIFFERENT" if differences else "UNVERIFIED" if unknown else "MATCHING"
     base_scope = (
@@ -180,7 +182,14 @@ def compare_run(
         "status": status,
         "reasons": differences + unknown,
         "model": "PORTFOLIO" if is_portfolio else "ISOLATED",
-        "scope": base_scope + continuity_note,
+        "scope": base_scope
+        + continuity_note
+        + (
+            " Datenlückenmodell: Ausführung pausiert, Signale verschoben, letzte beobachtete "
+            "Bewertung fortgeschrieben; Drawdowns innerhalb der Lücken sind unbekannt."
+            if data.get("global_gap_hours_utc")
+            else ""
+        ),
         "window_note": "Gilt nur für das gespeicherte Testfenster; "
         "keine Aussage über neuere Kerzen. "
         "Neustart in Cash, ohne heutige Positionen, manuelle Pausen oder bestehende Kontohalts.",

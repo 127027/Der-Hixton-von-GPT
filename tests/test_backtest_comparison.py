@@ -75,6 +75,14 @@ def test_changed_portfolio_settings_cannot_match(field, value):
     assert compare(manifest, metrics)["status"] == "DIFFERENT"
 
 
+def test_gap_model_cannot_claim_full_execution_parity():
+    manifest, metrics = evidence()
+    manifest["data"] = {"global_gap_hours_utc": ["2023-03-24T13:00:00+00:00"]}
+    result = compare(manifest, metrics)
+    assert result["status"] == "UNVERIFIED"
+    assert "Drawdowns innerhalb der Lücken sind unbekannt" in result["scope"]
+
+
 def test_old_quote_code_or_profile_cannot_match():
     for mutation in ("quote", "code", "profile"):
         manifest, metrics = evidence()

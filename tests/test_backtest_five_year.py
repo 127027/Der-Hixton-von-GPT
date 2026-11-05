@@ -15,6 +15,7 @@ from hixton.backtest.models import CURRENT_COSTS, ExecutionRules
 from hixton.backtest.portfolio import run_shared_portfolio_backtest
 from hixton.data.binance import BinanceApiError, BinancePublicClient
 from hixton.data.storage import CandleStore
+from hixton.domain.strategy import HixtonStrategy, StrategyInputError
 from hixton.domain.versions import V8_VOLATILITY_PAPER_STRATEGY
 from hixton.runtime.supervisor import RuntimeSupervisor, safe_closed_window
 from hixton.ui.api import _list_backtests, create_app
@@ -106,6 +107,47 @@ def test_listing_mode_still_rejects_internal_and_trailing_gaps(missing_index):
     del candles["BTCUSDC"][missing_index]
     with pytest.raises(ValueError):
         run(candles, True)
+
+
+def test_synchronized_gap_has_no_candle_or_fill_and_preserves_original_signal():
+    candles = data()
+    original = run(candles)
+    first_fill = original.fills[0]
+    gap = first_fill.fill_time_utc
+    for symbol, values in candles.items():
+        candles[symbol] = [c for c in values if c.open_time_utc != gap]
+    result = run(candles, True)
+    assert len(result.equity_curve) == 700
+    assert not any(f.fill_time_utc == gap for f in result.fills)
+    assert not any(
+        s.candle_close_time_utc == gap + BAR - timedelta(milliseconds=1) for s in result.signals
+    )
+    delayed = next(f for f in result.fills if f.signal_id == first_fill.signal_id)
+    assert delayed.fill_time_utc == gap + BAR
+    at = next(i for i, p in enumerate(result.equity_curve) if gap <= p.time_utc < gap + BAR)
+    assert result.equity_curve[at].equity == result.equity_curve[at - 1].equity
+    assert any("DATA_GAP_DEFERRED" in reason for reason in result.blocked_signals)
+    with pytest.raises(ValueError):
+        run(candles, False)
+
+
+def test_gap_option_keeps_native_default_strict_and_rejects_invalid_actual_bars():
+    first, second, third = data()["BTCUSDC"][:3]
+    strict = HixtonStrategy("BTCUSDC")
+    strict.update(first)
+    with pytest.raises(StrategyInputError):
+        strict.update(third)
+    replay = HixtonStrategy("BTCUSDC", allow_time_gaps=True)
+    replay.update(first)
+    with pytest.raises(StrategyInputError):
+        replay.update(replace(third, closed=False))
+    with pytest.raises(StrategyInputError):
+        replay.update(replace(third, low=third.high + 1))
+    replay.update(third)
+    with pytest.raises(StrategyInputError):
+        replay.update(second)
+    with pytest.raises(StrategyInputError):
+        replay.update(third)
 
 
 def test_continuity_five_year_reports_missing_history_and_proxy_warmup():

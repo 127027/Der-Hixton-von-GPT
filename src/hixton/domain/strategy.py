@@ -65,10 +65,14 @@ class HixtonStrategy:
         expected_interval: timedelta = TIMEFRAME_DELTA,
         semantics: StrategySemantics = StrategySemantics.DMS_V1,
         strategy_version: str | None = None,
+        *,
+        allow_time_gaps: bool = False,
     ) -> None:
         self.symbol = symbol.replace("/", "").upper()
         self.parameters = parameters or StrategyParameters()
         self.expected_interval = expected_interval
+        # Opt-in historical outage replay only; Paper/Live/default stay strict.
+        self.allow_time_gaps = allow_time_gaps
         self.semantics = semantics
         self.strategy_version = strategy_version or (
             HIXTON_V2_RESEARCH_VERSION
@@ -291,7 +295,13 @@ class HixtonStrategy:
             raise StrategyInputError("invalid OHLCV candle")
         if self._previous_candle is not None:
             expected = self._previous_candle.open_time_utc + self.expected_interval
-            if candle.open_time_utc != expected:
+            elapsed = candle.open_time_utc - self._previous_candle.open_time_utc
+            modelled_gap = (
+                self.allow_time_gaps
+                and elapsed > self.expected_interval
+                and elapsed % self.expected_interval == timedelta(0)
+            )
+            if candle.open_time_utc != expected and not modelled_gap:
                 raise StrategyInputError(
                     f"non-contiguous candle sequence: expected {expected.isoformat()}, "
                     f"got {candle.open_time_utc.isoformat()}"
