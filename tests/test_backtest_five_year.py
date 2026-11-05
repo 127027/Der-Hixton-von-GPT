@@ -217,6 +217,38 @@ def test_five_year_fetches_stale_tail_without_writing_native_store(tmp_path):
         assert len(store.load_candles("BTCUSDC")) == 1080
 
 
+def test_short_real_history_is_untradable_for_entire_window():
+    candles = data()
+    first = candles["ETHUSDC"][0].open_time_utc
+
+    class Public:
+        def first_available_open(self, symbol, *, start, end_exclusive):
+            return first + (1000 * BAR if symbol == "SUIUSDT" else timedelta(0))
+
+        def fetch_klines(self, symbol, *, start, end_exclusive):
+            target = symbol.removesuffix("USDT") + "USDC"
+            return [
+                replace(c, symbol=symbol)
+                for c in candles[target]
+                if start <= c.open_time_utc < end_exclusive
+            ]
+
+    end = first + 1100 * BAR
+    history = load_continuity_history(
+        strategy=STRATEGY,
+        report_start_utc=first + 400 * BAR,
+        report_end_utc=end,
+        execution_rules=dict.fromkeys(STRATEGY.symbols, ExecutionRules()),
+        client=Public(),
+        requested_years=5,
+    )
+    evidence = history.provenance_by_symbol["SUIUSDC"]
+    assert len(history.candles_by_symbol["SUIUSDC"]) == 100
+    assert evidence["tradable_from_utc"] is None
+    assert evidence["unavailable_until_utc"] == end.isoformat()
+    assert evidence["availability_note"] == "INSUFFICIENT_WARMUP"
+
+
 @pytest.mark.parametrize("payload", [{"code": -1000}, [[], []], None])
 def test_invalid_provider_response_is_not_mislabelled_as_missing_history(monkeypatch, payload):
     client = BinancePublicClient()

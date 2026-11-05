@@ -186,12 +186,14 @@ def load_continuity_history(
                 min(tradable_from, report_end_utc).isoformat()
                 if tradable_from and tradable_from > report_start_utc
                 else report_end_utc.isoformat()
-                if not adapted
+                if tradable_from is None
                 else None
             ),
             "availability_note": (
                 "NO_HISTORY"
                 if not adapted
+                else "INSUFFICIENT_WARMUP"
+                if tradable_from is None
                 else "LATE_HISTORY_AND_WARMUP"
                 if first and first > warmup_start
                 else "FULL_WINDOW"
