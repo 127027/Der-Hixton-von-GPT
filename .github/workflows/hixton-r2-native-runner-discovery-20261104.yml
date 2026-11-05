@@ -31,7 +31,7 @@ jobs:
           mkdir -p bundle audit
           gh release download research-data-20261103-five-dot-inputs -R "$GH_REPO" -p Hixton-Loss-Handoff-20261102.zip -p Hixton-Five-Synthetic-Worlds-20261103.zip -D bundle
           echo "d1d1cde8347665d74da71f9e44bb3876dc6662bfe4bfc9e34dcab1dfecd84308  bundle/Hixton-Loss-Handoff-20261102.zip" | sha256sum -c
-          echo "5262f12bef7182ae10e2c85fe5b790263404764e98e759196dbf7b0970d278  bundle/Hixton-Five-Synthetic-Worlds-20261103.zip" | sha256sum -c
+          echo "5262f12bef7182ae10e2c85fe5b790263404764e98e759196dbdfb7d0970d278  bundle/Hixton-Five-Synthetic-Worlds-20261103.zip" | sha256sum -c
       - name: Count original per-window and per-coin candle volume data, no trading engine
         shell: bash
         run: |
