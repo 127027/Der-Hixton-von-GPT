@@ -132,7 +132,7 @@
             <select id="backtest-years" aria-label="Backtestzeitraum"><option value="3">Letzte 3 Jahre</option><option value="5">Letzte 5 Jahre</option></select>
             <button id="backtest-button" class="button primary">Backtest starten</button>
           </article>
-          <details class="compact-details"><summary>Testmethode & Grenzen</summary><p>Drei Kalenderjahre bis zur letzten abgeschlossenen UTC-Stunde. Zusätzlich 400 Stundenkerzen zum Aufwärmen, außerhalb des Ergebniszeitraums, und modellierte Kosten. Fehlende ältere USDC-Historie wird durch USDT-Preise ergänzt. VALID bestätigt die Berechnung, keinen künftigen Gewinn und keine echte Binance-Ausführung. Paper und Echtgeld werden durch den Backtest nicht verändert.</p></details>
+          <details class="compact-details"><summary>Testmethode & Grenzen</summary><p>Drei oder fünf Kalenderjahre gemäß Auswahl bis zur letzten abgeschlossenen UTC-Stunde. Zusätzlich 400 Stundenkerzen zum Aufwärmen, außerhalb des Ergebniszeitraums, und modellierte Kosten. Fehlende ältere USDC-Historie wird durch USDT-Preise ergänzt. VALID bestätigt die Berechnung, keinen künftigen Gewinn und keine echte Binance-Ausführung. Paper und Echtgeld werden durch den Backtest nicht verändert.</p></details>
           <p class="backtest-note">Zeitraum ab dem Startklick rückwärts. Im 5-Jahres-Test bleiben Coins ohne verfügbare Historie bis nach ihrer Aufwärmphase unhandelbar. Datenlücken und USDT-Kursproxies werden im Ergebnis ausgewiesen.</p>
           <p id="backtest-run-note" class="backtest-note" aria-live="polite">Versionsnachweis wird geladen …</p>
           <div id="backtest-runs" class="run-list"></div>

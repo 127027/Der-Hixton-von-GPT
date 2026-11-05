@@ -603,7 +603,8 @@ function initializeControls(): void {
     const symbol = required<HTMLSelectElement>("#backtest-symbol").value;
     const strategy = required<HTMLSelectElement>("#backtest-strategy").value;
     const mode = symbol === "PORTFOLIO" ? "portfolio" : symbol === "ALL" ? "all" : "single";
-    try { await api("/api/backtests/run", { method: "POST", body: JSON.stringify({ mode, symbol, strategy, years: Number(required<HTMLSelectElement>("#backtest-years").value) }) }); showToast(`${required<HTMLSelectElement>("#backtest-years").value}-Jahres-Backtest wurde gestartet.`); await refreshBacktests(); }
+    const years = Number(required<HTMLSelectElement>("#backtest-years").value);
+    try { await api("/api/backtests/run", { method: "POST", body: JSON.stringify({ mode, symbol, strategy, years }) }); showToast(`${years}-Jahres-Backtest wurde gestartet.`); await refreshBacktests(); }
     catch (error) { showToast(error instanceof Error ? error.message : String(error), true); }
   });
 }

@@ -95,6 +95,20 @@ def test_missing_evidence_is_unknown_not_current():
     assert compare(manifest, metrics, settings=None)["status"] == "UNVERIFIED"
 
 
+def test_five_year_report_preserves_proxy_disclosure_gate():
+    manifest, metrics = evidence()
+    manifest["data"] = {
+        "history_mode": "FIVE_YEAR_LISTING_AWARE",
+        "historical_usdc_liquidity_claimed": False,
+    }
+    result = compare(manifest, metrics)
+    assert result["status"] == "MATCHING"
+    assert "Fünf-Jahres" in result["scope"]
+    assert "kein Nachweis historischer USDC-Liquidität" in result["scope"]
+    manifest["data"]["historical_usdc_liquidity_claimed"] = True
+    assert compare(manifest, metrics)["status"] == "DIFFERENT"
+
+
 def test_isolated_rules_match_but_model_difference_is_explicit():
     manifest, _ = evidence()
     result = compare(manifest, {"baseline": {"per_symbol": {"DOTUSDC": {}}}})

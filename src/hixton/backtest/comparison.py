@@ -147,7 +147,8 @@ def compare_run(
 
     data = manifest.get("data")
     data = data if isinstance(data, dict) else {}
-    continuity = data.get("history_mode") == HISTORY_MODE
+    five_year = data.get("history_mode") == "FIVE_YEAR_LISTING_AWARE"
+    continuity = data.get("history_mode") == HISTORY_MODE or five_year
     if continuity and data.get("historical_usdc_liquidity_claimed") is not False:
         differences.append("Historische Proxy-Kennzeichnung ist unvollständig")
 
@@ -167,7 +168,8 @@ def compare_run(
             + base_scope
         )
     continuity_note = (
-        " Drei-Jahres-Strategie-Kontinuität: dieselbe aktive USDC-Strategie, dasselbe Konto-, "
+        f" {'Fünf' if five_year else 'Drei'}-Jahres-Strategie-Kontinuität: "
+        "dieselbe aktive USDC-Strategie, dasselbe Konto-, "
         "Risiko- und Kostenmodell sowie aktuelle USDC-Ausführungsregeln. Der reale Binance-"
         "USDT-Basismarkt liefert ausschließlich den historischen Preisweg, wo eine gleich lange "
         "USDC-Historie nicht verfügbar ist; dies ist kein Nachweis historischer USDC-Liquidität."
