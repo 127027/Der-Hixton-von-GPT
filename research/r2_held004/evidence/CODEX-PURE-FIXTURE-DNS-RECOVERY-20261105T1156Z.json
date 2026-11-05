@@ -1,0 +1,32 @@
+{
+  "checked_at_utc": "2026-11-05T11:56:08.454778+00:00",
+  "repository": "127027/Der-Hixton-von-GPT",
+  "source_commit": "892426fccd59bcf887614438bd55218b6248d7d2",
+  "fetch_method": "existing GitHub connector fetch_file; no raw.githubusercontent.com DNS dependency",
+  "python": "3.11.4",
+  "command": "python -B -m unittest discover -s research/held004-dns-recovery-20261105 -p test_dot3_method_core.py -v",
+  "tests": 15,
+  "result": "PURE_METHOD_FIXTURES_PASS_ONLY",
+  "native_integration_verified": false,
+  "disabled_C0_parity_verified": false,
+  "independent_METHOD_PASS_granted": false,
+  "financial_tests_started": false,
+  "product_modified": false,
+  "files": {
+    "dot3_method_core.py": {
+      "git_blob_sha1": "98edce8084f2a65bca641142b4a314c18838048a",
+      "sha256": "69e2127e531ed9de6d570d8a1996be919c7b3d9a82a4e103143bfcdcc1c4bf01"
+    },
+    "test_dot3_method_core.py": {
+      "git_blob_sha1": "89b37c16964df4014360cb9f506373ff82b8a670",
+      "sha256": "f6463a227477b3213e8784a04855879777722b2c4eedd7fb71911f530ca7b5ed"
+    }
+  },
+  "test_output_sha256": "0a95fa4660ef4ffe069760d1629509b8db9cfa27b4b1f4dca10e405e358e3a6b",
+  "test_output": "test_attempt_once_per_entry (test_dot3_method_core.MethodFixtures.test_attempt_once_per_entry) ... ok\ntest_bad_history (test_dot3_method_core.MethodFixtures.test_bad_history) ... ok\ntest_basis (test_dot3_method_core.MethodFixtures.test_basis) ... ok\ntest_exact_four_percent (test_dot3_method_core.MethodFixtures.test_exact_four_percent) ... ok\ntest_five_of_six (test_dot3_method_core.MethodFixtures.test_five_of_six) ... ok\ntest_four_of_six (test_dot3_method_core.MethodFixtures.test_four_of_six) ... ok\ntest_invalid_fill (test_dot3_method_core.MethodFixtures.test_invalid_fill) ... ok\ntest_just_above_four_percent (test_dot3_method_core.MethodFixtures.test_just_above_four_percent) ... ok\ntest_missing_or_unclosed (test_dot3_method_core.MethodFixtures.test_missing_or_unclosed) ... ok\ntest_nan (test_dot3_method_core.MethodFixtures.test_nan) ... ok\ntest_nonfinite_position_and_cost_fail_closed (test_dot3_method_core.MethodFixtures.test_nonfinite_position_and_cost_fail_closed) ... ok\ntest_prefix_invariance_interface (test_dot3_method_core.MethodFixtures.test_prefix_invariance_interface) ... ok\ntest_profit (test_dot3_method_core.MethodFixtures.test_profit) ... ok\ntest_target (test_dot3_method_core.MethodFixtures.test_target) ... ok\ntest_zero_volume_flag (test_dot3_method_core.MethodFixtures.test_zero_volume_flag) ... ok\n\n----------------------------------------------------------------------\nRan 15 tests in 0.001s\n\nOK\n",
+  "limitations": [
+    "Pure fixtures only; no native execution binding or full prefix invariance proved",
+    "test_prefix_invariance_interface merely checks that next_open is not a fixture argument",
+    "No disabled-C0 fill/equity parity, independent Dot4 METHOD_PASS, or economic qualification"
+  ]
+}
