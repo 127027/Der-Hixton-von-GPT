@@ -1,0 +1,36 @@
+{
+  "archive_sha256": "4c333fb26aae06dde163c46bc0ed81c699e9eff34764957dee4cde3572255272",
+  "artifact_id": 13353475540,
+  "members": [
+    "C0-native-hourly.json.gz",
+    "S01-native-hourly.json.gz",
+    "C0-native-summary.json",
+    "S01-native-summary.json",
+    "S02-DIAG-002-Report.json"
+  ],
+  "c0_hours_read": 26304,
+  "source_commit": "f56d48536525830dd6ea50bf5bc174a6f9aeff8c",
+  "source_sha256": "5cf39658dc6b1ee827ec0daefd73b2384a9edd0ff116ba0203f9ab8bb7737797",
+  "input_contract_sha256": "eaf4de1fc87b9ba14500a0a68d2f86b6b150ed572d87dbf0a4ecd5dc9fda0961",
+  "member_sha256": {
+    "C0-native-hourly.json.gz": "2e7e47900cf0de4f48dcce97e04211745b61c31b1039ae1b4bbe3a85ac64cfe7",
+    "S01-native-hourly.json.gz": "7ba751e0ce69b5c31a5a47017bc53bd7bec1323773b9f1d8802fa669e4737164",
+    "C0-native-summary.json": "2c905e79ab3571f12dffe99cd8e4d0bbc718c582253bd897d007767708fe05c7",
+    "S01-native-summary.json": "3c8705691b74911d8f63eeb0962a54c4ed0ebb0848f8a1c97d6f61b33aa70a59",
+    "S02-DIAG-002-Report.json": "c271c046c6fb89f8b54d53dad79a729da599b91bcc082836aae0ef7b58547579"
+  },
+  "reference": {
+    "source_sha256": "5cf39658dc6b1ee827ec0daefd73b2384a9edd0ff116ba0203f9ab8bb7737797",
+    "portfolio_sha256": "06da08bf4e63613a5c655eaa34a3361d0b192645e1d128cf545e4075c0401dfd"
+  },
+  "status": "OFFLINE_ENVIRONMENT_AND_ORIGINAL_BINDINGS_PASS",
+  "python": "3.11.4",
+  "implementation": "CPython",
+  "verifier_sha256": "1ab3139140a2cb916a9bc8138991142c35c7a3d15208f763d442aaa9d125fe9e",
+  "redis_required": false,
+  "third_party_dependencies": [],
+  "financial_replay_executed": false,
+  "independent_multifill_qa_executed_by_this_script": false,
+  "product_modified": false,
+  "scope": "Archive integrity/schema/provenance smoke test, not a strategy or financial QA approval."
+}
