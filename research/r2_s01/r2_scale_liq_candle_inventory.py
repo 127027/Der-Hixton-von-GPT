@@ -15,7 +15,7 @@ from pathlib import Path
 from zipfile import ZipFile
 
 HIST_HASH = "d1d1cde8347665d74da71f9e44bb3876dc6662bfe4bfc9e34dcab1dfecd84308"
-SYN_HASH = "5262f12bef7182ae10e2c85fe5b790263404764e98e759196dbf7b0970d278"
+SYN_HASH = "5262f12bef7182ae10e2c85fe5b790263404764e98e759196dbdfb7d0970d278"
 SYMBOLS = ("BTC", "ETH", "BNB", "SOL", "XRP", "ADA", "LINK", "AVAX", "DOT", "DOGE",
            "SUI", "NEAR", "UNI", "AAVE", "BCH")
 HIST_WINDOWS = ("original_32k", "current_26oct", "latest_long")
