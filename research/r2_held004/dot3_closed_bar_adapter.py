@@ -6,7 +6,7 @@ The native snapshot loader remains research/r2_hold003/run_native.py.
 from decimal import Decimal as D
 
 def closed_bar_warning(*, candles, held_qty, remaining_basis, adverse_price_rate,
-                       fee_rate, regular_native_position, expected_close_utc=None):
+                       fee_rate, regular_native_position, expected_close_utc):
     """Compute the sealed S01 predicate from a contiguous *completed* candle prefix.
 
     EMA is seeded by SMA of the first 72 completed closes, then recursively
@@ -17,8 +17,11 @@ def closed_bar_warning(*, candles, held_qty, remaining_basis, adverse_price_rate
     if len(candles) < 400 or not regular_native_position:
         return False
     try:
+        # Mandatory decision-time cutoff; never infer it from the last supplied bar.
+        if expected_close_utc is None:
+            return False
         prefix = candles
-        if expected_close_utc is not None:
+        if True:
             # Explicit decision-time cutoff: future appended candles must never
             # enter the signal calculation. Reject absent/ambiguous cutoffs.
             matches = [i for i, bar in enumerate(candles)
