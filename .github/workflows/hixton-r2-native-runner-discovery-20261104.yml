@@ -1,4 +1,4 @@
-name: Hixton R2 Native Runner and Input Contract Discovery
+name: Hixton R2 Native Input Read-Only Inventory
 on:
   push:
     branches: [research/hixton-native-baseline-proof-20261103]
@@ -7,50 +7,44 @@ on:
 permissions:
   contents: read
 jobs:
-  find-native:
+  original-candle-volume-inventory:
     runs-on: ubuntu-24.04
-    timeout-minutes: 15
+    timeout-minutes: 30
     env:
       GH_TOKEN: ${{ github.token }}
       GH_REPO: ${{ github.repository }}
+      HIXTON_RESEARCH_ONLY: "1"
+      HIXTON_NO_TRADING: "1"
     steps:
-      - name: Locate frozen source and actual data loader for historical and synthetic native replays
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Install only NPZ array reader
+        run: python -m pip install numpy==2.2.6
+      - name: Fetch exact previously authorized original input release with original archive SHA checks
         shell: bash
         run: |
           set -euo pipefail
-          mkdir -p bundle inspect
+          mkdir -p bundle audit
           gh release download research-data-20261103-five-dot-inputs -R "$GH_REPO" -p Hixton-Loss-Handoff-20261102.zip -p Hixton-Five-Synthetic-Worlds-20261103.zip -D bundle
           echo "d1d1cde8347665d74da71f9e44bb3876dc6662bfe4bfc9e34dcab1dfecd84308  bundle/Hixton-Loss-Handoff-20261102.zip" | sha256sum -c
-          echo "5262f12bef7182ae10e2c85fe5b790263404764e98e759196dbdfb7d0970d278  bundle/Hixton-Five-Synthetic-Worlds-20261103.zip" | sha256sum -c
-          python3 - <<'PY'
-          import zipfile,pathlib,json
-          out={}
-          for file in pathlib.Path("bundle").glob("*.zip"):
-            with zipfile.ZipFile(file) as z:
-              names=z.namelist()
-              scripts=[n for n in names if n.endswith(".py") and ("runner" in n.lower() or "baseline" in n.lower() or "study" in n.lower() or "bootstrap" in n.lower())]
-              contracts=[n for n in names if n.endswith("Input-Contract.json")]
-              root=[n for n in names if n.endswith("/src/hixton/backtest/portfolio.py")]
-              item={"total_members":len(names),"scripts":scripts[:40],"contract_paths":contracts,"engine_paths":root[:10],"run_scripts":{},"contracts":{}}
-              for n in scripts:
-                b=z.read(n)
-                if len(b)>65000:continue
-                s=b.decode('utf-8',errors="replace")
-                if "run_shared_portfolio_backtest" in s or "sys.argv" in s or "load_data" in s or "for window" in s:
-                  item["run_scripts"][n]={"lines":len(s.splitlines()),"source":s[:35000]}
-              for n in contracts:
-                c=json.loads(z.read(n));item["contracts"][n]={"keys":list(c),"windows":c.get("windows"),"settings":c.get("settings"),"data":c.get("data"),"files":c.get("files"),"run":c.get("run")}
-              out[file.name]=item
-          pathlib.Path("inspect/native-runners-and-input-contracts.json").write_text(json.dumps(out,indent=2)+"\n")
-          for name,item in out.items():
-            print("DISCOVERY_ARCHIVE",name,"scripts",item["scripts"],"engine",item["engine_paths"],"contract",item["contract_paths"],flush=True)
-            for path,detail in item["run_scripts"].items():
-              print("DISCOVERY_SCRIPT",path,"\n"+detail["source"][:18000],flush=True)
-          PY
-      - uses: actions/upload-artifact@v4
+          echo "5262f12bef7182ae10e2c85fe5b790263404764e98e759196dbf7b0970d278  bundle/Hixton-Five-Synthetic-Worlds-20261103.zip" | sha256sum -c
+      - name: Count original per-window and per-coin candle volume data, no trading engine
+        shell: bash
+        run: |
+          set -euo pipefail
+          python research/r2_s01/r2_scale_liq_candle_inventory.py \
+            --historical bundle/Hixton-Loss-Handoff-20261102.zip \
+            --synthetic bundle/Hixton-Five-Synthetic-Worlds-20261103.zip \
+            --output audit/r2-scale-liq-original-candle-inventory.json
+      - name: Upload only bounded summary
         if: always()
+        uses: actions/upload-artifact@v4
         with:
-          name: hixton-r2-native-discovery-${{ github.run_id }}
-          path: inspect/
+          name: hixton-r2-scale-liq-candle-inventory-${{ github.run_id }}
+          path: audit/r2-scale-liq-original-candle-inventory.json
           retention-days: 30
           if-no-files-found: warn
