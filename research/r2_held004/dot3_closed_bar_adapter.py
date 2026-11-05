@@ -21,14 +21,12 @@ def closed_bar_warning(*, candles, held_qty, remaining_basis, adverse_price_rate
         if expected_close_utc is None:
             return False
         prefix = candles
-        if True:
-            # Explicit decision-time cutoff: future appended candles must never
-            # enter the signal calculation. Reject absent/ambiguous cutoffs.
-            matches = [i for i, bar in enumerate(candles)
-                       if bar.close_time_utc == expected_close_utc]
-            if len(matches) != 1:
-                return False
-            prefix = candles[:matches[0] + 1]
+        # Future appended candles must not enter the decision prefix.
+        matches = [i for i, bar in enumerate(candles)
+                   if bar.close_time_utc == expected_close_utc]
+        if len(matches) != 1:
+            return False
+        prefix = candles[:matches[0] + 1]
         closes = []
         previous = None
         from datetime import timedelta
