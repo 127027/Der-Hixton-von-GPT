@@ -137,8 +137,11 @@ def inspect_history(z: ZipFile) -> dict:
                 candidates.append(member(z, f"/data/{window}/{sym}USDC.json.gz"))
         for filename in candidates:
             data = decode_gz_json(z, filename)
+            if isinstance(data,list) and window == "latest_long":
+                label=Path(filename).name.removesuffix(".json.gz")
+                data={label:data}
             if not isinstance(data, dict):
-                raise ValueError(f"EXPECTED_CANDLE_SYMBOL_MAP: {filename}")
+                raise ValueError(f"EXPECTED_CANDLE_SYMBOL_MAP_OR_SINGLE_SYMBOL_LIST: {filename}")
             for symbol,rows in sorted(data.items()):
                 if not isinstance(rows, list):
                     raise ValueError(f"EXPECTED_CANDLE_ROWS: {window} {symbol}")
