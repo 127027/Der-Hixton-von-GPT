@@ -27,6 +27,9 @@ def decision(bars, **changes):
     return closed_bar_warning(**args)
 
 class ClosedPrefixFixtures(unittest.TestCase):
+    def test_missing_cutoff_fail_closed(self):
+        x=series()
+        self.assertFalse(closed_bar_warning(candles=x,held_qty='1',remaining_basis='100',adverse_price_rate='0',fee_rate='0',regular_native_position=True,expected_close_utc=None))
     def test_seeded_ema_400_hour_warmup(self):
         self.assertTrue(decision(series()))
         self.assertFalse(decision(series(399)))
