@@ -15,6 +15,10 @@ class MethodFixtures(unittest.TestCase):
         for field in ['candle_complete','historical_contiguous','source_valid','regular_native_position']: self.assertFalse(self.check(**{field:False}))
     def test_bad_history(self): self.assertFalse(self.check(closes=[95]*5))
     def test_zero_volume_flag(self): self.assertFalse(self.check(source_valid=False))
+    def test_nonfinite_position_and_cost_fail_closed(self):
+        for field in ('held_qty', 'remaining_basis', 'adverse_price_rate', 'fee_rate'):
+            for bad in ('NaN', 'Infinity', '-Infinity'):
+                self.assertFalse(self.check(**{field:bad}), (field,bad))
     def test_nan(self): self.assertFalse(self.check(closes=[95]*5+['NaN']))
     def test_prefix_invariance_interface(self): self.assertNotIn('next_open',self.k)
     def test_attempt_once_per_entry(self):
