@@ -22,7 +22,7 @@ def series(n=400):
 def decision(bars, **changes):
     args=dict(candles=bars,held_qty='1',remaining_basis='100',
               adverse_price_rate='0',fee_rate='0',regular_native_position=True,
-              expected_close_utc=bars[-1].close_time_utc)
+              expected_close_utc=bars[399].close_time_utc if len(bars)>400 else bars[-1].close_time_utc)
     args.update(changes)
     return closed_bar_warning(**args)
 
@@ -36,7 +36,7 @@ class ClosedPrefixFixtures(unittest.TestCase):
         future=series(430)
         for b in future[400:]:
             b.close=100000.
-        self.assertEqual(result,decision(future[:400]))
+        self.assertEqual(result,decision(future))
         self.assertTrue(result)
     def test_stale_close_rejected(self):
         x=series()
