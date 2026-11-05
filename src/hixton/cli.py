@@ -59,9 +59,11 @@ def latest_safe_report_end(now: datetime | None = None) -> datetime:
     return boundary
 
 
-def _window(end: datetime | None) -> tuple[datetime, datetime, datetime]:
+def _window(end: datetime | None, years: int = 3) -> tuple[datetime, datetime, datetime]:
+    if type(years) is not int or years not in (3, 5):
+        raise ValueError("Backtest duration must be 3 or 5 years")
     report_end = end or latest_safe_report_end()
-    report_start = subtract_calendar_years(report_end, 3)
+    report_start = subtract_calendar_years(report_end, years)
     warmup_start = report_start - 400 * TIMEFRAME_DELTA
     return warmup_start, report_start, report_end
 
@@ -218,7 +220,8 @@ def _command_v8_backtest(args: argparse.Namespace, config: ProjectConfig, mode: 
             strategy_key=selected.key,
             run_output_root=config.run_output_root.parents[1] / selected.backtest_version / "runs",
         )
-    _, report_start, report_end = _window(args.end)
+    years = getattr(args, "years", 3)
+    _, report_start, report_end = _window(args.end, years)
     symbol = str(args.symbol).replace("/", "").upper() if mode == "single" else None
     output = run_product_backtest(
         config,
@@ -228,6 +231,7 @@ def _command_v8_backtest(args: argparse.Namespace, config: ProjectConfig, mode: 
         report_end_utc=report_end,
         code_commit=_code_commit(),
         source_sha256=source_fingerprint(),
+        **({"years": years} if years != 3 else {}),
     )
     print(f"V8 {mode} gespeichert: {output}")
     return 0
@@ -236,6 +240,8 @@ def _command_v8_backtest(args: argparse.Namespace, config: ProjectConfig, mode: 
 def command_backtest_single(args: argparse.Namespace, config: ProjectConfig) -> int:
     if (args.strategy or config.strategy_key) in {"v8", "v8r"}:
         return _command_v8_backtest(args, config, "single")
+    if getattr(args, "years", 3) != 3:
+        raise ValueError("Five-year backtest requires the active V8 strategy")
     warmup_start, report_start, report_end = _window(args.end)
     symbol = _symbols(args.symbol)[0]
     strategy = strategy_definition(args.strategy or config.strategy_key)
@@ -268,6 +274,8 @@ def command_backtest_single(args: argparse.Namespace, config: ProjectConfig) -> 
 def command_backtest_all(args: argparse.Namespace, config: ProjectConfig) -> int:
     if (args.strategy or config.strategy_key) in {"v8", "v8r"}:
         return _command_v8_backtest(args, config, "all")
+    if getattr(args, "years", 3) != 3:
+        raise ValueError("Five-year backtest requires the active V8 strategy")
     warmup_start, report_start, report_end = _window(args.end)
     strategy = strategy_definition(args.strategy or config.strategy_key)
     candles_by_symbol = {}
@@ -310,6 +318,8 @@ def command_backtest_all(args: argparse.Namespace, config: ProjectConfig) -> int
 def command_backtest_portfolio(args: argparse.Namespace, config: ProjectConfig) -> int:
     if (args.strategy or config.strategy_key) in {"v8", "v8r"}:
         return _command_v8_backtest(args, config, "portfolio")
+    if getattr(args, "years", 3) != 3:
+        raise ValueError("Five-year backtest requires the active V8 strategy")
     warmup_start, report_start, report_end = _window(args.end)
     strategy = strategy_definition(args.strategy or config.strategy_key)
     # Match the UI runner: operator-saved sizes override installation defaults.
@@ -450,11 +460,13 @@ def build_parser() -> argparse.ArgumentParser:
     )
     single.add_argument("--symbol", required=True)
     single.add_argument("--end", type=parse_utc)
+    single.add_argument("--years", type=int, choices=(3, 5), default=3)
     single.add_argument("--strategy", choices=("v6", "v8", "v8r"))
     all_ten = backtest_commands.add_parser(
         "all", help="alle Profile mit dem gespeicherten Budget je Coin testen"
     )
     all_ten.add_argument("--end", type=parse_utc)
+    all_ten.add_argument("--years", type=int, choices=(3, 5), default=3)
     all_ten.add_argument("--strategy", choices=("v6", "v8", "v8r"))
     portfolio = backtest_commands.add_parser(
         "portfolio",
@@ -464,6 +476,7 @@ def build_parser() -> argparse.ArgumentParser:
         ),
     )
     portfolio.add_argument("--end", type=parse_utc)
+    portfolio.add_argument("--years", type=int, choices=(3, 5), default=3)
     portfolio.add_argument("--strategy", choices=("v6", "v8", "v8r"))
     paper = commands.add_parser("paper", help="24/7-Paper-Bot mit lokaler UI starten")
     paper.add_argument("--no-browser", action="store_true")

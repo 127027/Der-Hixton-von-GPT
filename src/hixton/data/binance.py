@@ -170,8 +170,10 @@ class BinancePublicClient:
                 "endTime": int(end_exclusive.timestamp() * 1000) - 1,
             },
         )
-        if not isinstance(payload, list) or len(payload) != 1:
+        if payload == []:
             raise BinanceApiError(f"{symbol}: no first available hourly candle")
+        if not isinstance(payload, list) or len(payload) != 1:
+            raise BinanceApiError(f"{symbol}: invalid first available candle response")
         candle = self._parse_kline(symbol, payload[0], int(end_exclusive.timestamp() * 1000))
         if not candle.ohlc_is_valid or not start <= candle.open_time_utc < end_exclusive:
             raise BinanceApiError(f"{symbol}: invalid first available candle")

@@ -37,6 +37,7 @@ def run_coin_diagnostic(
     report_start_utc: datetime,
     report_end_utc: datetime,
     costs: CostModel,
+    allow_late_listings: bool = False,
 ) -> BacktestResult:
     if symbol not in strategy.symbols:
         raise ValueError("Diagnostic requires an active strategy symbol")
@@ -53,6 +54,7 @@ def run_coin_diagnostic(
         reinvest_profits=settings.auto_budget_enabled,
         autonomous_spot=settings.autonomous_performance_enabled,
         allowed_entry_symbols=frozenset({symbol}),
+        allow_late_listings=allow_late_listings,
     )
     signals = tuple(s for s in result.signals if s.symbol == symbol)
     signal_ids = {s.signal_id for s in signals}
@@ -73,7 +75,10 @@ def run_coin_diagnostic(
     in_window = [
         c for c in candles_by_symbol[symbol] if report_start_utc <= c.open_time_utc < report_end_utc
     ]
-    hold = _buy_and_hold(in_window, ISOLATED_STARTING_USDC, costs)
+    hold = (
+        _buy_and_hold(in_window, ISOLATED_STARTING_USDC, costs)
+        if in_window else ISOLATED_STARTING_USDC
+    )
     metrics = replace(
         result.metrics,
         buy_and_hold_ending_equity=hold,

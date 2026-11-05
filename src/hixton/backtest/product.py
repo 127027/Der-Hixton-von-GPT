@@ -34,7 +34,10 @@ def run_product_backtest(
     report_end_utc: datetime,
     code_commit: str,
     source_sha256: str,
+    years: int = 3,
 ) -> Path:
+    if type(years) is not int or years not in (3, 5):
+        raise ValueError("Backtest duration must be 3 or 5 years")
     strategy = strategy_definition(config.strategy_key)
     if strategy.key not in {"v8", "v8r"} or mode not in {"all", "single", "portfolio"}:
         raise ValueError("V8 product backtest requires a supported mode")
@@ -74,6 +77,7 @@ def run_product_backtest(
         execution_rules=rules,
         native_database_path=config.database_path,
         cache_path=config.database_path.parent / "backtest-history.sqlite3",
+        requested_years=years,
     )
     result: RunResult
     if mode == "portfolio":
@@ -90,6 +94,7 @@ def run_product_backtest(
             strategy_version=strategy.version,
             reinvest_profits=settings.auto_budget_enabled,
             autonomous_spot=settings.autonomous_performance_enabled,
+            allow_late_listings=years == 5,
         )
     else:
         selected_symbols = strategy.symbols if mode == "all" else (symbol,)
@@ -103,6 +108,7 @@ def run_product_backtest(
                 report_start_utc=report_start_utc,
                 report_end_utc=report_end_utc,
                 costs=CURRENT_COSTS,
+                allow_late_listings=years == 5,
             )
             for item in selected_symbols
             if item is not None

@@ -4,9 +4,10 @@ from __future__ import annotations
 
 import hashlib
 from dataclasses import dataclass, replace
-from datetime import datetime
+from datetime import datetime, timedelta
 from decimal import ROUND_DOWN, Decimal
 
+from hixton.backtest.availability import available_rows
 from hixton.backtest.engine import candle_snapshot_sha256
 from hixton.backtest.metrics import calculate_metrics
 from hixton.backtest.models import (
@@ -103,6 +104,9 @@ def _equal_weight_buy_and_hold(
     ending = ZERO
     for symbol in symbols:
         candles = candles_by_symbol[symbol]
+        if not candles:
+            ending += allocation
+            continue
         entry = _d(candles[0].open) * (ONE + costs.adverse_price_rate)
         net_quantity = allocation / entry * (ONE - costs.fee_rate)
         ending += net_quantity * _d(candles[-1].close)
@@ -133,6 +137,7 @@ def run_shared_portfolio_backtest(
     profit_reinvestment_fraction: Decimal = Decimal("1"),
     capital_exposure_fraction: Decimal = Decimal("1"),
     allowed_entry_symbols: frozenset[str] | None = None,
+    allow_late_listings: bool = False,
 ) -> PortfolioBacktestResult:
     """Replay ten aligned markets against one non-compounding shared ledger."""
 
@@ -212,18 +217,23 @@ def run_shared_portfolio_backtest(
             for candle in candles_by_symbol[symbol]
             if warmup_start <= candle.open_time_utc < report_end_utc
         ]
-        audit_candles(
-            selected,
-            expected_symbol=symbol,
-            expected_start=warmup_start,
-            expected_end_exclusive=report_end_utc,
-        ).require_valid()
+        if selected or not allow_late_listings:
+            audit_candles(
+                selected,
+                expected_symbol=symbol,
+                expected_start=(selected[0].open_time_utc if allow_late_listings else warmup_start),
+                expected_end_exclusive=report_end_utc,
+            ).require_valid()
         selected_by_symbol[symbol] = selected
         report_by_symbol[symbol] = [
             candle for candle in selected if candle.open_time_utc >= report_start_utc
         ]
 
-    rows = tuple(zip(*(selected_by_symbol[symbol] for symbol in symbols), strict=True))
+    rows = (
+        ()
+        if allow_late_listings
+        else tuple(zip(*(selected_by_symbol[symbol] for symbol in symbols), strict=True))
+    )
     for row in rows:
         if len({candle.open_time_utc for candle in row}) != 1:
             raise ValueError("portfolio candles are not aligned by open_time_utc")
@@ -283,8 +293,16 @@ def run_shared_portfolio_backtest(
             at=max(point.candle.close_time_utc for point in previous_points.values()),
         ).daily_paused
 
-    for row in rows:
-        open_time = row[0].open_time_utc
+    timed_rows = (
+        available_rows(selected_by_symbol, warmup_start, report_end_utc)
+        if allow_late_listings
+        else ((row[0].open_time_utc, row) for row in rows)
+    )
+    for open_time, row in timed_rows:
+        close_time = max(
+            (candle.close_time_utc for candle in row),
+            default=open_time + TIMEFRAME_DELTA - timedelta(milliseconds=1),
+        )
         in_report = report_start_utc <= open_time < report_end_utc
         candles = {candle.symbol: candle for candle in row}
 
@@ -610,12 +628,14 @@ def run_shared_portfolio_backtest(
                     capital_fraction=capital_exposure_fraction,
                 )
                 if reinvest_profits:
-                    price_marks = {symbol: _d(candles[symbol].open) for symbol in symbols}
+                    price_marks = {symbol: _d(candle.open) for symbol, candle in candles.items()}
                     if strategy is not None and strategy.entry_capital_basis == ENTRY_CAPITAL_BASIS:
                         equity_at_open = entry_capital_equity(
                             free_quote=cash,
                             base_quantities={symbol: p.quantity for symbol, p in positions.items()},
-                            closed_prices={s: _d(previous_points[s].candle.close) for s in symbols},
+                            closed_prices={
+                                s: _d(p.candle.close) for s, p in previous_points.items()
+                            },
                         )
                     else:
                         equity_at_open = marked_portfolio_equity(
@@ -714,6 +734,8 @@ def run_shared_portfolio_backtest(
         points = {}
         decisions = {}
         for symbol in symbols:
+            if symbol not in candles:
+                continue
             points[symbol] = strategies[symbol].update(candles[symbol])
             position = positions.get(symbol)
             if position is not None:
@@ -744,7 +766,7 @@ def run_shared_portfolio_backtest(
                 (
                     ((positions[symbol].quantity if symbol in positions else ZERO) + dust[symbol])
                     * _d(candles[symbol].close)
-                    for symbol in symbols
+                    for symbol in candles
                 ),
                 ZERO,
             )
@@ -756,16 +778,18 @@ def run_shared_portfolio_backtest(
                 decision = evaluate_portfolio_risk(
                     risk_state,
                     equity=equity,
-                    at=max(candle.close_time_utc for candle in row),
+                    at=close_time,
                 )
                 if not risk_state.halted and decision.state.halted:
-                    risk_halted_at = max(candle.close_time_utc for candle in row)
+                    risk_halted_at = close_time
                 risk_state = decision.state
                 daily_paused = decision.daily_paused
                 daily_paused_bars += int(daily_paused)
 
             new_pending: list[Signal] = []
             for symbol in symbols:
+                if symbol not in decisions:
+                    continue
                 new_signal = decisions[symbol].signal
                 if new_signal is None:
                     continue
@@ -797,7 +821,7 @@ def run_shared_portfolio_backtest(
             pending = new_pending
             equity_curve.append(
                 EquityPoint(
-                    time_utc=max(candle.close_time_utc for candle in row),
+                    time_utc=close_time,
                     cash=cash,
                     position_value=position_value,
                     equity=equity,

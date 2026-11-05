@@ -15,7 +15,7 @@ from datetime import datetime, timedelta
 from pathlib import Path
 
 from hixton.backtest.models import ExecutionRules
-from hixton.data.binance import BinancePublicClient
+from hixton.data.binance import BinanceApiError, BinancePublicClient
 from hixton.data.quality import audit_candles
 from hixton.data.storage import CandleStore
 from hixton.data.sync import _missing_ranges
@@ -36,6 +36,7 @@ class ContinuityHistory:
     candles_by_symbol: dict[str, list[Candle]]
     execution_rules: dict[str, ExecutionRules]
     provenance_by_symbol: dict[str, dict[str, object]]
+    requested_years: int = 3
 
 
 def proxy_symbol(usdc_symbol: str) -> str:
@@ -62,14 +63,18 @@ def load_continuity_history(
     client: BinancePublicClient | None = None,
     native_database_path: Path | None = None,
     cache_path: Path | None = None,
+    requested_years: int = 3,
 ) -> ContinuityHistory:
-    """Load one continuous three-year market path for the active USDC strategy.
+    """Load the selected fixed market window for the active USDC strategy.
 
     Only market candles use the USDT proxy. Strategy parameters, symbol identity,
     portfolio/risk state, cost model and exchange rules remain those of the
     active USDC system.
     """
 
+    if type(requested_years) is not int or requested_years not in (3, 5):
+        raise ValueError("Backtest duration must be 3 or 5 years")
+    allow_late = requested_years == 5
     symbols = continuity_symbols(strategy)
     if set(execution_rules) != set(symbols):
         raise ValueError("continuity execution rules must match active USDC symbols exactly")
@@ -82,6 +87,22 @@ def load_continuity_history(
     candles_by_symbol: dict[str, list[Candle]] = {}
     provenance_by_symbol: dict[str, dict[str, object]] = {}
 
+    def fetch_history(symbol: str, start: datetime, end: datetime) -> list[Candle]:
+        if cache_path is None:
+            return public.fetch_klines(symbol, start=start, end_exclusive=end)
+        # Historical storage is separate from Paper/Live candles and accounts.
+        with CandleStore(cache_path) as cache:
+            missing = _missing_ranges(
+                cache.load_open_times(symbol, start=start, end_exclusive=end),
+                start=start,
+                end_exclusive=end,
+            )
+            for missing_start, missing_end in missing:
+                cache.put_candles(
+                    public.fetch_klines(symbol, start=missing_start, end_exclusive=missing_end)
+                )
+            return cache.load_candles(symbol, start=start, end_exclusive=end)
+
     for target_symbol in symbols:
         market_proxy = proxy_symbol(target_symbol)
         native: list[Candle] = []
@@ -91,6 +112,12 @@ def load_continuity_history(
                     target_symbol, start=warmup_start, end_exclusive=report_end_utc
                 )
             if native:
+                if allow_late and native[-1].open_time_utc + BAR < report_end_utc:
+                    # An offline bot may lag behind the click's closed hour.
+                    # Fetch real USDC bars into backtest storage only.
+                    native += fetch_history(
+                        target_symbol, native[-1].open_time_utc + BAR, report_end_utc
+                    )
                 audit_candles(
                     native,
                     expected_symbol=target_symbol,
@@ -99,32 +126,22 @@ def load_continuity_history(
                 ).require_valid()
         proxy_end = native[0].open_time_utc if native else report_end_utc
         proxy_candles: list[Candle] = []
-        if warmup_start < proxy_end:
-            if cache_path is None:
-                proxy_candles = public.fetch_klines(
-                    market_proxy, start=warmup_start, end_exclusive=proxy_end
+        proxy_start = warmup_start
+        if allow_late and proxy_start < proxy_end:
+            try:
+                proxy_start = public.first_available_open(
+                    market_proxy, start=proxy_start, end_exclusive=proxy_end
                 )
-            else:
-                # Separate research storage: proxy bars never enter Paper/Live data.
-                with CandleStore(cache_path) as cache:
-                    missing = _missing_ranges(
-                        cache.load_open_times(
-                            market_proxy, start=warmup_start, end_exclusive=proxy_end
-                        ),
-                        start=warmup_start,
-                        end_exclusive=proxy_end,
-                    )
-                    for missing_start, missing_end in missing:
-                        cache.put_candles(
-                            public.fetch_klines(
-                                market_proxy, start=missing_start, end_exclusive=missing_end
-                            )
-                        )
-                    proxy_candles = cache.load_candles(
-                        market_proxy, start=warmup_start, end_exclusive=proxy_end
-                    )
-        if warmup_start < proxy_end and (
-            not proxy_candles or proxy_candles[0].open_time_utc != warmup_start
+            except BinanceApiError as error:
+                # Only a successful empty provider response denotes no history.
+                # Transport/API failures remain errors, never invented listing gaps.
+                if str(error) != f"{market_proxy}: no first available hourly candle":
+                    raise
+                proxy_start = proxy_end
+        if proxy_start < proxy_end:
+            proxy_candles = fetch_history(market_proxy, proxy_start, proxy_end)
+        if proxy_start < proxy_end and (
+            not proxy_candles or proxy_candles[0].open_time_utc != proxy_start
         ):
             raise ValueError(f"{market_proxy}: full three-year proxy warm-up is unavailable")
         expected_last = report_end_utc - BAR
@@ -136,22 +153,45 @@ def load_continuity_history(
             )
             for candle in proxy_candles
         ] + native
-        if not adapted or adapted[-1].open_time_utc != expected_last:
+        if not adapted and not allow_late:
             raise ValueError(f"{target_symbol}: history does not reach {expected_last.isoformat()}")
-        audit_candles(
-            adapted,
-            expected_symbol=target_symbol,
-            expected_start=warmup_start,
-            expected_end_exclusive=report_end_utc,
-        ).require_valid()
+        if adapted:
+            audit_candles(
+                adapted,
+                expected_symbol=target_symbol,
+                expected_start=adapted[0].open_time_utc if allow_late else warmup_start,
+                expected_end_exclusive=report_end_utc,
+            ).require_valid()
+        first = adapted[0].open_time_utc if adapted else None
+        tradable_from = (
+            max(report_start_utc, first + strategy.parameters_for(target_symbol).warmup_bars * BAR)
+            if first is not None
+            else None
+        )
         candles_by_symbol[target_symbol] = adapted
         provenance_by_symbol[target_symbol] = {
             "target_market": target_symbol,
             "market_proxy": market_proxy,
             "proxy_quote": PROXY_QUOTE,
             "target_quote": TARGET_QUOTE,
-            "first_open_utc": adapted[0].open_time_utc.isoformat(),
-            "last_open_utc": adapted[-1].open_time_utc.isoformat(),
+            "first_open_utc": first.isoformat() if first else None,
+            "last_open_utc": adapted[-1].open_time_utc.isoformat() if adapted else None,
+            "requested_report_start_utc": report_start_utc.isoformat(),
+            "tradable_from_utc": tradable_from.isoformat() if tradable_from else None,
+            "unavailable_until_utc": (
+                min(tradable_from, report_end_utc).isoformat()
+                if tradable_from and tradable_from > report_start_utc
+                else report_end_utc.isoformat()
+                if not adapted
+                else None
+            ),
+            "availability_note": (
+                "NO_HISTORY"
+                if not adapted
+                else "LATE_HISTORY_AND_WARMUP"
+                if first and first > warmup_start
+                else "FULL_WINDOW"
+            ),
             "candle_count": len(adapted),
             "execution_rules_from": target_symbol,
             "native_usdc_candle_count": len(native),
@@ -164,6 +204,7 @@ def load_continuity_history(
         candles_by_symbol=candles_by_symbol,
         execution_rules=execution_rules,
         provenance_by_symbol=provenance_by_symbol,
+        requested_years=requested_years,
     )
 
 
@@ -171,8 +212,13 @@ def continuity_manifest_data(history: ContinuityHistory) -> dict[str, object]:
     """Machine-readable disclosure added to the immutable run manifest."""
 
     return {
-        "history_mode": HISTORY_MODE,
-        "purpose": "THREE_YEAR_STRATEGY_CONTINUITY",
+        "history_mode": HISTORY_MODE if history.requested_years == 3 else "FIVE_YEAR_LISTING_AWARE",
+        "purpose": "THREE_YEAR_STRATEGY_CONTINUITY"
+        if history.requested_years == 3
+        else "FIVE_YEAR_STRATEGY_CONTINUITY",
+        "requested_years": history.requested_years,
+        "missing_history_policy": "UNTRADABLE_UNTIL_REAL_HISTORY_AND_WARMUP",
+        "invented_candles": False,
         "runtime_quote": TARGET_QUOTE,
         "market_proxy_quote": PROXY_QUOTE,
         "proxy_scope": "HISTORICAL_MARKET_CANDLES_ONLY",

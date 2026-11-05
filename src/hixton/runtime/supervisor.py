@@ -40,10 +40,14 @@ def _subtract_calendar_years(value: datetime, years: int) -> datetime:
         return value.replace(year=value.year - years, month=2, day=28)
 
 
-def safe_closed_window(now: datetime | None = None) -> tuple[datetime, datetime, datetime]:
+def safe_closed_window(
+    now: datetime | None = None, *, years: int = 3
+) -> tuple[datetime, datetime, datetime]:
+    if type(years) is not int or years not in (3, 5):
+        raise ValueError("Backtest duration must be 3 or 5 years")
     current = (now or datetime.now(UTC)).astimezone(UTC)
     report_end = current.replace(minute=0, second=0, microsecond=0)
-    report_start = _subtract_calendar_years(report_end, 3)
+    report_start = _subtract_calendar_years(report_end, years)
     return report_start - 400 * TIMEFRAME_DELTA, report_start, report_end
 
 
@@ -240,9 +244,14 @@ class RuntimeSupervisor:
         mode: str,
         symbol: str | None = None,
         strategy_key: str | None = None,
+        years: int = 3,
     ) -> bool:
         if self.state.snapshot().backtest_status == "RUNNING":
             return False
+        if type(years) is not int or years not in (3, 5):
+            raise ValueError("Backtest duration must be 3 or 5 years")
+        if years == 5 and self.strategy.key not in {"v8", "v8r"}:
+            raise ValueError("Five-year backtest requires the active V8 strategy")
         if mode not in {"all", "single", "portfolio"}:
             raise ValueError("backtest mode must be all, single or portfolio")
         normalized = symbol.replace("/", "").upper() if symbol else None
@@ -257,6 +266,8 @@ class RuntimeSupervisor:
                 mode=mode,
                 symbol=normalized,
                 strategy_key=selected_strategy_key,
+                years=years,
+                requested_at_utc=datetime.now(UTC),
             ),
             name="hixton-backtest",
         )
@@ -268,6 +279,8 @@ class RuntimeSupervisor:
         mode: str,
         symbol: str | None,
         strategy_key: str,
+        years: int = 3,
+        requested_at_utc: datetime | None = None,
     ) -> None:
         try:
             await asyncio.to_thread(
@@ -275,6 +288,8 @@ class RuntimeSupervisor:
                 mode,
                 symbol,
                 strategy_key,
+                years=years,
+                requested_at_utc=requested_at_utc,
             )
             self.state.set_status(backtest_status="COMPLETE")
             self.state.log(
@@ -282,7 +297,8 @@ class RuntimeSupervisor:
                 component="backtest",
                 event_code="BACKTEST_COMPLETE",
                 message=(
-                    f"Backtest {strategy_key} {mode} {symbol or 'ALL'} erfolgreich abgeschlossen"
+                    f"Backtest {strategy_key} {mode} {symbol or 'ALL'} · "
+                    f"{years} Jahre erfolgreich abgeschlossen"
                 ),
             )
         except Exception as error:
@@ -498,6 +514,9 @@ class RuntimeSupervisor:
         mode: str,
         symbol: str | None,
         strategy_key: str,
+        *,
+        years: int = 3,
+        requested_at_utc: datetime | None = None,
     ) -> None:
         strategy = strategy_definition(strategy_key)
         from hixton.backtest.reporting import source_fingerprint
@@ -507,7 +526,11 @@ class RuntimeSupervisor:
         if strategy.key in {"v8", "v8r"}:
             from hixton.backtest.product import run_product_backtest
 
-            _, report_start, report_end = safe_closed_window()
+            _, report_start, report_end = (
+                safe_closed_window()
+                if requested_at_utc is None and years == 3
+                else safe_closed_window(requested_at_utc, years=years)
+            )
             completed = subprocess.run(
                 ["git", "rev-parse", "HEAD"],
                 cwd=self.config.run_output_root.parents[2],
@@ -523,6 +546,7 @@ class RuntimeSupervisor:
                 report_end_utc=report_end,
                 code_commit=completed.stdout.strip() if completed.returncode == 0 else "UNKNOWN",
                 source_sha256=self.execution_source_sha256,
+                **({"years": years} if years != 3 else {}),
             )
             return
         points = self.state.points()

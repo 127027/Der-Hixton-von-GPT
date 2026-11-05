@@ -481,7 +481,8 @@ async function refreshBacktests(): Promise<void> {
     const strategy = required<HTMLSelectElement>("#backtest-strategy").value;
     const selection = required<HTMLSelectElement>("#backtest-symbol").value;
     const mode = selection === "PORTFOLIO" ? "portfolio" : selection === "ALL" ? "all" : "single";
-    const viewKey = `${strategy}:${selection}`;
+    const years = required<HTMLSelectElement>("#backtest-years").value;
+    const viewKey = `${strategy}:${selection}:${years}`;
     const history = required<HTMLDetailsElement>("#backtest-history");
     if (backtestViewKey !== viewKey) {
       backtestViewKey = viewKey;
@@ -494,12 +495,12 @@ async function refreshBacktests(): Promise<void> {
       history.open = false;
       history.classList.add("hidden");
     }
-    const query = new URLSearchParams({ strategy, mode });
+    const query = new URLSearchParams({ strategy, mode, years });
     if (mode === "single") query.set("symbol", selection);
     const response = await api<{ runs: BacktestRun[]; status: string }>(`/api/backtests?${query}`);
-    if (generation !== backtestLoadGeneration || required<HTMLSelectElement>("#backtest-strategy").value !== strategy || required<HTMLSelectElement>("#backtest-symbol").value !== selection) return;
+    if (generation !== backtestLoadGeneration || required<HTMLSelectElement>("#backtest-strategy").value !== strategy || required<HTMLSelectElement>("#backtest-symbol").value !== selection || required<HTMLSelectElement>("#backtest-years").value !== years) return;
     text("#backtest-eyebrow", `BACKTEST ${strategy.toUpperCase()}`);
-    text("#backtest-title", "Historische Simulation");
+    text("#backtest-title", `Historische Simulation · ${years} Jahre`);
     const button = required<HTMLButtonElement>("#backtest-button");
     button.disabled = response.status === "RUNNING";
     button.textContent = response.status === "RUNNING" ? "Backtest läuft …" : "Backtest starten";
@@ -519,6 +520,11 @@ async function refreshBacktests(): Promise<void> {
       const riskHalt = current?.portfolio?.risk_halted_at_utc;
       const riskLabel = riskHalt ? `<strong class="negative">RISIKOHALT im Test · ${formatDate(String(riskHalt), true)}</strong>` : "";
       const window = manifest.data as Record<string, unknown> | undefined;
+      const provenance = window?.provenance_by_symbol as Record<string, Record<string, unknown>> | undefined;
+      const unavailable = Object.entries(provenance ?? {}).filter(([, item]) => item.unavailable_until_utc);
+      const availability = unavailable.length
+        ? `<details><summary>Historie: ${unavailable.length} Coins später verfügbar</summary>${unavailable.map(([coin, item]) => `<small>${escapeHtml(coin)} · unhandelbar bis ${formatDate(String(item.unavailable_until_utc), true)} · ${item.availability_note === "NO_HISTORY" ? "keine Historie im Zeitraum" : "Datenbeginn und Aufwärmphase"}</small>`).join("")}</details>`
+        : "";
       const runId = String(manifest.run_id ?? "—");
       const capital = manifest.capital_source as Record<string, unknown> | undefined;
       const capitalNote = capital?.kind === "SIMULATED_NO_API_KEY"
@@ -526,7 +532,7 @@ async function refreshBacktests(): Promise<void> {
         : capital?.kind === "BINANCE_SPOT_FREE_USDC"
           ? `Startkapital: ${formatNumber(String(capital.amount_usdc))} USDC · Binance-Abfrage ${formatDate(String(capital.observed_at_utc), true)}`
           : current?.portfolio ? "Kapital gemäß gespeicherten Einstellungen." : "Unabhängige Coin-Konten; aktuelle Handelsengine, keine gemeinsame Kapitalverteilung.";
-      return `<article class="run-card"><div><strong title="${escapeHtml(runId)}">${escapeHtml(runMode)} · Run ${escapeHtml(runId.slice(0, 8))}</strong><small>${escapeHtml(version)}</small><small>${escapeHtml(capitalNote)}</small><small>Testfenster: ${formatDate(window?.report_start_utc ? String(window.report_start_utc) : null)} – ${formatDate(window?.report_end_utc ? String(window.report_end_utc) : null)} (Ende exklusiv)</small><small>Erstellt: ${formatDate(manifest.created_at_utc ? String(manifest.created_at_utc) : null, true)} · ${escapeHtml(manifest.status)}</small></div><span>Ergebnis: ${result}${riskLabel}</span></article>`;
+      return `<article class="run-card"><div><strong title="${escapeHtml(runId)}">${escapeHtml(runMode)} · Run ${escapeHtml(runId.slice(0, 8))}</strong><small>${escapeHtml(version)}</small><small>${escapeHtml(capitalNote)}</small><small>Testfenster: ${formatDate(window?.report_start_utc ? String(window.report_start_utc) : null)} – ${formatDate(window?.report_end_utc ? String(window.report_end_utc) : null)} (Ende exklusiv)</small><small>Erstellt: ${formatDate(manifest.created_at_utc ? String(manifest.created_at_utc) : null, true)} · ${escapeHtml(manifest.status)}</small>${availability}</div><span>Ergebnis: ${result}${riskLabel}</span></article>`;
     });
     required("#backtest-runs").innerHTML = cards[0] ?? `<article class="run-card"><div><strong>Noch kein Backtest für diese Auswahl</strong><small>Version und Testart sind getrennt. Einen passenden Lauf hier starten.</small></div></article>`;
     required("#backtest-history-runs").innerHTML = "";
@@ -581,6 +587,7 @@ function initializeControls(): void {
   required<HTMLSelectElement>("#coin-select").addEventListener("change", (event) => { selectedSymbol = (event.target as HTMLSelectElement).value as SymbolName; void loadChart(); });
   required<HTMLSelectElement>("#backtest-strategy").addEventListener("change", () => void refreshBacktests());
   required<HTMLSelectElement>("#backtest-symbol").addEventListener("change", () => void refreshBacktests());
+  required<HTMLSelectElement>("#backtest-years").addEventListener("change", () => void refreshBacktests());
   required<HTMLSelectElement>("#timezone-select").addEventListener("change", () => void loadChart());
   required<HTMLInputElement>("#overlay-toggle").addEventListener("change", (event) => {
     const visible = (event.target as HTMLInputElement).checked;
@@ -596,7 +603,7 @@ function initializeControls(): void {
     const symbol = required<HTMLSelectElement>("#backtest-symbol").value;
     const strategy = required<HTMLSelectElement>("#backtest-strategy").value;
     const mode = symbol === "PORTFOLIO" ? "portfolio" : symbol === "ALL" ? "all" : "single";
-    try { await api("/api/backtests/run", { method: "POST", body: JSON.stringify({ mode, symbol, strategy }) }); showToast("V8-Backtest wurde gestartet."); await refreshBacktests(); }
+    try { await api("/api/backtests/run", { method: "POST", body: JSON.stringify({ mode, symbol, strategy, years: Number(required<HTMLSelectElement>("#backtest-years").value) }) }); showToast(`${required<HTMLSelectElement>("#backtest-years").value}-Jahres-Backtest wurde gestartet.`); await refreshBacktests(); }
     catch (error) { showToast(error instanceof Error ? error.message : String(error), true); }
   });
 }

@@ -9,6 +9,7 @@ from __future__ import annotations
 
 import json
 import subprocess
+from datetime import datetime
 
 from hixton.backtest.continuity import continuity_manifest_data, load_continuity_history
 from hixton.backtest.engine import run_isolated_batch, run_single_backtest
@@ -58,10 +59,15 @@ class RuntimeSupervisor(BaseRuntimeSupervisor):
         mode: str,
         symbol: str | None,
         strategy_key: str,
+        *,
+        years: int = 3,
+        requested_at_utc: datetime | None = None,
     ) -> None:
         strategy = strategy_definition(strategy_key)
         if strategy.key != V6_COIN_STRATEGY.key:
-            super()._synchronous_backtest(mode, symbol, strategy_key)
+            super()._synchronous_backtest(
+                mode, symbol, strategy_key, years=years, requested_at_utc=requested_at_utc
+            )
             return
         if source_fingerprint() != self.execution_source_sha256:
             raise RuntimeError("Python-Code seit Botstart geändert: vor neuem Backtest neu starten")

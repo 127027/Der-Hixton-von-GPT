@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="color-scheme" content="dark" />
     <title>Der Hixton</title>
-    <script type="module" crossorigin src="/assets/index-McWou6hf.js"></script>
+    <script type="module" crossorigin src="/assets/index-C3NvDa-5.js"></script>
     <link rel="stylesheet" crossorigin href="/assets/index-BMcig-YN.css">
   </head>
   <body>
@@ -131,9 +131,11 @@
             <div><strong>Historischer Test</strong><p>Aktuelle Einstellungen rückwirkend simulieren. Zeitraum und Kosten stehen im Ergebnis.</p></div>
             <select id="backtest-strategy" aria-label="Backteststrategie" disabled><option value="">Aktive Strategie wird geladen …</option></select>
             <select id="backtest-symbol" aria-label="Backtestart"><option value="PORTFOLIO">Gemeinsames Portfolio</option><option value="ALL">Alle 15 einzeln · je 250 USDC</option></select>
+            <select id="backtest-years" aria-label="Backtestzeitraum"><option value="3">Letzte 3 Jahre</option><option value="5">Letzte 5 Jahre</option></select>
             <button id="backtest-button" class="button primary">Backtest starten</button>
           </article>
           <details class="compact-details"><summary>Testmethode & Grenzen</summary><p>Drei Kalenderjahre bis zur letzten abgeschlossenen UTC-Stunde. Zusätzlich 400 Stundenkerzen zum Aufwärmen, außerhalb des Ergebniszeitraums, und modellierte Kosten. Fehlende ältere USDC-Historie wird durch USDT-Preise ergänzt. VALID bestätigt die Berechnung, keinen künftigen Gewinn und keine echte Binance-Ausführung. Paper und Echtgeld werden durch den Backtest nicht verändert.</p></details>
+          <p class="backtest-note">Zeitraum ab dem Startklick rückwärts. Im 5-Jahres-Test bleiben Coins ohne verfügbare Historie bis nach ihrer Aufwärmphase unhandelbar. Datenlücken und USDT-Kursproxies werden im Ergebnis ausgewiesen.</p>
           <p id="backtest-run-note" class="backtest-note" aria-live="polite">Versionsnachweis wird geladen …</p>
           <div id="backtest-runs" class="run-list"></div>
           <details id="backtest-history" class="backtest-history hidden">

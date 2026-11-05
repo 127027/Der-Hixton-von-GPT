@@ -367,6 +367,7 @@ def _list_backtests(
     *,
     mode: str | None = None,
     symbol: str | None = None,
+    years: int | None = None,
 ) -> list[dict[str, object]]:
     if not output_root.exists():
         return []
@@ -398,6 +399,10 @@ def _list_backtests(
         # Old reports are immutable USDT evidence, not USDC merely because the
         # active bot migrated. Infer only from actual symbol metadata, never UI defaults.
         data = manifest.get("data", {})
+        if years is not None and (
+            not isinstance(data, dict) or data.get("requested_years", 3) != years
+        ):
+            continue
         hashes = data.get("snapshot_sha256_by_symbol", {}) if isinstance(data, dict) else {}
         names = set(hashes) if isinstance(hashes, dict) else set()
         singles = primary.get("per_symbol", {})
@@ -689,7 +694,10 @@ def create_app(
         strategy: str = Query(default=config.strategy_key),
         mode: str | None = None,
         symbol: str | None = None,
+        years: int = 3,
     ) -> dict[str, object]:
+        if years not in (3, 5):
+            raise HTTPException(status_code=400, detail="Backtest: 3 oder 5 Jahre auswählen")
         if mode not in {None, "portfolio", "all", "single"}:
             raise HTTPException(status_code=400, detail="Unbekannte Backtestart")
         normalized = symbol.replace("/", "").upper() if symbol else None
@@ -706,7 +714,7 @@ def create_app(
                 settings = store.load_settings()
         except (OSError, sqlite3.Error, RuntimeError):
             settings = None
-        runs = _list_backtests(output_root, mode=mode, symbol=normalized)
+        runs = _list_backtests(output_root, mode=mode, symbol=normalized, years=years)
         disk_changed = source_fingerprint() != supervisor.execution_source_sha256
         for run in runs:
             manifest, metrics = run["manifest"], run["metrics"]
@@ -765,11 +773,15 @@ def create_app(
         requested_strategy = str(payload.get("strategy", config.strategy_key)).lower()
         if requested_strategy != config.strategy_key:
             raise HTTPException(status_code=400, detail="Nur die aktuell aktive V8 ist verfügbar")
+        years = payload.get("years", 3)
+        if type(years) is not int or years not in (3, 5):
+            raise HTTPException(status_code=400, detail="Backtest: 3 oder 5 Jahre auswählen")
         try:
             started = supervisor.start_backtest(
                 mode=str(payload.get("mode", "")),
                 symbol=str(payload.get("symbol")) if payload.get("symbol") else None,
                 strategy_key=config.strategy_key,
+                **({"years": years} if years != 3 else {}),
             )
         except ValueError as error:
             raise HTTPException(status_code=400, detail=str(error)) from error
