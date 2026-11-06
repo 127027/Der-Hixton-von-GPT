@@ -1,0 +1,33 @@
+{
+  "archive": "Shared-Public-C0-Core-20261106.zip",
+  "bytes": 953865,
+  "sha256": "c0522791a31150493ac1f1669ab4138c45831c6ad1eddb18a0615175aaeabb4a",
+  "base64_chars": 1271820,
+  "parts": [
+    {
+      "name": "ledger.zip.b64.part00",
+      "characters": 262144,
+      "sha256_text_with_newline": "8006db4433302531ffb7c89b91bf10c354ba30864db877d832955383eb5e3a19"
+    },
+    {
+      "name": "ledger.zip.b64.part01",
+      "characters": 262144,
+      "sha256_text_with_newline": "06737df1afedb1d92a590d080ae01185f08e174f62aea1d28d07637f2de1237b"
+    },
+    {
+      "name": "ledger.zip.b64.part02",
+      "characters": 262144,
+      "sha256_text_with_newline": "f1f7d760527114d4a086640ed2888ce01912b611576f01b4ba98460a22089aa6"
+    },
+    {
+      "name": "ledger.zip.b64.part03",
+      "characters": 262144,
+      "sha256_text_with_newline": "fe07d2431ce206ed781b665d0d3e8bef0bdafc86d1eca7232cc91a5f27bb7432"
+    },
+    {
+      "name": "ledger.zip.b64.part04",
+      "characters": 223244,
+      "sha256_text_with_newline": "38730023c2d80d4ff5cd6dad8548d814ec62c31c8ea1be4f0ccba4146a092ad4"
+    }
+  ]
+}
