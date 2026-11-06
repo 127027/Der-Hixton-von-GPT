@@ -427,3 +427,13 @@ Codex supplied only public market inputs, not private financial reports: release
 - Exact GitHub adapter/core blobs verified without reconstruction. Original corrected-head fixtures reproduced6PASS/5FAIL. Positive fixture data repaired (no change to warning/strategy); constant-series and4of6 negative controls added.13PASS/0FAIL on Python3.11.4. Test commit e799010ac94d72de0c9f57e87c74b63f544f2f70; evidence commit1f7c42a490c28ddadecb17c0a440225c55888e14, research/r2_held004/evidence/CODEX-EXACT-ADAPTER-FIXTURES-20261105.json.
 - Concrete access/ownership answers: research/r2_held004/UNBLOCK-ANSWERS-20261105.md, commit075abf0d15814eb1047cf56487d3d947709ace3a.
 - No native METHOD_PASS or economic improvement claimed. HELD004 native integration still pending. No product/live changes, no broad replays, CAP archived. Paused Codex scheduler unchanged.
+
+
+## 2026-11-06 — ONE shared public5year C0 ledger executed to unblock D1/D2
+- Local regular offline runtime used because coordinator did not answer and Dot runtime cannot workflow_dispatch. No credentials/product database/exchange access.
+- Unchanged8964151 listing/outage infrastructure with exact frozenstrategy payload,originalreference rules,currentcosts,publicseed1000USDC. Input file and candle snapshot hashes verified for15markets.
+- 43824hourly rows,549fills,274closedtrades; end10190.898943604694USDC,maxDD54.927230308277545%. This is a reference baseline,NOT an economic improvement or HELD004 result.
+- Every hour cash+combinedpositionvalue=equity,cash>=0;43824rows. Separate independentQA still PENDING. EXPLORATORY_DATA_GAPS / comparisonUNVERIFIED,sharedoutage/lateSUI/USDTproxies retained.
+- Public core ledger including fills/trades/hourlyequity/contract/manifest/metrics and generating script: research/shared_public_c0_20261106/README.md,commit720acc3a0552b877ee1b551a06370cd773d31efc.953865byteZIP,SHA256c0522791a31150493ac1f1669ab4138c45831c6ad1eddb18a0615175aaeabb4a,stored in5base64textparts. All5remotecommittedparts were fetched and compared exactly; archive/memberhashroundtrip PASS.
+- Signals/blocked-signals excluded from publicCORE; hourly per-positionunits/basis/DD10/budgets not directly exported. D1/D2 should start supported attribution from actualfills/cash/equity and explicitly identify residualfieldgaps,not rerun baseline.
+- No private accountdata published,no productchange,no parameter/backtestseries,no nativeMETHOD_PASS claimed. Existing paused D1/D2 can be resumed by coordinator now that concretefinancialinput exists; D3HELD004nativeintegration remains separate.
