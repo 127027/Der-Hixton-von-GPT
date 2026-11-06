@@ -1,0 +1,29 @@
+{
+  "source_run": "LOCAL_SHARED_PUBLIC_C0_20261106",
+  "source_commit": "720acc3a0552b877ee1b551a06370cd773d31efc",
+  "source_trades_sha256": "7c2da6cdcf28aa99ac41ee9312306946cf01c123356a57959f0fd1f945e45c13",
+  "source_equity_sha256": "4b59d57e8c01a7c1e4415d4e38afee05dcd4b67a7073154882efc4b362ec30a6",
+  "cutoff_exclusive_utc": "2023-10-11T19:00:00+00:00",
+  "closed_trades": 113,
+  "state_sample_count": 25,
+  "views_only_no_new_backtest": true,
+  "limitations": [
+    "Closed-trade realized_pnl sums are not a complete portfolio loss decomposition; open positions,dust,unrealized PnL and accounting conventions remain relevant.",
+    "Monthly samples do not substitute hourly per-position units/basis/DD10/orderbudget traces.",
+    "EXPLORATORY_DATA_GAPS; independent financial QA PENDING."
+  ],
+  "files": {
+    "Closed-Trade-PnL-By-Coin.csv": {
+      "bytes": 1279,
+      "sha256": "eb54bc84b9944eead6199a80f25b5ff8e1848fb763b8750708a0b8608ba290f6"
+    },
+    "Closed-Trades-Before-20231011.csv": {
+      "bytes": 19707,
+      "sha256": "1f7e5b6060b088e043e3a1d2f2f405530184fea8c40f11d5f8e05e64f0f3da2a"
+    },
+    "Monthly-State-Samples-Before-20231011.csv": {
+      "bytes": 3763,
+      "sha256": "a443e838a56ff3fd6666021d8743b4a72d3141c2140c465921ec152b305cc2b3"
+    }
+  }
+}
